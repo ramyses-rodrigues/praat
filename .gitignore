@@ -1,9 +1,17 @@
 # intermediate build products for Windows and Linux
 *.o
 *.a
+*.obj
 
 # the project for MacOSX
 *.xcodeproj/
+
+# the project for visual studio
+*.PraatVS/
+
+# the project for VSCode
+*.vs/
+*.vscode/
 
 # intermediate build products for MacOSX
 DerivedData
