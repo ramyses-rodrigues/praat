@@ -520,6 +520,7 @@ static void _GuiNativizeWidget (GuiObject me) {
 			}
 		}
 	} else switch (my widgetClass) {
+		// WS_EX_ACCEPTFILES - em qual dessas janelas colocar?
 		case xmBulletinBoardWidgetClass: {
 			my window = CreateWindowEx (0, Melder_peek32toW (theWindowClassName), L"bulletinBoard", WS_CHILD | WS_BORDER | WS_CLIPSIBLINGS,
 				my x, my y, my width, my height, my parent -> window, NULL, theGui.instance, NULL);
@@ -527,8 +528,9 @@ static void _GuiNativizeWidget (GuiObject me) {
 		} break;
 		case xmDrawingAreaWidgetClass: Melder_fatal (U"Should be implemented in GuiDrawingArea."); break;
 		case xmFormWidgetClass: {
-			my window = CreateWindowEx (0, Melder_peek32toW (theWindowClassName), L"form", WS_CHILD | WS_CLIPSIBLINGS,
+			my window = CreateWindowEx (WS_EX_ACCEPTFILES, Melder_peek32toW (theWindowClassName), L"form", WS_CHILD | WS_CLIPSIBLINGS,			
 				my x, my y, my width, my height, my parent -> window, NULL, theGui.instance, NULL);
+			//DragAcceptFiles((HWND)window, true);
 			SetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
 		} break;
 		case xmRowColumnWidgetClass: {
@@ -2743,7 +2745,7 @@ static void on_activate (HWND window, UINT state, HWND hActive, BOOL minimized) 
 	} else FORWARD_WM_ACTIVATE (window, state, hActive, minimized, DefWindowProc);
 }
 
-static void handleDrop(WPARAM wParam)
+static void on_dropFiles(WPARAM wParam)
 {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
 	TCHAR szName[MAX_PATH];
@@ -2797,16 +2799,9 @@ static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LP
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
 
 		case WM_DROPFILES:
-			handleDrop(wParam); 
+			on_dropFiles(wParam); 
 			break;
 
-		// HANDLE_MSG (window, EVENT_OBJECT_DRAGCANCEL, on_activate);
-		// HANDLE_MSG (window, EVENT_OBJECT_DRAGCOMPLETE, on_activate);
-		// HANDLE_MSG (window, EVENT_OBJECT_DRAGENTER, on_activate);
-		// HANDLE_MSG (window, EVENT_OBJECT_DRAGLEAVE, on_activate);
-		// HANDLE_MSG (window, EVENT_OBJECT_DRAGDROPPED, on_activate);
-		
-		
 		case WM_USER: {
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
 			SetForegroundWindow (window);*/
