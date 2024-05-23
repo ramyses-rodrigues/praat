@@ -1,6 +1,6 @@
 /* SpeechSynthesizer.cpp
  *
- * Copyright (C) 2011-2023 David Weenink
+ * Copyright (C) 2011-2023 David Weenink, 2012,2013,2015-2024 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -712,6 +712,8 @@ static autoTextGrid Table_to_TextGrid (Table me, conststring32 text, double xmin
 						trace (U"overriding <<", lastPhonemeInterval -> text.get(), U">> with <<", phoneme, U">>");
 						TextGrid_setIntervalText (thee.get(), 4, phonemes -> intervals.size, phoneme);
 					} else {
+						//TRACE
+						trace (U"stupid repair, houtjes-touwtjes");
 						time = 0.001 * lastPhonemeInterval -> xmax + 0.999 * lastPhonemeInterval -> xmin;
 						trace (U"add boundary (2) for phoneme <<", phoneme, U">> at ", time);
 						IntervalTier_addBoundaryUnsorted (phonemes, phonemes -> intervals.size, time, phoneme, false);

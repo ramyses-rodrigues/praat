@@ -1,6 +1,6 @@
 /* manual_whatsnew.cpp
  *
- * Copyright (C) 1992-2023 Paul Boersma
+ * Copyright (C) 1992-2024 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,36 @@ R"~~~(
 © Paul Boersma 1995–2024
 
 Latest changes in Praat.
+
+##6.4.11# (26 April 2024)
+• Menu commands that call a script (e.g. those that were added from a plug-in)
+  are now visible as such by being marked with a little “+” sign.
+• Fixed a bug that could cause the SpeechSynthesizer to mishandle European
+  characters with accents on Linux.
+
+##6.4.10# (21 April 2024)
+• Function windows: fixed a problem that could cause Praat to crash when doing #all after #Group
+  when windows had a different duration.
+
+##6.4.09# (20 April 2024)
+• TextGrid window: fixed a rare problem with ##Align interval# that could lead to a zero-length interval.
+• Windows ARM64 edition: fixed a bug that would cause ##Align interval# to crash.
+• ##Sound & TextGrid: Align interval...# now also available in the Objects window.
+
+##6.4.08# (14 April 2024)
+• Windows: fixed a problem with the right and bottom edges of windows (half-visible scroll bars)
+	for the Intel editions (the ARM64 edition still has this problem).
+• Scripting: fixed a bug that could cause Praat to crash when an unknown choice was given to an option menu.
+• MelSpectrogram: fixed a bug that could cause Praat to crash if a mel value was negative.
+• DataModeler: improved confidence limits on estimated model parameters.
+
+##6.4.07# (17 March 2024)
+• The command @@Sound & Pitch: To PointProcess (cc)@, which is also used when computing the times of pulses
+  in the Sound window, could cause Praat to freeze when the pitch ceiling (and the measured pitch)
+  were very high; this problem existed since at least 2001.
+• eSpeak: new version, with e.g. Tigrinya.
+• Support for 119-dpi graphics on Windows.
+• Repaired a bug that could cause the Artword windows to crash if the Time field was left empty.
 
 ##6.4.06# (25 February 2024)
 • Sound files on Windows: corrected a bug (existing since July 2021)
