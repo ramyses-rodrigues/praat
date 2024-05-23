@@ -5,6 +5,11 @@
             "cwd": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Speech_Recognition\\praat\\praat",
             "binaryPath": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Speech_Recognition\\praat\\praat\\Praat.exe",
             "binaryArgs": []
+        },
+        {
+            "cwd": "d:\\OneDrive\\Documentos\\Projects\\Speech_Recognition\\praat\\praat",
+            "binaryPath": "d:\\OneDrive\\Documentos\\Projects\\Speech_Recognition\\praat\\praat\\Praat.exe",
+            "binaryArgs": []
         }
     ]
 }
