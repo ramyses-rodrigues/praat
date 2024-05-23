@@ -2742,6 +2742,38 @@ static void on_activate (HWND window, UINT state, HWND hActive, BOOL minimized) 
 		return;
 	} else FORWARD_WM_ACTIVATE (window, state, hActive, minimized, DefWindowProc);
 }
+
+static void handleDrop(WPARAM wParam)
+{
+	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
+	TCHAR szName[MAX_PATH];
+
+	// Here we cast the wParam as a HDROP handle to pass into the next functions
+	HDROP hDrop = (HDROP)wParam;
+
+	// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF in
+	// the second parameter then it returns the count of how many filers were drag
+	// and dropped.  Otherwise, the function fills in the szName string array with
+	// the current file being queried.
+	int count = DragQueryFile(hDrop, 0xFFFFFFFF, szName, MAX_PATH);
+
+	// Here we go through all the files that were drag and dropped then display them
+	for(int i = 0; i < count; i++)
+	{
+		// Grab the name of the file associated with index "i" in the list of files dropped.
+		// Be sure you know that the name is attached to the FULL path of the file.
+		DragQueryFile(hDrop, i, szName, MAX_PATH);
+
+		// Bring up a message box that displays the current file being processed
+		MessageBoxW(GetForegroundWindow(), szName, L"Current file received", 0);
+	}
+
+	// Finally, we destroy the HDROP handle so the extra memory
+	// allocated by the application is released.
+	DragFinish(hDrop);
+
+}
+
 static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		HANDLE_MSG (window, WM_CLOSE, on_close);
@@ -2763,6 +2795,18 @@ static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LP
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
+
+		case WM_DROPFILES:
+			handleDrop(wParam); 
+			break;
+
+		// HANDLE_MSG (window, EVENT_OBJECT_DRAGCANCEL, on_activate);
+		// HANDLE_MSG (window, EVENT_OBJECT_DRAGCOMPLETE, on_activate);
+		// HANDLE_MSG (window, EVENT_OBJECT_DRAGENTER, on_activate);
+		// HANDLE_MSG (window, EVENT_OBJECT_DRAGLEAVE, on_activate);
+		// HANDLE_MSG (window, EVENT_OBJECT_DRAGDROPPED, on_activate);
+		
+		
 		case WM_USER: {
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
 			SetForegroundWindow (window);*/
