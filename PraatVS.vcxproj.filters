@@ -8693,7 +8693,6 @@
     <None Include="generate\unicode\UAX #44 Unicode Character Database.html" />
     <None Include="generate\unicode\UnicodeData File Format.html" />
     <None Include="Makefile" />
-    <None Include="makefile.defs" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="main\praat_win.rc">
