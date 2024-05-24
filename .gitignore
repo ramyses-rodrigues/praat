@@ -8,6 +8,7 @@
 
 # the project for visual studio
 *.PraatVS/
+PraatVS.*
 
 # the project for VSCode
 *.vs/
