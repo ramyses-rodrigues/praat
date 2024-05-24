@@ -2745,13 +2745,13 @@ static void on_activate (HWND window, UINT state, HWND hActive, BOOL minimized) 
 	} else FORWARD_WM_ACTIVATE (window, state, hActive, minimized, DefWindowProc);
 }
 
-static void on_dropFiles(WPARAM wParam)
+static void on_dropFiles(HWND window, HDROP hDrop)
 {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
 	TCHAR szName[MAX_PATH];
 
 	// Here we cast the wParam as a HDROP handle to pass into the next functions
-	HDROP hDrop = (HDROP)wParam;
+	//HDROP hDrop = (HDROP)wParam;
 
 	// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF in
 	// the second parameter then it returns the count of how many filers were drag
@@ -2767,12 +2767,17 @@ static void on_dropFiles(WPARAM wParam)
 		DragQueryFile(hDrop, i, szName, MAX_PATH);
 
 		// Bring up a message box that displays the current file being processed
-		MessageBoxW(GetForegroundWindow(), szName, L"Current file received", 0);
+		MessageBoxW(window, szName, L"Current file received", 0);
+		//readFromFile ((MelderFile)szName);
+		//cb_openDocument(szName);
+
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory
 	// allocated by the application is released.
 	DragFinish(hDrop);
+
+	//FORWARD_WM_COMMAND (window, id, controlWindow, codeNotify, DefWindowProc);
 
 }
 
@@ -2798,9 +2803,7 @@ static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LP
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
 
-		case WM_DROPFILES:
-			on_dropFiles(wParam); 
-			break;
+		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles); // drag and drop funcionality
 
 		case WM_USER: {
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
