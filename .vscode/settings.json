@@ -11,5 +11,17 @@
             "binaryPath": "d:\\OneDrive\\Documentos\\Projects\\Speech_Recognition\\praat\\praat\\Praat.exe",
             "binaryArgs": []
         }
+    ],
+    "makefile.configurations": [
+        {
+            "name": "Default",
+            "makeArgs": []
+        },
+        {
+            "name": "Print make version",
+            "makeArgs": [
+                "--version"
+            ]
+        }
     ]
 }

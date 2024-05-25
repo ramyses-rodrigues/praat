@@ -2770,6 +2770,12 @@ static void on_dropFiles(HWND window, HDROP hDrop)
 		MessageBoxW(window, szName, L"Current file received", 0);
 		//readFromFile ((MelderFile)szName);
 		//cb_openDocument(szName);
+		structMelderFile file { };
+		GetOpenFileNameW (& openFileName))
+		
+		MelderFile_copy (& my file, & file); file;
+		Melder_pathToFile (Melder_peekWto32(szName), file);
+		
 
 	}
 
