@@ -2771,11 +2771,13 @@ static void on_dropFiles(HWND window, HDROP hDrop)
 		//readFromFile ((MelderFile)szName);
 		//cb_openDocument(szName);
 		MelderFile file { };
+		Melder_pathToFile ((conststring32)szName, file);
+		autoDaata object = Data_readFromFile (file);
 		// GetOpenFileNameW (szName);
 		
 		// MelderFile_copy (& my file, & file); file;
 		Melder_pathToFile (Melder_peekWto32(szName), file);
-		Data_readFromFile(file);
+		autoDaata data = Data_readFromFile(file);
 		
 
 	}
