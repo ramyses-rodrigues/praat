@@ -3020,19 +3020,24 @@ static void on_verticalWheel (
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
 		if (my widgetClass == xmDrawingAreaWidgetClass) {
+
 			const bool controlKeyPressed = (fwKeys & MK_CONTROL);
+			const bool shiftKeyPressed = (fwKeys & MK_SHIFT);
+
 			if (controlKeyPressed)
 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
+				
+			else if (shiftKeyPressed)
+				for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
+					if (child->widgetClass == xmScrollBarWidgetClass &&child->orientation == XmHORIZONTAL)
+                       on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+
 			else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-				on_scroll (my parent->motiff.scrolledWindow.verticalBar,
-				        zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+						on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 			else
-				for (GuiObject child = my parent->firstChild; child;
-				        child = child->nextSibling)
-					if (child->widgetClass == xmScrollBarWidgetClass &&
-					        child->orientation == XmVERTICAL)
-						on_scroll (
-						        child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+				for (GuiObject child = my parent->firstChild; child;child = child->nextSibling)
+					if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
+						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 		} else
 			FORWARD_WM_MOUSEWHEEL (
 			        window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
@@ -3200,43 +3205,44 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 
 		// Melder_pathToFile (sfile, file);
 		Melder_pathToFile (Melder_peekWto32 (szName), file);
-		autoSound sndRes = Sound_readFromRawAlawFile (file);
+		// autoSound sndRes = Sound_readFromSoundFile (file);
 		autoDaata result = Data_readFromFile (file);
-		praat_newWithFile (result.move (), file, MelderFile_name (file));
-		praat_updateSelection ();
+		conststring32 filename = MelderFile_name (file);
 
 		// abre uma janela Praat Info:
-		MelderString Infostr[kMelder_MAXPATH + 1] = {};
-		Melder_clearInfo ();
-		MelderInfo_open ();		
-		MelderInfo_writeLine (U"Object id: ", 0);
-		MelderInfo_writeLine(U"XMax: ", sndRes->v_getXmax());
-		sndRes->v1_info ();
-		
-		MelderInfo_close ();
+		// Melder_clearInfo ();
+		// MelderInfo_open ();
+		// MelderInfo_writeLine (U"Object name: ", filename);
+		// MelderInfo_writeLine (U"Object Class name: ",
+		// result->classInfo->className); if (! MelderFile_isNull (file))
+		// 	MelderInfo_writeLine (U"Associated file: ", Melder_fileToPath
+		// (file)); MelderInfo_writeLine(U"File path: ", file->path);
+		// result->v1_info ();
+		// MelderInfo_close ();
 
-		// Melder_information (U"Arquivo recebido: ", file->path);
-		//MelderInfo_writeLine (U"Object id: ", file->format);
+		// praat_new(result.move());
 
-		// Thing_infoWithIdAndFile (sndRes, 0, file);
-		// Thing_info (Thing<Sound> sndRes)
+		// cria objeto e coloca na lista, com nome base do arquivo
+		praat_newWithFile (
+		        result.move (), file, filename);   // result nulifies here
+		praat_updateSelection ();
 
-		// READ_ONE_END
+		int idObject = 0;
+		// copiado de praat_objectMenus.cpp (função INFO_Info)
+		for (int IOBJECT = 1; IOBJECT <= theCurrentPraatObjects->n; IOBJECT++)
+			if (theCurrentPraatObjects->list[IOBJECT].isSelected)
+				idObject = IOBJECT;
 
-		// FORM_READ (READ1_Sound_readFromRawAlawFile,
-		//         U"Read Sound from raw Alaw file", nullptr, true) {
-		// 	READ_ONE
-		// 	autoSound result = Sound_readFromRawAlawFile (file);
-
-		// }
+		if (idObject > 0) {
+			Thing_infoWithIdAndFile (
+			        theCurrentPraatObjects->list[idObject].object, idObject,
+			        &theCurrentPraatObjects->list[idObject].file);
+		}
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory
 	// allocated by the application is released.
 	DragFinish (hDrop);
-
-	// FORWARD_WM_COMMAND (window, id, controlWindow, codeNotify,
-	// DefWindowProc);
 }
 
 static LRESULT CALLBACK windowProc (
