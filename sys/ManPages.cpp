@@ -534,7 +534,9 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 	for (;;) {
 		if (! line)
 			return;
+		integer numberOfLeadingEmptyLines = 0;
 		while (! stringHasInk (line)) {
+			numberOfLeadingEmptyLines += 1;
 			line = MelderReadText_readLine (text);
 			if (! line)
 				return;
@@ -630,6 +632,8 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 			Melder_skipHorizontalSpace (& line);
 			MelderString_append (& buffer_graphical, line);
 		} else if (numberOfLeadingSpaces == 0 && line [0] == U'`' && ! stringHasInk (line + 1)) {
+			//TRACE
+			trace (U"Verbatim: <<", page -> title.get(), U">>");
 			type = kManPage_type::SCRIPT;   // TODO: make different type, such as kManPage_type::VERBATIM
 			do {
 				line = MelderReadText_readLine (text);
@@ -666,6 +670,7 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 			} else
 				width = 6.0;
 			type = kManPage_type::SCRIPT;
+			integer procedureDepth = 0;
 			do {
 				line = MelderReadText_readLine (text);
 				if (! line)
@@ -675,6 +680,10 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 					line = MelderReadText_readLine (text);
 					break;
 				}
+				if (Melder_startsWith (firstNonspace, U"procedure "))
+					procedureDepth += 1;
+				else if (Melder_startsWith (firstNonspace, U"endproc"))
+					procedureDepth -= 1;
 				if (shouldShowCode) {
 					/*
 						Convert to graphical code.
@@ -710,6 +719,8 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 					)
 						firstNonspace += 3 + ( firstNonspace [2] == U'@' );
 					if (
+						procedureDepth == 0 &&
+						height == 0.001 &&
 						(Melder_startsWith (firstNonspace, U"Draw")  ||
 						 Melder_startsWith (firstNonspace, U"Paint")  ||
 						 Melder_startsWith (firstNonspace, U"Axes:")  ||
@@ -718,7 +729,6 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 						 Melder_startsWith (firstNonspace, U"Text:")  ||
 						 Melder_startsWith (firstNonspace, U"Text}:")  ||
 						 Melder_startsWith (firstNonspace, U"Marks "))
-						&& height == 0.001
 					)
 						height = 3.0;
 
@@ -753,6 +763,8 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 								p ++;
 							}
 							MelderString_append (& buffer_graphical, linkText.string);
+							if (*p == U'\0')
+								break;   // double break
 						} else if (*p == U'\\' && p [1] == U'#' && p [2] == U'{') {
 							inBold = true;
 							p += 2;
@@ -776,7 +788,10 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 			if (! shouldShowOutput)
 				MelderString_empty (& buffer_graphical);   // add no SCRIPT paragraph
 		} else if (numberOfLeadingSpaces >= 3) {
-			type = kManPage_type::CAPTION;
+			if (previousParagraph && previousParagraph -> type == kManPage_type::NORMAL && numberOfLeadingEmptyLines == 0)
+				type = kManPage_type::NORMAL;   // this implements a new paragraph by indenting
+			else
+				type = kManPage_type::CAPTION;
 			MelderString_append (& buffer_graphical, line);
 		} else {
 			type = kManPage_type::NORMAL;
@@ -805,7 +820,16 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 					line = nullptr;   // signals end of text
 					break;
 				}
-				char32 *firstNonSpace = Melder_findEndOfHorizontalSpace (continuationLine);
+				integer nextNumberOfLeadingSpaces = 0, ikar = 0;
+				while (Melder_isHorizontalSpace (continuationLine [ikar])) {
+					nextNumberOfLeadingSpaces += ( continuationLine [ikar] == U'\t' ? 4 - ( nextNumberOfLeadingSpaces & 0b11_integer ) : 1 );
+					ikar ++;
+				}
+				if (type == kManPage_type::NORMAL && nextNumberOfLeadingSpaces >= 3) {   // this implements a new paragraph by indenting
+					line = continuationLine;
+					break;   // not really a continuation line, but a new paragraph
+				}
+				char32 *firstNonSpace = continuationLine + ikar;
 				if (*firstNonSpace == U':' ||
 					*firstNonSpace == U',' && (Melder_isHorizontalSpace (firstNonSpace [1]) || firstNonSpace [1] == U'\0') ||
 					*firstNonSpace == U'-' && Melder_isHorizontalSpace (firstNonSpace [1]) ||

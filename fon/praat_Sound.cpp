@@ -48,7 +48,7 @@ DIRECT (INFO_NONE__LongSound_concatenate) {
 	INFO_NONE_END
 }
 
-FORM (NEW_LongSound_extractPart, U"LongSound: Extract part", nullptr) {
+FORM (NEW_LongSound_extractPart, U"LongSound: Extract part", U"LongSound: Extract part...") {
 	REAL (fromTime, U"left Time range (s)", U"0.0")
 	REAL (toTime, U"right Time range (s)", U"1.0")
 	BOOLEAN (preserveTimes, U"Preserve times", true)
@@ -589,8 +589,8 @@ FORM (MODIFY_Sound_deemphasizeInplace, U"Sound: De-emphasize (in-place)", U"Soun
 	REAL (fromFrequency, U"From frequency (Hz)", U"50.0")
 	OK
 DO
-	MODIFY_EACH (Sound)
-		Sound_deEmphasis (me, fromFrequency);
+	MODIFY_EACH (mutableSound)
+		Sound_deEmphasize_inplace (me, fromFrequency);
 		Vector_scale (me, 0.99);
 	MODIFY_EACH_END
 }
@@ -703,7 +703,7 @@ DIRECT (CONVERT_EACH_TO_ONE__Sound_extractLeftChannel) {
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_left")
 }
 
-FORM (CONVERT_EACH_TO_ONE__Sound_extractPart, U"Sound: Extract part", nullptr) {
+FORM (CONVERT_EACH_TO_ONE__Sound_extractPart, U"Sound: Extract part", U"Sound: Extract part...") {
 	REAL (fromTime, U"left Time range (s)", U"0.0")
 	REAL (toTime, U"right Time range (s)", U"0.1")
 	OPTIONMENU_ENUM (kSound_windowShape, windowShape, U"Window shape", kSound_windowShape::DEFAULT)
@@ -1131,11 +1131,11 @@ DO
 	MODIFY_EACH_END
 }
 
-FORM (MODIFY_Sound_multiplyByWindow, U"Sound: Multiply by window", nullptr) {
+FORM (MODIFY_Sound_multiplyByWindow, U"Sound: Multiply by window", U"Sound: Multiply by window...") {
 	OPTIONMENU_ENUM (kSound_windowShape, windowShape, U"Window shape", kSound_windowShape::HANNING)
 	OK
 DO
-	MODIFY_EACH (Sound)
+	MODIFY_EACH (mutableSound)
 		Sound_multiplyByWindow (me, windowShape);
 	MODIFY_EACH_END
 }
@@ -1144,7 +1144,7 @@ FORM (MODIFY_Sound_overrideSamplingFrequency, U"Sound: Override sampling frequen
 	POSITIVE (newSamplingFrequency, U"New sampling frequency (Hz)", U"16000.0")
 	OK
 DO
-	MODIFY_EACH (Sound)
+	MODIFY_EACH (mutableSound)
 		Sound_overrideSamplingFrequency (me, newSamplingFrequency);
 	MODIFY_EACH_END
 }
@@ -1160,7 +1160,7 @@ FORM (MODIFY_Sound_preemphasizeInplace, U"Sound: Pre-emphasize (in-place)", U"So
 	OK
 DO
 	MODIFY_EACH (Sound)
-		Sound_preEmphasis (me, fromFrequency);
+		Sound_preEmphasize_inplace (me, fromFrequency);
 		Vector_scale (me, 0.99);
 	MODIFY_EACH_END
 }
