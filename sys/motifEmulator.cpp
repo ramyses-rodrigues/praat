@@ -2702,10 +2702,11 @@ void XtDispatchEvent (XEvent *xevent) {
 					        kar == 192 &&
 					                win_processKeyboardEquivalent (my shell,
 					                        shift ? '~' : '`', modifiers) ||
-					        kar == 219 && win_processKeyboardEquivalent (
-					                              my shell, shift ? '{' : '[',
-					                              modifiers) ||   // Alt-GR-ringel-s
-					                                              // is here
+					        kar == 219 &&
+					                win_processKeyboardEquivalent (my shell,
+					                        shift ? '{' : '[',
+					                        modifiers) ||   // Alt-GR-ringel-s
+					                                        // is here
 					        kar == 220 &&
 					                win_processKeyboardEquivalent (my shell,
 					                        shift ? '|' : '\\', modifiers) ||
@@ -3161,6 +3162,9 @@ static void on_activate (
 }
 
 #include "Ui.h"
+#include "praat.h"
+#include "..\fon\Sound.h"
+#include "praatM.h"
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
 	TCHAR szName[MAX_PATH];
@@ -3184,31 +3188,47 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 
 		// Bring up a message box that displays the current file being processed
 		MessageBoxW (window, szName, L"Current file received", 0);
-		// readFromFile ((MelderFile)szName);
-		// cb_openDocument(szName);
-		structMelderFile file, file1, file2;
 
-		char32 sfile[kMelder_MAXPATH + 1] = {};
-		for (int j = 0; j < MAX_PATH; j++) {
-			sfile[j] = (char32) szName[j];
-			file.path[j] = (char32) szName[j];
-		}
+		structMelderFile fileS;     // aloca memória
+		MelderFile file = &fileS;   // cria ponteiro para a struct
 
-		Melder_pathToFile (sfile, &file);
-		Melder_pathToFile (Melder_peekWto32 (szName), &file1);
+		// char32 sfile[kMelder_MAXPATH + 1] = {};
+		// for (int j = 0; j < MAX_PATH; j++) {
+		// 	sfile[j] = (char32) szName[j];
+		// 	fileS.path[j] = (char32) szName[j];
+		// }
 
-		// structMelderFile file { };
-		// autoMelderString text32;
-		// Melder_peek8to32 (praatP.argv [iarg]), & file);
-		// conststring32 absolutePath = Melder_fileToPath (& file);
-		// MelderString_append (& text32, U"Read from file... ", absolutePath, U"\n");
-		// trace (U"Argument ", iarg, U": will open path ", absolutePath);
+		// Melder_pathToFile (sfile, file);
+		Melder_pathToFile (Melder_peekWto32 (szName), file);
+		autoSound sndRes = Sound_readFromRawAlawFile (file);
+		autoDaata result = Data_readFromFile (file);
+		praat_newWithFile (result.move (), file, MelderFile_name (file));
+		praat_updateSelection ();
+
+		// abre uma janela Praat Info:
+		MelderString Infostr[kMelder_MAXPATH + 1] = {};
+		Melder_clearInfo ();
+		MelderInfo_open ();		
+		MelderInfo_writeLine (U"Object id: ", 0);
+		MelderInfo_writeLine(U"XMax: ", sndRes->v_getXmax());
+		sndRes->v1_info ();
 		
-		
-		autoDaata data = Data_readFromFile (&file1);
-		MessageBoxW (window, (LPCWSTR)file1.path[0], L"Current file received", 0);
+		MelderInfo_close ();
 
-		
+		// Melder_information (U"Arquivo recebido: ", file->path);
+		//MelderInfo_writeLine (U"Object id: ", file->format);
+
+		// Thing_infoWithIdAndFile (sndRes, 0, file);
+		// Thing_info (Thing<Sound> sndRes)
+
+		// READ_ONE_END
+
+		// FORM_READ (READ1_Sound_readFromRawAlawFile,
+		//         U"Read Sound from raw Alaw file", nullptr, true) {
+		// 	READ_ONE
+		// 	autoSound result = Sound_readFromRawAlawFile (file);
+
+		// }
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory
@@ -3243,7 +3263,8 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
 
-		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);   // drag and drop funcionality
+		HANDLE_MSG (window, WM_DROPFILES,
+		        on_dropFiles);   // drag and drop funcionality
 
 	case WM_USER: {
 		/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
