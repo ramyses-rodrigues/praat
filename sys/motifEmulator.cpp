@@ -3026,7 +3026,11 @@ static void on_verticalWheel (
 
 			if (controlKeyPressed)
 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
-				
+			
+			/*
+			 Ramyses:
+			 implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
+			*/
 			else if (shiftKeyPressed)
 				for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
 					if (child->widgetClass == xmScrollBarWidgetClass &&child->orientation == XmHORIZONTAL)
@@ -3170,6 +3174,10 @@ static void on_activate (
 #include "praat.h"
 #include "..\fon\Sound.h"
 #include "praatM.h"
+/*
+	 Ramyses:
+	 implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
+*/
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
 	TCHAR szName[MAX_PATH];
@@ -3223,8 +3231,7 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		// praat_new(result.move());
 
 		// cria objeto e coloca na lista, com nome base do arquivo
-		praat_newWithFile (
-		        result.move (), file, filename);   // result nulifies here
+		praat_newWithFile (result.move (), file, filename);   // result nulifies here
 		praat_updateSelection ();
 
 		int idObject = 0;
