@@ -3208,9 +3208,12 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		MelderString_append (&command, U"Read from file... ", file->path);
 		bool status = praat_executeCommand (nullptr, command.string);
 		
+		/* debug */
 		command = {};
 		MelderString_append(&command, U"Info");
 		status = praat_executeCommand (nullptr, command.string);
+
+		/* testes */
 
 		// structMelderFile fileS;     // aloca memória
 		// MelderFile file = &fileS;   // cria ponteiro para a struct
@@ -3274,8 +3277,7 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
 
-		HANDLE_MSG (window, WM_DROPFILES,
-		        on_dropFiles);   // drag and drop funcionality
+		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);   // drag and drop funcionality
 
 	case WM_USER: {
 		/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
