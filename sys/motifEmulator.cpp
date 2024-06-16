@@ -556,7 +556,6 @@ static void _GuiNativizeWidget (GuiObject me) {
 		}
 	} else
 		switch (my widgetClass) {
-		// WS_EX_ACCEPTFILES - em qual dessas janelas colocar?
 		case xmBulletinBoardWidgetClass: {
 			my window = CreateWindowEx (0,
 			        Melder_peek32toW (theWindowClassName), L"bulletinBoard",
@@ -573,7 +572,6 @@ static void _GuiNativizeWidget (GuiObject me) {
 			        Melder_peek32toW (theWindowClassName), L"form",
 			        WS_CHILD | WS_CLIPSIBLINGS, my x, my y, my width, my height,
 			        my parent->window, NULL, theGui.instance, NULL);
-			// DragAcceptFiles((HWND)window, true);
 			SetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
 		} break;
 		case xmRowColumnWidgetClass: {
@@ -3205,7 +3203,7 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		MelderFile file = &fileS;   // cria ponteiro para a struct
 		Melder_pathToFile (Melder_peekWto32 (szName), file);
 
-		// adiciona arquivo na objectList através de comandos de script
+		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
 		autoMelderString command = {};
 		MelderString_append (&command, U"Read from file... ", file->path);
 		bool status = praat_executeCommand (nullptr, command.string);
