@@ -3033,7 +3033,7 @@ static void on_verticalWheel (
 			*/
 			else if (shiftKeyPressed)
 				for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
-					if (child->widgetClass == xmScrollBarWidgetClass &&child->orientation == XmHORIZONTAL)
+					if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
                        on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 
 			else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
@@ -3170,10 +3170,8 @@ static void on_activate (
 		FORWARD_WM_ACTIVATE (window, state, hActive, minimized, DefWindowProc);
 }
 
-#include "Ui.h"
 #include "praat.h"
-#include "..\fon\Sound.h"
-#include "praatM.h"
+#include "praat_script.h"
 /*
 	 Ramyses:
 	 implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
@@ -3181,6 +3179,7 @@ static void on_activate (
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
 	TCHAR szName[MAX_PATH];
+	// GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 
 	// Here we cast the wParam as a HDROP handle to pass into the next functions
 	// HDROP hDrop = (HDROP)wParam;
@@ -3204,19 +3203,23 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 
 		structMelderFile fileS;     // aloca memória
 		MelderFile file = &fileS;   // cria ponteiro para a struct
-
-		// char32 sfile[kMelder_MAXPATH + 1] = {};
-		// for (int j = 0; j < MAX_PATH; j++) {
-		// 	sfile[j] = (char32) szName[j];
-		// 	fileS.path[j] = (char32) szName[j];
-		// }
-
-		// Melder_pathToFile (sfile, file);
 		Melder_pathToFile (Melder_peekWto32 (szName), file);
-		// autoSound sndRes = Sound_readFromSoundFile (file);
-		autoDaata result = Data_readFromFile (file);
-		conststring32 filename = MelderFile_name (file);
 
+		// adiciona arquivo na objectList através de comandos de script
+		autoMelderString command = {};
+		MelderString_append (&command, U"Read from file... ", file->path);
+		bool status = praat_executeCommand (nullptr, command.string);
+		
+		command = {};
+		MelderString_append(&command, U"Info");
+		status = praat_executeCommand (nullptr, command.string);
+
+		// structMelderFile fileS;     // aloca memória
+		// MelderFile file = &fileS;   // cria ponteiro para a struct
+		// Melder_pathToFile (sfile, file);
+		// Melder_pathToFile (Melder_peekWto32 (szName), file);
+		// autoDaata result = Data_readFromFile (file);
+		// conststring32 filename = MelderFile_name (file);
 		// abre uma janela Praat Info:
 		// Melder_clearInfo ();
 		// MelderInfo_open ();
@@ -3228,23 +3231,20 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		// result->v1_info ();
 		// MelderInfo_close ();
 
-		// praat_new(result.move());
-
 		// cria objeto e coloca na lista, com nome base do arquivo
-		praat_newWithFile (result.move (), file, filename);   // result nulifies here
-		praat_updateSelection ();
+		// praat_newWithFile (result.move (), file, filename);   // result nulifies here
 
-		int idObject = 0;
-		// copiado de praat_objectMenus.cpp (função INFO_Info)
-		for (int IOBJECT = 1; IOBJECT <= theCurrentPraatObjects->n; IOBJECT++)
-			if (theCurrentPraatObjects->list[IOBJECT].isSelected)
-				idObject = IOBJECT;
+		// int idObject = 0;
+		// // copiado de praat_objectMenus.cpp (função INFO_Info)
+		// for (int IOBJECT = 1; IOBJECT <= theCurrentPraatObjects->n; IOBJECT++)
+		// 	if (theCurrentPraatObjects->list[IOBJECT].isSelected)
+		// 		idObject = IOBJECT;
 
-		if (idObject > 0) {
-			Thing_infoWithIdAndFile (
-			        theCurrentPraatObjects->list[idObject].object, idObject,
-			        &theCurrentPraatObjects->list[idObject].file);
-		}
+		// if (idObject > 0) {
+		// 	Thing_infoWithIdAndFile (
+		// 	        theCurrentPraatObjects->list[idObject].object, idObject,
+		// 	        &theCurrentPraatObjects->list[idObject].file);
+		// }
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory
