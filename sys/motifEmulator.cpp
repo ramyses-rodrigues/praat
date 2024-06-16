@@ -3209,9 +3209,13 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		bool status = praat_executeCommand (nullptr, command.string);
 		
 		/* debug */
-		command = {};
-		MelderString_append(&command, U"Info");
-		status = praat_executeCommand (nullptr, command.string);
+		bool dbg = false;
+		if (dbg) {
+			command = {};
+			MelderString_append(&command, U"Info");
+			status = praat_executeCommand (nullptr, command.string);
+		}
+		
 
 		/* testes */
 
