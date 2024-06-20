@@ -2454,8 +2454,7 @@ void GuiNextEvent (XEvent *xevent) {
 		        0);   // be neighbour-friendly: do not hand null events
 }
 
-static int win_shell_processKeyboardEquivalent (
-        GuiObject me, int kar, int modifiers) {
+static int win_shell_processKeyboardEquivalent (GuiObject me, int kar, int modifiers) {
 	for (int imenu = 1; imenu <= MAXIMUM_NUMBER_OF_MENUS; imenu++)
 		if (theMenus[imenu] && theMenus[imenu]->shell == me) {
 			for (GuiObject child = theMenus[imenu]->firstChild; child != NULL;
@@ -2466,18 +2465,11 @@ static int win_shell_processKeyboardEquivalent (
 				        child->motiff.pushButton.acceleratorModifiers ==
 				                modifiers) {
 					if (child->activateCallback && !child->insensitive) {
-						child->activateCallback (
-						        child, child->activateClosure, 0);
+						child->activateCallback (child, child->activateClosure, 0);
 						return 1;
-					} else if (child->widgetClass ==
-					           xmToggleButtonWidgetClass) {
-						XmToggleButtonGadgetSetState (child,
-						        1 - XmToggleButtonGadgetGetState (child),
-						        False);
-						_Gui_callCallbacks (child,
-						        &child->motiff.toggleButton
-						                 .valueChangedCallbacks,
-						        0);
+					} else if (child->widgetClass ==  xmToggleButtonWidgetClass) {
+						XmToggleButtonGadgetSetState (child, 1 - XmToggleButtonGadgetGetState (child), False);
+						_Gui_callCallbacks (child, &child->motiff.toggleButton.valueChangedCallbacks, 0);
 						return 1;
 					}
 				}
@@ -2486,15 +2478,13 @@ static int win_shell_processKeyboardEquivalent (
 	return 0;
 }
 
-static int win_processKeyboardEquivalent (
-        GuiObject me, int kar, int modifiers) {
+static int win_processKeyboardEquivalent (GuiObject me, int kar, int modifiers) {
 	/*
 	 * First try to send the key command to the active shell.
 	 * If that fails, try to send the key command to the application shell.
 	 */
 	if (win_shell_processKeyboardEquivalent (me, kar, modifiers)) return 1;
-	if (win_shell_processKeyboardEquivalent (
-	            theApplicationShell, kar, modifiers))
+	if (win_shell_processKeyboardEquivalent (theApplicationShell, kar, modifiers))
 		return 1;
 	return 0;
 }
@@ -3224,6 +3214,7 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		// Melder_pathToFile (sfile, file);
 		// Melder_pathToFile (Melder_peekWto32 (szName), file);
 		// autoDaata result = Data_readFromFile (file);
+		// 
 		// conststring32 filename = MelderFile_name (file);
 		// abre uma janela Praat Info:
 		// Melder_clearInfo ();

@@ -916,6 +916,23 @@ static void PLAY_DATA__playWindow (FunctionEditor me, EDITOR_ARGS) {
 		my v_play (my startWindow, my endWindow);
 	PLAY_DATA_END
 }
+
+/* Função inserida por Ramyses para reproduzir/parar/continuar a reprodução com a tecla ESC 
+Alterçaõ também na declaração v_createMenuItems_play() linha 942*/
+static void PLAY_DATA__StartOrStopPlayingESC (FunctionEditor me, EDITOR_ARGS) {
+	PLAY_DATA
+		if (MelderAudio_isPlaying) MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
+		else if (my startSelection < my endSelection) {
+			my v_play (my startSelection, my endSelection);
+		} else {
+			if (my startSelection == my endSelection && my startSelection > my startWindow && my startSelection < my endWindow)
+				my v_play (my startSelection, my endWindow);
+			else
+				my v_play (my startWindow, my endWindow);
+		}	
+	PLAY_DATA_END
+}
+
 static void PLAY_DATA__interruptPlaying (FunctionEditor me, EDITOR_ARGS) {
 	PLAY_DATA
 		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
@@ -931,7 +948,7 @@ void structFunctionEditor :: v_createMenuItems_play (EditorMenu menu) {
 	EditorMenu_addCommand (menu, U"Play window",
 			GuiMenu_DEPTH_1 | GuiMenu_SHIFT | GuiMenu_TAB, PLAY_DATA__playWindow);
 	EditorMenu_addCommand (menu, U"Interrupt playing",
-			GuiMenu_DEPTH_1 | GuiMenu_ESCAPE, PLAY_DATA__interruptPlaying);
+			GuiMenu_DEPTH_1 | GuiMenu_ESCAPE, PLAY_DATA__StartOrStopPlayingESC /*PLAY_DATA__interruptPlaying*/);
 	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
 		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
 		if (area)
