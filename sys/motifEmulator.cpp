@@ -2923,20 +2923,16 @@ static void on_command (
 		        window, id, controlWindow, codeNotify, DefWindowProc);
 }
 static void on_destroy (HWND window) { (void) window; }
-static void on_lbuttonDown (
-        HWND window, BOOL doubleClick, int x, int y, UINT flags) {
+static void on_lbuttonDown (HWND window, BOOL doubleClick, int x, int y, UINT flags) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
 		if (MEMBER (me, DrawingArea)) {
 			SetCapture (window);
-			_GuiWinDrawingArea_handleMouse (
-			        me, structGuiDrawingArea_MouseEvent::Phase::CLICK, x, y);
+			_GuiWinDrawingArea_handleMouse (me, structGuiDrawingArea_MouseEvent::Phase::CLICK, x, y);
 		} else
-			FORWARD_WM_LBUTTONDOWN (
-			        window, doubleClick, x, y, flags, DefWindowProc);
+			FORWARD_WM_LBUTTONDOWN (window, doubleClick, x, y, flags, DefWindowProc);
 	} else
-		FORWARD_WM_LBUTTONDOWN (
-		        window, doubleClick, x, y, flags, DefWindowProc);
+		FORWARD_WM_LBUTTONDOWN (window, doubleClick, x, y, flags, DefWindowProc);
 }
 static void on_mouseMove (HWND window, int x, int y, UINT flags) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
@@ -3255,8 +3251,7 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_COMMAND, on_command);
 		HANDLE_MSG (window, WM_DESTROY, on_destroy);
 		HANDLE_MSG (window, WM_LBUTTONDOWN, on_lbuttonDown);
-		HANDLE_MSG (window, WM_LBUTTONDBLCLK,
-		        on_lbuttonDown);   // double-click counts as two clicks
+		HANDLE_MSG (window, WM_LBUTTONDBLCLK, on_lbuttonDown);   // double-click counts as two clicks
 		HANDLE_MSG (window, WM_LBUTTONUP, on_lbuttonUp);
 		HANDLE_MSG (window, WM_MOUSEMOVE, on_mouseMove);
 		HANDLE_MSG (window, WM_PAINT, on_paint);
