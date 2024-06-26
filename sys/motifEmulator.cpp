@@ -3011,7 +3011,7 @@ static void on_verticalWheel (
 			if (controlKeyPressed)
 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
 			
-			/*
+			/* --------------------------------------------
 			 Ramyses:
 			 implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
 			*/
@@ -3019,6 +3019,7 @@ static void on_verticalWheel (
 				for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
 					if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
                        on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			/* -------------------------------------- */
 
 			else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
 						on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
@@ -3154,12 +3155,15 @@ static void on_activate (
 		FORWARD_WM_ACTIVATE (window, state, hActive, minimized, DefWindowProc);
 }
 
+/* 
+Ramyses: dicionada funcioanlidade drag and drop.
+Modificações no código original:
+a) arquivo motifEmulator.cpp, linha 3247
+    função LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+    adicionado manipulador de evento WM_DROPFILES, chamando callback on_dropFiles()
+*/
 #include "praat.h"
 #include "praat_script.h"
-/*
-	 Ramyses:
-	 implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
-*/
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
 	TCHAR szName[MAX_PATH];
@@ -3193,6 +3197,11 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		autoMelderString command = {};
 		MelderString_append (&command, U"Read from file... ", file->path);
 		bool status = praat_executeCommand (nullptr, command.string);
+
+		/* outra forma */
+		// autoDaata result = Data_readFromFile (file);
+		// //cria objeto e coloca na lista, com nome base do arquivo
+		// praat_newWithFile (result.move (), file, filename);   // result nulifies here
 		
 		/* debug */
 		bool dbg = false;
@@ -3201,30 +3210,9 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 			MelderString_append(&command, U"Info");
 			status = praat_executeCommand (nullptr, command.string);
 		}
-		
 
-		/* testes */
 
-		// structMelderFile fileS;     // aloca memória
-		// MelderFile file = &fileS;   // cria ponteiro para a struct
-		// Melder_pathToFile (sfile, file);
-		// Melder_pathToFile (Melder_peekWto32 (szName), file);
-		// autoDaata result = Data_readFromFile (file);
-		// 
-		// conststring32 filename = MelderFile_name (file);
-		// abre uma janela Praat Info:
-		// Melder_clearInfo ();
-		// MelderInfo_open ();
-		// MelderInfo_writeLine (U"Object name: ", filename);
-		// MelderInfo_writeLine (U"Object Class name: ",
-		// result->classInfo->className); if (! MelderFile_isNull (file))
-		// 	MelderInfo_writeLine (U"Associated file: ", Melder_fileToPath
-		// (file)); MelderInfo_writeLine(U"File path: ", file->path);
-		// result->v1_info ();
-		// MelderInfo_close ();
-
-		// cria objeto e coloca na lista, com nome base do arquivo
-		// praat_newWithFile (result.move (), file, filename);   // result nulifies here
+		//// outra forma de debug Info:
 
 		// int idObject = 0;
 		// // copiado de praat_objectMenus.cpp (função INFO_Info)
@@ -3237,6 +3225,19 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		// 	        theCurrentPraatObjects->list[idObject].object, idObject,
 		// 	        &theCurrentPraatObjects->list[idObject].file);
 		// }
+
+		// conststring32 filename = MelderFile_name (file);
+		// abre uma janela Praat Info:
+		// Melder_clearInfo ();
+		// MelderInfo_open ();
+		// MelderInfo_writeLine (U"Object name: ", filename);
+		// MelderInfo_writeLine (U"Object Class name: ",
+		// result->classInfo->className); 
+		// if (! MelderFile_isNull (file))
+		// 	MelderInfo_writeLine (U"Associated file: ", Melder_fileToPath
+		// (file)); MelderInfo_writeLine(U"File path: ", file->path);
+		// result->v1_info ();
+		// MelderInfo_close ();
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory
@@ -3267,7 +3268,10 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
 
-		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);   // drag and drop funcionality
+		/*
+		Ramyses: drag and drop funcionality
+		*/
+		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles); 
 
 	case WM_USER: {
 		/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
