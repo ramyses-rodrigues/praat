@@ -918,8 +918,7 @@ static void PLAY_DATA__playWindow (FunctionEditor me, EDITOR_ARGS) {
 }
 
 /* --------------------------------------------
-	Ramyses:
-	implementado para reproduzir/parar/continuar a reprodução com a tecla ESC
+	Ramyses: reproduzir/parar/continuar a reprodução com a tecla ESC
 	Alteração também na declaração v_createMenuItems_play(), linha 946
 */
 
@@ -952,7 +951,9 @@ void structFunctionEditor :: v_createMenuItems_play (EditorMenu menu) {
 	EditorMenu_addCommand (menu, U"Play window",
 			GuiMenu_DEPTH_1 | GuiMenu_SHIFT | GuiMenu_TAB, PLAY_DATA__playWindow);
 	EditorMenu_addCommand (menu, U"Interrupt playing",
-			/* Ramyses: para tecla ESC iniciar/parar/iniciar reprodução */
+			/* 
+				Ramyses: iniciar/parar/iniciar a reprodução com a tecla ESC
+			*/
 			GuiMenu_DEPTH_1 | GuiMenu_ESCAPE, PLAY_DATA__StartOrStopPlayingESC /*PLAY_DATA__interruptPlaying*/);
 	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
 		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());

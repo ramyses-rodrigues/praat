@@ -2999,8 +2999,7 @@ static void on_vscroll (HWND window, HWND controlWindow, UINT code, int pos) {
 	        MAKELPARAM ((xPos), (yPos)))
 //#define HANDLE_WM_MOUSEWHEEL(hwnd,wParam,lParam,fn) \
 	((fn)((hwnd),(int)(short)LOWORD(lParam),(int)(short)HIWORD(lParam),(int)(short)HIWORD(wParam),(UINT)(short)LOWORD(wParam)),(LRESULT)0)
-static void on_verticalWheel (
-        HWND window, int xPos, int yPos, int zDelta, int fwKeys) {
+static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int fwKeys) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
 		if (my widgetClass == xmDrawingAreaWidgetClass) {
@@ -3008,25 +3007,57 @@ static void on_verticalWheel (
 			const bool controlKeyPressed = (fwKeys & MK_CONTROL);
 			const bool shiftKeyPressed = (fwKeys & MK_SHIFT);
 
-			if (controlKeyPressed)
-				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
-			
 			/* --------------------------------------------
-			 Ramyses:
-			 implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
+			 Ramyses: implementado para manipular a roda do mouse.
+			  Roda isolada = zoom, se for SoundEditor; scroll up/down se for janela de texto
+			  Roda + Shift = deslocamento para esquerda e direita.
+			  TODO:  encontrar função para CTRL
 			*/
-			else if (shiftKeyPressed)
-				for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
-					if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
-                       on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			if (my parent->widgetClass == xmScrolledWindowWidgetClass)
+						on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// senão, varre buscando por todos os objetos filhos...
+			else for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
+					if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL) {
+						if (shiftKeyPressed)
+							on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+						else if (controlKeyPressed)
+							;//on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+						else 
+							_GuiWinDrawingArea_handleZoom (me, double (-1*zDelta) / 120.0);
+					}
+					else if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
+						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+
+
+			// if (shiftKeyPressed) {
+			// 	for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
+			// 		if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
+            //            	on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+					
+			// }
+			/* --------------------------------------------
+			 Ramyses: implementado para deslocar janela sound para esquerda ou direita com a roda do mouse e tecla Shift pressionada
+			*/
+			// if (controlKeyPressed)
+			// 	_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
+			// else if (shiftKeyPressed)
+			// 	for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
+			// 		if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
+            //            on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 			/* -------------------------------------- */
 
-			else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-						on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			else
-				for (GuiObject child = my parent->firstChild; child;child = child->nextSibling)
-					if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
-						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
+			// 			on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// else {
+			// 	for (GuiObject child = my parent->firstChild; child;child = child->nextSibling)
+			// 		if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
+			// 			on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// 	}
+			// else {
+			//     for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
+			// 		if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
+			// 			_GuiWinDrawingArea_handleZoom (me, double (-1*zDelta) / 120.0);
+			// }
 		} else
 			FORWARD_WM_MOUSEWHEEL (
 			        window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
@@ -3156,7 +3187,7 @@ static void on_activate (
 }
 
 /* 
-Ramyses: dicionada funcioanlidade drag and drop.
+Ramyses: adicionada funcionalidade drag and drop.
 Modificações no código original:
 a) arquivo motifEmulator.cpp, linha 3247
     função LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
@@ -3164,9 +3195,11 @@ a) arquivo motifEmulator.cpp, linha 3247
 */
 #include "praat.h"
 #include "praat_script.h"
+using namespace std;
+
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
-	TCHAR szName[MAX_PATH];
+	TCHAR szName[kMelder_MAXPATH];
 	// GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 
 	// Here we cast the wParam as a HDROP handle to pass into the next functions
@@ -3178,27 +3211,40 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	// array with the current file being queried.
 	int count = DragQueryFile (hDrop, 0xFFFFFFFF, szName, MAX_PATH);
 
-	// Here we go through all the files that were drag and dropped then display
-	// them
+	#ifndef UNICODE 
+	    typedef std::string string_ ;
+		#define to_string_ to_string
+	#else 
+		typedef std::wstring string_ ;
+		#define to_string_ to_wstring
+	#endif
+
+	// varre todos os arquivos para exibição
+	string_ strFiles[count], showString;
 	for (int i = 0; i < count; i++) {
-		// Grab the name of the file associated with index "i" in the list of
-		// files dropped. Be sure you know that the name is attached to the FULL
-		// path of the file.
 		DragQueryFile (hDrop, i, szName, MAX_PATH);
+		
+		strFiles[i] = string_(szName);
 
-		// Bring up a message box that displays the current file being processed
-		MessageBoxW (window, szName, L"Current file received", 0);
+		showString.append(to_string_(i + 1));
+		showString.append(L" - ");
+		showString.append(strFiles[i]); 
+		showString.append(L"\n");
+	} 
+	MessageBoxW(window, showString.c_str(), L"Arquivos recebidos", 0);
 
+	// Agora, carrega todos os arquivos na lista de objetos do praat
+	for (int i = 0; i < count; i++) {
 		structMelderFile fileS;     // aloca memória
 		MelderFile file = &fileS;   // cria ponteiro para a struct
-		Melder_pathToFile (Melder_peekWto32 (szName), file);
+		Melder_pathToFile (Melder_peekWto32 (strFiles[i].c_str()), file);
 
 		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
 		autoMelderString command = {};
 		MelderString_append (&command, U"Read from file... ", file->path);
 		bool status = praat_executeCommand (nullptr, command.string);
 
-		/* outra forma */
+		/* outra forma de criar objeto e colocar na lista de objetos da janela principal*/
 		// autoDaata result = Data_readFromFile (file);
 		// //cria objeto e coloca na lista, com nome base do arquivo
 		// praat_newWithFile (result.move (), file, filename);   // result nulifies here
@@ -3210,7 +3256,11 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 			MelderString_append(&command, U"Info");
 			status = praat_executeCommand (nullptr, command.string);
 		}
+	}
 
+	// Finally, we destroy the HDROP handle so the extra memory
+	// allocated by the application is released.
+	DragFinish (hDrop);
 
 		//// outra forma de debug Info:
 
@@ -3237,12 +3287,7 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		// 	MelderInfo_writeLine (U"Associated file: ", Melder_fileToPath
 		// (file)); MelderInfo_writeLine(U"File path: ", file->path);
 		// result->v1_info ();
-		// MelderInfo_close ();
-	}
-
-	// Finally, we destroy the HDROP handle so the extra memory
-	// allocated by the application is released.
-	DragFinish (hDrop);
+		// MelderInfo_close ();	
 }
 
 static LRESULT CALLBACK windowProc (
