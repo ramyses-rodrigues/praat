@@ -22,11 +22,6 @@ Prefs_begin (TextGridArea)
 
 	InstancePrefs_addBool         (TextGridArea, useTextStyles,            1, false)
 	InstancePrefs_addDouble       (TextGridArea, fontSize,                 1, U"18")
-
-	/* Ramyses: para salvar no arquivo Preferences.ini o valor selecionado nas configurações do textGrid, conforme os padrões de programação do Praat */
-	InstancePrefs_addDouble       (TextGridArea, textAreafontSize,       1, U"12")
-	InstancePrefs_addString       (TextGridArea, stringVoiceReferences,  1, U"M1 F1 M2 F2 M3 F3")
-
 	InstancePrefs_addEnum         (TextGridArea, alignment,                1, kGraphics_horizontalAlignment, DEFAULT)
 	InstancePrefs_addBool         (TextGridArea, shiftDragMultiple,        1, true)
 	InstancePrefs_addEnum         (TextGridArea, showNumberOf,             1, kTextGridArea_showNumberOf, DEFAULT)

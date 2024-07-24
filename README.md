@@ -176,6 +176,14 @@ To also install a `clangarm64` toolchain (for Praat’s ARM64 edition),
 run `clangarm64.exe` to get a `clangarm64` shell. In that shell, run `pacman -Suy` to update and
 `pacman -S mingw-w64-clang-aarch64-clang` to install the build tools package.
 
+Ramyses: para instalar o toolchain mingw64:
+1. install MSYS2 do site MSYS2 (https://www.msys2.org/#installation)
+2. instalar pacote `$ pacman -S mingw-w64-x86_64-gcc `
+3. instalar make: `$ pacman -S make ` 
+4. instalar gdb: `$ pacman -S mingw-w64-x86_64-gdb `
+
+Os arquivos baixados pelo Pacman serão armazenados na pasta ` \msys2\mingw64\bin `  será 
+
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
 perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,
 `/home/yourname/praats-intel64` and `/home/yourname/praats-intel32`;
@@ -246,8 +254,8 @@ Praat.app that was already there. If on the way you receive an error
 or “Couldn’t communicate with a helper application“,
 or just a crash (happens with Xcode 15.0),
 you will have to log in to `developer.apple.com` and do Review Agreement -> Agree;
-you may then also have to go (or log in) to App Store Connect, then Business (or Agreements, Tax, and Banking)
--> Paid Apps Agreement -> View and Agree to Terms (even if you have no paid apps).
+you may then also have to go (or log in) to App Store Connect, then Agreements, Tax, and Banking
+-> Paid Apps -> View or Terms (even if you have no paid apps).
 
 **Testing** on multiple Intel64 platform versions can be done on older Intel64 Macs,
 using virtual machines with Parallels Desktop. For instance, a 2013 Macbook Pro can handle

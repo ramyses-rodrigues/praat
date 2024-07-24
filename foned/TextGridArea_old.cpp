@@ -512,9 +512,6 @@ void structTextGridArea :: v_drawInside () {
 	Graphics_setFont (our graphics(), oldFont);
 	Graphics_setFontSize (our graphics(), oldFontSize);
 
-	/* Ramyses: carrega tamanho de fonte pré-configurada para área de texto do textGrid */
-	GuiText_setFontSize( our functionEditor() -> textArea, our instancePref_textAreafontSize());
-
 	if (isdefined (our draggingTime) && hasBeenDraggedBeyondVicinityRadiusAtLeastOnce) {
 		Graphics_xorOn (our graphics(), Melder_MAROON);
 		for (integer itier = 1; itier <= numberOfTiers; itier ++) {
@@ -1084,10 +1081,6 @@ static void gui_text_cb_changed (TextGridArea me, GuiTextEvent /* event */) {
 static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"TextGrid settings", nullptr)
 		POSITIVE (fontSize, U"Font size (points)", my default_fontSize())
-
-		/* Ramyses: Opção para alterar o tamanho da fonte da caixa de texto do textGrid (editor de texto do intervalo) */
-		POSITIVE(textAreafontSize, U"Text Area font size (points)", U"12")
-
 		OPTIONMENU_ENUM (kGraphics_horizontalAlignment, textAlignmentInIntervals,
 				U"Text alignment in intervals", kGraphics_horizontalAlignment::DEFAULT)
 		OPTIONMENU (useTextStyles, U"The symbols %#_^ in labels", my default_useTextStyles() + 1)
@@ -1106,12 +1099,7 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 		SENTENCE (theText, U"...the text", my default_greenString())
 	EDITOR_OK
 		SET_OPTION (useTextStyles, my instancePref_useTextStyles() + 1)
-		SET_REAL (fontSize, my instancePref_fontSize())	
-
-		/* Ramyses: efetiva a alteração do tamanho da fonte da caixa de texto do textGrid (editor de texto do intervalo) 
-		conorme os padrões do Praat*/		
-		SET_REAL (textAreafontSize, my instancePref_textAreafontSize())	
-
+		SET_REAL (fontSize, my instancePref_fontSize())
 		SET_ENUM (textAlignmentInIntervals, kGraphics_horizontalAlignment, my instancePref_alignment())
 		if (my editable())
 			SET_OPTION (shiftDragMultiple, my instancePref_shiftDragMultiple() + 1)
@@ -1121,15 +1109,6 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_DO
 		my setInstancePref_useTextStyles (useTextStyles - 1);
 		my setInstancePref_fontSize (fontSize);
-
-		/* Ramyses: Salvar a configuração de fonte do textArea (editor de texto do intervalo) no arquivo Preferences.ini 
-		   inserida função abaixo no arquivo TextGridArea_prefs.h, para manter o padrão do Praat no tocante ao salvamento 
-		   de valores no arquivo Preferences.ini
-		   Carrega automaticamente o último valor salvo em preferences.ini na função v_createMenus() mais abaixo */
-		
-		my setInstancePref_textAreafontSize (textAreafontSize);	
-		GuiText_setFontSize (my functionEditor() -> textArea,  textAreafontSize); // update window	
-				
 		my setInstancePref_alignment (textAlignmentInIntervals);
 		if (my editable())
 			my setInstancePref_shiftDragMultiple (shiftDragMultiple - 1);
@@ -1742,87 +1721,6 @@ static void menu_cb_AddToUserDictionary (TextGridArea me, EDITOR_ARGS) {
 	}
 }
 
-/* Ramyses: implementação das funções adicionais do menu TextGrid 
-Adicionar referência de falante e salvar em preferences.ini 
-campo stringVoiceReferences também declarado em TextGridArea_prefs.h
- */
-#pragma mark - TextGridArea aditional functions by Ramyses
-
-static void menu_cb_VoiceReferenceSettings(TextGridArea me, EDITOR_ARGS) {
-	EDITOR_FORM (U"Voice reference settings", nullptr)
-		// carrega form com valores padrão de preferences.ini
-		TEXTFIELD (RefString, U"References separated by space char:", my instancePref_stringVoiceReferences(), 3)
-	EDITOR_OK
-	 	// campo stringVoiceReferences também declarado em TextGridArea_prefs.h
-		SET_STRING (RefString, my instancePref_stringVoiceReferences())
-	EDITOR_DO
-	    // armazena no arquivo preferences.ini		
-		my setInstancePref_stringVoiceReferences (RefString);	
-	EDITOR_END
-}
-
-/* 
-	Ramyses: implementa função principal para inserir referência de falante
-*/
-static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
-	if (! my textGrid())
-		return;   // BUG: should not be needed
-	if (my suppressTextCursorJump)
-		return;
-
-	try {
-
-		if (my selectedTier) {
-			// separa o falante de referência da string
-			conststring32 stringVoiceReferences =  my instancePref_stringVoiceReferences();
-			autoSTRVEC refVoices = splitByWhitespace_STRVEC (stringVoiceReferences);
-
-			if (iRef > refVoices.size) iRef = refVoices.size;
-			conststring32 voiceRef = refVoices.elements[iRef- 1].get(); 
-			
-			autoMelderString newText;
-			const autostring32 text = GuiText_getString (my functionEditor () -> textArea);
-			//M1 F1 M2 F2 M3 F3
-
-			// debug
-			// Melder_warning (U"debug strRef: \n",
-			//  voiceRef, U"\n",
-			//  stringVoiceReferences);
-			
-			MelderString_append(& newText, voiceRef, U": ", text.get());
-			// Melder_warning (newText.string);
-
-			IntervalTier intervalTier;
-			TextTier textTier;
-			AnyTextGridTier_identifyClass (my textGrid () -> tiers -> at[my selectedTier], &intervalTier, &textTier);
-			if (intervalTier) {
-				const integer selectedInterval = getSelectedInterval (me);
-				if (selectedInterval) {
-					GuiText_setString(my functionEditor () -> textArea, newText.string); // atualiza textArea
-					TextInterval interval = intervalTier->intervals.at[selectedInterval];
-					TextInterval_setText (interval, newText.string); // atualiza interval -> text
-					my suppressTextCursorJump = true;
-					FunctionArea_broadcastDataChanged (me); // atualiza geral
-					my suppressTextCursorJump = false;
-				}
-			}
-			MelderString_free(&newText);
-		}
-
-	} catch (MelderError) {
-		Melder_throw (U"Voice ref not inserted.");
-	}
-}
-static void menu_cb_AddVoiceReferenceInAreaText1 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 1); }
-static void menu_cb_AddVoiceReferenceInAreaText2 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 2); }
-static void menu_cb_AddVoiceReferenceInAreaText3 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 3); }
-static void menu_cb_AddVoiceReferenceInAreaText4 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 4); }
-static void menu_cb_AddVoiceReferenceInAreaText5 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 5); }
-static void menu_cb_AddVoiceReferenceInAreaText6 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 6); }
-static void menu_cb_AddVoiceReferenceInAreaText7 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 7); }
-static void menu_cb_AddVoiceReferenceInAreaText8 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 8); }
-
-/* --------------------------------------------------------------------------------------------------------------- */
 
 #pragma mark - TextGridArea all menus
 
@@ -1837,32 +1735,6 @@ void structTextGridArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (textGridMenu, U"Convert entire TextGrid to Unicode", 0,
 				menu_cb_ConvertToUnicode, this);
 	}
-
-	/* 
-	Ramyses: implementa funções para adicionar referências de falante M1, M2, M3... F1, F2, F3... no início de cada intervalo do textGrid
-	*/
-	FunctionAreaMenu_addCommand (textGridMenu, U"- Insert voice reference in TextGrid:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Voice reference settings... || Voice reference preferences...", 0,
-			menu_cb_VoiceReferenceSettings, this); 
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert First reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '1',
-	        menu_cb_AddVoiceReferenceInAreaText1, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Second reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '2',
-	        menu_cb_AddVoiceReferenceInAreaText2, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Thirth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '3',
-	        menu_cb_AddVoiceReferenceInAreaText3, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Fourth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '4',
-	        menu_cb_AddVoiceReferenceInAreaText4, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Fifth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '5',
-	        menu_cb_AddVoiceReferenceInAreaText5, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sixth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '6',
-	        menu_cb_AddVoiceReferenceInAreaText6, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '7',
-	        menu_cb_AddVoiceReferenceInAreaText7, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '8',
-	        menu_cb_AddVoiceReferenceInAreaText8, this);
-
-	/* -----------------------------------------------------------------------------------------------------------------------*/
-
 
 	FunctionAreaMenu_addCommand (textGridMenu, U"- Select by TextGrid:", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (textGridMenu, U"Select previous tier", GuiMenu_OPTION | GuiMenu_UP_ARROW | GuiMenu_DEPTH_1,
@@ -2002,11 +1874,7 @@ void structTextGridArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (spellMenu, U"Add selected word to user dictionary", 0,
 				menu_cb_AddToUserDictionary, this);
 	}
-
-	// /* Ramyses: carrega tamanho de fonte pré-configurada para área de texto do textGrid */
-	// GuiText_setFontSize( our functionEditor() -> textArea, our instancePref_textAreafontSize());
 }
-
 void structTextGridArea :: v_updateMenuItems () {
 	GuiThing_setSensitive (extractSelectedTextGridPreserveTimesButton, our endSelection() > our startSelection());
 	GuiThing_setSensitive (extractSelectedTextGridTimeFromZeroButton,  our endSelection() > our startSelection());

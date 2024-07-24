@@ -36,7 +36,7 @@ namespace {
 	constexpr double maximumScrollBarValue = 2'000'000'000.0;
 	constexpr double RELATIVE_PAGE_INCREMENT = 0.8;
 	constexpr double SCROLL_INCREMENT_FRACTION = 20.0;
-	constexpr int TEXT_HEIGHT = 80; //50; /* Ramyses: aumentar a área de edição de texto na janela de edição do textGrid */
+	constexpr int TEXT_HEIGHT = 50;
 	constexpr int BUTTON_X = 3;
 	constexpr int BUTTON_WIDTH = 40;
 	constexpr int BUTTON_SPACING = 8;
@@ -476,43 +476,11 @@ static void zoom_by (FunctionEditor me, double factor) {
 	zoom_fromTo (me, my startWindow - shift, my endWindow + shift);
 }
 
-/* Ramyses: função de zoom com roda do mouse, centralizando seleção antes do zoom*/
-static void gui_drawingarea_cb_zoomVerticalWhell (FunctionEditor me, GuiDrawingArea_ZoomEvent event) {
-	if (! my graphics)
-		return;   // could be the case in the very beginning
-	const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // step
-	// centraliza posição do cursor ou da seleção
-	const double startW = my startWindow;
-	const double endW = my endWindow;
-	const double selStart = my startSelection;
-	const double selEnd = my endSelection;
-	const double wCenter = (endW + startW) / 2; // retorna instante de tempo do centro da visiblePart (trecho visível).
-	const double selCenter = (selEnd + selStart) / 2; // retorna instante de tempo do centro da seleção.
-	const double shift =  selCenter - wCenter;
-	const bool shifted = ( shift != 0.0 );
-
-	//const double mousePos = GetMouseMovePointsEx();
-
-
-	if (shifted) {
-		my startWindow += shift;
-		if (my startWindow < my tmin + 1e-12)
-			my startWindow = my tmin;
-		my endWindow += shift;
-		if (my endWindow > my tmax - 1e-12)
-			my endWindow = my tmax;
-	}
-	zoom_by (me, enlargement);
-}
-/* ----------------------------------------------------------------------------------- */
-
 static void gui_drawingarea_cb_zoom (FunctionEditor me, GuiDrawingArea_ZoomEvent event) {
 	if (! my graphics)
 		return;   // could be the case in the very beginning
-	//const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // 2 percent per step
-	
-	gui_drawingarea_cb_zoomVerticalWhell ( me, event);
-	// zoom_by (me, enlargement);
+	const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // 2 percent per step
+	zoom_by (me, enlargement);
 }
 
 void structFunctionEditor :: v_prefs_addFields (EditorCommand cmd) {
@@ -948,26 +916,6 @@ static void PLAY_DATA__playWindow (FunctionEditor me, EDITOR_ARGS) {
 		my v_play (my startWindow, my endWindow);
 	PLAY_DATA_END
 }
-
-/* --------------------------------------------
-	Ramyses: reproduzir/parar/continuar a reprodução com a tecla ESC
-	Alteração também na declaração v_createMenuItems_play(), linha 946
-*/
-
-static void PLAY_DATA__StartOrStopPlayingESC (FunctionEditor me, EDITOR_ARGS) {
-	PLAY_DATA
-		if (MelderAudio_isPlaying) MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
-		else if (my startSelection < my endSelection) {
-			my v_play (my startSelection, my endSelection);
-		} else {
-			if (my startSelection == my endSelection && my startSelection > my startWindow && my startSelection < my endWindow)
-				my v_play (my startSelection, my endWindow);
-			else
-				my v_play (my startWindow, my endWindow);
-		}	
-	PLAY_DATA_END
-}
-
 static void PLAY_DATA__interruptPlaying (FunctionEditor me, EDITOR_ARGS) {
 	PLAY_DATA
 		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
@@ -983,10 +931,7 @@ void structFunctionEditor :: v_createMenuItems_play (EditorMenu menu) {
 	EditorMenu_addCommand (menu, U"Play window",
 			GuiMenu_DEPTH_1 | GuiMenu_SHIFT | GuiMenu_TAB, PLAY_DATA__playWindow);
 	EditorMenu_addCommand (menu, U"Interrupt playing",
-			/* 
-				Ramyses: iniciar/parar/iniciar a reprodução com a tecla ESC
-			*/
-			GuiMenu_DEPTH_1 | GuiMenu_ESCAPE, PLAY_DATA__StartOrStopPlayingESC /*PLAY_DATA__interruptPlaying*/);
+			GuiMenu_DEPTH_1 | GuiMenu_ESCAPE, PLAY_DATA__interruptPlaying);
 	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
 		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
 		if (area)
@@ -1602,7 +1547,7 @@ void structFunctionEditor :: v_createChildren () {
 		Machine_getMenuBarBottom () + ( our v_hasText () ? TEXT_HEIGHT + marginBetweenTextAndDrawingAreaToEnsureCorrectUnhighlighting : 0), -8 - Gui_PUSHBUTTON_HEIGHT,
 		gui_drawingarea_cb_expose, gui_drawingarea_cb_mouse,
 		nullptr, gui_drawingarea_cb_resize, gui_drawingarea_cb_zoom, this, 0
-	);	
+	);
 	GuiDrawingArea_setSwipable (our drawingArea, our scrollBar, nullptr);
 }
 
