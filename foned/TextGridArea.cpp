@@ -1780,7 +1780,7 @@ static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
 			if (iRef > refVoices.size) iRef = refVoices.size;
 			conststring32 voiceRef = refVoices.elements[iRef- 1].get(); 
 			
-			autoMelderString newText;
+			autoMelderString newText; // MelderString que se destroi automaticamente
 			const autostring32 text = GuiText_getString (my functionEditor () -> textArea);
 			//M1 F1 M2 F2 M3 F3
 
@@ -1790,15 +1790,17 @@ static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
 			//  stringVoiceReferences);
 			
 			MelderString_append(& newText, voiceRef, U": ", text.get());
-			// Melder_warning (newText.string);
+			// Melder_warning (newText.string); // debug
 
 			IntervalTier intervalTier;
 			TextTier textTier;
+			// obtém intervalTier e TextTier
 			AnyTextGridTier_identifyClass (my textGrid () -> tiers -> at[my selectedTier], &intervalTier, &textTier);
 			if (intervalTier) {
 				const integer selectedInterval = getSelectedInterval (me);
 				if (selectedInterval) {
 					GuiText_setString(my functionEditor () -> textArea, newText.string); // atualiza textArea
+					GuiText_setSelection (my functionEditor () -> textArea, sizeof(*voiceRef), sizeof(*voiceRef)); // po~e o cursor após o :
 					TextInterval interval = intervalTier->intervals.at[selectedInterval];
 					TextInterval_setText (interval, newText.string); // atualiza interval -> text
 					my suppressTextCursorJump = true;
@@ -1806,7 +1808,6 @@ static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
 					my suppressTextCursorJump = false;
 				}
 			}
-			MelderString_free(&newText);
 		}
 
 	} catch (MelderError) {
