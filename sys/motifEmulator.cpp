@@ -3203,9 +3203,22 @@ a) arquivo motifEmulator.cpp, linha 3247
     função LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
     adicionado manipulador de evento WM_DROPFILES, chamando callback on_dropFiles()
 	adicionada propriedade de estilo na função createWindowEx respectivo
+
+	Confirmar o BUG que está ocorrendo com o uso de MelderString nessa parte do código...
+	será que falta carregar algum header antes???
+	ver um modo de usar conststring32 como em outras partes desse arquivo
+
+	O uso dessas funções abaixo parece ser a fonte do BUG, mas apenas se usar nesse estágio do programa 
+		Talvez porque a autoMeldeString automaticamente chama MelderString_free
+		// uso de autoMelderString, que se destroi automaticmente, chamando uma das funções abaixo
+		// MelderString_free(strFiles32);
+		// MelderString_free(&command);
+		// MelderString_free(&showString32);
+
 */
 #include "praat.h"
 #include "praat_script.h"
+using namespace std;
 
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
@@ -3219,34 +3232,42 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	// in the second parameter then it returns the count of how many filers were
 	// drag and dropped.  Otherwise, the function fills in the szName string
 	// array with the current file being queried.
-	int count = DragQueryFile (hDrop, 0xFFFFFFFF, szName, MAX_PATH);
+	const int count = DragQueryFile (hDrop, 0xFFFFFFFF, szName, MAX_PATH);
 
 	// varre todos os arquivos para exibição
-	autoMelderString strFiles32[count], showString32;
-	for (integer i = 0; i < count; i++) {
+	// usar MelderString no lugar de autoMelderString tira o BUG?
+	MelderString MelderstrFiles32[count], MeldershowString32;
+	for (int i = 0; i < count; i++) {
 		DragQueryFile (hDrop, i, szName, MAX_PATH);
-		
-		strFiles32[i].string = (char32*) Melder_peekWto32(szName);
-		MelderString_append(& showString32, Melder_integer(i + 1));
-		MelderString_append(& showString32, U" - ", strFiles32[i].string, U"\n");
-	} 
-	// MessageBoxW(window, showString.c_str(), L"Arquivos recebidos", 0);
-	// Melder_warning (U"Arquivos recebidos: \n", Melder_peekWto32 (showString.c_str()));
-	Melder_warning (U"Arquivos recebidos: \n", showString32.string);	
-	MelderString_free(&showString32);
+				
+		// strFiles32[i] = szName;
+		// showString32.append(to_wstring(i + 1) + L" - \n");
+		// showString32.append(strFiles32[i]);
 
+		MelderstrFiles32[i].string = (char32*) Melder_peekWto32(szName);
+		MelderString_append(& MeldershowString32, Melder_integer(i + 1), U" - ", MelderstrFiles32[i].string, U"\n");		
+	} 
+
+	// MessageBoxW(window, showstringW.c_str(), L"Arquivos recebidos", 0);
+	Melder_warning (U"Arquivos recebidos: \n", MeldershowString32.string);
+	// Melder_warning (U"Arquivos recebidos: \n", showString32.c_str());	
+	
 	// Agora, carrega todos os arquivos na lista de objetos do praat
 	for (int i = 0; i < count; i++) {
 		structMelderFile fileS;     // aloca memória
 		MelderFile file = &fileS;   // cria ponteiro para a struct
-		// Melder_pathToFile (Melder_peekWto32 (strFiles[i].c_str()), file);
-		Melder_pathToFile (strFiles32[i].string, file);
 
+		Melder_pathToFile (MelderstrFiles32[i].string, file);
 		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-		autoMelderString command = {};
+		MelderString command = {};
 		MelderString_append (&command, U"Read from file... ", file->path);
 		bool status = praat_executeCommand (nullptr, command.string);
 
+		// Melder_pathToFile (Melder_peekWto32(strFiles32[i].c_str()), file);
+		// String command = L"Read from file... ";
+		// command += Melder_peek32toW(file->path);
+		// bool status = praat_executeCommand (nullptr, (char32 * ) Melder_peekWto32(command.c_str()));
+ 
 		/* outra forma de criar objeto e colocar na lista de objetos da janela principal*/
 		// autoDaata result = Data_readFromFile (file);
 		// //cria objeto e coloca na lista, com nome base do arquivo
@@ -3255,12 +3276,14 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		/* debug */
 		bool dbg = false;
 		if (dbg) {
-			command = {};
-			MelderString_append(&command, U"Info");
+			command.string = U"Info";
 			status = praat_executeCommand (nullptr, command.string);
-		}
-		MelderString_free(strFiles32);
-		MelderString_free(&command);
+
+			// command.string = U"";
+			// MelderString_append(&command, U"Info");
+			// status = praat_executeCommand (nullptr, command.string);
+
+		}		
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory

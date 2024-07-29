@@ -182,7 +182,7 @@ Ramyses: para instalar o toolchain mingw64:
 3. instalar make: `$ pacman -S make ` 
 4. instalar gdb: `$ pacman -S mingw-w64-x86_64-gdb `
 
-Os arquivos baixados pelo Pacman serão armazenados na pasta ` \msys2\mingw64\bin `  será 
+Os arquivos baixados pelo Pacman serão armazenados na pasta ` \msys2\mingw64\bin `.
 
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
 perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,

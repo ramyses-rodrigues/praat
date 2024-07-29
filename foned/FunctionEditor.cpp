@@ -511,6 +511,7 @@ static void gui_drawingarea_cb_zoom (FunctionEditor me, GuiDrawingArea_ZoomEvent
 		return;   // could be the case in the very beginning
 	//const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // 2 percent per step
 	
+	/* Ramyses: função de zoom com roda do mouse, centralizando seleção antes do zoom*/
 	gui_drawingarea_cb_zoomVerticalWhell ( me, event);
 	// zoom_by (me, enlargement);
 }

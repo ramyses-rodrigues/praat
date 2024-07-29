@@ -302,9 +302,12 @@ static void charSize (Graphics anyGraphics, _Graphics_widechar *lc) {
 			Longchar_Info info = lc -> karInfo;
 			const int normalSize = win_size2isize (my fontSize);
 			const int smallSize = (3 * normalSize + 2) / 4;
-			int font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
-			       info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
-			       info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS : lc -> font.integer_;
+			/* Ramyses: retirando BUG de fechamento (crash) do Praat após mensagem de não encontrar fonte */
+			int font = 0;
+			if (info -> alphabet)
+				int font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
+					info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
+					info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS : lc -> font.integer_;
 			if ((unsigned int) lc -> kar >= 0x2E80 && (unsigned int) lc -> kar <= 0x9FFF)
 				font = ( theGraphicsCjkFontStyle == kGraphics_cjkFontStyle::CHINESE ? kGraphics_font_CHINESE : kGraphics_font_JAPANESE );
 			const int size = ( lc -> size < 100 ? smallSize : normalSize );
