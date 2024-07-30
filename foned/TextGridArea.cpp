@@ -1780,8 +1780,8 @@ static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
 			if (iRef > refVoices.size) iRef = refVoices.size;
 			conststring32 voiceRef = refVoices.elements[iRef- 1].get(); 
 			
-			autoMelderString newText; // MelderString que se destroi automaticamente
-			const autostring32 text = GuiText_getString (my functionEditor () -> textArea);
+			MelderString newText; // a autoMelderString é uma MelderString que se destroi automaticamente (usar ou não usar?)
+			autostring32 text = GuiText_getString (my functionEditor () -> textArea);
 			//M1 F1 M2 F2 M3 F3
 
 			// debug
