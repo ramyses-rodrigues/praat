@@ -913,7 +913,105 @@ static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS) {
 		shift_by (me, +RELATIVE_PAGE_INCREMENT * (my endWindow - my startWindow), false);
 	VOID_EDITOR_END
 }
+/* Ramyses: callback para o botão Save...*/
+#include "TextGrid.h"
+autostring32 customSaveFiletoDisk(conststring32 title, conststring32 fullFileName) {
+	OPENFILENAME openFileName;
+	static WCHAR customFilter[100 + 2];
+	static WCHAR fullFileNameW[300 + 2];
+	static WCHAR _initialDir[300 + 2];
+	autostring32 outfileName;
 
+	wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (fullFileName), 300 + 2);
+	GetFullPathName(fullFileNameW, 300 + 2, _initialDir, nullptr);
+	//wcsncpy (_initialDir, Melder_peek32toW_fileSystem (initialDir), 300 + 2);
+
+	fullFileNameW[300 + 1] = L'\0'; _initialDir[300 + 1] = L'\0';
+
+	openFileName.lStructSize = sizeof (OPENFILENAME);
+	openFileName.hwndOwner = nullptr;
+	openFileName.lpstrFilter = nullptr;   // like *.txt
+	openFileName.lpstrCustomFilter = customFilter;
+	openFileName.nMaxCustFilter = 100;
+	openFileName.lpstrFile = fullFileNameW;
+	openFileName.nMaxFile = 300;
+	openFileName.lpstrFileTitle = nullptr;
+	openFileName.lpstrInitialDir = nullptr;
+	openFileName.lpstrTitle = Melder_peek32toW_fileSystem (title);
+	openFileName.Flags = OFN_LONGNAMES | OFN_OVERWRITEPROMPT | OFN_EXPLORER |
+	                     OFN_HIDEREADONLY;
+	openFileName.lpstrDefExt = nullptr;
+	
+	
+	if (GetSaveFileName (&openFileName))
+		outfileName = Melder_Wto32 (fullFileNameW);
+	setlocale (LC_ALL, "C");
+
+	return outfileName;
+
+}
+
+static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
+	//Melder_warning (U"Em desenvolvimento...");
+	MelderString claname;
+	// selectiona functionArea textGridArea
+	for (int iArea = 0; iArea < FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iArea ++ ) {
+				
+		FunctionArea area = static_cast <FunctionArea> (my functionAreas [iArea].get());
+		if (area) {
+			// debug
+			MelderString_append(&claname, Melder_integer(iArea), U": ", area -> classInfo->className, U"\n") ;
+			if (area -> editable()) {  // ver outra forma de verificar se é uma TextGrid!!!
+			    TextGrid tg = static_cast <TextGrid> (area -> function());
+				char32 defaultName[300]; 
+				defaultName [0] = U'\0';		
+
+				Melder_sprint (defaultName, 300, tg -> name.get (), U".TextGrid");
+				
+				// GetCurrentDirectory();
+				structMelderFile _file {};
+				autostring32 outfilename;
+				Melder_pathToFile(defaultName, &_file); // caminho completo...
+				Melder_warning(Melder_fileToPath(&_file));
+			
+				bool fileexists = MelderFile_exists(&_file);
+				if (fileexists) {
+					MelderString msFile;
+					MelderString_append(&msFile, U"Sobrescrever arquivo existente: \n", _file.path);
+
+					const int result = MessageBox(NULL, Melder_32toW(msFile.string).get(), L"Sobrescrever arquivo",  MB_YESNOCANCEL);
+					if (result == IDYES)
+					{
+						Data_writeToTextFile (tg, &_file);
+						Melder_warning (U"File ", _file.path, U" saved succefully.");
+					} else if (result == IDNO) {
+						outfilename = customSaveFiletoDisk(U"Salvar como...", _file.path);
+						if (outfilename) {
+							Melder_relativePathToFile(outfilename.get(), &_file);
+							Data_writeToTextFile (tg, &_file);
+							Melder_warning (U"File ", outfilename.get(), U" saved succefully.");
+						}
+					} else if (result == IDCANCEL) {
+						Melder_warning (U"Operação cancelada.");
+					}
+				} else {					
+					
+					
+					outfilename = customSaveFiletoDisk(U"Salvar como...", _file.path);
+					// outfilename = GuiFileSelect_getOutfileName(nullptr, U"Salvar como...", _file.path); 					
+					if (outfilename) {
+						Melder_relativePathToFile(outfilename.get(), &_file);
+						Data_writeToTextFile (tg, &_file);
+						Melder_warning (U"File ", outfilename.get(), U" saved succefully.");
+					}
+				}
+			}		
+		}
+	}
+
+	// debug
+	Melder_warning (U"Function Areas: \n", claname.string);	
+}
 
 #pragma mark - FunctionEditor Play menu
 
@@ -1556,6 +1654,13 @@ void structFunctionEditor :: v_createChildren () {
 	x += BUTTON_WIDTH + BUTTON_SPACING;
 	GuiButton_createShown (our windowForm, x, x + BUTTON_WIDTH, -4 - Gui_PUSHBUTTON_HEIGHT, -4,
 		U"bak", gui_button_cb_zoomBack, this, 0);
+	
+	/* Ramyses: botão Save... para salvar TextGrid se o editor de TextGrid for aberto*/
+	if (our v_hasText ()) {
+		x += BUTTON_WIDTH + BUTTON_SPACING;
+		GuiButton_createShown (our windowForm, x, x + BUTTON_WIDTH, -4 - Gui_PUSHBUTTON_HEIGHT, -4, 
+			U"Save...", gui_button_cb_Save, this, 0);
+	}
 
 	/*
 		Create scroll bar.
