@@ -481,6 +481,12 @@ static void gui_drawingarea_cb_zoomVerticalWhell (FunctionEditor me, GuiDrawingA
 	if (! my graphics)
 		return;   // could be the case in the very beginning
 	const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // step
+
+	// pega posição do mouse em relação à janela visível
+	const double mousePos = my GetMouseMovePointsEx());
+
+
+
 	// centraliza posição do cursor ou da seleção
 	const double startW = my startWindow;
 	const double endW = my endWindow;
@@ -491,9 +497,9 @@ static void gui_drawingarea_cb_zoomVerticalWhell (FunctionEditor me, GuiDrawingA
 	const double shift =  selCenter - wCenter;
 	const bool shifted = ( shift != 0.0 );
 
-	//const double mousePos = GetMouseMovePointsEx();
+	
 
-
+	// desloca janela visível para que centro da seleção fique no centro vísível
 	if (shifted) {
 		my startWindow += shift;
 		if (my startWindow < my tmin + 1e-12)
@@ -977,7 +983,7 @@ static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 			    TextGrid tg = static_cast <TextGrid> (area -> function());
 				char32 defaultTGName[300]; 
 				defaultTGName [0] = U'\0';
-
+				
 				Melder_sprint(defaultTGName, 300, lastSavedFolder.path, U"\\", tg->name.get(), U".TextGrid");	
 
 				//debug
@@ -992,7 +998,6 @@ static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 				if (debug) Melder_warning(U"Arquivo  a ser trabalhado: ", _file.path);
 
 				// wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (fullFileName), 300 + 2);
-
 
 				bool fileexists = MelderFile_exists(&_file);
 				if (fileexists) {
