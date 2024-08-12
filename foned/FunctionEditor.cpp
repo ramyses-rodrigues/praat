@@ -977,7 +977,7 @@ static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 			    TextGrid tg = static_cast <TextGrid> (area -> function());
 				char32 defaultTGName[300]; 
 				defaultTGName [0] = U'\0';
-
+				
 				Melder_sprint(defaultTGName, 300, lastSavedFolder.path, U"\\", tg->name.get(), U".TextGrid");	
 
 				//debug
@@ -992,7 +992,6 @@ static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 				if (debug) Melder_warning(U"Arquivo  a ser trabalhado: ", _file.path);
 
 				// wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (fullFileName), 300 + 2);
-
 
 				bool fileexists = MelderFile_exists(&_file);
 				if (fileexists) {
