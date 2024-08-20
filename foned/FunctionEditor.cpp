@@ -913,8 +913,10 @@ static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS) {
 		shift_by (me, +RELATIVE_PAGE_INCREMENT * (my endWindow - my startWindow), false);
 	VOID_EDITOR_END
 }
+
 /* Ramyses: callback para o botão Save...*/
 #include "TextGrid.h"
+#include "TextEditor.h"
 autostring32 customSaveFiletoDisk(conststring32 title, conststring32 fullFileName) {
 
 	OPENFILENAME openFileName;
@@ -974,7 +976,10 @@ static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 			MelderString_append(&claname, Melder_integer(iArea), U": ", area -> classInfo->className, U"\n") ;
 
 			if (area -> editable()) {  // ver outra forma de verificar se é uma TextGrid!!!
-			    TextGrid tg = static_cast <TextGrid> (area -> function());
+			    
+				//autoTextEditor atgEditor = static_cast <autoTextEditor> (area -> functionEditor());
+				
+				TextGrid tg = static_cast <TextGrid> (area -> function());
 				char32 defaultTGName[300]; 
 				defaultTGName [0] = U'\0';
 				
