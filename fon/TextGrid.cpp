@@ -1719,9 +1719,9 @@ autoTable TextGrid_downto_Table (TextGrid me, bool includeLineNumbers, integer t
 		Table_renameColumn_e (thee.get(), ++ icol, U"line");
 	if (includeTierNames)
 		Table_renameColumn_e (thee.get(), ++ icol, U"tier");
-	Table_renameColumn_e (thee.get(), ++ icol, U"tmin");
+	Table_renameColumn_e (thee.get(), ++ icol, U"tmin (s)");
 	const integer tmin_columnNumber = icol;
-	Table_renameColumn_e (thee.get(), ++ icol, U"tmax");	
+	Table_renameColumn_e (thee.get(), ++ icol, U"tmax (s)");	
 	Table_renameColumn_e (thee.get(), ++ icol, U"text");	
 
 	// código original:
