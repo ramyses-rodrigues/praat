@@ -29,7 +29,19 @@ R"~~~(
 
 Latest changes in Praat.
 
-##6.4.14# (21 July 2024)
+##6.4.17# (8 August 2024)
+• Spectrogram: #Paint: solved a bug that could cause Praat to crash if the time domain was smaller than that of the Spectrogram.
+• ScriptEditor: ##Run selection# can call procedures outside the selected text.
+• Audio files: can open Polyphone (Shorten) files.
+
+##6.4.16# (29 July 2024)
+• Windows: make command-line output visible (new on ARM64, was lost in 6.4.14 for Intel64 and Intel32).
+
+##6.4.15# (26 July 2024)
+• Distinguish between %%pitch ceiling% (flat) and %%pitch top% (curved ceiling),
+  mainly because of their different meanings.
+
+##6.4.14# (22 July 2024)
 • Pitch menu (in e.g. Sound or TextGrid window): separate settings for four pitch analysis methods.
 • Formant analysis: faster on all systems.
 • ARM64 Windows: worked around a compiler bug that caused incorrect window sizes.

@@ -52,6 +52,9 @@ static const struct stylesInfo {
 /* CODE4: */ { U"<code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", U"<br></code>" },
 /* CODE5: */ { U"<code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", U"<br></code>" },
 /* CAPTION: */ { U"<p style=\"position:relative;padding-left:4em;text-indent:-2em;font-size:86%\">", U"</font></p>" },
+/* QUOTE1: */ { U"<p style=\"position:relative;padding-left:4em;font-size:86%\">", U"</font></p>" },
+/* QUOTE2: */ { U"<p style=\"position:relative;padding-left:8em;font-size:86%\">", U"</font></p>" },
+/* QUOTE3: */ { U"<p style=\"position:relative;padding-left:12em;font-size:86%\">", U"</font></p>" },
 };
 
 static void writeLinkAsHtml (ManPages me, mutablestring32 link, conststring32 linkText, MelderString *buffer, conststring32 pageTitle) {
@@ -169,14 +172,50 @@ static void writeParagraphsAsHtml (ManPages me, Interpreter optionalInterpreterR
 						if (hasError)
 							MelderString_append (buffer, U"<code style=\"color:red\">&nbsp;&nbsp;&nbsp;\n");
 						else
-							MelderString_append (buffer, U"<code>&nbsp;&nbsp;&nbsp;\n");
-						MelderString_append (buffer, lineBuffer.string, U"<br></code>\n");
+							MelderString_append (buffer, U"<code style=\"white-space:pre\">&nbsp;&nbsp;&nbsp;");
+						for (const char32 *plineBuffer = & lineBuffer.string [0]; *plineBuffer != U'\0'; plineBuffer ++) {
+							/*if (plineBuffer [0] == U' ' && plineBuffer [1] == U' ') {
+								MelderString_append (buffer, U" &nbsp;");
+								plineBuffer += 1;
+							} else*/
+							if (plineBuffer [0] == U' ') {
+								MelderString_append (buffer, U" ");
+							} else if (plineBuffer [0] == U'\\' && plineBuffer [1] == U'#' && plineBuffer [2] == U'{') {
+								inBold = true;
+								MelderString_append (buffer, U"<b>");
+								plineBuffer += 2;
+							} else if (plineBuffer [0] == U'\\' && plineBuffer [1] == U'%' && plineBuffer [2] == U'{') {
+								inItalic = true;
+								MelderString_append (buffer, U"<i>");
+								plineBuffer += 2;
+							} else if (plineBuffer [0] == U'}') {
+								if (inBold) {
+									inBold = false;
+									MelderString_append (buffer, U"</b>");
+								} else if (inItalic) {
+									inItalic = false;
+									MelderString_append (buffer, U"</i>");
+								} else
+									MelderString_appendCharacter (buffer, plineBuffer [0]);
+							} else
+								MelderString_appendCharacter (buffer, plineBuffer [0]);
+						}
+						if (inBold) {
+							inBold = false;
+							MelderString_append (buffer, U"</b>");
+						}
+						if (inItalic) {
+							inItalic = false;
+							MelderString_append (buffer, U"</i>");
+						}
+						MelderString_append (buffer, U"<br></code>\n");
 						MelderString_empty (& lineBuffer);
 					} else {
 						MelderString_appendCharacter (& lineBuffer, *paragraphPointer);
 					}
 				}
-				continue;
+				if (hasError)
+					continue;   // no longer show any graphics
 			}
 			if (paragraph -> height == 0.001)
 				continue;
@@ -327,7 +366,7 @@ static void writeParagraphsAsHtml (ManPages me, Interpreter optionalInterpreterR
 					p += 3 + isBold;
 					if (isBold)
 						MelderString_append (buffer, U"<b>");
-					const bool isVerbatim = ( p [-2] == U'`');
+					const bool isVerbatim = ( p [-2] == U'`' );
 					static MelderString link, linkText;
 					MelderString_empty (& link);
 					if (isVerbatim)
