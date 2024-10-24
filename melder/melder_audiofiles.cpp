@@ -37,6 +37,63 @@
 #define WAVE_FORMAT_DVI_ADPCM  0x0011
 #define WAVE_FORMAT_EXTENSIBLE 0xFFFE
 
+/* --------------------- Ramyses: Utils PRogress Bar... Testes -----------------*/ 
+// Praat possui uma progressBar nativa, chamada através da função Melder_Progress(double)
+#include "..\sys\GuiP.h"
+
+HWND InitProgressBar() 
+{ 
+	RECT rcClient;  // Client area of parent window.
+    int cyVScroll;  // Height of scroll bar arrow.
+    HWND hwndPB, hwndParent = 0, hDefaultProgressCtrl;    // Handle of progress bar.    
+	
+    // hwndParent = GetDesktopWindow(); 
+	// hwndParent = GetActiveWindow();
+	hwndParent = FindWindow( NULL, Melder_peek32toW (U"Praat Objects"));
+	//hwndParent = theApplicationShell->window;
+	//hwndParent = FindWindow (Melder_peek32toW (U"PraatShell"), NULL);
+	// GetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
+  
+    GetClientRect(hwndParent, &rcClient);     
+    cyVScroll = GetSystemMetrics(SM_CYVSCROLL); 
+
+    // Create default progress bar.
+	hwndPB = CreateWindowEx(
+		0,
+		PROGRESS_CLASS,
+		TEXT(""),
+		WS_CHILD | WS_VISIBLE,
+		rcClient.left, 
+        rcClient.bottom - cyVScroll, 
+        rcClient.right, 
+		cyVScroll, 
+		hwndParent,
+		(HMENU) 0,
+		GetModuleHandle(NULL),
+		NULL);
+	
+    // Set the range and increment of the progress bar. 
+	if (hwndPB) {
+		SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+		SendMessage(hwndPB, PBM_SETSTEP, (WPARAM) 1, 0); 
+	}
+
+    return hwndPB; 
+}
+
+void updateProgressBar(HWND hwndPB, integer PosPBValue) {
+	if (hwndPB)
+		SendMessage(hwndPB, PBM_SETPOS, PosPBValue, 0);
+		// SendMessage(hwndPB, PBM_STEPIT, 0, 0);
+}
+
+void finishProgressBar(HWND hwndPB) {
+	if (hwndPB)
+		DestroyWindow(hwndPB);
+}
+
+/* ------------------------------------------------------------------ */
+
 void MelderFile_writeAudioFileHeader (MelderFile file, int audioFileType, integer sampleRate, integer numberOfSamples, integer numberOfChannels, int numberOfBitsPerSamplePoint) {
 	try {
 		FILE *f = file -> filePointer;
@@ -1687,10 +1744,11 @@ static void warning_fileTooSmall (MelderFile file, integer numberOfChannels, con
 }
 
 void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
-	FILE *f = file -> filePointer;   // this function must have a MelderFile argument, because it can warn (which needs a filename)
-	try {
+	FILE *f = file -> filePointer;   // this function must have a MelderFile argument, because it can warn (which needs a filename)	
+	autoMelderProgress progress (U"Carregando Sound...");
+	try {		
 		integer numberOfChannels = buffer.nrow;
-		integer numberOfSamples = buffer.ncol;
+		integer numberOfSamples = buffer.ncol;		
 		switch (encoding) {
 			case Melder_LINEAR_8_SIGNED: {
 				try {
@@ -1699,6 +1757,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 							int8 value;
 							if (fread (& value, 1, 1, f) < 1) throw MelderError ();
 							buffer [ichan] [isamp] = value * (1.0 / 128);
+							// Ramyses: inserção de barra de progresso padrão do PRaat
+							Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound LINEAR_8_SIGNED...");
 						}
 				} catch (MelderError) {
 					Melder_clearError ();
@@ -1708,8 +1768,11 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 			case Melder_LINEAR_8_UNSIGNED:
 				try {
 					for (integer isamp = 1; isamp <= numberOfSamples; isamp ++)
-						for (integer ichan = 1; ichan <= numberOfChannels; ichan ++)
+						for (integer ichan = 1; ichan <= numberOfChannels; ichan ++) {
 							buffer [ichan] [isamp] = bingetu8 (f) * (1.0 / 128) - 1.0;
+							// Ramyses: inserção de barra de progresso padrão do PRaat
+							Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound LINEAR_8_UNSIGNED...");
+						}
 				} catch (MelderError) {
 					Melder_clearError ();
 					warning_fileTooSmall (file, numberOfChannels, U"8-bit unsigned");
@@ -1744,6 +1807,7 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 					or 32-bit data into the last half of the buffer.
 				*/
 				const size_t numberOfBytesRead = fread (bytes, 1, numberOfBytes, f);
+
 				if (numberOfChannels == 1) {
 					switch (encoding) {
 						case Melder_LINEAR_16_BIG_ENDIAN: {
@@ -1751,13 +1815,18 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 								const unsigned char byte1 = * bytes ++, byte2 = * bytes ++;
 								const int value = (int) (int16) (((uint16) byte1 << 8) | (uint16) byte2);   // extend sign
 								buffer [1] [isamp] = value * (1.0 / 32768);
+								// Ramyses: inserção de barra de progresso padrão do PRaat
+								Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal(is)");
 							}
 						} break;
 						case Melder_LINEAR_16_LITTLE_ENDIAN: {
+
 							for (integer isamp = 1; isamp <= numberOfSamples; isamp ++) {
 								const unsigned char byte1 = * bytes ++, byte2 = * bytes ++;
 								const int value = (int) (int16) (((uint16) byte2 << 8) | (uint16) byte1);   // extend sign
 								buffer [1] [isamp] = value * (1.0 / 32768);
+								// Ramyses: inserção de barra de progresso padrão do PRaat
+								Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 							}
 						} break;
 						case Melder_LINEAR_24_BIG_ENDIAN: {
@@ -1768,6 +1837,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									 (uint32) ((uint32) byte2 << 16) |
 											  ((uint32) byte3 << 8));
 								buffer [1] [isamp] = value * (1.0 / 32768 / 65536);
+								// Ramyses: inserção de barra de progresso padrão do PRaat
+								Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 							}
 						} break;
 						case Melder_LINEAR_24_LITTLE_ENDIAN: {
@@ -1778,6 +1849,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									 (uint32) ((uint32) byte2 << 16) |
 											  ((uint32) byte1 << 8));
 								buffer [1] [isamp] = value * (1.0 / 32768 / 65536);
+								// Ramyses: inserção de barra de progresso padrão do PRaat
+								Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 							}
 						} break;
 						case Melder_LINEAR_32_BIG_ENDIAN: {
@@ -1789,6 +1862,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									 (uint32) ((uint32) byte3 << 8) |
 											   (uint32) byte4);
 								buffer [1] [isamp] = value * (1.0 / 32768 / 65536);
+								// Ramyses: inserção de barra de progresso padrão do PRaat
+								Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 							}
 						} break;
 						case Melder_LINEAR_32_LITTLE_ENDIAN: {
@@ -1800,6 +1875,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									 (uint32) ((uint32) byte2 << 8) |
 											   (uint32) byte1);
 								buffer [1] [isamp] = value * (1.0 / 32768 / 65536);
+								// Ramyses: inserção de barra de progresso padrão do PRaat
+								Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 							}
 						} break;
 					}
@@ -1811,15 +1888,21 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									const uint8 byte1 = * bytes ++, byte2 = * bytes ++;
 									const int value = (int) (int16) (uint16) ((uint16) ((uint16) byte1 << 8) | (uint16) byte2);
 									buffer [ichan] [isamp] = value * (1.0 / 32768);
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_16_LITTLE_ENDIAN: {
+							
+							/* Ramyses: inserção de barra de progresso - Testes */
 							for (integer isamp = 1; isamp <= numberOfSamples; isamp ++)
 								for (integer ichan = 1; ichan <= numberOfChannels; ichan ++) {
 									const uint8 byte1 = * bytes ++, byte2 = * bytes ++;
 									const int value = (int) (int16) (uint16) ((uint16) ((uint16) byte2 << 8) | (uint16) byte1);
 									buffer [ichan] [isamp] = value * (1.0 / 32768);
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
+
 						} break;
 						case Melder_LINEAR_24_BIG_ENDIAN: {
 							for (integer isamp = 1; isamp <= numberOfSamples; isamp ++)
@@ -1832,6 +1915,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									if ((byte1 & 128) != 0)
 										unsignedValue |= 0xFF000000;   // extend sign
 									buffer [ichan] [isamp] = (int32) unsignedValue * (1.0 / 8388608);
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_24_LITTLE_ENDIAN: {
@@ -1842,6 +1927,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 									if ((byte3 & 128) != 0)
 										unsignedValue |= 0xFF000000;
 									buffer [ichan] [isamp] = (int32) unsignedValue * (1.0 / 8388608);
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_32_BIG_ENDIAN: {
@@ -1854,6 +1941,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										 (uint32) ((uint32) byte3 << 8) |
 												   (uint32) byte4);
 									buffer [ichan] [isamp] = value * (1.0 / 32768 / 65536);
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_32_LITTLE_ENDIAN: {
@@ -1866,6 +1955,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										 (uint32) ((uint32) byte2 << 8) |
 												   (uint32) byte1);
 									buffer [ichan] [isamp] = value * (1.0 / 32768 / 65536);
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 					}
@@ -1882,9 +1973,13 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										 (uint32) ((uint32) byte2 << 16));
 									* ints ++ = value;
 									* ints ++ = 0;   // the marker
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_16_LITTLE_ENDIAN: {
+							
+							/* Ramyses: inserção de barra de progresso - Testes */
 							for (integer isamp = 1; isamp <= numberOfSamples; isamp ++)
 								for (integer ichan = 1; ichan <= numberOfChannels; ichan ++) {
 									const uint8 byte1 = * bytes ++, byte2 = * bytes ++;
@@ -1893,7 +1988,10 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										 ((uint32) byte1 << 16));
 									* ints ++ = value;
 									* ints ++ = 0;   // the marker
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");								
 								}
+							
 						} break;
 						case Melder_LINEAR_24_BIG_ENDIAN: {
 							for (integer isamp = 1; isamp <= numberOfSamples; isamp ++)
@@ -1905,6 +2003,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										 ((uint32) byte3 << 8));
 									* ints ++ = value;
 									* ints ++ = 0;   // the marker
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_24_LITTLE_ENDIAN: {
@@ -1917,6 +2017,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										 ((uint32) byte1 << 8));
 									* ints ++ = value;
 									* ints ++ = 0;   // the marker
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_32_BIG_ENDIAN: {
@@ -1930,6 +2032,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										  (uint32) byte4);
 									* ints ++ = value;
 									* ints ++ = 0;   // the marker
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						} break;
 						case Melder_LINEAR_32_LITTLE_ENDIAN: {
@@ -1943,6 +2047,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 										  (uint32) byte1);
 									* ints ++ = value;
 									* ints ++ = 0;   // the marker
+									// Ramyses: inserção de barra de progresso padrão do PRaat
+									Melder_progress((double) isamp / numberOfSamples, U"Carregando Sound com ", numberOfChannels, U" canal (is)");
 								}
 						}
 					}
@@ -2052,7 +2158,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 				Melder_throw (U"Unknown encoding ", encoding, U".");
 		}
 	} catch (MelderError) {
-		Melder_throw (U"Audio samples not read from file.");
+		Melder_clearError ();   // interrupted, no error
+		Melder_warning(U"Audio samples not completaly read from file."); 		
 	}
 }
 

@@ -3256,33 +3256,29 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	for (int i = 0; i < count; i++) {
 		structMelderFile fileS;     // aloca memória
 		MelderFile file = &fileS;   // cria ponteiro para a struct
+		MelderString command = {};
+		bool status = FALSE;
 
 		Melder_pathToFile (MelderstrFiles32[i].string, file);
 		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-		MelderString command = {};
 		MelderString_append (&command, U"Read from file... ", file->path);
-		bool status = praat_executeCommand (nullptr, command.string);
+		status = praat_executeCommand (nullptr, command.string);		
+		praat_updateSelection();
 
-		// Melder_pathToFile (Melder_peekWto32(strFiles32[i].c_str()), file);
-		// String command = L"Read from file... ";
-		// command += Melder_peek32toW(file->path);
-		// bool status = praat_executeCommand (nullptr, (char32 * ) Melder_peekWto32(command.c_str()));
- 
-		/* outra forma de criar objeto e colocar na lista de objetos da janela principal*/
+		// UpdateWindow(FindWindow( NULL, Melder_peek32toW (U"Praat Objects")));		
+		UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));
+		
+		// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
 		// autoDaata result = Data_readFromFile (file);
 		// //cria objeto e coloca na lista, com nome base do arquivo
-		// praat_newWithFile (result.move (), file, filename);   // result nulifies here
+		// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
+		
 		
 		/* debug */
 		bool dbg = false;
 		if (dbg) {
 			command.string = U"Info";
 			status = praat_executeCommand (nullptr, command.string);
-
-			// command.string = U"";
-			// MelderString_append(&command, U"Info");
-			// status = praat_executeCommand (nullptr, command.string);
-
 		}		
 	}
 
@@ -3291,7 +3287,6 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	DragFinish (hDrop);
 
 		//// outra forma de debug Info:
-
 		// int idObject = 0;
 		// // copiado de praat_objectMenus.cpp (função INFO_Info)
 		// for (int IOBJECT = 1; IOBJECT <= theCurrentPraatObjects->n; IOBJECT++)
