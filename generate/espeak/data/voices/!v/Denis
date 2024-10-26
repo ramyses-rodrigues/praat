@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 language variant
 name Denis
 gender male 35
@@ -18,24 +17,3 @@ formant 7 10 10 10
 formant 8 10 10 10
 voicing 40
 consonants 80 80
-=======
-language variant
-name Denis
-gender male 35
-pitch  80 115
-flutter 0
-roughness 0
-
-
-formant 0 100 160 160
-formant 1 95 95 95
-formant 2 100 100 100
-formant 3 90 90 90
-formant 4 40 40 40
-formant 5 80 80 80
-formant 6 10 10 10
-formant 7 10 10 10
-formant 8 10 10 10
-voicing 40
-consonants 80 80
->>>>>>> c5a2edb13db23504973f28789c9e4b9cc28d4fef

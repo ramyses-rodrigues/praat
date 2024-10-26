@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 language variant
 name Zac
 flutter 5
@@ -14,20 +13,3 @@ formant 6 145 120 145
 formant 7 145 120 145
 formant 8 145 120 145
 voicing 80
-=======
-language variant
-name Zac
-flutter 5
-
-pitch 240 390
-formant 0 145 100 145
-formant 1 145 100 145
-formant 2 145 100 145
-formant 3 145 100 145
-formant 4 145 100 145
-formant 5 145 120 145
-formant 6 145 120 145
-formant 7 145 120 145
-formant 8 145 120 145
-voicing 80
->>>>>>> c5a2edb13db23504973f28789c9e4b9cc28d4fef
