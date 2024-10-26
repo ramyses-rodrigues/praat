@@ -302,10 +302,13 @@ static void charSize (Graphics anyGraphics, _Graphics_widechar *lc) {
 			Longchar_Info info = lc -> karInfo;
 			const int normalSize = win_size2isize (my fontSize);
 			const int smallSize = (3 * normalSize + 2) / 4;
-			/* Ramyses: retirando BUG de fechamento (crash) do Praat após mensagem de não encontrar fonte */
+			/* 
+				Ramyses: retirando BUG de fechamento (crash) do Praat após mensagem de não encontrar fonte
+			  removido da linha 310 "int font = ..." para "font = ..."
+			*/
 			int font = 0;
 			if (info -> alphabet)
-				int font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
+				font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
 					info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
 					info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS : lc -> font.integer_;
 			if ((unsigned int) lc -> kar >= 0x2E80 && (unsigned int) lc -> kar <= 0x9FFF)
