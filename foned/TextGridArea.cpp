@@ -1128,7 +1128,7 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 		   Carrega automaticamente o último valor salvo em preferences.ini na função v_createMenus() mais abaixo */
 		
 		my setInstancePref_textAreafontSize (textAreafontSize);	
-		GuiText_setFontSize (my functionEditor() -> textArea,  textAreafontSize); // update window	
+		//GuiText_setFontSize (my functionEditor() -> textArea,  textAreafontSize); // update window	
 				
 		my setInstancePref_alignment (textAlignmentInIntervals);
 		if (my editable())
@@ -1136,7 +1136,7 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_showNumberOf (showNumberOf);
 		my setInstancePref_greenMethod (paintIntervalsGreenWhoseLabel);
 		my setInstancePref_greenString (theText);
-		FunctionEditor_redraw (my functionEditor());
+		FunctionEditor_redraw (my functionEditor()); // update window
 	EDITOR_END
 }
 
