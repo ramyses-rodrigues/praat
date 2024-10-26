@@ -1762,9 +1762,9 @@ static void menu_cb_VoiceReferenceSettings(TextGridArea me, EDITOR_ARGS) {
 }
 
 /* 
-	Ramyses: implementa função principal para inserir referência de falante
+	Ramyses: implementa função principal para inserir referência de falante no intervalo do TextGrid
 */
-static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
+static void do_AddVoiceRerenceIntextArea (TextGridArea me, int iRef) {
 	if (! my textGrid())
 		return;   // BUG: should not be needed
 	if (my suppressTextCursorJump)
@@ -1816,14 +1816,14 @@ static void do_inserVoiceRerenceIntextArea (TextGridArea me, int iRef) {
 		Melder_throw (U"Voice ref not inserted.");
 	}
 }
-static void menu_cb_AddVoiceReferenceInAreaText1 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 1); }
-static void menu_cb_AddVoiceReferenceInAreaText2 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 2); }
-static void menu_cb_AddVoiceReferenceInAreaText3 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 3); }
-static void menu_cb_AddVoiceReferenceInAreaText4 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 4); }
-static void menu_cb_AddVoiceReferenceInAreaText5 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 5); }
-static void menu_cb_AddVoiceReferenceInAreaText6 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 6); }
-static void menu_cb_AddVoiceReferenceInAreaText7 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 7); }
-static void menu_cb_AddVoiceReferenceInAreaText8 (TextGridArea me, EDITOR_ARGS) { do_inserVoiceRerenceIntextArea (me, 8); }
+static void menu_cb_AddVoiceReferenceInAreaText1 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 1); }
+static void menu_cb_AddVoiceReferenceInAreaText2 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 2); }
+static void menu_cb_AddVoiceReferenceInAreaText3 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 3); }
+static void menu_cb_AddVoiceReferenceInAreaText4 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 4); }
+static void menu_cb_AddVoiceReferenceInAreaText5 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 5); }
+static void menu_cb_AddVoiceReferenceInAreaText6 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 6); }
+static void menu_cb_AddVoiceReferenceInAreaText7 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 7); }
+static void menu_cb_AddVoiceReferenceInAreaText8 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 8); }
 
 /* --------------------------------------------------------------------------------------------------------------- */
 
@@ -1844,6 +1844,7 @@ void structTextGridArea :: v_createMenus () {
 	/* 
 	Ramyses: implementa funções para adicionar referências de falante M1, M2, M3... F1, F2, F3... no início de cada intervalo do textGrid
 	*/
+	if (our editable()) {
 	FunctionAreaMenu_addCommand (textGridMenu, U"- Insert voice reference in TextGrid:", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (textGridMenu, U"Voice reference settings... || Voice reference preferences...", 0,
 			menu_cb_VoiceReferenceSettings, this); 
@@ -1863,6 +1864,7 @@ void structTextGridArea :: v_createMenus () {
 	        menu_cb_AddVoiceReferenceInAreaText7, this);
 	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '8',
 	        menu_cb_AddVoiceReferenceInAreaText8, this);
+	}
 
 	/* -----------------------------------------------------------------------------------------------------------------------*/
 
