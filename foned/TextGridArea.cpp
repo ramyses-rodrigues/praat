@@ -1845,25 +1845,25 @@ void structTextGridArea :: v_createMenus () {
 	Ramyses: implementa funções para adicionar referências de falante M1, M2, M3... F1, F2, F3... no início de cada intervalo do textGrid
 	*/
 	if (our editable()) {
-	FunctionAreaMenu_addCommand (textGridMenu, U"- Insert voice reference in TextGrid:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Voice reference settings... || Voice reference preferences...", 0,
-			menu_cb_VoiceReferenceSettings, this); 
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert First reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '1',
-	        menu_cb_AddVoiceReferenceInAreaText1, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Second reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '2',
-	        menu_cb_AddVoiceReferenceInAreaText2, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Thirth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '3',
-	        menu_cb_AddVoiceReferenceInAreaText3, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Fourth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '4',
-	        menu_cb_AddVoiceReferenceInAreaText4, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Fifth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '5',
-	        menu_cb_AddVoiceReferenceInAreaText5, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sixth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '6',
-	        menu_cb_AddVoiceReferenceInAreaText6, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '7',
-	        menu_cb_AddVoiceReferenceInAreaText7, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '8',
-	        menu_cb_AddVoiceReferenceInAreaText8, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"- Insert voice reference in TextGrid:", 0, nullptr, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Voice reference settings... || Voice reference preferences...", 0,
+				menu_cb_VoiceReferenceSettings, this); 
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert First reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '1',
+				menu_cb_AddVoiceReferenceInAreaText1, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Second reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '2',
+				menu_cb_AddVoiceReferenceInAreaText2, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Thirth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '3',
+				menu_cb_AddVoiceReferenceInAreaText3, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Fourth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '4',
+				menu_cb_AddVoiceReferenceInAreaText4, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Fifth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '5',
+				menu_cb_AddVoiceReferenceInAreaText5, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sixth reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '6',
+				menu_cb_AddVoiceReferenceInAreaText6, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '7',
+				menu_cb_AddVoiceReferenceInAreaText7, this);
+		FunctionAreaMenu_addCommand (textGridMenu, U"Insert Sevenh reference in interval...",  GuiMenu_COMMAND | GuiMenu_SHIFT | '8',
+				menu_cb_AddVoiceReferenceInAreaText8, this);
 	}
 
 	/* -----------------------------------------------------------------------------------------------------------------------*/
