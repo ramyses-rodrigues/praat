@@ -29,6 +29,32 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.22# (5 October 2024)
+• More robustness against trying to run a binary file as a script.
+• Windows Sound window: faster zooming with Ctrl-scrollwheel.
+• Windows: guarantee Explorer-type file selection windows.
+
+##6.4.21# (21 September 2024)
+• SpeechSynthesizer: repaired an old bug whereby ##Get phonemes from text...# could increase the duration
+  of a subsequent ##Play# (or ##To Sound...#).
+• SpeechSynthesizer and TextGrid alignment: repaired a bug (existing since 6.4.18) whereby #clause and #word tiers would be empty.
+• TextGrid window: disambiguated Command-F5 (now Option-F5 for ##Get minimum pitch#; likewise, Option-F8 for ##Get minimum intensity#).
+• Calling Praat from command line: reenabled `--pref-dir=` option.
+
+##6.4.20# (18 September 2024)
+• Linux: repaired a major bug whereby Praat could crash when trying to draw to a hidden Picture window.
+• Scripting: just like normal forms, pause forms now also accept “yes” and “off” (and the like) instead of just 1 and 0.
+• Scripting: repaired a minor bug whereby `optionmenu` in forms would show an incorrect default value.
+
+##6.4.19# (4 September 2024)
+• Repaired many bugs in the eSpeak part of Praat.
+
+##6.4.18# (21 August 2024)
+• SpeechSynthesizer and TextGrid alignment: solved an eSpeak-internal bug that caused some
+  rare long phoneme codes to be handled incorrectly.
+• Scripting: `padLeft$`(), `truncateLeft$`() and `padOrTruncateLeft$`(), and their `Right` counterparts.
+• s390x edition for Linux.
+
 ##6.4.17# (8 August 2024)
 • Spectrogram: #Paint: solved a bug that could cause Praat to crash if the time domain was smaller than that of the Spectrogram.
 • ScriptEditor: ##Run selection# can call procedures outside the selected text.
@@ -1184,7 +1210,7 @@ the column index was larger than the number of rows.
 • Sound window: ##Extract selected sound for overlap...#.
 
 ##5.3.49# (13 May 2013)
-• TextGrid window: alignment of the sound and the annotation in an interval, via Espeak.
+• TextGrid window: alignment of the sound and the annotation in an interval, via eSpeak.
 • Scripting: repaired a bug introduced in 5.3.32 that could cause very slow running of scripts.
 
 ##5.3.48# (1 May 2013)

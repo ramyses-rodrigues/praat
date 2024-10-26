@@ -1,6 +1,6 @@
 /* melder_error.cpp
  *
- * Copyright (C) 1992-2023 Paul Boersma
+ * Copyright (C) 1992-2024 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ bool Melder_hasError (conststring32 partialError) {
 
 static conststring32 crashMessage () {
 	static char32 crashMessageBuffer [1000];
-	str32cpy (crashMessageBuffer, U"Praat");   // TODO: make dependent on app name
+	str32cpy (crashMessageBuffer, Melder_upperCaseAppName());
 	str32cat (crashMessageBuffer, CRASH_SEMAPHORE);
 	str32cat (crashMessageBuffer, U"paul.boersma@uva.nl");   // TODO: make dependent on author email address
 	str32cat (crashMessageBuffer, U") with all of the following information");
@@ -160,7 +160,9 @@ void Melder_assert_ (const char *pathName, int lineNumber, const char *condition
 	snprintf (lineNumberBuffer8,40, "%d", lineNumber);
 	Melder_8to32_inplace (lineNumberBuffer8, lineNumberBuffer, kMelder_textInputEncoding::UTF8);
 	MelderError::_append (crashMessage ());
-	MelderError::_append (U"Assertion failed in file \"");
+	MelderError::_append (U"Assertion failed in Praat ");
+	MelderError::_append (Melder_appVersionSTR());
+	MelderError::_append (U" in file \"");
 	MelderError::_append (fileName);
 	MelderError::_append (U"\" at line ");
 	MelderError::_append (lineNumberBuffer);

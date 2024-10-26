@@ -17,7 +17,6 @@
  */
 
 #include "ManPagesM.h"
-#include "praat_version.h"
 
 void manual_licenses_init (ManPages me);
 void manual_licenses_init (ManPages me) {
@@ -26,7 +25,7 @@ MAN_PAGES_BEGIN
 R"~~~(
 ################################################################################
 "Acknowledgments"
-© Paul Boersma 2002,2003,2005–2008,2010–2016,2020–2023
+© Paul Boersma 2002,2003,2005–2008,2010–2016,2020–2024
 
 The following people contributed source code to Praat:
 
@@ -40,7 +39,7 @@ The following people contributed source code to Praat:
 , David Weenink:
 	@@feedforward neural networks@, @@principal component analysis@, @@multidimensional scaling@, @@discriminant analysis@, @LPC,
 	@VowelEditor,
-	and adaptation of GSL, LAPACK, fftpack, regular expressions, Espeak, Ogg Vorbis, Opus and LAME.
+	and adaptation of GSL, LAPACK, fftpack, regular expressions, eSpeak, Ogg Vorbis, Opus and LAME.
 , Stefan de Konink and Franz Brauße: major help in port to GTK.
 , Tom Naughton: major help in port to Cocoa.
 , Erez Volk: adaptation of FLAC and MAD.
@@ -56,8 +55,8 @@ We included the following freely available software libraries in Praat (sometime
 	contains AMD software by the same author (LGPL 2.1 or later).
 , PortAudio: Portable Audio Library by Ross Bencina, Phil Burk, Bjorn Roche, Dominic Mazzoni, Darren Gibbs,
 	version 19.7.0 of April 2021 (CC-BY-like license).
-, Espeak(-NG): text-to-speech synthesizer by Jonathan Duddington and Reece Dunn,
-	development version 1.52 of August 2023 (GPL 3 or later).
+, eSpeak(-NG): text-to-speech synthesizer by Jonathan Duddington and Reece Dunn,
+	development version 1.52 of August 2023, with language and voice data of 2024-08-24T19:38Z (GPL 3 or later).
 , MAD: MPEG Audio Decoder by Underbit Technologies (GPL 2 or later).
 , LAME: MP3 encoding by Mike Cheng, Mark Taylor, Takehiro Tominaga, Robert Hegemann, Gabriel Bouvigne, Alexander Leidinger,
 	Naoki Shibata, John Dahlstrom, Jonathan Dee, Rogério Brito,
@@ -1100,16 +1099,18 @@ if you completely trust that script or plug-in and its creators.
 
 ################################################################################
 "Checking for updates"
-© Paul Boersma 2022
+© Paul Boersma 2022,2024
 
-Updates for Praat are available from `www.praat.org`.
+Updates for Praat are available from `www.fon.hum.uva.nl/praat` or `www.praat.org` (those are the same site).
 
 Your current version (if you are reading this from the manual inside the Praat program,
-rather than from the website) is )~~~" stringize(PRAAT_VERSION_STR) R"~~~(,
-from )~~~" stringize(PRAAT_MONTH) " " stringize(PRAAT_DAY) ", " stringize(PRAAT_YEAR) R"~~~(.
+rather than from the website) is:
+{-
+	writeInfoLine: appVersion$(), “, from ”, appMonth$(), “ ”, appDay(), “, ”, appYear()
+}
 Given that we tend to release new Praat versions once or twice a month,
-you can probably guess whether it would be worth your while to have a look at `www.praat.org`
-to see what is new, and perhaps download a new version.
+you can probably guess whether it would be worth your while to have a look at
+`www.fon.hum.uva.nl/praat` or `www.praat.org` to see what is new, and perhaps download a new version.
 
 Praat improves continually, and old features will almost always continue to work,
 so there should never be a reason to continue to work with older versions.

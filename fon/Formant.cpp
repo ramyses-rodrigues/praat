@@ -1,6 +1,6 @@
 /* Formant.cpp
  *
- * Copyright (C) 1992-2009,2011,2012,2014-2020,2022,2023 Paul Boersma
+ * Copyright (C) 1992-2009,2011,2012,2014-2020,2022-2024 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -567,14 +567,20 @@ autoTable Formant_downto_Table (Formant me, bool includeFrameNumbers,
 	}
 }
 
-void Formant_list (Formant me, bool includeFrameNumbers,
-	bool includeTimes, integer timeDecimals,
-	bool includeIntensity, integer intensityDecimals,
-	bool includeNumberOfFormants, integer frequencyDecimals,
-	bool includeBandwidths)
-{
+void Formant_list (
+	const Formant me,
+	const bool includeFrameNumbers,
+	const bool includeTimes,
+	const integer timeDecimals,
+	const bool includeIntensity,
+	const integer intensityDecimals,
+	const bool includeNumberOfFormants,
+	const integer frequencyDecimals,
+	const bool includeBandwidths
+) {
 	try {
-		autoTable table = Formant_downto_Table (me, includeFrameNumbers, includeTimes, timeDecimals,
+		autoTable table = Formant_downto_Table (me, includeFrameNumbers,
+			includeTimes, timeDecimals,
 			includeIntensity, intensityDecimals,
 			includeNumberOfFormants, frequencyDecimals, includeBandwidths
 		);

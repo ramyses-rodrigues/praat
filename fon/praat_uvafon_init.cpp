@@ -346,9 +346,10 @@ FORM (LIST_Formant_list, U"Formant: List", nullptr) {
 	OK
 DO
 	INFO_ONE (Formant)
-		Formant_list (me, includeFrameNumber, includeTime, numberOfTimeDecimals,
-			includeIntensity, numberOfIntensityDecimals, includeNumberOfFormants, numberOfFrequencyDecimals,
-			includeBandwidths
+		Formant_list (me, includeFrameNumber,
+			includeTime, numberOfTimeDecimals,
+			includeIntensity, numberOfIntensityDecimals,
+			includeNumberOfFormants, numberOfFrequencyDecimals, includeBandwidths
 		);
 	INFO_ONE_END
 }
@@ -3804,7 +3805,8 @@ praat_addAction2 (classIntensity, 1, classPitch, 1, U"Query", nullptr, 0, nullpt
 	praat_addMenuCommand (U"Objects", U"New", U"-- new synthesis --", nullptr, 0, nullptr);
 	INCLUDE_LIBRARY (praat_KlattGrid_init)   // from dwtools
 	INCLUDE_LIBRARY (praat_uvafon_Artsynth_init)
-	INCLUDE_LIBRARY (praat_David_init)
+	INCLUDE_LIBRARY (praat_David_init)   // starting with SpeechSynthesizer (last checked 20240907)
+	INCLUDE_LIBRARY (praat_uvafon_sensors_init)
 	praat_addMenuCommand (U"Objects", U"New", U"-- new grammars --", nullptr, 0, nullptr);
 	INCLUDE_LIBRARY (praat_uvafon_gram_init)
 	INCLUDE_LIBRARY (praat_uvafon_FFNet_init)

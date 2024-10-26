@@ -28,7 +28,7 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow optionalParent, conststrin
 	#if gtk
 		static structMelderFolder folder { };
 		GuiObject dialog = gtk_file_chooser_dialog_new (Melder_peek32to8 (title), nullptr, GTK_FILE_CHOOSER_ACTION_OPEN,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, nullptr);
+				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, nullptr);
 		Melder_assert (dialog);
 		if (optionalParent)
 			gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (optionalParent -> d_gtkWindow));
@@ -72,7 +72,7 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow optionalParent, conststrin
 		openFileName. lpstrInitialDir = nullptr;
 		openFileName. lpstrTitle = Melder_peek32toW_fileSystem (title);
 		openFileName. Flags = OFN_EXPLORER | OFN_LONGNAMES | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY
-			| (allowMultipleFiles ? OFN_ALLOWMULTISELECT : 0);
+				| (allowMultipleFiles ? OFN_ALLOWMULTISELECT : 0);
 		openFileName. lpstrDefExt = nullptr;
 		openFileName. lpfnHook = nullptr;
 		openFileName. lpTemplateName = nullptr;
@@ -118,7 +118,7 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow optionalParent, conststrin
 				my addString_copy (file. path);
 			}
 		}
-		setlocale (LC_ALL, "en_US");
+		setlocale (LC_ALL, "C");
 	#endif
 	return me;
 }
@@ -129,7 +129,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow optionalParent, conststring
 	#if gtk
 		static structMelderFile file;
 		GuiObject dialog = gtk_file_chooser_dialog_new (Melder_peek32to8 (title), nullptr, GTK_FILE_CHOOSER_ACTION_SAVE,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, nullptr);
+				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, nullptr);
 		if (optionalParent)
 			gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (optionalParent -> d_gtkWindow));
 		gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), true);
@@ -146,6 +146,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow optionalParent, conststring
 		setlocale (LC_ALL, "C");
 	#elif motif
 		OPENFILENAMEW openFileName;
+		ZeroMemory (& openFileName, sizeof (OPENFILENAMEW));
 		static WCHAR customFilter [100+2];
 		static WCHAR fullFileNameW [300+2];
 		wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (defaultName), 300+2);
@@ -181,7 +182,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow optionalParent, conststring
 			Melder_8bitFileRepresentationToStr32_inplace (outfileName_utf8, file. path);   // BUG: unsafe buffer
 			outfileName = Melder_dup (file. path);
 		}
-		setlocale (LC_ALL, "en_US");
+		setlocale (LC_ALL, "C");
 	#endif
 	return outfileName;
 }
@@ -192,7 +193,7 @@ autostring32 GuiFileSelect_getFolderName (GuiWindow optionalParent, conststring3
 	#if gtk
 		static structMelderFile file;
 		GuiObject dialog = gtk_file_chooser_dialog_new (Melder_peek32to8 (title), nullptr, GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, "Choose", GTK_RESPONSE_ACCEPT, nullptr);
+				GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, "Choose", GTK_RESPONSE_ACCEPT, nullptr);
 		if (optionalParent)
 			gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (optionalParent -> d_gtkWindow));
 		if (file. path [0] != U'\0')
@@ -213,6 +214,7 @@ autostring32 GuiFileSelect_getFolderName (GuiWindow optionalParent, conststring3
 			comInited = true;
 		}
 		static BROWSEINFO info;
+		ZeroMemory (& info, sizeof (BROWSEINFO));
 		info. hwndOwner = ( optionalParent && optionalParent -> d_xmShell ? (HWND) XtWindow (optionalParent -> d_xmShell) : nullptr );
 		info. ulFlags = BIF_USENEWUI;
 		info. pidlRoot = nullptr;   // everything on the computer should be browsable
@@ -239,7 +241,7 @@ autostring32 GuiFileSelect_getFolderName (GuiWindow optionalParent, conststring3
 				folderName = Melder_dup (folder. path);
 			}
 		}
-		setlocale (LC_ALL, "en_US");
+		setlocale (LC_ALL, "C");
 	#endif
 	return folderName;
 }

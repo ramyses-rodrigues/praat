@@ -155,7 +155,7 @@ enum { NO_SYMBOL_,
 		QUANTILE_,
 		NORM_,
 		LEFT_STR_, RIGHT_STR_, MID_STR_,
-		PAD_STR_, TRUNCATE_STR_, PAD_OR_TRUNCATE_STR_,
+		PAD_LEFT_STR_, PAD_RIGHT_STR_, TRUNCATE_LEFT_STR_, TRUNCATE_RIGHT_STR_, PAD_OR_TRUNCATE_LEFT_STR_, PAD_OR_TRUNCATE_RIGHT_STR_,
 		SELECTED_, SELECTED_STR_, NUMBER_OF_SELECTED_, SELECTED_VEC_, SELECTED_STRVEC_,
 		SELECT_OBJECT_, PLUS_OBJECT_, MINUS_OBJECT_, REMOVE_OBJECT_,
 		BEGIN_PAUSE_,
@@ -165,6 +165,8 @@ enum { NO_SYMBOL_,
 		INFILE_, OUTFILE_, FOLDER_,
 		REALVECTOR_, POSITIVEVECTOR_, INTEGERVECTOR_, NATURALVECTOR_,
 		HEADING_, COMMENT_, END_PAUSE_,
+		LOWER_CASE_APP_NAME_STR_, UPPER_CASE_APP_NAME_STR_,
+		APP_VERSION_, APP_VERSION_STR_, APP_YEAR_, APP_MONTH_, APP_MONTH_STR_, APP_DAY_,
 		CHOOSE_READ_FILE_STR_, CHOOSE_WRITE_FILE_STR_, CHOOSE_FOLDER_STR_, CHOOSE_DIRECTORY_STR_,
 		DEMO_WINDOW_TITLE_, DEMO_SHOW_, DEMO_WAIT_FOR_INPUT_, DEMO_PEEK_INPUT_, DEMO_INPUT_, DEMO_CLICKED_IN_,
 		DEMO_CLICKED_, DEMO_X_, DEMO_Y_, DEMO_KEY_PRESSED_, DEMO_KEY_,
@@ -312,7 +314,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"quantile",
 	U"norm",
 	U"left$", U"right$", U"mid$",
-	U"pad$", U"truncate$", U"padOrTruncate$",
+	U"padLeft$", U"padRight$", U"truncateLeft$", U"truncateRight$", U"padOrTruncateLeft$", U"padOrTruncateRight$",
 	U"selected", U"selected$", U"numberOfSelected", U"selected#", U"selected$#",
 	U"selectObject", U"plusObject", U"minusObject", U"removeObject",
 	U"beginPause", U"real", U"positive", U"integer", U"natural",
@@ -321,6 +323,8 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"infile", U"outfile", U"folder",
 	U"realvector", U"positivevector", U"integervector", U"naturalvector",
 	U"heading", U"comment", U"endPause",
+	U"lowerCaseAppName$", U"upperCaseAppName$",
+	U"appVersion", U"appVersion$", U"appYear", U"appMonth", U"appMonth$", U"appDay",
 	U"chooseReadFile$", U"chooseWriteFile$", U"chooseFolder$", U"chooseDirectory$",
 	U"demoWindowTitle", U"demoShow", U"demoWaitForInput", U"demoPeekInput", U"demoInput", U"demoClickedIn",
 	U"demoClicked", U"demoX", U"demoY", U"demoKeyPressed", U"demoKey$",
@@ -5778,44 +5782,113 @@ static void do_mid_STR () {
 		Melder_throw (U"The function “mid$” requires two or three arguments.");
 	}
 }
-static void do_pad_STR () {
+static void do_padLeft_STR () {
 	const Stackel narg = pop;
-	if (narg-> number == 2) {
-		const Stackel arg2 = pop, arg1 = pop;
-		if (arg1->which == Stackel_STRING && arg2->which == Stackel_NUMBER)
-			pushString (pad_STR (arg1->getString(), Melder_iround (arg2->number)));
-		else if (arg1->which == Stackel_NUMBER && arg2->which == Stackel_STRING)
-			pushString (pad_STR (Melder_iround (arg1->number), arg2->getString()));
+	if (narg->number == 2) {
+		const Stackel width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER)
+			pushString (padLeft_STR (str->getString(), Melder_iround (width->number)));
 		else
-			Melder_throw (U"The two arguments to “pad$” should be a string and a number (in either order).");
+			Melder_throw (U"The two arguments to “padLeft$” should be a string and a number (the desired width), not ",
+					str->whichText(), U" and ", width->whichText(), U".");
+	} else if (narg->number == 3) {
+		const Stackel pad = pop, width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER && pad->which == Stackel_STRING)
+			pushString (padLeft_STR (str->getString(), Melder_iround (width->number), pad->getString()));
+		else
+			Melder_throw (U"The three arguments to “padLeft$” should be a string, a number (the desired width),"
+				U" and a string (the pad), not ", str->whichText(), U", ", width->whichText(),
+				U" and ", pad->whichText(), U"."
+			);
 	} else
-		Melder_throw (U"The function “pad$” requires two arguments (a string and a number, in either order).");
+		Melder_throw (U"The function “padLeft$” requires two or three arguments (a string, a number, and an optional pad string).");
 }
-static void do_truncate_STR () {
+static void do_padRight_STR () {
 	const Stackel narg = pop;
-	if (narg-> number == 2) {
-		const Stackel arg2 = pop, arg1 = pop;
-		if (arg1->which == Stackel_STRING && arg2->which == Stackel_NUMBER)
-			pushString (truncate_STR (arg1->getString(), Melder_iround (arg2->number)));
-		else if (arg1->which == Stackel_NUMBER && arg2->which == Stackel_STRING)
-			pushString (truncate_STR (Melder_iround (arg1->number), arg2->getString()));
+	if (narg->number == 2) {
+		const Stackel width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER)
+			pushString (padRight_STR (str->getString(), Melder_iround (width->number)));
 		else
-			Melder_throw (U"The two arguments to “truncate$” should be a string and a number (in either order).");
+			Melder_throw (U"The two arguments to “padRight$” should be a string and a number (the desired width), not ",
+					str->whichText(), U" and ", width->whichText(), U".");
+	} else if (narg->number == 3) {
+		const Stackel pad = pop, width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER && pad->which == Stackel_STRING)
+			pushString (padRight_STR (str->getString(), Melder_iround (width->number), pad->getString()));
+		else
+			Melder_throw (U"The three arguments to “padRight$” should be a string, a number (the desired width),"
+				U" and a string (the pad), not ", str->whichText(), U", ", width->whichText(),
+				U" and ", pad->whichText(), U"."
+			);
 	} else
-		Melder_throw (U"The function “truncate$” requires two arguments (a string and a number, in either order).");
+		Melder_throw (U"The function “padRight$” requires two or three arguments (a string, a number, and an optional pad string).");
 }
-static void do_padOrTruncate_STR () {
+static void do_truncateLeft_STR () {
 	const Stackel narg = pop;
-	if (narg-> number == 2) {
-		const Stackel arg2 = pop, arg1 = pop;
-		if (arg1->which == Stackel_STRING && arg2->which == Stackel_NUMBER)
-			pushString (padOrTruncate_STR (arg1->getString(), Melder_iround (arg2->number)));
-		else if (arg1->which == Stackel_NUMBER && arg2->which == Stackel_STRING)
-			pushString (padOrTruncate_STR (Melder_iround (arg1->number), arg2->getString()));
+	if (narg->number == 2) {
+		const Stackel width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER)
+			pushString (truncateLeft_STR (str->getString(), Melder_iround (width->number)));
 		else
-			Melder_throw (U"The two arguments to “padOrTruncate$” should be a string and a number (in either order).");
+			Melder_throw (U"The two arguments to “truncateLeft$” should be a string and a number (the desired width), not ",
+					str->whichText(), U" and ", width->whichText(), U".");
 	} else
-		Melder_throw (U"The function “padOrTruncate$” requires two arguments (a string and a number, in either order).");
+		Melder_throw (U"The function “truncateLeft$” requires two arguments: a string and a number (the desired width).");
+}
+static void do_truncateRight_STR () {
+	const Stackel narg = pop;
+	if (narg->number == 2) {
+		const Stackel width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER)
+			pushString (truncateRight_STR (str->getString(), Melder_iround (width->number)));
+		else
+			Melder_throw (U"The two arguments to “truncateRight$” should be a string and a number (the desired width), not ",
+					str->whichText(), U" and ", width->whichText(), U".");
+	} else
+		Melder_throw (U"The function “truncateRight$” requires two arguments: a string and a number (the desired width).");
+}
+static void do_padOrTruncateLeft_STR () {
+	const Stackel narg = pop;
+	if (narg->number == 2) {
+		const Stackel width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER)
+			pushString (padOrTruncateLeft_STR (str->getString(), Melder_iround (width->number)));
+		else
+			Melder_throw (U"The two arguments to “padOrTruncateLeft$” should be a string and a number (the desired width), not ",
+					str->whichText(), U" and ", width->whichText(), U".");
+	} else if (narg->number == 3) {
+		const Stackel pad = pop, width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER && pad->which == Stackel_STRING)
+			pushString (padOrTruncateLeft_STR (str->getString(), Melder_iround (width->number), pad->getString()));
+		else
+			Melder_throw (U"The three arguments to “padOrTruncateLeft$” should be a string, a number (the desired width),"
+				U" and a string (the pad), not ", str->whichText(), U", ", width->whichText(),
+				U" and ", pad->whichText(), U"."
+			);
+	} else
+		Melder_throw (U"The function “padOrTruncateLeft$” requires two or three arguments (a string, a number, and an optional pad string).");
+}
+static void do_padOrTruncateRight_STR () {
+	const Stackel narg = pop;
+	if (narg->number == 2) {
+		const Stackel width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER)
+			pushString (padOrTruncateRight_STR (str->getString(), Melder_iround (width->number)));
+		else
+			Melder_throw (U"The two arguments to “padOrTruncateRight$” should be a string and a number (the desired width), not ",
+					str->whichText(), U" and ", width->whichText(), U".");
+	} else if (narg->number == 3) {
+		const Stackel pad = pop, width = pop, str = pop;
+		if (str->which == Stackel_STRING && width->which == Stackel_NUMBER && pad->which == Stackel_STRING)
+			pushString (padOrTruncateRight_STR (str->getString(), Melder_iround (width->number), pad->getString()));
+		else
+			Melder_throw (U"The three arguments to “padOrTruncateRight$” should be a string, a number (the desired width),"
+				U" and a string (the pad), not ", str->whichText(), U", ", width->whichText(),
+				U" and ", pad->whichText(), U"."
+			);
+	} else
+		Melder_throw (U"The function “padOrTruncateRight$” requires two or three arguments (a string, a number, and an optional pad string).");
 }
 static void do_unicodeToBackslashTrigraphs_STR () {
 	const Stackel s = pop;
@@ -7458,12 +7531,34 @@ static void do_boolean () {
 	Melder_require (n->number == 2,
 		U"The function “boolean” requires 2 arguments (a label text and a default value), not ", n->number, U".");
 	const Stackel defaultValue = pop;
-	Melder_require (defaultValue->which == Stackel_NUMBER,
-		U"The second argument of “boolean” (the default value) should be a number (0 or 1), not ", defaultValue->whichText(), U".");
+	double defaultNumber = undefined;
+	if (defaultValue->which == Stackel_STRING) {
+		conststring32 defaultString = defaultValue->getString();
+		if (
+			str32equ (defaultString, U"on") || str32equ (defaultString, U"yes") ||
+			str32equ (defaultString, U"ON") || str32equ (defaultString, U"YES") ||
+			str32equ (defaultString, U"On") || str32equ (defaultString, U"Yes")
+		)
+			defaultNumber = 1;
+		else if (
+			str32equ (defaultString, U"off") || str32equ (defaultString, U"no") ||
+			str32equ (defaultString, U"OFF") || str32equ (defaultString, U"NO") ||
+			str32equ (defaultString, U"Off") || str32equ (defaultString, U"No")
+		)
+			defaultNumber = 0;
+		else
+			Melder_throw (U"If the second argument of “boolean” is a string, it can only be "
+					"“yes”, “no”, “on”, or “off”, not “", defaultString, U"”.");
+	} else if (defaultValue->which == Stackel_NUMBER) {
+		defaultNumber = defaultValue->number;
+	} else {
+		Melder_throw (U"The second argument of “boolean” (the default value) should be a number (0 or 1) "
+				"or a string (“yes”, “no”, “on”, “off”), not ", defaultValue->whichText(), U".");
+	}
 	const Stackel label = pop;
 	Melder_require (label->which == Stackel_STRING,
 		U"The first argument of “boolean” (the label text) should be a string, not ", label->whichText(), U".");
-	UiPause_boolean (label->getString(), defaultValue->number != 0.0);
+	UiPause_boolean (label->getString(), defaultNumber != 0.0);
 	pushNumber (1);
 }
 static void do_choice () {
@@ -7570,6 +7665,54 @@ static void do_endPause () {
 		theInterpreter);
 	//Melder_casual (U"Button ", buttonClicked);
 	pushNumber (buttonClicked);
+}
+static void do_lowerCaseAppNameStr () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “lowerCaseAppName$” requires 0 arguments, not ", n->number, U".");
+	return pushString (Melder_dup (Melder_lowerCaseAppName()));
+}
+static void do_upperCaseAppNameStr () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “upperCaseAppName$” requires 0 arguments, not ", n->number, U".");
+	return pushString (Melder_dup (Melder_upperCaseAppName()));
+}
+static void do_appVersion () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “appVersion” requires 0 arguments, not ", n->number, U".");
+	return pushNumber (Melder_appVersion());
+}
+static void do_appVersionStr () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “appVersion$” requires 0 arguments, not ", n->number, U".");
+	return pushString (Melder_dup (Melder_appVersionSTR()));
+}
+static void do_appYear () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “appYear” requires 0 arguments, not ", n->number, U".");
+	return pushNumber (Melder_appYear());
+}
+static void do_appMonth () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “appMonth” requires 0 arguments, not ", n->number, U".");
+	return pushNumber (Melder_appMonth());
+}
+static void do_appMonthStr () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “appMonth$” requires 0 arguments, not ", n->number, U".");
+	return pushString (Melder_dup (Melder_appMonthSTR()));
+}
+static void do_appDay () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “appDay” requires 0 arguments, not ", n->number, U".");
+	return pushNumber (Melder_appDay());
 }
 static void do_chooseReadFileStr () {
 	Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
@@ -8540,9 +8683,12 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case LEFT_STR_: { do_left_STR ();
 } break; case RIGHT_STR_: { do_right_STR ();
 } break; case MID_STR_: { do_mid_STR ();
-} break; case PAD_STR_: { do_pad_STR ();
-} break; case TRUNCATE_STR_: { do_truncate_STR ();
-} break; case PAD_OR_TRUNCATE_STR_: { do_padOrTruncate_STR ();
+} break; case PAD_LEFT_STR_: { do_padLeft_STR ();
+} break; case PAD_RIGHT_STR_: { do_padRight_STR ();
+} break; case TRUNCATE_LEFT_STR_: { do_truncateLeft_STR ();
+} break; case TRUNCATE_RIGHT_STR_: { do_truncateRight_STR ();
+} break; case PAD_OR_TRUNCATE_LEFT_STR_: { do_padOrTruncateLeft_STR ();
+} break; case PAD_OR_TRUNCATE_RIGHT_STR_: { do_padOrTruncateRight_STR ();
 } break; case UNICODE_TO_BACKSLASH_TRIGRAPHS_STR_: { do_unicodeToBackslashTrigraphs_STR ();
 } break; case BACKSLASH_TRIGRAPHS_TO_UNICODE_STR_: { do_backslashTrigraphsToUnicode_STR ();
 } break; case ENVIRONMENT_STR_: { do_environment_STR ();
@@ -8643,6 +8789,14 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case HEADING_: { do_heading ();
 } break; case COMMENT_: { do_comment ();
 } break; case END_PAUSE_: { do_endPause ();
+} break; case LOWER_CASE_APP_NAME_STR_: { do_lowerCaseAppNameStr ();
+} break; case UPPER_CASE_APP_NAME_STR_: { do_upperCaseAppNameStr ();
+} break; case APP_VERSION_: { do_appVersion ();
+} break; case APP_VERSION_STR_: { do_appVersionStr ();
+} break; case APP_YEAR_: { do_appYear ();
+} break; case APP_MONTH_: { do_appMonth ();
+} break; case APP_MONTH_STR_: { do_appMonthStr ();
+} break; case APP_DAY_: { do_appDay ();
 } break; case CHOOSE_READ_FILE_STR_: { do_chooseReadFileStr ();
 } break; case CHOOSE_WRITE_FILE_STR_: { do_chooseWriteFileStr ();
 } break; case CHOOSE_FOLDER_STR_: { do_chooseFolder_STR ();

@@ -177,6 +177,10 @@ void praat_reportSystemProperties () {
 	#endif
 	#if defined (__aarch64__) || defined (_M_ARM64_)
 		MelderInfo_writeLine (U"Built for processor type: ", U"arm64");
+	#elif defined (__s390x__)
+		MelderInfo_writeLine (U"Built for processor type: ", U"s390x");
+	#elif defined (raspberrypi)
+		MelderInfo_writeLine (U"Built for processor type: ", U"armv7");
 	#else
 		MelderInfo_writeLine (U"Built for processor type: ", sizeof (void *) == 4 ? U"intel32" : U"intel64");
 	#endif
@@ -204,6 +208,19 @@ void praat_reportSystemProperties () {
 		MelderInfo_writeLine (U"SM_CYCAPTION: ", GetSystemMetrics (SM_CYCAPTION));
 		MelderInfo_writeLine (U"SM_CYMENU: ", GetSystemMetrics (SM_CYMENU));
 	#endif
+	MelderInfo_close ();
+}
+
+void praat_reportAppProperties () {
+	MelderInfo_open ();
+	MelderInfo_writeLine (U"Upper-case app name: ", Melder_upperCaseAppName());
+	MelderInfo_writeLine (U"Lower-case app name: ", Melder_lowerCaseAppName());
+	MelderInfo_writeLine (U"App version (as a number): ", Melder_appVersion());
+	MelderInfo_writeLine (U"App version (as text): ", Melder_appVersionSTR());
+	MelderInfo_writeLine (U"App year: ", Melder_appYear());
+	MelderInfo_writeLine (U"App month (as a number): ", Melder_appMonth());
+	MelderInfo_writeLine (U"App month (as text): ", Melder_appMonthSTR());
+	MelderInfo_writeLine (U"App day: ", Melder_appDay());
 	MelderInfo_close ();
 }
 

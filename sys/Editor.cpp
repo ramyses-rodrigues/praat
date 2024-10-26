@@ -111,7 +111,7 @@ GuiMenuItem DataGuiMenu_addCommand (EditorMenu me, conststring32 itemTitle /* ca
 	integer positionOfSeparator = pSeparator - itemTitle;
 	static MelderString string;
 	MelderString_copy (& string, itemTitle);
-	char32 *pTitle = & string. string [0];
+	char32 *pTitle = & string.string [0];
 	GuiMenuItem result = nullptr;
 	do {
 		pTitle [positionOfSeparator] = U'\0';
@@ -386,7 +386,7 @@ void structEditor :: v_nameChanged () {
 static void menu_cb_sendBackToCallingProgram (Editor me, EDITOR_ARGS) {
 	if (my data()) {
 		structMelderFile file { };
-		MelderFolder_getFile (& Melder_preferencesFolder, U"praat_backToCaller.Data", & file);
+		MelderFolder_getFile (Melder_preferencesFolder(), U"praat_backToCaller.Data", & file);
 		Data_writeToTextFile (my data(), & file);
 		sendsocket (Melder_peek32to8 (my callbackSocket.get()), Melder_peek32to8 (my data() -> name.get()));
 	}

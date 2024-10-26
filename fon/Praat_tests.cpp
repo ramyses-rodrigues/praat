@@ -22,7 +22,7 @@
 /* 24 May 2011: C++ */
 /* 5 June 2015: char32 */
 
-#include "FileInMemoryManager.h"
+#include "FileInMemory.h"
 #include "Praat_tests.h"
 
 #include "Graphics.h"
@@ -659,8 +659,9 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 				}
 			}
 		} break;
-		case kPraatTests::FILEINMEMORYMANAGER_IO: {
-			test_FileInMemoryManager_io ();
+		case kPraatTests::FILEINMEMORY_IO: {
+			//Melder_throw (U"Cannot test FileInMemoryManager directly from Praat.");
+			test_FileInMemory_io ();
 		} break;
 	}
 	MelderInfo_writeLine (Melder_single (n / t * 1e-9), U" Gflop/s");

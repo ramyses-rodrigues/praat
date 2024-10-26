@@ -197,61 +197,68 @@ int64 Melder_length_utf16 (conststring32 string, bool nativizeNewlines) {
 	return length;
 }
 
-conststring32 Melder_peek8to32 (conststring8 textA) {
+void MelderString_8to32 (MelderString *me, conststring8 textA) {
 	if (! textA)
-		return nullptr;
-	static MelderString buffers [19];
-	static int ibuffer = 0;
-	if (++ ibuffer == 11)
-		ibuffer = 0;
-	MelderString_empty (& buffers [ibuffer]);
-	uinteger n = strlen (textA), i, j;
-	for (i = 0, j = 0; i <= n; i ++) {
+		textA = "";
+	MelderString_empty (me);
+	uinteger n = strlen (textA);
+	for (uinteger i = 0, j = 0; i <= n; i ++) {
 		char8 kar1 = (char8) textA [i];   // convert sign
 		if (kar1 <= 0x7F) {
-			MelderString_appendCharacter (& buffers [ibuffer],
-				(char32) kar1);
+			MelderString_appendCharacter (me,
+				(char32) kar1
+			);
 		} else if (kar1 <= 0xC1) {
-			MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
+			MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
 		} else if (kar1 <= 0xDF) {
 			char8 kar2 = textA [++ i];
 			if ((kar2 & 0xC0) != 0x80)
-				MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
-			MelderString_appendCharacter (& buffers [ibuffer],
+				MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
+			MelderString_appendCharacter (me,
 				(char32) ((char32) ((char32) kar1 & 0x00'001F) << 6) |
-						  (char32) ((char32) kar2 & 0x00'003F));
+						  (char32) ((char32) kar2 & 0x00'003F)
+			);
 		} else if (kar1 <= 0xEF) {
 			char8 kar2 = textA [++ i];
 			if ((kar2 & 0xC0) != 0x80)
-				MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
+				MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
 			char8 kar3 = textA [++ i];
 			if ((kar3 & 0xC0) != 0x80)
-				MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
-			MelderString_appendCharacter (& buffers [ibuffer],
+				MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
+			MelderString_appendCharacter (me,
 				(char32) ((char32) ((char32) kar1 & 0x00'000F) << 12) |
 				(char32) ((char32) ((char32) kar2 & 0x00'003F) << 6) |
-						  (char32) ((char32) kar3 & 0x00'003F));
+						  (char32) ((char32) kar3 & 0x00'003F)
+			);
 		} else if (kar1 <= 0xF4) {
 			char8 kar2 = (char8) textA [++ i];
 			if ((kar2 & 0xC0) != 0x80)
-				MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
+				MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
 			char8 kar3 = (char8) textA [++ i];
 			if ((kar3 & 0xC0) != 0x80)
-				MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
+				MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
 			char8 kar4 = (char8) textA [++ i];
 			if ((kar4 & 0xC0) != 0x80)
-				MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
+				MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
 			char32 character =
 				(char32) ((char32) ((char32) kar1 & 0x00'0007) << 18) |
 				(char32) ((char32) ((char32) kar2 & 0x00'003F) << 12) |
 				(char32) ((char32) ((char32) kar3 & 0x00'003F) << 6) |
 						  (char32) ((char32) kar4 & 0x00'003F);
-			MelderString_appendCharacter (& buffers [ibuffer], character);
+			MelderString_appendCharacter (me, character);
 		} else {
-			MelderString_appendCharacter (& buffers [ibuffer], UNICODE_REPLACEMENT_CHARACTER);
+			MelderString_appendCharacter (me, UNICODE_REPLACEMENT_CHARACTER);
 		}
 	}
-	return buffers [ibuffer]. string;
+}
+
+conststring32 Melder_peek8to32 (conststring8 textA) {
+	static MelderString buffers [19];
+	static int ibuffer = 0;
+	if (++ ibuffer == 19)
+		ibuffer = 0;
+	MelderString_8to32 (& buffers [ibuffer], textA);
+	return buffers [ibuffer].string;
 }
 
 char32 Melder_decodeMacRoman [256] = {
@@ -442,7 +449,7 @@ conststring32 Melder_peek16to32 (conststring16 text) {
 	for (;;) {
 		char16 kar1 = *text ++;
 		if (kar1 == u'\0')
-			return buffers [bufferNumber]. string;
+			return buffers [bufferNumber].string;
 		if (kar1 < 0xD800) {
 			MelderString_appendCharacter (& buffers [bufferNumber], (char32) kar1);   // convert up without sign extension
 		} else if (kar1 < 0xDC00) {
@@ -506,7 +513,7 @@ conststring8 Melder_peek32to8 (conststring32 text) {
 	static int bufferNumber = 0;
 	if (++ bufferNumber == 19)
 		bufferNumber = 0;
-	constexpr int64 maximumNumberOfUTF8bytesPerUTF32point = 4;   // becausse we use only the lower 21 bits
+	constexpr int64 maximumNumberOfUTF8bytesPerUTF32point = 4;   // because we use only the lower 21 bits
 	const int64 numberOfUTF32points = Melder_length (text);
 	const int64 maximumNumberOfBytesNeeded = numberOfUTF32points * maximumNumberOfUTF8bytesPerUTF32point + 1;
 	if ((bufferSizes [bufferNumber] - maximumNumberOfBytesNeeded) * (integer) sizeof (char) >= 10'000) {
@@ -551,7 +558,7 @@ conststring16 Melder_peek32to16 (conststring32 text, bool nativizeNewlines) {
 		for (int64 i = 0; i <= n; i ++)
 			MelderString16_appendCharacter (& buffers [bufferNumber], text [i]);
 	}
-	return buffers [bufferNumber]. string;
+	return buffers [bufferNumber].string;
 }
 conststring16 Melder_peek32to16 (conststring32 text) {
 	return Melder_peek32to16 (text, false);

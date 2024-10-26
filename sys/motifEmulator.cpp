@@ -3021,6 +3021,7 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
 		if (my widgetClass == xmDrawingAreaWidgetClass) {
+<<<<<<< HEAD
 
 			const bool controlKeyPressed = (fwKeys & MK_CONTROL);
 			const bool shiftKeyPressed = (fwKeys & MK_SHIFT);
@@ -3050,6 +3051,16 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 							on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 					}
 					else if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
+=======
+			const bool controlKeyPressed = ( fwKeys & MK_CONTROL );
+			if (controlKeyPressed)
+				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 10.0);
+			else if (my parent -> widgetClass == xmScrolledWindowWidgetClass)
+				on_scroll (my parent -> motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			else
+				for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
+					if (child -> widgetClass == xmScrollBarWidgetClass && child -> orientation == XmVERTICAL)
+>>>>>>> c5a2edb13db23504973f28789c9e4b9cc28d4fef
 						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 
 

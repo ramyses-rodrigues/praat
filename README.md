@@ -75,6 +75,8 @@ The meaning of the names of binary files available on GitHub is as follows (edit
 - `praatXXXX_mac7.sit`: StuffIt archive with executable for MacOS 7
 
 ### 1.3. Linux binaries
+- **`praatXXXX_linux-s390x-barren.tar.gz`: gzipped tarred executable for s390x Linux, without GUI, sound and graphics**
+- **`praatXXXX_linux-s390x.tar.gz`: gzipped tarred executable for s390x Linux (GTK 3)**
 - **`praatXXXX_linux-arm64-barren.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI, sound and graphics**
 - **`praatXXXX_linux-arm64-nogui.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI and sound but with graphics (Cairo and Pango)**
 - **`praatXXXX_linux-arm64.tar.gz`: gzipped tarred executable for ARM64 Linux (GTK 3)**
@@ -98,7 +100,9 @@ The meaning of the names of binary files available on GitHub is as follows (edit
 - `praatXXXX_rpi_armv7.tar.gz`: gzipped tarred executable for (32-bit) ARMv7 Linux on the Raspberry Pi 4B (GTK 2 or 3)
 
 ### 1.6. Other Unix binaries (all obsolete)
-- `praatXXXX_solaris.tar.gz`: gzipped tarred executable for Solaris
+- `praatXXXX_solaris.tar.gz`: gzipped tarred executable for Sun Solaris
+- `praatXXXX_sgi.tar.gz`: gzipped tarred executable for Silicon Graphics Iris
+- `praatXXXX_hpux.tar.gz`: gzipped tarred executable for HP-UX (Hewlett-Packard Unix)
 
 ## 2. Compiling the source code
 
@@ -110,13 +114,19 @@ You need the Praat source code only in the following cases:
 e.g. Linux for some non-Intel computers, FreeBSD, HP-UX, SGI, or SPARC Solaris.
 
 Before trying to dive into Praat’s source code, you should be familiar with the working of the Praat program
-and with writing Praat scripts. The Praat program can be downloaded from https://praat.org.
+and with writing Praat scripts. The Praat program can be downloaded from https://www.fon.hum.uva.nl/praat,
+a place where you can also get to by just typing http://praat.org.
 
 ### 2.1. License
 
-All of the code is available on GitHub under the
-[GNU General Public License](http://www.fon.hum.uva.nl/praat/GNU_General_Public_License.txt).
-Of course, any improvements are welcomed by the authors.
+Most of the source code of Praat is distributed on GitHub under the General Public License,
+[version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) or later.
+However, as Praat includes software written by others,
+the whole of Praat is distributed under the General Public License,
+[version 3](https://www.fon.hum.uva.nl/praat/manual/General_Public_License__version_3.html) or later.
+See [Acknowledgments](https://www.fon.hum.uva.nl/praat/manual/Acknowledgments.html) for details on the licenses
+of software libraries by others that are included in Praat.
+Of course, any improvements in the Praat source code are welcomed by the authors.
 
 ### 2.2. Downloading the archive
 
@@ -175,6 +185,7 @@ and a `mingw32` toolchain (for Praat’s Intel32 edition) are already available.
 To also install a `clangarm64` toolchain (for Praat’s ARM64 edition),
 run `clangarm64.exe` to get a `clangarm64` shell. In that shell, run `pacman -Suy` to update and
 `pacman -S mingw-w64-clang-aarch64-clang` to install the build tools package.
+Make sure you have installed at least `make`, `gcc`, `g++` and `pkg-config`.
 
 Ramyses: para instalar o toolchain mingw64:
 1. install MSYS2 do site MSYS2 (https://www.msys2.org/#installation)
@@ -208,7 +219,8 @@ If you want to build Praat’s Intel32 edition, start the shell `mingw32` and ty
     make -j12
 
 (With Cygwin, you would install the Devel package mingw64-x86_64-gcc-g++
-for Praat’s Intel64 edition and mingw64-i686-gcc-g++ for Praat’s Intel32 edition.)
+for Praat’s Intel64 edition and mingw64-i686-gcc-g++ for Praat’s Intel32 edition,
+plus perhaps `make` and `pkg-config` if you dont’t have those yet.)
 
 **Testing** on multiple platform versions can be done with virtual machines
 for Windows 7 (64-bit), Windows 8.1 (64-bit), 64-bit Windows 10 (1507, 1803, 22H2) and Windows 11,
@@ -280,8 +292,11 @@ install the necessary build tools as well as some graphics and sound packages:
 To set up your source tree for Linux, go to Praat's sources directory (where the folders `fon` and `sys` are)
 and type one of the four following commands:
 
-    # on Ubuntu command line
+    # on Ubuntu command line (Intel64 or ARM64 processor)
     cp makefiles/makefile.defs.linux.pulse ./makefile.defs
+
+    # on Ubuntu command line (s390x processor)
+    cp makefiles/makefile.defs.linux.s390x.pulse ./makefile.defs
 
     # on Chromebook command line
     cp makefiles/makefile.defs.chrome64 ./makefile.defs
@@ -301,6 +316,7 @@ gthread-2.0, rt, glib-2.0, asound, jack).
 When compiling Praat on an external supercomputer or so, you will not have sound.
 If you do have `libgtk-3-dev` (and its dependencies), do
 
+    # on Ubuntu command line (Intel64 or ARM64 processor)
     cp makefiles/makefile.defs.linux.silent ./makefile.defs
 
 Then type `make -j12` or so to build the program. If your Unix isn’t Linux,
@@ -310,12 +326,17 @@ freetype, fontconfig, gobject-2.0, gmodule-2.0, gthread-2.0, rt, glib-2.0).
 
 When compiling Praat for use as a server for commands from your web pages, you may not need sound or a GUI. Do
 
+    # on Ubuntu command line (Intel64 or ARM64 processor)
     cp makefiles/makefile.defs.linux.nogui ./makefile.defs
 
 which creates the executable `praat_nogui`. If you don't need graphics (e.g. PNG files) either
 (i.e. you need only Praat's computation), you can create an even lighter edition:
 
+    # on Ubuntu command line (Intel64 or ARM64 processor)
     cp makefiles/makefile.defs.linux.barren ./makefile.defs
+
+    # on Ubuntu command line (s390x processor)
+    cp makefiles/makefile.defs.linux.s390x.barren ./makefile.defs
 
 which creates the executable `praat_barren`. Then type `make` or `make -j12` to build the program.
 If your Unix isn’t Linux, you may have to edit the library names in the makefile.
@@ -325,7 +346,7 @@ The above works exactly the same for Intel64 and ARM64 processors, with the same
 **Testing** on multiple platform versions can be done with virtual machines
 for e.g. Ubuntu 20.04, Ubuntu 22.04, Fedora 35, Fedora 37, Mint 20.2,
 Debian GNU Linux 10.10, CentOS 8.4, and CentOS Stream 9, 
-for instance on an Intel64 with Parallels Desktop.
+for instance on an Intel64 Mac with Parallels Desktop.
 On an ARM64 Mac, we test with virtual machines for Ubuntu 22.04, Fedora 38,
 and Debian GNU Linux 12 ARM64.
 
@@ -608,7 +629,49 @@ Thus, the cycle from editing Praat on the Mac to running it on your Raspberry Pi
 From clean sources this takes around 19 minutes (on a Raspberry Pi 4B),
 but if no header files change, then it can be done in approximately 20 seconds.
 
-### 4.6. Distributing Praat
+### 4.6. s390x development set-up on LinuxONE
+
+Once you have a (permanent) open-source LinuxONE account (https://community.ibm.com/zsystems/form/l1cc-oss-vm-request/),
+you will probably have an SSH key generated in a `*.pem` file,
+which you moved for instance to `~/Dropbox/Praats/ssh/mylinux1key.pem`.
+
+On your LinuxONE virtual machine, you create folders `~/praats` and `~/praatsb`,
+after which you can push the sources from your Mac to your LinuxONE VM with
+
+    # in Mac:~/.bash_profile
+    ORIGINAL_SOURCES="~/Praats/src"
+    EXCLUDES='--exclude="*.xcodeproj" --exclude="Icon*" --exclude=".*" --exclude="*kanweg*"'
+    alias praats-putone="rsync -rptvz -e \"ssh -i ~/Dropbox/Praats/ssh/mylinux1key.pem\" $EXCLUDES \
+        $ORIGINAL_SOURCES/ linux1@199.199.99.99:~/praats"
+
+where instead of `199.199.99.99` you use the IP address that the LinuxONE owners sent to you.
+In your LinuxONE VM, you define
+
+    # in LinuxONE:~/.bash_profile
+    alias praat-build="( cd ~/praats &&\
+        cp makefiles/makefile.defs.linux.s390.pulse makefile.defs &&\
+        make -j4 )"
+    alias praat="~/praats/praat"
+    alias praat-run="praat-build && praat"
+    alias praatb-build="( cd ~/praatsb &&\
+        cp makefiles/makefile.defs.linux.s390.barren makefile.defs &&\
+        make -j4 )"
+    alias praatb="~/praatsb/praat_barren"
+    alias praatb-run="praatb-build && praatb"
+
+after which you can build and run Praat with
+
+    # on LinuxONE command line
+    praat-run
+
+Thus, the cycle from editing Praat on the Mac to running it on your LinuxONE VM therefore takes three steps:
+
+1. edit and save the source code in Xcode on your Mac;
+2. type `praats-putone` on your Mac;
+3. type `praat-run` on your LinuxONE VM,
+   perhaps via `ssh -X -i ~/Dropbox/Praats/ssh/mylinux1key.pem linux1@199.199.99.99` in your Mac terminal.
+
+### 4.7. Distributing Praat
 
 If you want to distribute your version of Praat, you can do so on GitHub and/or on a website
 (at least, that’s how the main authors do it). Both of these venues require that you have
@@ -685,7 +748,13 @@ so that you can “upload” the four executables to the Mac with
 You can fetch the Raspberry Pi edition directly from your Raspberry Pi:
 
     # on Mac command line
-    rsync -tpvz pi@192.168.1.2:~/praats/praat ~/Dropbox/Praats/bin/rpi-armv7
+    rsync -tpvz -e ssh pi@192.168.1.2:~/praats/praat ~/Dropbox/Praats/bin/rpi-armv7
+
+and the s390x edition directly from your LinuxONE account:
+
+    # on Mac command line
+    rsync -tpvz -e "ssh -i ~/Dropbox/Praats/ssh/mylinux1key.pem" linux1@199.199.99.99:~/praats/praat ~/Dropbox/Praats/bin/linux-s390x
+    rsync -tpvz -e "ssh -i ~/Dropbox/Praats/ssh/mylinux1key.pem" linux1@199.199.99.99:~/praatsb/praat_barren ~/Dropbox/Praats/bin/linux-s390x
 
 When the folders under `~/Dropbox/Praats/bin`, namely `win-intel64`, `win-intel32`, `win-arm64`,
 `linux-intel64`, `linux-arm64`, `chrome-intel64`, `chrome-arm64` and `rpi-armv7`
@@ -732,5 +801,9 @@ you can issue the following commands to create the packages and install them in 
       tar cvf praat${PRAAT_VERSION}_rpi-armv7.tar praat &&\
       gzip praat${PRAAT_VERSION}_rpi-armv7.tar &&\
       mv praat${PRAAT_VERSION}_rpi-armv7.tar.gz $PRAAT_WWW )
+    ( cd ~/Dropbox/Praats/bin/linux-s390x &&\
+      tar cvf praat${PRAAT_VERSION}_linux-s390x.tar praat &&\
+      gzip praat${PRAAT_VERSION}_linux-s390x.tar &&\
+      mv praat${PRAAT_VERSION}_linux-s390x.tar.gz $PRAAT_WWW )
 
 Finally, you can update your website and/or create a new release on GitHub.
