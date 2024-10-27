@@ -2096,6 +2096,137 @@ static void do_getBandwidth (SoundAnalysisArea me, integer iformant, Interpreter
 		: Melder_cat ( U" Hz (B", iformant, U" in centre of ", SoundAnalysisArea_partString (part), U")")
 	)
 }
+/* Ramyses: desenhar formant spectrum na janela de desenho para commparar fones */
+static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpreter optionalInterpreter) {
+	
+	// const double margin = my instancePref_formant_windowLength();
+	// try {
+	// 	autoSound sound = ( my endWindow() - my startWindow() > my instancePref_longestAnalysis() ?
+	// 		extractSound (me,
+	// 			0.5 * (my startWindow() + my endWindow() - my instancePref_longestAnalysis()) - margin,
+	// 			0.5 * (my startWindow() + my endWindow() + my instancePref_longestAnalysis()) + margin
+	// 		) :
+	// 		extractSound (me, my startWindow() - margin, my endWindow() + margin)
+	// 	);
+	// 	const double formantTimeStep = (
+	// 		my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::FIXED_ ? my instancePref_fixedTimeStep() :
+	// 		my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::VIEW_DEPENDENT ? (my endWindow() - my startWindow()) / my instancePref_numberOfTimeStepsPerView() :
+	// 		0.0   // the default: determined by analysis window length
+	// 	);
+	// 	my d_formant = Sound_to_Formant_any (sound.get(), formantTimeStep,
+	// 		Melder_iround (my instancePref_formant_numberOfFormants() * 2.0), my instancePref_formant_ceiling(),
+	// 		my instancePref_formant_windowLength(), (int) my instancePref_formant_method(), my instancePref_formant_preemphasisFrom(), 50.0
+	// 	);
+	// 	my d_formant -> xmin = my startWindow();
+	// 	my d_formant -> xmax = my endWindow();
+
+	tryToHaveFormants(me);
+		
+	const double samplingPeriod = my sound()->dx;
+	const double nyquistFrequency = 0.5 / samplingPeriod;
+	integer numberOfFormants = my d_formant.get()->maxnFormants;
+	double tmin, tmax;
+	const int part = makeQueriable (me, true, & tmin, & tmax);
+	SoundAnalysisArea_haveVisibleFormants (me);
+	integer curFrame =  my d_formant.get()->nx * tmin / my d_formant.get()->xmax;	
+	
+	integer numberOfPoles = 2 * numberOfFormants;
+	autoVEC lpc = zero_VEC (numberOfPoles + 2);   // all odd coefficients have to be initialized to zero
+	lpc [2] = 1.0;
+	integer m = 2;
+	const Formant_Frame frame = & my d_formant -> frames [curFrame];
+
+	for (integer iformant = 1; iformant <= numberOfFormants; iformant ++) {
+		const double formantFrequency = frame->formant[iformant].frequency;
+		
+		if (formantFrequency > nyquistFrequency)
+			continue;
+		/*
+			D(z): 1 + p z^-1 + q z^-2
+		*/
+		const double r = exp (- NUMpi * frame->formant[iformant]. bandwidth * samplingPeriod);
+		const double p = - 2.0 * r * cos (NUM2pi * formantFrequency * samplingPeriod);
+		const double q = r * r;
+		/*
+			By setting the two extra elements (0, 1) in the lpc vector we can avoid boundary testing;
+			lpc [3..n+2] come to contain the coefficients.
+		*/
+		for (integer j = m + 2; j > 2; j --)
+			lpc [j] += p * lpc [j - 1] + q * lpc [j - 2];
+		m += 2;
+	}
+	// if (thy nCoefficients < numberOfPoles)
+	// 	numberOfPoles = thy nCoefficients;
+	// for (integer i = 1; i <= numberOfPoles; i ++)
+	// 	thy a [i] = lpc [i + 2];
+	// thy gain = my intensity;
+	
+	// autoLPC thee = LPC_create (my startWindow(), my endWindow(), my d_formant.get()->nx, 
+	// 		my d_formant.get()->dx, my startWindow(), 2 * my d_formant.get()->maxnFormants, my d_formant.get()->v_getDx());
+	// autoLPC alpc = Formant_to_LPC(my d_formant.get(), my d_formant.get()->dx);
+	
+
+
+		
+	autoSpectrum lpcSpectrum = LPC_to_Spectrum(lpc, tmin, 0, 0, 50 );
+	
+	// double tmin, tmax;
+	// const int part = makeQueriable (me, true, & tmin, & tmax);
+	// SoundAnalysisArea_haveVisibleFormants (me);
+	MelderInfo_open ();
+	MelderInfo_writeLine (U"Frame atual: ", curFrame, U" / ", my d_formant.get()->nx);
+	autoMelderString str;
+	MelderInfo_write(U"Coerficientes LPC: ");
+	for (integer i = 1; i <= lpc.size; i ++)
+	    MelderInfo_write(U"  ", lpc[i]);
+	MelderInfo_writeLine (U"");
+	MelderInfo_writeLine (U"Time_s   F1_Hz   F2_Hz   F3_Hz   F4_Hz");
+	
+	if (part == SoundAnalysisArea_PART_CURSOR) {
+		const double f1 = frame->formant[1].frequency;
+		const double f2 = frame->formant[2].frequency;;
+		const double f3 = frame->formant[3].frequency;;
+		const double f4 = frame->formant[4].frequency;;
+		MelderInfo_writeLine (Melder_fixed (tmin, 6), U"   ", Melder_fixed (f1, 6), U"   ", Melder_fixed (f2, 6), U"   ", Melder_fixed (f3, 6), U"   ", Melder_fixed (f4, 6));
+	}
+	
+	MelderInfo_close ();
+
+	DataGui_openPraatPicture (me);
+		//FormantPath formantPath = (FormantPath) my data;
+		//const Formant formant = formantPath -> formant.get();
+		//const Formant defaultFormant = formantPath -> formants.at [formantPath -> defaultFormant];
+	Formant_drawSpeckles (my d_formant.get(), my pictureGraphics(), my startWindow(), my endWindow(),
+			my instancePref_spectrogram_viewTo(), my instancePref_formant_dynamicRange(),
+			true
+		);
+	FunctionArea_garnishPicture (me);
+	DataGui_closePraatPicture (me);
+	/*
+	xmax = tmax
+	cursample = curtime
+	*/
+
+	// integer iformant = 3;
+	// const Formant_Frame frame = & my d_formant -> frames [100];
+	// const double frequency = frame -> formant [3]. frequency;
+
+	// Melder_information(U"Em desenvolvimento...", 
+	// 					U"\nd_formant -> xmin: ", my d_formant -> xmin,
+	// 					U"\nd_formant -> xmax: ", my d_formant -> xmax,
+	// 					// U"\nd_formant -> teste: ", frame,
+	// 					U"\nCurrent Time: ", curTime,
+	// 					U"\nd_formant -> v_getValueAtSample: ", my d_formant -> v_getValueAtSample(100, 1, 1),
+	// 					U"\nd_formant -> formantTimeStep: ", formantTimeStep);
+
+	// } catch (MelderError) {
+	// 	my d_formant. reset();   // signal a failure
+	// 	Melder_clearError ();
+	// }
+}
+static void QUERY_DATA_FOR_REAL__getLPCSpectrumAtTime (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_drawLPCSpectrum (me, 1, optionalInterpreter);
+}
 static void QUERY_DATA_FOR_REAL__getFirstFormant (SoundAnalysisArea me, EDITOR_ARGS) {
 	do_getFormant (me, 1, optionalInterpreter);
 }
@@ -2304,6 +2435,10 @@ void structSoundAnalysisArea :: v_createMenuItems_formant (EditorMenu menu) {
 			0, menu_cb_formantSettings, this);
 	FunctionAreaMenu_addCommand (menu, U"Advanced formant settings...",
 			0, menu_cb_advancedFormantSettings, this);
+	
+	/* Ramyses: menu desenhar LPC spectrum*/
+	FunctionAreaMenu_addCommand (menu, U"Draw LPC Spectrum (slice) at Time", GuiMenu_SHIFT | 'S' | GuiMenu_COMMAND,
+			QUERY_DATA_FOR_REAL__getLPCSpectrumAtTime, this);
 
 	FunctionAreaMenu_addCommand (menu, U"- Query formants:", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (menu, U"Formant listing", 1,
