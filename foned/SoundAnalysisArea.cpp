@@ -2131,10 +2131,10 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	// REAL (deemphasisFrequency, U"De-emphasis frequency (Hz)", U"50.0")
 	integer nfft = 512;
 	const double samplingFrequency = 1.0 / samplingPeriod;
-	double dfMin = 1 / samplingPeriod / nfft;
-	double bandwidthReduction = 0;
+	const double dfMin = 1 / samplingPeriod / nfft;
+	const double bandwidthReduction = 0;
 
-	double deEmphasisFrequency = Melder_atof(me-> default_formant_preemphasisFrom());// 50.0;
+	const double preEmphasisFrequency = me-> instancePref_formant_preemphasisFrom();// 50.0;
 	const double fmin = 0.0;
 	const double fmax = Melder_atof(me->default_formant_ceiling()); //5500.0;		
 
@@ -2142,9 +2142,9 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	double dbmin = -30.0, dbmax = 300.0;
 	Spectrum_getPowerDensityRange (aSpectrum.get (), &dbmin, &dbmax);   // para ajustar o gráfio ao db Max
 	// objeto spectrum [][] com parte real e imaginária
-	LPC_Frame_into_Spectrum (currLPCFrame, aSpectrum.get(), bandwidthReduction, deEmphasisFrequency);
+	LPC_Frame_into_Spectrum (currLPCFrame, aSpectrum.get(), bandwidthReduction, preEmphasisFrequency);
 	
-	bool debug = false;
+	bool debug = true;
 
 	if (debug) {
 		// SoundAnalysisArea_haveVisibleFormants (me);
@@ -2157,15 +2157,17 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 			MelderInfo_write (U"  ", currLPCFrame->a[i]);
 		MelderInfo_writeLine (U"");
 
-		MelderInfo_writeLine (U"Re e Im do Spectrum: ");
-		for (integer i = 0; i < aSpectrum->z.ncol; i++) {
-			MelderInfo_writeLine (
-			        U"Re/Im  ", aSpectrum->z[0][i], U" / ", aSpectrum->z[1][i]);
-		}
-		MelderInfo_writeLine (U"");	
+		// MelderInfo_writeLine (U"Re e Im do Spectrum: ");
+		// for (integer i = 0; i < aSpectrum->z.ncol; i++) {
+		// 	MelderInfo_writeLine (
+		// 	        U"Re/Im  ", aSpectrum->z[0][i], U" / ", aSpectrum->z[1][i]);
+		// }
+		// MelderInfo_writeLine (U"");	
 
 		MelderInfo_writeLine (
 		        U"Minimo e máximo do spectrum: ", dbmin, U" - ", dbmax);
+
+		MelderInfo_writeLine (U"Pré-Enfase (Hz): ", preEmphasisFrequency);
 
 		MelderInfo_writeLine (U"Time_s   F1_Hz   F2_Hz   F3_Hz   F4_Hz");
 
@@ -2186,6 +2188,8 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	// ToDO: desenhar em janela especializada...
 
 	DataGui_openPraatPicture (me);
+	me -> instancePref_intensity_subtractMeanPressure();
+	me -> setInstancePref_intensity_picture_garnish(false);
 	if (me->default_picture_eraseFirst())
 	    me-> setInstancePref_picture_eraseFirst(false);
 
@@ -2194,6 +2198,7 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	FunctionArea_garnishPicture (me);
 	DataGui_closePraatPicture (me);	
 }
+/* Ramyses: desenhar formant spectrum na janela de desenho para commparar fones */
 static void QUERY_DATA_FOR_REAL__getLPCSpectrumAtTime (SoundAnalysisArea me, EDITOR_ARGS) {
 	do_drawLPCSpectrum (me, 1, optionalInterpreter);
 }
