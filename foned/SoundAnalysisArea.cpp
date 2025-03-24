@@ -19,9 +19,11 @@
 #include "SoundAnalysisArea.h"
 #include "Sound_and_Spectrogram.h"
 #include "Sound_and_Spectrum.h"
+#include "Sound_and_LPC.h"
 #include "Sound_to_Pitch.h"
 #include "Sound_to_Intensity.h"
 #include "Sound_to_Formant.h"
+
 
 /* Ramyses - LPC to spectrum*/
 #include "LPC_and_Formant.h"
@@ -2105,81 +2107,146 @@ static void do_getBandwidth (SoundAnalysisArea me, integer iformant, Interpreter
 /* Ramyses: desenhar formant spectrum na janela de desenho para commparar fones */
 static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpreter optionalInterpreter) {
 	
-	tryToHaveFormants(me);	
+	//tryToHaveFormants(me);
 	
-	// cálculo de constantes e variáveis	
-	const double samplingPeriod = my sound()->dx;
-	const double nyquistFrequency = 0.5 / samplingPeriod;
-	integer numberOfFormants = my d_formant.get()->maxnFormants;
-	integer numberOfCoefficientsLPC = 2 * numberOfFormants;
+	/*
+	# CALCULA LPC
+	Resample... lpcMaxFrequency*2 100
+	Scale peak... 0.9
+	'obj$'.id.extracted.resampled = selected ("Sound")
+	To LPC (burg)... 'obj$'.lpcNumberOfFormants*2 lpcWindowSize lpcTimeStep 'obj$'.lpcPreEmphasis
+	'obj$'.id.extracted.resampled.lpc = selected ("LPC")
+	To Spectrum (slice)... 'obj$'.lpcTime 0.1 0 100000000000
+	'obj$'.id.extracted.resampled.lpc.spectrum = selected ("Spectrum")
+	*/
+
+	// obtém constantes e variáveis	armazenadas nas configurações
+	double maxFrequencySpectrumLPC = 	my instancePref_formant_ceiling();
+	const double preEmphasisFrequency = my instancePref_formant_preemphasisFrom();// 50.0;
+	
+	// coleta posiçaõ do cursor ou da seleção
 	double tmin, tmax;
 	const int part = makeQueriable (me, true, & tmin, & tmax);
-	integer iFrame =  my d_formant.get()->nx * tmin / my d_formant.get()->xmax;
-	const Formant_Frame currFormantFrame = & my d_formant -> frames [iFrame];
 
-	// SoundAnalysisArea_haveVisibleFormants (me);
-
-	struct structLPC_Frame lpcF_struct;	
-	memset (& lpcF_struct, 0, sizeof (lpcF_struct));
-	const LPC_Frame currLPCFrame = & lpcF_struct;	
-	LPC_Frame_init (currLPCFrame, numberOfCoefficientsLPC);	
-	Formant_Frame_into_LPC_Frame(currFormantFrame, currLPCFrame, samplingPeriod);	
-
-	// REAL (time, U"Time (seconds)", U"0.0")
-	// REAL (minimumFrequencyResolution, U"Minimum frequency resolution (Hz)", U"20.0")
-	// REAL (bandwidthReduction, U"Bandwidth reduction (Hz)", U"0.0")
-	// REAL (deemphasisFrequency, U"De-emphasis frequency (Hz)", U"50.0")
+	// extrai sound visível e reamostra	
+	const double margin = my instancePref_formant_windowLength();
+	autoSound snd = ( my endWindow() - my startWindow() > my instancePref_longestAnalysis() ?
+			extractSound (me,
+				0.5 * (my startWindow() + my endWindow() - my instancePref_longestAnalysis()) - margin,
+				0.5 * (my startWindow() + my endWindow() + my instancePref_longestAnalysis()) + margin
+			) :
+			extractSound (me, my startWindow() - margin, my endWindow() + margin)
+		);
+	// autoSound sound  = Sound_resample(snd.get(), 8000, 100);
+	autoSound sound  = Sound_resample(snd.get(), 2* maxFrequencySpectrumLPC, 100);
+	Sound_scaleIntensity(sound.get(), 0.9);
+	
+	// cálculo de constantes e variáveis	
+	const double samplingPeriod = sound->dx;
+	const double nyquistFrequency = 2 * samplingPeriod;
+	double numberOfFormants = my instancePref_formant_numberOfFormants();
+	double lpcWindowLength = my instancePref_formant_windowLength();
+	integer numberOfCoefficientsLPC = 2 * numberOfFormants + 2;
 	integer nfft = 512;
 	const double samplingFrequency = 1.0 / samplingPeriod;
 	const double dfMin = 1 / samplingPeriod / nfft;
-	const double bandwidthReduction = 0;
-
-	const double preEmphasisFrequency = me-> instancePref_formant_preemphasisFrom();// 50.0;
+	const double bandwidthReduction = 0;	
 	const double fmin = 0.0;
-	const double fmax = Melder_atof(me->default_formant_ceiling()); //5500.0;		
+	const double fmax = samplingFrequency < 2 * Melder_atof(my default_formant_ceiling()) ? 0.5 * samplingFrequency : Melder_atof(my default_formant_ceiling()); //5500.0;		
+	
+	// calcula timeStep
+	const double lpcTimeStep_t = (
+			my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::FIXED_ ? my instancePref_fixedTimeStep() :
+			my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::VIEW_DEPENDENT ? (my endWindow() - my startWindow()) / my instancePref_numberOfTimeStepsPerView() :
+			0.0   // the default: determined by analysis window length
+		);
+	double lpcTimeStep = lpcTimeStep_t <= 0 ? lpcWindowLength / 4 : lpcTimeStep_t;
+	
+	autoLPC lpc = Sound_to_LPC_burg(
+		sound.get(), 
+		numberOfCoefficientsLPC, 
+		lpcWindowLength, 
+		lpcTimeStep,
+		preEmphasisFrequency);
 
 	autoSpectrum aSpectrum = Spectrum_create (samplingFrequency / 2.0, nfft / 2 + 1);
 	double dbmin = -30.0, dbmax = 300.0;
 	Spectrum_getPowerDensityRange (aSpectrum.get (), &dbmin, &dbmax);   // para ajustar o gráfio ao db Max
-	// objeto spectrum [][] com parte real e imaginária
-	LPC_Frame_into_Spectrum (currLPCFrame, aSpectrum.get(), bandwidthReduction, preEmphasisFrequency);
+	// busca index do frame com tempo referido
+	integer lpciFrame = lpc.get()->nx / 2; // index inicial
+	// for (integer idx = 0; idx < lpc.get()->nx; idx++) {
+	// 	if (lpc.get()->x1 + idx * lpc.get()->dx > tmin) {
+	// 		lpciFrame = idx;
+	// 		break;
+	// 	}
+	// }
+	lpciFrame = Sampled_xToIndex (lpc.get(), tmin);
+
+	LPC_Frame_into_Spectrum (& lpc.get()->d_frames[lpciFrame], aSpectrum.get(), bandwidthReduction, preEmphasisFrequency);
+	
+	
+	autoFormant formant = Sound_to_Formant_burg (
+		sound.get(),   														// sound
+		lpcTimeStep, 														// timestep
+		numberOfFormants, 													// maximumnumberofFormants
+		fmax, 																// maximumFrequency
+		lpcWindowLength, 													// windowLength
+		preEmphasisFrequency												// pre=enfase
+		);
+	
 	
 	bool debug = true;
 
 	if (debug) {
 		// SoundAnalysisArea_haveVisibleFormants (me);
 		MelderInfo_open ();
-		MelderInfo_writeLine (
-		        U"Frame atual: ", iFrame, U" / ", my d_formant.get ()->nx);
-		autoMelderString str;
-		MelderInfo_writeLine (U"Coerficientes LPC: ");
-		for (integer i = 0; i < currLPCFrame->nCoefficients; i++)
-			MelderInfo_write (U"  ", currLPCFrame->a[i]);
+		
+		// MelderInfo_writeLine (
+		//         U"formant.nx: ", formant.get ()->nx);
+		// MelderInfo_writeLine (
+		//         U"Time atual: ", iFrame, U" / ", formant.get ()->nx);
+		
+		LPC_listAllGains(lpc.get());
 		MelderInfo_writeLine (U"");
 
-		// MelderInfo_writeLine (U"Re e Im do Spectrum: ");
-		// for (integer i = 0; i < aSpectrum->z.ncol; i++) {
-		// 	MelderInfo_writeLine (
-		// 	        U"Re/Im  ", aSpectrum->z[0][i], U" / ", aSpectrum->z[1][i]);
+		// for (integer i = 0; i < lpc.get()->nx; i++) {			
+		// 	MelderInfo_writeLine(U" LPC frame index: ", i, U" - LPC x1: ", Melder_fixed( lpc.get()->x1 + i * lpc.get()->dx, 4 ));		
 		// }
-		// MelderInfo_writeLine (U"");	
-
-		MelderInfo_writeLine (
-		        U"Minimo e máximo do spectrum: ", dbmin, U" - ", dbmax);
-
+		MelderInfo_writeLine(U" Time selecionado: ", Melder_fixed( lpc.get()->x1 + lpciFrame * lpc.get()->dx, 4 ));
+		MelderInfo_writeLine (U"");
+        
+		MelderInfo_writeLine (U"LPC nCoefficients: ", lpc.get()->d_frames[lpciFrame].nCoefficients);		
+		MelderInfo_writeLine (U"");		
+		
+		MelderInfo_writeLine (U"Frame atual (lpciFrame): ", lpciFrame, U" / (lpc.get()->nx) ", lpc.get ()->nx);
+		MelderInfo_writeLine (U"lpcWindowSize (s) / lpcTimeStep (s): ", Melder_fixed( lpcWindowLength, 4 ), U" / ", Melder_fixed( lpcTimeStep, 4 ));
+		MelderInfo_writeLine (U"amostras sound extraído: ", sound->v_getNcol(), U" amostras");
+		for (integer ichan = 1; ichan <= sound -> ny; ichan ++)
+			MelderInfo_writeLine (Sampled_getMean (sound.get(), my startSelection(), my endSelection(), ichan, 0, true),
+					U" (amplitude média na seleção no canal ", ichan, U")");
+			MelderInfo_writeLine (U"");
+		
+		MelderInfo_writeLine (U"Minimo e máximo do spectrum: ", dbmin, U" - ", dbmax);
+		MelderInfo_writeLine (U"amostragem (Hz): ", samplingFrequency);
 		MelderInfo_writeLine (U"Pré-Enfase (Hz): ", preEmphasisFrequency);
+		MelderInfo_writeLine (U"Spectrum->ny (Hz): ", aSpectrum.get()->ny);
 
 		MelderInfo_writeLine (U"Time_s   F1_Hz   F2_Hz   F3_Hz   F4_Hz");
-
 		if (part == SoundAnalysisArea_PART_CURSOR) {
-			const double f1 = currFormantFrame->formant[1].frequency;
-			const double f2 = currFormantFrame->formant[2].frequency;
-			const double f3 = currFormantFrame->formant[3].frequency;
-			const double f4 = currFormantFrame->formant[4].frequency;
-			MelderInfo_writeLine (Melder_fixed (tmin, 6), U"   ",
-			        Melder_fixed (f1, 6), U"   ", Melder_fixed (f2, 6), U"   ",
-			        Melder_fixed (f3, 6), U"   ", Melder_fixed (f4, 6));
-		}
+			const double f1 = Formant_getValueAtTime (formant.get(), 1, tmin, kFormant_unit::HERTZ);
+			const double f2 = Formant_getValueAtTime (formant.get(), 2, tmin, kFormant_unit::HERTZ);
+			const double f3 = Formant_getValueAtTime (formant.get(), 3, tmin, kFormant_unit::HERTZ);
+			const double f4 = Formant_getValueAtTime (formant.get(), 4, tmin, kFormant_unit::HERTZ);
+
+			const double bw1 = Formant_getBandwidthAtTime(formant.get(), 1, tmin, kFormant_unit::HERTZ);
+			const double bw2 = Formant_getBandwidthAtTime(formant.get(), 2, tmin, kFormant_unit::HERTZ);
+			const double bw3 = Formant_getBandwidthAtTime(formant.get(), 3, tmin, kFormant_unit::HERTZ);
+			const double bw4 = Formant_getBandwidthAtTime(formant.get(), 4, tmin, kFormant_unit::HERTZ);
+			
+			MelderInfo_writeLine (Melder_fixed (tmin, 4), U"   ", Melder_fixed (f1, 4), U"   ", Melder_fixed (f2, 4), U"   ", Melder_fixed (f3, 4), U"   ", Melder_fixed (f4, 4));
+			MelderInfo_writeLine (U"Time_s   BW1_Hz   BW2_Hz   BW3_Hz   BW4_Hz");
+			MelderInfo_writeLine (Melder_fixed (tmin, 4), U"   ", Melder_fixed (bw1, 4), U"   ", Melder_fixed (bw2, 4), U"   ", Melder_fixed (bw3, 4), U"   ", Melder_fixed (bw4, 4));
+		}	
 
 		MelderInfo_close ();
 	}
@@ -2188,14 +2255,26 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	// ToDO: desenhar em janela especializada...
 
 	DataGui_openPraatPicture (me);
-	me -> instancePref_intensity_subtractMeanPressure();
-	me -> setInstancePref_intensity_picture_garnish(false);
-	if (me->default_picture_eraseFirst())
-	    me-> setInstancePref_picture_eraseFirst(false);
+	Graphics g = my pictureGraphics();
+	
+	//my instancePref_intensity_subtractMeanPressure();
+	//my setInstancePref_intensity_picture_garnish(false);
+	if (my default_picture_eraseFirst())
+	    my setInstancePref_picture_eraseFirst(false);
 
-	Spectrum_draw(aSpectrum.get(), my pictureGraphics(), fmin, fmax, dbmin, dbmax, true);
+	Spectrum_draw(aSpectrum.get(), g, fmin, fmax, dbmin, dbmax, false);
+	Graphics_drawInnerBox (g); // desenha moldura
+	Graphics_textBottom (g, true, U"Frequency (Hz)");
+	// Graphics_marksBottom (g, 2, true, true, true);
+	Graphics_marksBottomEvery (g, 1.0, 1000, true, true, true);
+	
+	//Graphics_textLeft (g, true, U"Sound pressure level (dB/Hz)");
+	//Graphics_marksLeftEvery (g, 1.0, 20.0, true, true, false);
+	
+	//LPC_drawPoles(lpc.get(), my pictureGraphics(), tmin, false);
 			
 	FunctionArea_garnishPicture (me);
+
 	DataGui_closePraatPicture (me);	
 }
 /* Ramyses: desenhar formant spectrum na janela de desenho para commparar fones */
