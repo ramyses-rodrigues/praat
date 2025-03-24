@@ -1,6 +1,6 @@
 /* Gui_messages.cpp
  *
- * Copyright (C) 1992-2018,2020-2023 Paul Boersma,
+ * Copyright (C) 1992-2018,2020-2025 Paul Boersma,
  *               2008 Stefan de Konink, 2010 Franz Brausse, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
@@ -27,6 +27,10 @@
 #include "melder.h"
 #include "Graphics.h"
 #include "Gui.h"
+#include "Interpreter.h"
+#include "Script.h"
+#include "Notebook.h"
+#include "GuiTrust.h"
 
 /********** Exported variable. **********/
 
@@ -156,23 +160,23 @@ static GuiButton theProgressCancelButton = nullptr;
 
 static void _Melder_dia_init (GuiDialog *dia, GuiProgressBar *scale, GuiLabel *label1, GuiLabel *label2, GuiButton *cancelButton, bool hasMonitor) {
 	trace (U"creating the dialog");
-	*dia = GuiDialog_create (Melder_topShell, 200, 100, 400, hasMonitor ? 430 : 200, U"Work in progress",
+	*dia = GuiDialog_create (Melder_topShell, 200, 100, 500, hasMonitor ? 530 : 200, U"Work in progress",
 		#if gtk || cocoa
 			progress_dia_close, nullptr,
 		#else
 			nullptr, nullptr,
 		#endif
-		0);
+		GuiDialog_Modality::MODELESS);
 
 	trace (U"creating the labels");
-	*label1 = GuiLabel_createShown (*dia, 3, 403, 0, Gui_LABEL_HEIGHT, U"label1", 0);
-	*label2 = GuiLabel_createShown (*dia, 3, 403, 30, 30 + Gui_LABEL_HEIGHT, U"label2", 0);
+	*label1 = GuiLabel_createShown (*dia, 3, 503, 0, Gui_LABEL_HEIGHT, U"label1", 0);
+	*label2 = GuiLabel_createShown (*dia, 3, 503, 30, 30 + Gui_LABEL_HEIGHT, U"label2", 0);
 
 	trace (U"creating the scale");
 	*scale = GuiProgressBar_createShown (*dia, 3, -3, 70, 110, 0);
 
 	trace (U"creating the cancel button");
-	*cancelButton = GuiButton_createShown (*dia, 0, 400, 170, 170 + Gui_PUSHBUTTON_HEIGHT,
+	*cancelButton = GuiButton_createShown (*dia, 0, 500, 170, 170 + Gui_PUSHBUTTON_HEIGHT,
 		U"Interrupt",
 		#if gtk
 			progress_cancel_btn_press, nullptr,
@@ -223,7 +227,7 @@ static void * gui_monitor (double progress, conststring32 message) {
 	{
 		if (! dia) {
 			_Melder_dia_init (& dia, & scale, & label1, & label2, & cancelButton, true);
-			drawingArea = GuiDrawingArea_createShown (dia, 0, 400, 230, 430,
+			drawingArea = GuiDrawingArea_createShown (dia, 0, 500, 230, 530,
 					gui_drawingarea_cb_expose, nullptr, nullptr, nullptr, nullptr, nullptr, 0);
 			GuiThing_show (dia);
 			graphics = Graphics_create_xmdrawingarea (drawingArea);
@@ -380,6 +384,61 @@ static void gui_warning (conststring32 message) {
 	#endif
 }
 
+static void gui_trust (void *void_interpreter, conststring32 action) {
+	Interpreter interpreter = (Interpreter) void_interpreter;
+	if (interpreter) {
+		Script script = interpreter -> scriptReference;
+		Notebook notebook = interpreter -> notebookReference;
+		if (! script && ! notebook)
+			Melder_throw (U"We expected a script or a notebook.");
+		if (script && script -> trusted || notebook && notebook -> trusted)
+			return;   // the request should be granted
+		conststring32 paragraphs [1+5] = { };
+		if (script) {
+			paragraphs [1] = U"The script";
+			paragraphs [2] = Melder_cat (U"“", script -> string.get(), U"”");
+		} else if (notebook) {
+			paragraphs [1] = U"The notebook";
+			paragraphs [2] = Melder_cat (U"“", notebook -> string.get(), U"”");
+		} else
+			paragraphs [1] =  U"Your untitled script or notebook";
+		paragraphs [3] = U"requests permission to:";
+		paragraphs [4] = action;
+		conststring32 option1 = U"CANCEL\n(because I don’t want the requested action to happen)";
+		conststring32 option2 =
+			script ?
+				U"Yes, I allow this script to perform the action that it requests\n(and ask me again next time)"
+			: notebook ?
+				U"Yes, I allow this notebook to perform the action that it requests\n(and ask me again next time)"
+			:
+				U"Yes, I allow this script or notebook to perform the action that it requests\n(and ask me again next time)";
+		conststring32 option3 =
+			script ?
+				U"Yes, and I even allow this script to CONTROL MY COMPUTER from now on\n"
+				"(i.e. to perform any action, including saving, deleting, calling system commands, and internetting,\n"
+				"because I fully trust the script authors’ skills and intentions)"
+			: notebook ?
+				U"Yes, and I even allow this notebook to CONTROL MY COMPUTER from now on\n"
+				"(i.e. to perform any action, including saving, deleting, calling system commands, and internetting,\n"
+				"because I fully trust the notebook authors’ skills and intentions)"
+			:
+				U"Yes, and I even allow this script or notebook to CONTROL MY COMPUTER from now on\n"
+				"(i.e. to perform any action, including saving, deleting, calling system commands, and internetting,\n"
+				"because I fully trust the notebook authors’ skills and intentions)";
+		integer buttonClicked = GuiTrust_get (nullptr, nullptr,
+			paragraphs [1], paragraphs [2], paragraphs [3], paragraphs [4], paragraphs [5],
+			option1, option2, option3, nullptr, nullptr, interpreter
+		);
+		if (buttonClicked == 2)
+			return;   // allow this one action
+		Melder_assert (buttonClicked == 3);
+		if (script)
+			script -> trusted = true;
+		else if (notebook)
+			notebook -> trusted = true;
+	}
+}
+
 void Gui_injectMessageProcs (GuiWindow parent) {
 	theMessageFund = (char *) malloc (theMessageFund_SIZE);
 	assert (theMessageFund);
@@ -389,6 +448,7 @@ void Gui_injectMessageProcs (GuiWindow parent) {
 	Melder_setWarningProc (gui_warning);
 	Melder_setProgressProc (gui_progress);
 	Melder_setMonitorProc (gui_monitor);
+	Melder_setTrustProc (gui_trust);
 }
 
 /* End of file Gui_messages.cpp */

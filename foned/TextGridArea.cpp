@@ -179,9 +179,9 @@ static void insertBoundaryOrPoint (TextGridArea me, integer itier, double t1, do
 		} else {
 			interval -> xmax = t1;
 			if (t1 != t2)
-				intervalTier -> intervals.addItem_move (midNewInterval.move());
+				intervalTier -> intervals. addItem_move (midNewInterval.move());
 		}
-		intervalTier -> intervals.addItem_move (rightNewInterval.move());
+		intervalTier -> intervals. addItem_move (rightNewInterval.move());
 		if (insertSecond && numberOfTiers >= 2 && t1 == t2) {
 			/*
 				Find the last time before t on another tier.
@@ -198,7 +198,7 @@ static void insertBoundaryOrPoint (TextGridArea me, integer itier, double t1, do
 			if (tlast > interval -> xmin && tlast < t1) {
 				autoTextInterval newInterval = TextInterval_create (tlast, t1, U"");
 				interval -> xmax = tlast;
-				intervalTier -> intervals.addItem_move (newInterval.move());
+				intervalTier -> intervals. addItem_move (newInterval.move());
 			}
 		}
 	} else {
@@ -346,7 +346,7 @@ static void do_drawIntervalTier (TextGridArea me, IntervalTier tier, integer iti
 			const double t1 = std::max (my startWindow(), startInterval);
 			const double t2 = std::min (my endWindow(), endInterval);
 			Graphics_setColour (my graphics(), DataGui_defaultForegroundColour (me, intervalIsSelected));
-			Graphics_textRect (my graphics(), t1, t2, 0.0, 1.0, interval -> text.get());
+			Graphics_rectangleText_wrapAndTruncate (my graphics(), t1, t2, 0.0, 1.0, interval -> text.get());
 			Graphics_setColour (my graphics(), Melder_BLACK);
 		}
 

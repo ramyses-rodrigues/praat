@@ -44,7 +44,7 @@ static void thePauseFormCancelCallback (UiForm /* dia */, void * /* closure */) 
 }
 void UiPause_begin (GuiWindow topShell, Editor optionalPauseWindowOwningEditor, conststring32 title, Interpreter interpreter) {
 	if (theEventLoopDepth > 0)
-		Melder_throw (U"Praat cannot have more than one pause form at a time.");
+		Melder_throw (Melder_upperCaseAppName(), U" cannot have more than one pause form at a time.");
 	thePauseForm = UiForm_create (topShell, optionalPauseWindowOwningEditor, Melder_cat (U"Pause: ", title),
 		thePauseFormOkCallback, interpreter,   // pass interpreter as closure!
 		nullptr, nullptr);
@@ -158,6 +158,30 @@ void UiPause_caption (conststring32 label) {
 		Melder_throw (U"The function “caption” should be between a “beginPause” and an “endPause”.");
 	UiForm_addCaption (thePauseForm.get(), nullptr, label);
 }
+
+static void Gui_waitAndHandleOneEvent_any () {
+	#if gtk
+		gtk_main_iteration ();
+	#elif cocoa
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		//[theDemoEditor -> windowForm -> d_cocoaWindow   flushWindow];
+		NSEvent *nsEvent = [NSApp
+			nextEventMatchingMask: NSAnyEventMask
+			untilDate: [NSDate distantFuture]   // wait
+			inMode: NSDefaultRunLoopMode
+			dequeue: YES
+		];
+		Melder_assert (nsEvent);
+		[NSApp  sendEvent: nsEvent];
+		[NSApp  updateWindows];   // called automatically?
+		[pool release];
+	#elif motif
+		XEvent event;
+		GuiNextEvent (& event);
+		XtDispatchEvent (& event);
+	#endif
+}
+
 int UiPause_end (int numberOfContinueButtons, int defaultContinueButton, int cancelContinueButton,
 	conststring32 continueText1, conststring32 continueText2, conststring32 continueText3,
 	conststring32 continueText4, conststring32 continueText5, conststring32 continueText6,
@@ -192,32 +216,9 @@ int UiPause_end (int numberOfContinueButtons, int defaultContinueButton, int can
 		Melder_assert (theEventLoopDepth == 0);
 		theEventLoopDepth ++;
 		try {
-			#if gtk
-				do {
-					gtk_main_iteration ();
-				} while (! thePauseForm_clicked);
-			#elif cocoa
-				do {
-					NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-					//[theDemoEditor -> windowForm -> d_cocoaWindow   flushWindow];
-					NSEvent *nsEvent = [NSApp
-						nextEventMatchingMask: NSAnyEventMask
-						untilDate: [NSDate distantFuture]   // wait
-						inMode: NSDefaultRunLoopMode
-						dequeue: YES
-					];
-					Melder_assert (nsEvent);
-					[NSApp  sendEvent: nsEvent];
-					[NSApp  updateWindows];   // called automatically?
-					[pool release];
-				} while (! thePauseForm_clicked);
-			#elif motif
-				do {
-					XEvent event;
-					GuiNextEvent (& event);
-					XtDispatchEvent (& event);
-				} while (! thePauseForm_clicked);
-			#endif
+			do {
+				Gui_waitAndHandleOneEvent_any ();
+			} while (! thePauseForm_clicked);
 		} catch (MelderError) {
 			Melder_flushError (U"An error made it to the outer level in a pause window; should not occur! Please write to paul.boersma@uva.nl");
 		}

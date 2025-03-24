@@ -18,7 +18,6 @@
 
 #include "praatP.h"
 #include "praat_script.h"
-#include "sendsocket.h"
 #include "UiPause.h"
 #include "DemoEditor.h"
 
@@ -322,24 +321,6 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 			Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
 				U"The script command “endeditor” is not available inside manuals.");
 			interpreter -> nullifyDynamicEditorEnvironment();
-		} else if (str32nequ (command, U"sendsocket ", 11)) {
-			Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
-				U"The script command “sendsocket” is not available inside manuals.");
-			char32 hostName [61], *q = & hostName [0];
-			const char32 *p = command + 11;
-			while (*p == U' ' || *p == U'\t')
-				p ++;
-			while (*p != U'\0' && *p != U' ' && *p != U'\t' && q < hostName + 59)
-				*q ++ = *p ++;
-			*q = U'\0';
-			if (q == hostName)
-				Melder_throw (U"Missing host name after “sendsocket”.");
-			while (*p == U' ' || *p == U'\t') p ++;
-			if (*p == U'\0')
-				Melder_throw (U"Missing command after “sendsocket”.");
-			char *result = sendsocket (Melder_peek32to8 (hostName), Melder_peek32to8 (p));
-			if (result)
-				Melder_throw (Melder_peek8to32 (result), U"\nMessage to ", hostName, U" not completed.");
 		} else if (str32nequ (command, U"filedelete ", 11)) {
 			Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
 				U"The script command “filedelete” is not available inside manuals.");
@@ -502,7 +483,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 						Melder_throw (U"Command “", command, U"” not available for current selection. "
 							U"It is possible that this file is not a Praat script but a Praat data file that you can open with “Read from file...”.");
 					else {
-						if (interpreter -> wasStartedFromEditorEnvironment())
+						if (interpreter && interpreter -> wasStartedFromEditorEnvironment())
 							if (interpreter -> hasDynamicEnvironmentEditor())
 								Melder_throw (U"Command “", command, U"” not available in ", interpreter -> optionalDynamicEditorEnvironmentClassName(), U".");
 							else
@@ -589,9 +570,51 @@ void praat_runScript (conststring32 fileName, integer narg, Stackel args, Editor
 		Interpreter_readParameters (interpreter.get(), text.get());
 		Interpreter_getArgumentsFromArgs (interpreter.get(), narg, args);   // interpret caller-relative paths for infile/outfile/folder arguments
 		autoMelderFileSetCurrentFolder folder (& file);   // so that callee-relative file names can be used inside the script
+		autoScript script = Script_createFromFile (& file);
+		Script_rememberDuringThisAppSession_move (script.move());
+		interpreter -> scriptReference = Script_find (MelderFile_peekPath (& file));
 		Interpreter_run (interpreter.get(), text.get(), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script ", & file, U" not completed.");   // don't refer to 'fileName', because its contents may have changed
+	}
+}
+
+void praat_runNotebook (conststring32 fileName, integer narg, Stackel args, Editor optionalInterpreterOwningEditor) {
+	structMelderFile file { };
+	Melder_relativePathToFile (fileName, & file);
+	try {
+		autostring32 text = MelderFile_readText (& file);
+		if (! Melder_startsWith (text.get(), U"\""))
+			Melder_throw (U"File ", & file, U" is not a Praat notebook.");
+		/*
+			We switch between default directories no fewer than four times:
+			1. runScript() tends to be called from a script that we call the "caller";
+			   when we enter runScript(), the default directory is the caller's folder,
+			   as was appropriate for the use of file names in the caller before runScript(),
+			   which had to be interpreted relative to the caller's folder.
+			2. runScript() will call a script that we call the "callee";
+			   include files have to be included from the callee's folder.
+			3. For expanding any infile/outfile/folder arguments to runScript(),
+			   we have to be back in the caller's folder.
+			4. Inside the callee, file names will have to be interpreted relative to the callee's folder.
+			5. After runScript() finishes, we will have to be back in the caller's folder,
+			   so that the use of file names in the caller after runScript()
+			   will be interpreted relative to the caller's folder again.
+		*/
+		{// scope
+			autoMelderSaveCurrentFolder saveFolder;
+			autoMelderFileSetCurrentFolder folder (& file);   // so that callee-relative file names can be used for including include files
+			Melder_includeIncludeFiles (& text);
+		}   // back to the default directory of the caller
+		autoInterpreter interpreter = Interpreter_createFromEnvironment (optionalInterpreterOwningEditor);
+		Interpreter_readParameters (interpreter.get(), text.get());
+		autoMelderReadText readText = MelderReadText_createFromText (text.move());
+		autoManPages manPages = ManPages_createFromText (readText.get(), & file);
+		ManPage firstPage = manPages -> pages.at [1];
+		autoManual manual = Manual_create (firstPage -> title.get(), interpreter.get(), manPages.releaseToAmbiguousOwner(), true, true);
+		manual.releaseToUser ();
+	} catch (MelderError) {
+		Melder_throw (U"Notebook ", & file, U" not completed.");   // don't refer to 'fileName', because its contents may have changed
 	}
 }
 
@@ -696,7 +719,7 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 		if (Interpreter_readParameters (interpreter.get(), text.get()) > 0) {
 			const GuiWindow parentShell = ( optionalInterpreterOwningEditor ? optionalInterpreterOwningEditor -> windowForm : theCurrentPraatApplication -> topShell );
 			autoUiForm form = Interpreter_createForm (interpreter.get(), parentShell, optionalInterpreterOwningEditor,
-					Melder_fileToPath (file), secondPassThroughScript, nullptr, false);
+					MelderFile_peekPath (file), secondPassThroughScript, nullptr, false);
 			UiForm_do (form.get(), false);
 			if (optionalCommand) {
 				optionalCommand -> d_uiform = form.move();

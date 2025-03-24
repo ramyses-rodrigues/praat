@@ -25,9 +25,34 @@ MAN_PAGES_BEGIN
 R"~~~(
 ################################################################################
 "What's new?"
-© Paul Boersma 1995–2024
+© Paul Boersma 1995–2025
 
 Latest changes in Praat.
+
+##6.4.27# (27 January 2025)
+• Graphics text: better pipes and slashes.
+• Windows for ARM64 processors: removed a bug whereby dynamic menu deletion could crash after a sound was played in the Demo window.
+
+##6.4.26# (8 January 2025)
+• ##Rectangle text (maximal fit)...# is perhaps useful in general,
+  but will especially facilitate text and button drawing in Demo window.
+• Linux for ARM64 processors: sped up some slow computations by a factor of over 100.
+• ##OTGrammar & Strings & Strings: Tabulate all correct rankings# lists all full rankings
+  that map the given list of inputs to the given list of partial outputs,
+  using brute-force permutation of up to 18 constraints.
+• ##OTGrammar: Tabulate equivalent pairs# checks to what extent different candidates
+  have different sets of constraint violations.
+
+##6.4.25# (8 December 2024)
+• Command-line interface: solved a crash that occurred when a menu command was not available.
+• Windows: open-source code signing.
+
+##6.4.24# (1 December 2024)
+• FormantPath: fixed bug with sampling frequency.
+• Formant measurements: fixed bugs in ”autocorrelation” and “robust” methods.
+• Manual: better support for screens taller than 15 inches.
+• Scripting: support for subtraction and unary minus for tensors.
+• Scripting: removed `sendsocket`.
 
 ##6.4.23# (27 October 2024)
 • Audio output: higher-quality playback of sounds with unusual sampling frequencies.
@@ -78,7 +103,7 @@ Latest changes in Praat.
 • ARM64 Windows: worked around a compiler bug that caused incorrect window sizes.
 • Pitch analysis: faster on Windows (Intel64 and Intel32).
 • Windows: better fonts and background colours (perhaps dependent on language settings).
-• ##TextGrids: Concatenate#: guard against some incorrect TexGrid files.
+• ##TextGrids: Concatenate#: guard against some incorrect TextGrid files.
 
 ##6.4.13# (10 June 2024)
 • More manual pages.

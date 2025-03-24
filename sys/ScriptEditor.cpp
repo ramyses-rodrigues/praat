@@ -67,11 +67,19 @@ void structScriptEditor :: v_nameChanged () {
 	if (our dirty && ! dirtinessAlreadyShown)
 		MelderString_append (& buffer, U" (modified)");   // (3) on Windows and Linux (last checked 2023-02-25)
 	GuiShell_setTitle (windowForm, buffer.string);
+	/*
+		Finally, remember the name of this script.
+	*/
+	if (! MelderFile_isNull (& our file)) {
+		autoScript script = Script_createFromFile (& our file);
+		Script_rememberDuringThisAppSession_move (script.move());
+	}
 }
 
 void structScriptEditor :: v_goAway () {
 	if (our interpreter -> running)
-		Melder_flushError (U"Cannot close the script window while the script is running or paused. Please close or continue the pause or demo window.");
+		Melder_flushError (U"Cannot close the script window while the script is running or paused.\n"
+				"Please close or continue the pause, trust or demo window.");
 	else
 		ScriptEditor_Parent :: v_goAway ();
 }
@@ -88,8 +96,12 @@ static void args_ok (UiForm sendingForm, integer /* narg */, Stackel /* args */,
 	Interpreter_getArgumentsFromDialog (my interpreter.get(), sendingForm);
 
 	autoPraatBackground background;
-	if (! MelderFile_isNull (& my file))
+	if (! MelderFile_isNull (& my file)) {
 		MelderFile_setDefaultDir (& my file);
+		autoScript script = Script_createFromFile (& my file);
+		Script_rememberDuringThisAppSession_move (script.move());
+		my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+	}
 	Interpreter_run (my interpreter.get(), text.get(), false);
 }
 
@@ -107,15 +119,19 @@ static void args_ok_selectionOnly (UiForm sendingForm, integer /* narg */, Stack
 	Interpreter_getArgumentsFromDialog (my interpreter.get(), sendingForm);
 
 	autoPraatBackground background;
-	if (! MelderFile_isNull (& my file))
+	if (! MelderFile_isNull (& my file)) {
 		MelderFile_setDefaultDir (& my file);
+		autoScript script = Script_createFromFile (& my file);
+		Script_rememberDuringThisAppSession_move (script.move());
+		my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+	}
 	Interpreter_run (my interpreter.get(), text.get(), false);
 }
 
 static void menu_cb_run (ScriptEditor me, EDITOR_ARGS) {
 	bool isObscured = false;
 	if (my interpreter -> running)
-		Melder_throw (U"The script is already running (paused). Please close or continue the pause or demo window.");
+		Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
 	autostring32 text = GuiText_getString (my textWidget);
 	trace (U"Running the following script (1):\n", text.get());
 	if (! MelderFile_isNull (& my file))
@@ -154,8 +170,12 @@ static void menu_cb_run (ScriptEditor me, EDITOR_ARGS) {
 		UiForm_do (my argsDialog.get(), false);
 	} else {
 		autoPraatBackground background;
-		if (! MelderFile_isNull (& my file))
+		if (! MelderFile_isNull (& my file)) {
 			MelderFile_setDefaultDir (& my file);
+			autoScript script = Script_createFromFile (& my file);
+			Script_rememberDuringThisAppSession_move (script.move());
+			my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+		}
 		trace (U"Running the following script (2):\n", text.get());
 		Interpreter_run (my interpreter.get(), text.get(), false);
 	}
@@ -163,7 +183,7 @@ static void menu_cb_run (ScriptEditor me, EDITOR_ARGS) {
 
 static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
 	if (my interpreter -> running)
-		Melder_throw (U"The script is already running (paused). Please close or continue the pause or demo window.");
+		Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
 	autostring32 selectedText = GuiText_getSelection (my textWidget);
 	if (! selectedText)
 		Melder_throw (U"No text selected.");
@@ -171,24 +191,38 @@ static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
 		MelderFile_setDefaultDir (& my file);
 	Melder_includeIncludeFiles (& selectedText);
 	const integer npar = Interpreter_readParameters (my interpreter.get(), selectedText.get());
+	/*
+		TODO: check that no two procedures have the same name
+	*/
+
+	/*
+		Add all the procedures to the selected text.
+		A procedure is counted as any text that honours the following conditions:
+		- it starts with a line starting with the text "procedure"
+		  optionally preceded by whitespace and obligatorily followed by whitespace;
+		- it ends with a line starting with the text "endproc"
+		  optionally preceded by whitespace and obligatorily followed by null or whitespace.
+	*/
 	autoMelderString textPlusProcedures;
 	MelderString_copy (& textPlusProcedures, selectedText.get());
-	if (! Melder_stringMatchesCriterion (selectedText.get(), kMelder_string :: CONTAINS, U"\nprocedure ", true)) {
+	{// scope
 		autostring32 wholeText = GuiText_getString (my textWidget);
 		autoMelderReadText textReader = MelderReadText_createFromText (wholeText.move());
 		int procedureDepth = 0;
 		for (;;) {
-			mutablestring32 line = MelderReadText_readLine (textReader.get());
+			const conststring32 line = MelderReadText_readLine (textReader.get());
 			if (! line)
 				break;
-			if (Melder_startsWith (line, U"procedure "))
+			const conststring32 startOfCode = Melder_findEndOfHorizontalSpace (line);
+			if (Melder_startsWith (startOfCode, U"procedure") && Melder_isHorizontalSpace (startOfCode [9]))
 				procedureDepth += 1;
 			if (procedureDepth > 0)
 				MelderString_append (& textPlusProcedures, U"\n", line);
-			if (Melder_startsWith (line, U"endproc"))
+			if (Melder_startsWith (startOfCode, U"endproc") && (startOfCode [7] == U'\0' || Melder_isHorizontalSpace (startOfCode [7])))
 				procedureDepth -= 1;
 		}
 	}
+
 	if (npar != 0) {
 		/*
 			Pop up a dialog box for querying the arguments.
@@ -197,10 +231,12 @@ static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
 		UiForm_do (my argsDialog.get(), false);
 	} else {
 		autoPraatBackground background;
-		if (! MelderFile_isNull (& my file))
+		if (! MelderFile_isNull (& my file)) {
 			MelderFile_setDefaultDir (& my file);
-//TRACE
-trace (U"<<", textPlusProcedures.string, U">>");
+			autoScript script = Script_createFromFile (& my file);
+			Script_rememberDuringThisAppSession_move (script.move());
+			my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+		}
 		Interpreter_run (my interpreter.get(), textPlusProcedures.string, false);
 	}
 }
@@ -219,7 +255,7 @@ static void menu_cb_addToMenu (ScriptEditor me, EDITOR_ARGS) {
 		if (MelderFile_isNull (& my file))
 			SET_STRING (scriptFile, U"(please save your script first)")
 		else
-			SET_STRING (scriptFile, Melder_fileToPath (& my file));
+			SET_STRING (scriptFile, MelderFile_peekPath (& my file));
 	EDITOR_DO
 		praat_addMenuCommandScript (window, menu, command, afterCommand, depth, scriptFile);
 		praat_show ();
@@ -240,7 +276,7 @@ static void menu_cb_addToFixedMenu (ScriptEditor me, EDITOR_ARGS) {
 		if (MelderFile_isNull (& my file))
 			SET_STRING (scriptFile, U"(please save your script first)")
 		else
-			SET_STRING (scriptFile, Melder_fileToPath (& my file))
+			SET_STRING (scriptFile, MelderFile_peekPath (& my file))
 	EDITOR_DO
 		praat_addMenuCommandScript (window, menu, command, afterCommand, depth, scriptFile);
 		praat_show ();
@@ -263,7 +299,7 @@ static void menu_cb_addToDynamicMenu (ScriptEditor me, EDITOR_ARGS) {
 		if (MelderFile_isNull (& my file))
 			SET_STRING (scriptFile, U"(please save your script first)")
 		else
-			SET_STRING (scriptFile, Melder_fileToPath (& my file))
+			SET_STRING (scriptFile, MelderFile_peekPath (& my file))
 	EDITOR_DO
 		praat_addActionScript (class1, number1, class2, number2, class3, number3, command, afterCommand, depth, scriptFile);
 		praat_show ();
@@ -371,22 +407,26 @@ autoScriptEditor ScriptEditor_createFromText (Editor optionalOwningEditor, const
 	}
 }
 
-autoScriptEditor ScriptEditor_createFromScript_canBeNull (Editor optionalOwningEditor, Script script) {
+autoScriptEditor ScriptEditor_createFromScript_canBeNull (Editor optionalOwningEditor, autoScript script) {
 	try {
+		structMelderFile scriptFile { };
 		for (integer ieditor = 1; ieditor <= theReferencesToAllOpenScriptEditors.size; ieditor ++) {
 			ScriptEditor editor = theReferencesToAllOpenScriptEditors.at [ieditor];
-			if (MelderFile_equal (& script -> file, & editor -> file)) {
+			if (Melder_equ (script -> string.get(), MelderFile_peekPath (& editor -> file))) {
 				Editor_raise (editor);
-				Melder_appendError (U"The script ", & script -> file, U" is already open and has been moved to the front.");
+				Melder_pathToFile (script -> string.get(), & scriptFile);   // ensure correct messaging format
+				Melder_appendError (U"The script ", & scriptFile, U" is already open and has been moved to the front.");
 				if (editor -> dirty)
 					Melder_appendError (U"Choose “Reopen from disk” if you want to revert to the old version.");
 				Melder_flushError ();
-				return autoScriptEditor();   // safe null
+				return autoScriptEditor();   // safe null, and `script` will be deleted
 			}
 		}
-		autostring32 text = MelderFile_readText (& script -> file);
+		Melder_pathToFile (script -> string.get(), & scriptFile);
+		autostring32 text = MelderFile_readText (& scriptFile);
 		autoScriptEditor me = ScriptEditor_createFromText (optionalOwningEditor, text.get());
-		MelderFile_copy (& script -> file, & my file);
+		MelderFile_copy (& scriptFile, & my file);
+		Script_rememberDuringThisAppSession_move (script.move());
 		Thing_setName (me.get(), nullptr);
 		return me;
 	} catch (MelderError) {

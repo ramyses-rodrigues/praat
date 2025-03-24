@@ -2064,6 +2064,7 @@ FORM_SAVE (SAVE_ALL__Sound_saveAsSunAudioFile, U"Save as NeXT/Sun file", nullptr
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsWavFile, U"Save as WAV file", nullptr, U"wav") {
 	SAVE_ALL_LISTED (Sound, SoundAndLongSoundList)
+		//Melder_checkTrust (_interpreter_, U"save the selected Sound object(s) to the WAV file\n", file);
 		LongSound_concatenate (list.get(), file, Melder_WAV, 16);
 	SAVE_ALL_LISTED_END
 }
@@ -2189,7 +2190,7 @@ static int recordFromFileProc (MelderFile file) {
 	if (last == melderSoundFromFile.get())
 		last = nullptr;
 	Melder_warningOff ();   // like "missing samples"
-	melderSoundFromFile = Data_readFromFile (file). static_cast_move<structSound>();
+	melderSoundFromFile = Data_readFromFile (file).static_cast_move <structSound>();
 	Melder_warningOn ();
 	if (! melderSoundFromFile)
 		return 0;

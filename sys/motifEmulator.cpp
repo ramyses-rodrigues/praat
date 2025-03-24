@@ -1,6 +1,6 @@
 /* motifEmulator.cpp
  *
- * Copyright (C) 1993-2024 Paul Boersma
+ * Copyright (C) 1993-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@ void Gui_setQuitApplicationCallback (int (*quitApplicationCallback) (void)) {
 
 #endif   // defined (macintosh)
 
-#if defined(_WIN32)
+#if defined (_WIN32)
+#define TRY_BARLESS  0
 
 /* The Motif emulator for Windows. */
 
@@ -581,6 +582,8 @@ static void _GuiNativizeWidget (GuiObject me) {
 			        WS_CHILD | WS_CLIPSIBLINGS, my x, my y, my width, my height,
 			        my parent->window, NULL, theGui.instance, NULL);
 			SetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
+			//TRACE
+			trace (U"Created window ", Melder_pointer (my window), U" for original RowColumn ", Melder_pointer (me));
 		} break;
 		case xmListWidgetClass:
 			Melder_fatal (U"Should be implemented in GuiList.");
@@ -597,11 +600,15 @@ static void _GuiNativizeWidget (GuiObject me) {
 				my widgetClass = xmRowColumnWidgetClass;   // !!!!!!!!!!!!!
 				my orientation = XmHORIZONTAL;
 				my rowColumnType = XmMENU_BAR;
-				my window = CreateWindowEx (0,
-				        Melder_peek32toW (theWindowClassName), L"rowColumn",
-				        WS_CHILD, my x, my y, my width, my height,
-				        my parent->window, NULL, theGui.instance, NULL);
-				SetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
+				#if TRY_BARLESS
+					my window = my parent -> window;
+				#else
+					my window = CreateWindowEx (0, Melder_peek32toW (theWindowClassName), L"rowColumn", WS_CHILD,
+						my x, my y, my width, my height, my parent -> window, NULL, theGui.instance, NULL);
+					SetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
+				#endif
+				//TRACE
+				trace (U"Created window ", Melder_pointer (my window), U" for MenuBar-derived RowColumn ", Melder_pointer (me));
 			}
 		} break;
 		case xmPulldownMenuWidgetClass: {
@@ -792,6 +799,8 @@ static GuiObject createWidget (
 	GuiObject me = _Gui_initializeWidget (
 	        widgetClass, parent, Melder_peek8to32 (name));
 	_GuiNativizeWidget (me);
+	//TRACE
+	trace (U"Created widget ", Melder_pointer (me));
 	return me;
 }
 
@@ -1535,6 +1544,8 @@ void XtRemoveTimeOut (XtIntervalId id) {
 }
 
 void XtDestroyWidget (GuiObject me) {
+	//TRACE
+	trace (U"Destroying widget ", Melder_pointer (me));
 	GuiObject subview = my firstChild;
 	/*
 	 * Prevent subsequent messages.
@@ -1560,70 +1571,82 @@ void XtDestroyWidget (GuiObject me) {
 	}
 	if (my destroyCallback) my destroyCallback (me, my destroyClosure, NULL);
 	switch (my widgetClass) {
-	case xmLabelWidgetClass: {
-		_GuiWinLabel_destroy (me);
-	} break;
-	case xmCascadeButtonWidgetClass: {
-		if (!my inMenu && !MEMBER (my parent, MenuBar))
-			_GuiNativeControl_destroy (me);
-	} break;
-	case xmScaleWidgetClass: {
-		_GuiWinScale_destroy (me);
-	} break;
-	case xmShellWidgetClass: {
-		DestroyWindow (natWindow);
-	} break;
-	case xmListWidgetClass: {
-		_GuiWinList_destroy (me);
-	} break;
-	case xmDrawingAreaWidgetClass: {
-		_GuiWinDrawingArea_destroy (me);
-	} break;
-	case xmRowColumnWidgetClass:
-	case xmFormWidgetClass:
-	case xmBulletinBoardWidgetClass: {
-		DestroyWindow (my window);
-	} break;
-	case xmTextWidgetClass: {
-		_GuiWinText_destroy (me);
-	} break;
-	case xmPushButtonWidgetClass: {
-		if (my inMenu) {
-			if (my nat.entry.id) theMenuItems[my nat.entry.id] = false;
-		} else {
-			_GuiWinButton_destroy (me);
-		}
-	} break;
-	case xmToggleButtonWidgetClass: {
-		if (my inMenu) {
-			if (my nat.entry.id) theMenuItems[my nat.entry.id] = false;
-		} else {
-			if (my isRadioButton)
-				_GuiWinRadioButton_destroy (me);
-			else
-				_GuiWinCheckButton_destroy (me);
-		}
-	} break;
-	case xmScrollBarWidgetClass: {
-		_GuiWinScrollBar_destroy (me);
-	} break;
-	case xmScrolledWindowWidgetClass: {
-		/* The scroll bars will be destroyed automatically because they are my
-		 * children. */
-		_GuiWinScrolledWindow_destroy (me);
-	} break;
-	case xmSeparatorWidgetClass: {
-		if (my inMenu) {
-			if (my nat.entry.id) theMenuItems[my nat.entry.id] = false;
-		}
-	} break;
-	case xmPulldownMenuWidgetClass: {
-		if (MEMBER (my parent, MenuBar))
-			RemoveMenu (my parent->nat.menu.handle,
-			        (UINT) my nat.menu./*handle*/ id, MF_BYCOMMAND);
-		DestroyMenu (my nat.menu.handle);
-		theMenus[my nat.menu.id] = NULL;
-	} break;
+		case xmLabelWidgetClass: {
+			_GuiWinLabel_destroy (me);
+		} break;
+		case xmCascadeButtonWidgetClass: {
+			if (! my inMenu && ! MEMBER (my parent, MenuBar))
+				_GuiNativeControl_destroy (me);
+		} break;
+		case xmScaleWidgetClass: {
+			_GuiWinScale_destroy (me);
+		} break;
+		case xmShellWidgetClass: {
+			DestroyWindow (natWindow);
+		} break;
+		case xmListWidgetClass: {
+			_GuiWinList_destroy (me);
+		} break;
+		case xmDrawingAreaWidgetClass: {
+			_GuiWinDrawingArea_destroy (me);
+		} break;
+		case xmRowColumnWidgetClass: {
+			//TRACE
+			trace (U"Destroying window ", Melder_pointer (my window), U" for RowColumn ", Melder_pointer (me));
+			#if TRY_BARLESS
+				if (my rowColumnType == XmMENU_BAR)
+					; // my window is my parent's window
+				else
+					DestroyWindow (my window);
+			#else
+				DestroyWindow (my window);
+			#endif
+		} break;
+		case xmFormWidgetClass:
+		case xmBulletinBoardWidgetClass: {
+			DestroyWindow (my window);
+		} break;
+		case xmTextWidgetClass: {
+			_GuiWinText_destroy (me);
+		} break;
+		case xmPushButtonWidgetClass: {
+			if (my inMenu) {
+				if (my nat.entry.id)
+					theMenuItems [my nat.entry.id] = false;
+			} else {
+				_GuiWinButton_destroy (me);
+			}
+		} break;
+		case xmToggleButtonWidgetClass: {
+			if (my inMenu) {
+				if (my nat.entry.id)
+					theMenuItems [my nat.entry.id] = false;
+			} else {
+				if (my isRadioButton)
+					_GuiWinRadioButton_destroy (me);
+				else
+					_GuiWinCheckButton_destroy (me);
+			}
+		} break;
+		case xmScrollBarWidgetClass: {
+			_GuiWinScrollBar_destroy (me);
+		} break;
+		case xmScrolledWindowWidgetClass: {
+			/* The scroll bars will be destroyed automatically because they are my children. */
+			_GuiWinScrolledWindow_destroy (me);
+		} break;
+		case xmSeparatorWidgetClass: {
+			if (my inMenu) {
+				if (my nat.entry.id)
+					theMenuItems [my nat.entry.id] = false;
+			}
+		} break;
+		case xmPulldownMenuWidgetClass: {
+			if (MEMBER (my parent, MenuBar))
+				RemoveMenu (my parent -> nat.menu.handle, (UINT) my nat.menu./*handle*/id, MF_BYCOMMAND);
+			DestroyMenu (my nat.menu.handle);
+			theMenus [my nat.menu.id] = NULL;
+		} break;
 	}
 	my name.reset ();                               // not automatic
 	if (my parent && me == my parent->firstChild)   // remove dangling reference
@@ -1709,10 +1732,12 @@ static void mapWidget (GuiObject me) {
 		case xmBulletinBoardWidgetClass:
 		case xmDrawingAreaWidgetClass:
 		case xmScrolledWindowWidgetClass:
-		case xmFormWidgetClass:
-		case xmRowColumnWidgetClass:
+		case xmFormWidgetClass: {
 			ShowWindow (my window, SW_SHOW);
-			break;
+		} break;
+		case xmRowColumnWidgetClass: {
+			ShowWindow (my window, SW_SHOW);
+		} break;
 		case xmShellWidgetClass: {
 			ShowWindow (my window, theGui.commandShow);
 			if (my dialogStyle == XmDIALOG_FULL_APPLICATION_MODAL)
@@ -3335,19 +3360,14 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
-
-		/*
-		Ramyses: drag and drop funcionality
-		*/
-		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles); 
-
-	case WM_USER: {
-		/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
-		SetForegroundWindow (window);*/
-		return theUserMessageCallback ? theUserMessageCallback () : 1;
-	}
-	default:
-		return DefWindowProc (window, message, wParam, lParam);
+		case WM_APP: {
+			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
+			SetForegroundWindow (window);*/
+			//TRACE
+			trace (U"app message ", WM_APP);
+			return theUserMessageCallback ? theUserMessageCallback () : 1;
+		}
+		default: return DefWindowProc (window, message, wParam, lParam);
 	}
 }
 void motif_win_setUserMessageCallback (int (*userMessageCallback) (void)) {

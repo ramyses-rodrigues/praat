@@ -834,7 +834,7 @@ static void Melder_checkNistFile (FILE *f, integer *numberOfChannels, int *encod
 static void Melder_checkFlacFile (MelderFile file, integer *numberOfChannels_out, int *encoding_out,
 	double *sampleRate_out, integer *startOfData_out, integer *numberOfSamples_out)
 {
-	const conststring8 fileName_utf8 = Melder_peek32to8_fileSystem (Melder_fileToPath (file));
+	const conststring8 fileName_utf8 = MelderFile_peekPath8 (file);
 	FLAC__StreamMetadata metadata;
 	if (! FLAC__metadata_get_streaminfo (fileName_utf8, & metadata))   // Unicode-savvy (test/fon/soundFiles.praat 2024-08-11)
 		Melder_throw (U"Invalid FLAC file");
@@ -1094,7 +1094,7 @@ static int32 bingeti32_shortened_direct (FILE *f, const uint32 mantissaLength) {
 }
 
 /*
-	The table `alawBitshiftTable` was created by the following script:
+	The table `alawBitshiftTable` was created by the following script (last checked 2024-12-03):
 
 sortedAlawValues# = {
 ...  -32256, -31232, -30208, -29184, -28160, -27136, -26112, -25088,
@@ -1175,7 +1175,8 @@ endproc
 @convertAndCheck: 12, -16384, -32256
 @convertAndCheck: 12, 16384, 8
 
-for bitshift from 2 to 12
+shifted# = zero# (256)
+for bitshift from 1 to 12
 	for i to 256
 		shifted# [i] = -1
 		linearValue = sortedAlawValues# [i]
@@ -1217,8 +1218,7 @@ procedure writeTable: .table#
 		if i mod 16 = 1
 			appendInfo: newline$, tab$
 		endif
-		value$ = string$: .table# [i]
-		appendInfo: left$ ("                            ", maximumTextLength - length (value$) + 1), value$
+		appendInfo: padLeft$ (string$ (.table# [i]), maximumTextLength + 1)
 		if i <> 256
 			appendInfo: ","
 		endif

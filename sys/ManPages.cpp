@@ -1,6 +1,6 @@
 /* ManPages.cpp
  *
- * Copyright (C) 1996-2024 Paul Boersma
+ * Copyright (C) 1996-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -519,6 +519,7 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 		}
 		/*
 			TODO: add:
+				Use Praat windows: Objects, Picture(?), Info, Demo(?)
 				Keywords:   ; lower case, separate by comma
 				Code chunk visibility: +   ; + (the default) or -
 				Text style language: praat   ; praat (the default), i.e. % # $ @ _ ^, or markdown, i.e. * ` ** [] <sub> <sup>
@@ -550,6 +551,13 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 		if (numberOfLeadingSpaces == 0 && Melder_startsWith (line, U"===")) {
 			if (previousParagraph)
 				previousParagraph -> type = kManPage_type::ENTRY;
+			line = MelderReadText_readLine (text);
+			if (! line)
+				return;
+			continue;
+		} else if (numberOfLeadingSpaces == 0 && Melder_startsWith (line, U"---")) {
+			if (previousParagraph)
+				previousParagraph -> type = kManPage_type::SUBHEADER;
 			line = MelderReadText_readLine (text);
 			if (! line)
 				return;
@@ -598,7 +606,7 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 				MelderString_append (& buffer_graphical, U"\t");
 				line += 2;
 				while (*line != U'\0') {
-					if (*line == U'|')
+					if (line [0] == U'|' && Melder_isHorizontalSpace (line [-1]) && (Melder_isHorizontalSpace (line [1]) || line [1] == U'\0'))
 						MelderString_appendCharacter (& buffer_graphical, U'\t');
 					else
 						MelderString_appendCharacter (& buffer_graphical, *line);
@@ -846,6 +854,7 @@ static void readOnePage_notebook (ManPages me, MelderReadText text) {
 					firstNonSpace == continuationLine && *firstNonSpace == U'`' && ! stringHasInk (firstNonSpace + 1) ||
 					firstNonSpace == continuationLine && *firstNonSpace == U'~' ||
 					Melder_startsWith (firstNonSpace, U"===") ||
+					Melder_startsWith (firstNonSpace, U"---") ||
 					*firstNonSpace == U'/' && firstNonSpace [1] == U'/' ||
 					*firstNonSpace == U'\0'
 				) {

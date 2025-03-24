@@ -382,6 +382,7 @@ Thing_define (GuiButton, GuiControl) {
 	GuiButton_ActivateCallback d_activateCallback;
 	Thing d_activateBoss;
 	GuiMenu d_menu;   // for cascade buttons
+	integer d_sequentalIdInDialog;
 };
 
 /* GuiButton creation flags: */
@@ -389,6 +390,7 @@ Thing_define (GuiButton, GuiControl) {
 #define GuiButton_CANCEL  2
 #define GuiButton_INSENSITIVE  4
 #define GuiButton_ATTRACTIVE  8
+#define GuiButton_MULTILINE  16
 GuiButton GuiButton_create (GuiForm parent,
 	int left, int right, int top, int bottom,
 	conststring32 text,
@@ -445,18 +447,30 @@ using GuiDialog_DefaultCallback = MelderCallback <void, structThing /* boss */>;
 Thing_define (GuiDialog, GuiShell) {
 	GuiDialog_DefaultCallback d_defaultCallback;
 	Thing d_defaultBoss;
+	integer latestCreatedButtonId, clickedButtonId, defaultButtonId;   // especially if the dialog is blocking
+	GuiButton defaultButton;
 };
 
 /* GuiDialog creation flags: */
-#define GuiDialog_MODAL  1
+enum class GuiDialog_Modality { MODELESS = 0, MODAL = 1, BLOCKING = 2 };
 GuiDialog GuiDialog_create (GuiWindow parent,
 	int x, int y, int width, int height,
 	conststring32 title,
 	GuiShell_GoAwayCallback goAwayCallback, Thing goAwayBoss,
-	uint32 flags
+	GuiDialog_Modality modality
 );
 
 void GuiDialog_setDefaultCallback (GuiDialog me, GuiDialog_DefaultCallback callback, Thing boss);
+
+integer GuiDialog_run (GuiDialog me);
+/*
+	Only for blocking dialogs.
+	Return value:
+		- if she clicked a button (with text), the sequentual id of the clicked button (1, 2, 3...) is returned
+		- if she clicked the Close button of the window, 0 is returned
+		- if she typed Enter, and there was a default button, the sequentual id of the default button is returned
+		- if she typed Enter and there was no default button, 0 is returned (i.e. this is the same as clicking the Close button)
+*/
 
 /********** GuiDrawingArea **********/
 
@@ -584,6 +598,7 @@ Thing_define (GuiLabel, GuiControl) {
 #define GuiLabel_CENTRE  1
 #define GuiLabel_RIGHT  2
 #define GuiLabel_BOLD  4
+#define GuiLabel_MULTILINE  8
 GuiLabel GuiLabel_create      (GuiForm parent, int left, int right, int top, int bottom,
 	conststring32 text, uint32 flags);
 GuiLabel GuiLabel_createShown (GuiForm parent, int left, int right, int top, int bottom,
@@ -838,7 +853,7 @@ Thing_define (GuiMenuItem, GuiThing) {
 #define GuiMenu_DEPRECATED_2066  (0x4200'0000 | GuiMenu_DEPRECATED)
 
 GuiMenuItem GuiMenu_addItem (GuiMenu menu, conststring32 title, uint32 flags,
-	GuiMenuItemCallback callback, Thing boss);
+		GuiMenuItemCallback callback, Thing boss);
 /* Flags is a combination of the above defines (both layout and accelerators). */
 GuiMenuItem GuiMenu_addSeparator (GuiMenu menu);
 

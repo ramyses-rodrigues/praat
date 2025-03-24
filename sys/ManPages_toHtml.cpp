@@ -1,6 +1,6 @@
 /* ManPages_toHtml.cpp
  *
- * Copyright (C) 1996-2024 Paul Boersma
+ * Copyright (C) 1996-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ static const struct stylesInfo {
 } stylesInfo [] = {
 { nullptr, nullptr },
 /* INTRO: */ { U"<p>", U"</p>" },
-/* ENTRY: */ { U"<h3>", U"</h3>" },
+/* ENTRY: */ { U"<h2>", U"</h2>" },
 /* NORMAL: */ { U"<p>", U"</p>" },
 /* LIST_ITEM: */ { U"<dd style=\"position:relative;padding-left:1em;text-indent:-2em\">", U"" },
 /* TERM: */ { U"<dt>", U"" },
@@ -52,31 +52,34 @@ static const struct stylesInfo {
 /* CODE4: */ { U"<code>               ", U"<br></code>" },
 /* CODE5: */ { U"<code>                  ", U"<br></code>" },
 /* CAPTION: */ { U"<p style=\"position:relative;padding-left:4em;text-indent:-2em;font-size:86%\">", U"</font></p>" },
-/* QUOTE1: */ { U"<p style=\"position:relative;padding-left:4em;font-size:86%\">", U"</font></p>" },
-/* QUOTE2: */ { U"<p style=\"position:relative;padding-left:8em;font-size:86%\">", U"</font></p>" },
-/* QUOTE3: */ { U"<p style=\"position:relative;padding-left:12em;font-size:86%\">", U"</font></p>" },
+/* QUOTE: */ { U"<p style=\"position:relative;padding-left:4em;font-size:86%\">", U"</font></p>" },
+/* QUOTE1: */ { U"<p style=\"position:relative;padding-left:8em;font-size:86%\">", U"</font></p>" },
+/* QUOTE2: */ { U"<p style=\"position:relative;padding-left:12em;font-size:86%\">", U"</font></p>" },
+/* QUOTE3: */ { U"<p style=\"position:relative;padding-left:16em;font-size:86%\">", U"</font></p>" },
+/* SUBHEADER: */ { U"<h3>", U"</h3>" },
 };
 
 static void writeLinkAsHtml (ManPages me, mutablestring32 link, conststring32 linkText, MelderString *buffer, conststring32 pageTitle) {
 	/*
-		The first character of the link text can have the wrong case.
-	*/
-	integer linkPageNumber = ManPages_lookUp (me, link);
-	if (linkPageNumber == 0)
-		Melder_throw (U"No such manual page: ", link, U" (from page “", pageTitle, U"”).");
-	link [0] = my pages.at [linkPageNumber] -> title [0];
-	/*
 		We write the link in the following format:
 			<a href="link.html">linkText</a>
-		If "link" (initial lower case) is not in the manual, we write "Link.html" instead.
-		All spaces and strange symbols in "link" are replaced by underscores,
-		because it will be a file name (see ManPages_writeAllToHtmlDir).
-		The file name will have no more than 30 or 60 characters, and no less than 1.
 	*/
 	MelderString_append (buffer, U"<a href=\"");
 	if (str32nequ (link, U"\\FI", 3)) {
 		MelderString_append (buffer, link + 3);   // file link
 	} else {
+		/*
+			If "link" (initial lower case) is not in the manual, we write "Link.html" instead.
+			All spaces and strange symbols in "link" are replaced by underscores,
+			because it will be a file name (see ManPages_writeAllToHtmlDir).
+			The file name will have no more than 30 or 60 characters, and no less than 1.
+
+			The first character of the link text can have the wrong case.
+		*/
+		integer linkPageNumber = ManPages_lookUp (me, link);
+		if (linkPageNumber == 0)
+			Melder_throw (U"No such manual page: ", link, U" (from page “", pageTitle, U"”).");
+		link [0] = my pages.at [linkPageNumber] -> title [0];
 		char32 *q = link;
 		if (! ManPages_lookUp_caseSensitive (me, link)) {
 			MelderString_appendCharacter (buffer, Melder_toUpperCase (link [0]));
@@ -134,7 +137,7 @@ static void writeParagraphsAsHtml (ManPages me, Interpreter optionalInterpreterR
 
 		if (paragraph -> type == kManPage_type::PICTURE) {
 			numberOfPictures ++;
-			structMelderFile pngFile;
+			structMelderFile pngFile { };
 			MelderFile_copy (file, & pngFile);
 			pngFile. path [Melder_length (pngFile. path) - 5] = U'\0';   // delete extension ".html"
 			str32cat (pngFile. path, Melder_cat (U"_", numberOfPictures, U".png"));
@@ -266,7 +269,7 @@ static void writeParagraphsAsHtml (ManPages me, Interpreter optionalInterpreterR
 			if (paragraph -> height == 0.001)
 				continue;
 			numberOfPictures ++;
-			structMelderFile pngFile;
+			structMelderFile pngFile { };
 			MelderFile_copy (file, & pngFile);
 			pngFile. path [Melder_length (pngFile. path) - 5] = U'\0';   // delete extension ".html"
 			str32cat (pngFile. path, Melder_cat (U"_", numberOfPictures, U".png"));

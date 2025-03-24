@@ -78,11 +78,11 @@ The meaning of the names of binary files available on GitHub is as follows (edit
 - **`praatXXXX_linux-s390x-barren.tar.gz`: gzipped tarred executable for s390x Linux, without GUI, sound and graphics**
 - **`praatXXXX_linux-s390x.tar.gz`: gzipped tarred executable for s390x Linux (GTK 3)**
 - **`praatXXXX_linux-arm64-barren.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI, sound and graphics**
-- **`praatXXXX_linux-arm64-nogui.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI and sound but with graphics (Cairo and Pango)**
 - **`praatXXXX_linux-arm64.tar.gz`: gzipped tarred executable for ARM64 Linux (GTK 3)**
 - **`praatXXXX_linux-intel64-barren.tar.gz`: gzipped tarred executable for Intel64 Linux, without GUI, sound and graphics**
-- **`praatXXXX_linux-intel64-nogui.tar.gz`: gzipped tarred executable for Intel64 Linux, without GUI and sound but with graphics (Cairo and Pango)**
 - **`praatXXXX_linux-intel64.tar.gz`: gzipped tarred executable for Intel64 Linux (GTK 3)**
+- `praatXXXX_linux-arm64-nogui.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI and sound but with graphics (Cairo and Pango)
+- `praatXXXX_linux-intel64-nogui.tar.gz`: gzipped tarred executable for Intel64 Linux, without GUI and sound but with graphics (Cairo and Pango)
 - `praatXXXX_linux64barren.tar.gz`: gzipped tarred executable for 64-bit Intel Linux, without GUI, sound and graphics
 - `praatXXXX_linux64nogui.tar.gz`: gzipped tarred executable for 64-bit Intel Linux, without GUI and sound but with graphics (Cairo and Pango)
 - `praatXXXX_linux64.tar.gz`: gzipped tarred executable for 64-bit Intel Linux (GTK 2 or 3)
@@ -182,10 +182,13 @@ but an ARM64 edition as well, and Cygwin has no toolchains for ARM64, we work wi
 
 After installing MSYS2, we see that a `mingw64` toolchain (for Praat’s Intel64 edition)
 and a `mingw32` toolchain (for Praat’s Intel32 edition) are already available.
+Make sure you have installed at least `make`, `gcc`, `g++` and `pkg-config` to make those work.
 To also install a `clangarm64` toolchain (for Praat’s ARM64 edition),
 run `clangarm64.exe` to get a `clangarm64` shell. In that shell, run `pacman -Suy` to update and
 `pacman -S mingw-w64-clang-aarch64-clang` to install the build tools package.
-Make sure you have installed at least `make`, `gcc`, `g++` and `pkg-config`.
+In the same way you can create a `clang64` toolchain and a `clang32` toolchain
+(`pacman -S mingw-w64-clang-x86_64-clang` and `pacman -S mingw-w64-i686-clang`),
+which are good alternatives to the .
 
 Ramyses: para instalar o toolchain mingw64:
 1. install MSYS2 do site MSYS2 (https://www.msys2.org/#installation)
@@ -203,16 +206,28 @@ the folders `fon` and `sys` should be visible within each of these folders.
 If you now want to build Praat’s ARM64 edition, start the shell `clangarm64` and type
 
     cd ~/praats-arm64
-    cp makefiles/makefile.defs.msys-arm64 ./makefile.defs
+    cp makefiles/makefile.defs.msys-clang ./makefile.defs
     make -j12
 
-If you want to build Praat’s Intel64 edition, start the shell `mingw64` and type
+If you want to build Praat’s Intel64 edition, start the shell `clang64` and type
+
+    cd ~/praats-intel64
+    cp makefiles/makefile.defs.msys-clang ./makefile.defs
+    make -j12
+
+or start the shell `mingw64` and type
 
     cd ~/praats-intel64
     cp makefiles/makefile.defs.msys-mingw64 ./makefile.defs
     make -j12
 
-If you want to build Praat’s Intel32 edition, start the shell `mingw32` and type
+If you want to build Praat’s Intel32 edition, start the shell `clang32` and type
+
+    cd ~/praats-intel32
+    cp makefiles/makefile.defs.msys-clang ./makefile.defs
+    make -j12
+
+or start the shell `mingw32` and type
 
     cd ~/praats-intel32
     cp makefiles/makefile.defs.msys-mingw32 ./makefile.defs
@@ -221,6 +236,17 @@ If you want to build Praat’s Intel32 edition, start the shell `mingw32` and ty
 (With Cygwin, you would install the Devel package mingw64-x86_64-gcc-g++
 for Praat’s Intel64 edition and mingw64-i686-gcc-g++ for Praat’s Intel32 edition,
 plus perhaps `make` and `pkg-config` if you dont’t have those yet.)
+
+**Code-signing.** From version 6.4.25 on, we have signed the three Praat executables
+with an “open-source code-signing certificate” (by Certum)
+under the name “Paulus Boersma” (the Dutch-legal name of one of the authors).
+This is designed to make it easier for Praat to pass the SmartScreen checks
+on Windows 11. Early testing shows that the signature is seen by SmartScreen,
+but that SmartScreen can still block Praat, so that users still have to
+click “Run Anyway” (or “Unblock” under Properties).
+It seems that the card reader for this certificate cannot be used yet for code-signing on ARM64 Windows
+or on MacOS Sonoma/Sequoia, so for the moment we have to fall back on an obsolete Intel64 Windows 10 machine
+and are looking for a more robust solution.
 
 **Testing** on multiple platform versions can be done with virtual machines
 for Windows 7 (64-bit), Windows 8.1 (64-bit), 64-bit Windows 10 (1507, 1803, 22H2) and Windows 11,
@@ -276,14 +302,19 @@ and macOS 11 Big Sur, while a 2018 Macbook Pro can handle macOS 10.14 Mojave, 10
 macOS 11 Big Sur, macOS 12 Monterey, and macOS 13 Ventura (and macOS 14 Sonoma natively).
 Testing on multiple ARM64 platform versions can be done on an older ARM64 Mac,
 using virtual machines with Parallels Desktop. For instance, a 2020 Mac Mini could handle
-macOS 11 Big Sur, macOS 12 Monterey, and macOS 13 Ventura (and macOS 14 Sonoma natively).
+macOS 11 Big Sur, macOS 12 Monterey, and macOS 13 Ventura (and macOS 14 Sonoma natively),
+while a 2023 Macbook Pro can do macOS 14 Sonoma or macOS 15 Sequoia natively.
 
 ### 3.3. Compiling on Linux and other Unixes
 
-To set up the system libraries required for **building**,
+To set up the system libraries required for **building** with the Clang or GCC compiler,
 install the necessary build tools as well as some graphics and sound packages:
 
-    sudo apt install make gcc g++ rsync pkg-config
+    sudo apt install make rsync pkg-config
+    # either:
+        sudo apt install clang libc++-dev libc++abi-dev
+    # or:
+        sudo apt install gcc g++
     sudo apt install libgtk-3-dev
     sudo apt install libasound2-dev
     sudo apt install libpulse-dev
@@ -293,7 +324,10 @@ To set up your source tree for Linux, go to Praat's sources directory (where the
 and type one of the four following commands:
 
     # on Ubuntu command line (Intel64 or ARM64 processor)
-    cp makefiles/makefile.defs.linux.pulse ./makefile.defs
+    # either:
+        cp makefiles/makefile.defs.linux.pulse-clang ./makefile.defs
+    # or:
+        cp makefiles/makefile.defs.linux.pulse-gcc ./makefile.defs
 
     # on Ubuntu command line (s390x processor)
     cp makefiles/makefile.defs.linux.s390x.pulse ./makefile.defs
@@ -307,7 +341,7 @@ and type one of the four following commands:
     # on FreeBSD command line
     cp makefiles/makefile.defs.freebsd.alsa ./makefile.defs
 
-To build the Praat executable, type `make -j12` or so.
+To build the Praat executable, type `make -j15` or so.
 If your Unix isn’t Linux, you may have to edit the library names in the makefile
 (you may need pthread, gtk-3, gdk-3, atk-1.0, pangoft2-1.0, gdk_pixbuf-2.0, m, pangocairo-1.0,
 cairo-gobject, cairo, gio-2.0, pango-1.0, freetype, fontconfig, gobject-2.0, gmodule-2.0, 
@@ -324,21 +358,19 @@ you may have to edit the library names in the makefile (you may need pthread, gt
 pangoft2-1.0, gdk_pixbuf-2.0, m, pangocairo-1.0, cairo-gobject, cairo, gio-2.0, pango-1.0, 
 freetype, fontconfig, gobject-2.0, gmodule-2.0, gthread-2.0, rt, glib-2.0).
 
-When compiling Praat for use as a server for commands from your web pages, you may not need sound or a GUI. Do
+When compiling Praat for use as a server for commands from your web pages,
+you may not need sound, a GUI, amd graphics. In that case, do
 
     # on Ubuntu command line (Intel64 or ARM64 processor)
-    cp makefiles/makefile.defs.linux.nogui ./makefile.defs
-
-which creates the executable `praat_nogui`. If you don't need graphics (e.g. PNG files) either
-(i.e. you need only Praat's computation), you can create an even lighter edition:
-
-    # on Ubuntu command line (Intel64 or ARM64 processor)
-    cp makefiles/makefile.defs.linux.barren ./makefile.defs
+    # either:
+        cp makefiles/makefile.defs.linux.barren-clang ./makefile.defs
+    # or:
+        cp makefiles/makefile.defs.linux.barren-gcc ./makefile.defs
 
     # on Ubuntu command line (s390x processor)
     cp makefiles/makefile.defs.linux.s390x.barren ./makefile.defs
 
-which creates the executable `praat_barren`. Then type `make` or `make -j12` to build the program.
+which creates the executable `praat_barren`. Then type `make` or `make -j15` to build the program.
 If your Unix isn’t Linux, you may have to edit the library names in the makefile.
 
 The above works exactly the same for Intel64 and ARM64 processors, with the same makefiles.
@@ -462,23 +494,28 @@ between `/Users/yourname` and `/home/yourname`):
     EXCLUDES='--exclude="*.xcodeproj" --exclude="Icon*" --exclude=".*" --exclude="*kanweg*"'
     alias praat-build="( cd ~/praats &&\
         rsync -rptvz $ORIGINAL_SOURCES/ $EXCLUDES . &&\
-        cp makefiles/makefile.defs.linux.pulse makefile.defs &&\
+        cp makefiles/makefile.defs.linux.pulse-clang makefile.defs &&\
         make -j15 )"
     alias praat="~/praats/praat"
     alias praat-run="praat-build && praat"
 
-(In OrbStack, Praat will not have a GUI, so try `praat-run --version` instead,
-and test later on a Linux computer or Linux virtual machine.)
+In OrbStack, if you don’t have a GUI, try `praat-run --version` instead;
+but note that you can have a GUI by running XQuartz. With XQuartz running,
+you type something like `xhost +192.168.1.99` (if that’s the local IP address of your computer)
+into the XQuartz terminal window (or put `xhost +192.168.1.99` and `exec quartz-wm` into your `.xinitrc` file),
+and type something like `export DISPLAY=192.168.1.99:0` (depending on your local IP address)
+in your OrbStack window (or into your `.bashrc` file), followed by `praat` into your OrbStack window;
+the Praat-for-Linux Objects and Picture windows will then show up on your Mac screen.
 
-On our 2023 Mac, building Praat this way takes 63 seconds for the ARM64 edition
-and 150 seconds (under emulation) for the Intel64 edition (optimization level O3).
+On our 2023 Mac, building Praat this way from scratch takes 42 seconds for the ARM64 edition
+and 130 seconds (under emulation) for the Intel64 edition (optimization level O3).
 
 To build `praat_barren`, create a folder `praatsb`, and define
 
     # in Ubuntu:~/.bash_aliases
     alias praatb-build="( cd ~/praatsb &&\
         rsync -rptvz $ORIGINAL_SOURCES/ $EXCLUDES . &&\
-        cp makefiles/makefile.defs.linux.barren makefile.defs &&\
+        cp makefiles/makefile.defs.linux.barren-clang makefile.defs &&\
         make -j15 )"
     alias praatb="~/praatsb/praat_barren"
     alias praatb-run="praatb-build && praatb"
@@ -487,21 +524,6 @@ You test `praat_barren` briefly by typing
 
     # on Ubuntu command line
     praatb --version
-
-To build `praat_nogui`, create a folder `praatsn`, and define
-
-    # in Ubuntu:~/.bash_aliases
-    alias praatn-build="( cd ~/praatsn &&\
-        rsync -rptvz $ORIGINAL_SOURCES/ $EXCLUDES . &&\
-        cp makefiles/makefile.defs.linux.nogui makefile.defs &&\
-        make -j15 )"
-    alias praatn="~/praatsn/praat_nogui"
-    alias praatn-run="praatn-build && praatn"
-
-You test `praat_nogui` briefly by typing
-
-    # on Ubuntu command line
-    praatn --version
 
 To build Praat for Chrome64 (64-bit Intel Chromebooks only),
 create a folder `praatc`, and define
@@ -720,7 +742,7 @@ so that you can “upload” the two executables to the Mac with
 
 The four Linux executables have to be sent from your Ubuntu terminal to your Mac,
 namely to the folder `~/Dropbox/Praats/bin/linux_intel64` or `~/Dropbox/Praats/bin/linux_arm64`
-(each of which will contain `praat`, `praat_barren` and `praat_nogui`), and to the folder
+(each of which will contain `praat` and `praat_barren`), and to the folder
 `~/Dropbox/Praats/bin/chrome_intel64` or `~/Dropbox/Praats/bin/chrome_arm64`
 (which will contain only `praat`).
 On Ubuntu you can define
@@ -728,13 +750,11 @@ On Ubuntu you can define
     # in MSYS2 Intel64 Ubuntu:~/.bash_aliases
     alias praat-dist="praat-build && rsync -t ~/praats/praat /Users/yourname/Dropbox/Praats/bin/linux-intel64"
     alias praatb-dist="praatb-build && rsync -t ~/praatsb/praat_barren /Users/yourname/Dropbox/Praats/bin/linux-intel64"
-    alias praatn-dist="praatn-build && rsync -t ~/praatsn/praat_nogui /Users/yourname/Dropbox/Praats/bin/linux-intel64"
     alias praatc-dist="praatc-build && rsync -t ~/praatsc/praat /Users/yourname/Dropbox/Praats/bin/chrome-intel64"
 
     # in MSYS2 ARM64 Ubuntu:~/.bash_aliases
     alias praat-dist="praat-build && rsync -t ~/praats/praat /Users/yourname/Dropbox/Praats/bin/linux-arm64"
     alias praatb-dist="praatb-build && rsync -t ~/praatsb/praat_barren /Users/yourname/Dropbox/Praats/bin/linux-arm64"
-    alias praatn-dist="praatn-build && rsync -t ~/praatsn/praat_nogui /Users/yourname/Dropbox/Praats/bin/linux-arm64"
     alias praatc-dist="praatc-build && rsync -t ~/praatsc/praat /Users/yourname/Dropbox/Praats/bin/chrome-arm64"
 
 so that you can “upload” the four executables to the Mac with
@@ -742,7 +762,6 @@ so that you can “upload” the four executables to the Mac with
     # on Ubuntu command line
     praat-dist
     praatb-dist
-    praatn-dist
     praatc-dist
 
 You can fetch the Raspberry Pi edition directly from your Raspberry Pi:
@@ -773,10 +792,6 @@ you can issue the following commands to create the packages and install them in 
       tar cvf praat${PRAAT_VERSION}_linux-intel64-barren.tar praat_barren &&\
       gzip praat${PRAAT_VERSION}_linux-intel64-barren.tar &&\
       mv praat${PRAAT_VERSION}_linux-intel64-barren.tar.gz $PRAAT_WWW )
-    ( cd ~/Dropbox/Praats/bin/linux-intel64 &&\
-      tar cvf praat${PRAAT_VERSION}_linux-intel64-nogui.tar praat_nogui &&\
-      gzip praat${PRAAT_VERSION}_linux-intel64-nogui.tar &&\
-      mv praat${PRAAT_VERSION}_linux-intel64-nogui.tar.gz $PRAAT_WWW )
     ( cd ~/Dropbox/Praats/bin/chrome-intel64 &&\
       tar cvf praat${PRAAT_VERSION}_chrome-intel64.tar praat &&\
       gzip praat${PRAAT_VERSION}_chrome-intel64.tar &&\
@@ -789,10 +804,6 @@ you can issue the following commands to create the packages and install them in 
       tar cvf praat${PRAAT_VERSION}_linux-arm64-barren.tar praat_barren &&\
       gzip praat${PRAAT_VERSION}_linux-arm64-barren.tar &&\
       mv praat${PRAAT_VERSION}_linux-arm64-barren.tar.gz $PRAAT_WWW )
-    ( cd ~/Dropbox/Praats/bin/linux-arm64 &&\
-      tar cvf praat${PRAAT_VERSION}_linux-arm64-nogui.tar praat_nogui &&\
-      gzip praat${PRAAT_VERSION}_linux-arm64-nogui.tar &&\
-      mv praat${PRAAT_VERSION}_linux-arm64-nogui.tar.gz $PRAAT_WWW )
     ( cd ~/Dropbox/Praats/bin/chrome-arm64 &&\
       tar cvf praat${PRAAT_VERSION}_chrome-arm64.tar praat &&\
       gzip praat${PRAAT_VERSION}_chrome-arm64.tar &&\
