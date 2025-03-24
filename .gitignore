@@ -1,5 +1,6 @@
 # intermediate build products for Windows and Linux
 *.o
+*.obj
 *.a
 
 # the project for MacOSX
