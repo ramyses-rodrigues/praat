@@ -16,6 +16,9 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /*Ramyses: inserido praat.h para ter acesso a variável global theCurrentPraatObjects*/
+#include "praat.h"
+
 #include "FunctionEditor.h"
 #include "machine.h"
 #include "EditorM.h"
@@ -951,93 +954,139 @@ autostring32 customSaveFiletoDisk(conststring32 title, conststring32 fullFileNam
 
 }
 
+/* Ramyses: callback para o botão Save...*/
+
 static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 	// recupera lastSavedFile
-	MelderString claname;	// debug
-	static structMelderFile lastSavedFile; // static = global enquanto o programa existir
-	structMelderFolder lastSavedFolder;
+	autoMelderString strDebug, strTemp;	// debug	
+	structMelderFile file {};
+	static structMelderFile lastSavedFile {}; // mantém variável ativa após sair da função
+	structMelderFolder folder;
+	
+	TextGrid tg = 0x0;
+
 	bool debug = false;
 
-	// preenche variável lastSavedFile
-	if (Melder_length (lastSavedFile.path) < 2)   // se lastSavedFile não preenchido
-		Melder_pathToFile (my instancePref_stringLastSavedPath (), &lastSavedFile);   // carrega de preferences.ini
-
-	MelderFile_getParentFolder(&lastSavedFile, &lastSavedFolder);
-
 	// debug	
-	if (debug) Melder_warning(U"Diretório extraído: ", &lastSavedFolder); 
-	
-	// selectiona functionArea textGridArea
+	if (debug) {
+		MelderString_append(&strDebug, U"Iniciando testes... \n\n");
+		Melder_information(strDebug.string); 
+		
+		// procura na janela de editor atual uma functionArea do tipo textGridArea, depois, na lista de objetos um objeto com mesmo nome
+		// se houver arquivo associado ao objeto, pega nome desse arquivo. Se não houver, sugere o último nome de arquivo salvo
+		for (int iArea = 0; iArea < FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iArea ++ ) {
+					
+			FunctionArea area = static_cast <FunctionArea> (my functionAreas [iArea].get());
+			if (area) {
+				
+				// tenta extrair dessa functionArea o objeto textGrid
+				TextGrid tg = static_cast <TextGrid> (area -> function());
+
+				if (tg) {  // se tudo der certo, passar adiante (o Praat só suporta uma textGrid por janela!)
+					
+					MelderString tgName, objName;
+									
+					MelderString_empty(&tgName);
+					MelderString_copy(&tgName, tg->name.get());
+					MelderString_append(&strDebug, U"Nome do textGrid chamado: ", tgName.string, U"\n\n"); 
+
+					// procura na lista de objetos da janela principal aquele com mesmo nome de arquvio deste textGrid
+					for (int i = 1; i <= theCurrentPraatObjects -> n; i++ ) {
+						int comp1 = Melder_cmp(theCurrentPraatObjects -> list[i].object->classInfo->className, U"TextGrid");
+						MelderString_append(&strDebug, U"Objeto Praat", Melder_integer(i), U": ", Melder_integer(comp1), U"\n");
+						
+						if (comp1 == 0) {
+							MelderString_empty(&objName);
+							MelderString_copy (&objName, theCurrentPraatObjects -> list[i].object->name.get());
+							int comp2 = Melder_cmp(objName.string, tgName.string);
+							if ( comp2 == 0) {
+								MelderString_append(&strDebug, U"Encontrado objeto com nome do TextGrid aberto\n\n");
+								MelderString_append(&strDebug, U"Objeto: ", objName.string, U"\n");
+								MelderString_append(&strDebug, U"TextGrid: ", tgName.string, U"\n");
+								Melder_pathToFile (theCurrentPraatObjects -> list[i].file.path, &file);
+							}
+						}						
+					}	
+				}
+			}
+		}
+		Melder_information(strDebug.string); 
+		return;
+	}
+
+	// preenche inicialmente a variável file com o nome do último arquivo salvo
+	Melder_pathToFile (my instancePref_stringLastSavedPath (), &file);   // carrega de preferences.ini
+	MelderFile_getParentFolder(&file, &folder);
+
+	// procura na janela de editor atual uma functionArea do tipo textGridArea, depois, na lista de objetos um objeto com mesmo nome
+	// se houver arquivo associado ao objeto, pega nome desse arquivo. Se não houver, mantém  o último nome de arquivo salvo
 	for (int iArea = 0; iArea < FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iArea ++ ) {
 				
 		FunctionArea area = static_cast <FunctionArea> (my functionAreas [iArea].get());
 		if (area) {
-			// debug
-			MelderString_append(&claname, Melder_integer(iArea), U": ", area -> classInfo->className, U"\n") ;
+			
+			// tenta extrair dessa functionArea o objeto textGrid
+			TextGrid tg = static_cast <TextGrid> (area -> function());
 
-			if (area -> editable()) {  // ver outra forma de verificar se é uma TextGrid!!!
-			    
-				//autoTextEditor atgEditor = static_cast <autoTextEditor> (area -> functionEditor());
+			if (tg) {  // se tudo der certo, passar adiante (o Praat só suporta uma textGrid por janela!)
 				
-				TextGrid tg = static_cast <TextGrid> (area -> function());
-				char32 defaultTGName[300]; 
-				defaultTGName [0] = U'\0';
-				
-				Melder_sprint(defaultTGName, 300, lastSavedFolder.path, U"\\", tg->name.get(), U".TextGrid");	
+				MelderString tgName, objName;								
+				MelderString_empty(&tgName);
+				MelderString_copy(&tgName, tg->name.get());
+				Melder_pathToFile (tgName.string, &file);   // atualiza file.path com o nome do tg da janela ativa
 
-				//debug
-				if (debug) Melder_warning(U"Nome do arquivo montado: ", defaultTGName);	
-
-				structMelderFile _file {};
-				autostring32 outfilename;
-
-				Melder_pathToFile(defaultTGName, &_file); // caminho completo...
-
-				// debug
-				if (debug) Melder_warning(U"Arquivo  a ser trabalhado: ", _file.path);
-
-				// wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (fullFileName), 300 + 2);
-
-				bool fileexists = MelderFile_exists(&_file);
-				if (fileexists) {
-					MelderString msFile;
-					MelderString_append(&msFile, U"Sobrescrever arquivo existente: \n", _file.path);
-
-					const int result = MessageBox(NULL, Melder_32toW(msFile.string).get(), L"Sobrescrever arquivo",  MB_YESNOCANCEL);
-					if (result == IDYES)
-					{
-						Data_writeToTextFile (tg, &_file);
-						Melder_warning (U"File ", _file.path, U" saved succefully.");
-						MelderFile_copy(&_file, &lastSavedFile); // armazena na variável							
-						my setInstancePref_stringLastSavedPath (lastSavedFile.path);	// guarda e preferences.ini					
-					} else if (result == IDNO) {						
-						outfilename = customSaveFiletoDisk(U"Salvar como...", _file.path);
-						if (outfilename) {
-							Melder_pathToFile(outfilename.get(), &_file);
-							Data_writeToTextFile (tg, &_file);
-							Melder_warning (U"File ", &_file, U" saved succefully.");
-							MelderFile_copy(&_file, &lastSavedFile); // armazena na variável
-							my setInstancePref_stringLastSavedPath (lastSavedFile.path);	// guarda e preferences.ini
-						}
-					} else if (result == IDCANCEL) {
-						Melder_warning (U"Operação cancelada.");
-					}
-				} else {	
-					outfilename = customSaveFiletoDisk(U"Salvar como...", _file.path); 					
-					if (outfilename) {
-						Melder_pathToFile(outfilename.get(), &_file);
-						Data_writeToTextFile (tg, &_file);
-						Melder_warning (U"File ", &_file, U" saved succefully.");
-						MelderFile_copy(&_file, &lastSavedFile); // armazena na variável
-						my setInstancePref_stringLastSavedPath (lastSavedFile.path);	// guarda e preferences.ini
-					}
-				}
-			}		
+				// procura na lista de objetos da janela principal aquele com mesmo nome de arquvio deste textGrid
+				for (int i = 1; i <= theCurrentPraatObjects -> n; i++ ) {
+					int comp1 = Melder_cmp(theCurrentPraatObjects -> list[i].object->classInfo->className, U"TextGrid");
+					
+					if (comp1 == 0) {
+						MelderString_empty(&objName);
+						MelderString_copy (&objName, theCurrentPraatObjects -> list[i].object->name.get());
+						int comp2 = Melder_cmp(objName.string, tgName.string);
+						if ( comp2 == 0)
+							Melder_pathToFile (theCurrentPraatObjects -> list[i].file.path, &file);						
+					}						
+				}	
+			}
 		}
 	}
 
-	// debug
-	if (debug) Melder_warning (U"Function Areas: \n", claname.string);	
+	// segue para salvar o textGrid da janela ativa
+	autostring32 outfilename;
+	if (MelderFile_exists(&file)) {
+		MelderString msFile;
+		
+		MelderString_append(&msFile, U"Sobrescrever arquivo existente: \n", file.path, U"?");
+	
+		const int result = MessageBox(NULL, Melder_32toW(msFile.string).get(), L"Sobrescrever arquivo?",  MB_YESNOCANCEL);
+		if (result == IDYES)
+		{
+			Data_writeToTextFile (tg, &file);
+			Melder_warning (U"File ", file.path, U" Salvo com sucesso.");
+			MelderFile_copy(&file, &lastSavedFile); // armazena na variável							
+			my setInstancePref_stringLastSavedPath (lastSavedFile.path);	// guarda e preferences.ini					
+		} else if (result == IDNO) {						
+			outfilename = customSaveFiletoDisk(U"Salvar como...", file.path);
+			if (outfilename) {
+				Melder_pathToFile(outfilename.get(), &file);
+				Data_writeToTextFile (tg, &file);
+				Melder_warning (U"File ", &file, U" Salvo com sucesso.");
+				MelderFile_copy(&file, &lastSavedFile); // armazena na variável
+				my setInstancePref_stringLastSavedPath (lastSavedFile.path);	// guarda e preferences.ini
+			}
+		} else if (result == IDCANCEL) {
+			Melder_warning (U"Operação cancelada.");
+		}
+	} else {  // se arquivo não existir	
+		outfilename = customSaveFiletoDisk(U"Salvar como...", file.path); // chance de mudar o nome do arquivo 					
+		if (outfilename) {
+			Melder_pathToFile(outfilename.get(), &file);
+			Data_writeToTextFile (tg, &file);
+			Melder_warning (U"File ", &file, U" Salvo com sucesso.");
+			MelderFile_copy(&file, &lastSavedFile); // armazena na variável
+			my setInstancePref_stringLastSavedPath (lastSavedFile.path);	// guarda e preferences.ini
+		}
+	}	
 }
 
 #pragma mark - FunctionEditor Play menu
@@ -1682,7 +1731,7 @@ void structFunctionEditor :: v_createChildren () {
 	GuiButton_createShown (our windowForm, x, x + BUTTON_WIDTH, -4 - Gui_PUSHBUTTON_HEIGHT, -4,
 		U"bak", gui_button_cb_zoomBack, this, 0);
 	
-	/* Ramyses: botão Save... para salvar TextGrid se o editor de TextGrid for aberto*/
+	/* Ramyses: criar botão Save... para salvar TextGrid se o editor de TextGrid for aberto*/
 	if (our v_hasText ()) {
 		x += BUTTON_WIDTH + BUTTON_SPACING;
 		GuiButton_createShown (our windowForm, x, x + BUTTON_WIDTH, -4 - Gui_PUSHBUTTON_HEIGHT, -4, 

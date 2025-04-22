@@ -3360,6 +3360,9 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
+
+		// Ramyses: manupular arrastar e soltar arquivos
+		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);
 		case WM_APP: {
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
 			SetForegroundWindow (window);*/
