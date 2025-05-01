@@ -3240,6 +3240,10 @@ a) arquivo motifEmulator.cpp, linha 3247
 		// MelderString_free(&command);
 		// MelderString_free(&showString32);
 
+headers adicionados para acesso ás funções:
+praat.h
+praat_script.h
+
 */
 #include "praat.h"
 #include "praat_script.h"

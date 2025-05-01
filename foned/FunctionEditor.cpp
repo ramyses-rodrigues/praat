@@ -917,9 +917,12 @@ static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS) {
 	VOID_EDITOR_END
 }
 
-/* Ramyses: callback para o botão Save...*/
-#include "TextGrid.h"
-#include "TextEditor.h"
+/* Ramyses: callback para o botão Save...
+
+*/
+
+
+// Ramyses: primeira parte: cria caixa de diálogo SaveFile
 autostring32 customSaveFiletoDisk(conststring32 title, conststring32 fullFileName) {
 
 	OPENFILENAME openFileName;
@@ -954,18 +957,25 @@ autostring32 customSaveFiletoDisk(conststring32 title, conststring32 fullFileNam
 
 }
 
-/* Ramyses: callback para o botão Save...*/
+/* Ramyses: callback para o botão Save...
+segunda parte: salva o conteúdo do objeto textGrid em um arquio de texto com extensão .textGrid
+headers necessários:
 
+TextGrid.h
+TextEditor.h
+praat.h (no início deste CPP) - para ter acesso aos objetos do Praat carregados na janela principal
+
+*/
+#include "TextGrid.h"
+#include "TextEditor.h"
 static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
-	// recupera lastSavedFile
 	autoMelderString strDebug, strTemp;	// debug	
 	structMelderFile file {};
 	static structMelderFile lastSavedFile {}; // mantém variável ativa após sair da função
-	structMelderFolder folder;
-	
+	structMelderFolder folder;	
 	TextGrid tg = 0x0;
 
-	bool debug = false;
+	bool debug = false; // para testes
 
 	// debug	
 	if (debug) {

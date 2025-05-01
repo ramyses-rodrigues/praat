@@ -5,11 +5,6 @@
             "cwd": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat",
             "binaryPath": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat\\Praat_Mod.exe",
             "binaryArgs": []
-        },
-        {
-            "cwd": "d:\\OneDrive\\Documentos\\Projects\\Speech_Recognition\\Praat\\praat",
-            "binaryPath": "d:\\OneDrive\\Documentos\\Projects\\Praat\\praat\\Praat_Mod.exe",
-            "binaryArgs": []
         }
     ],
     "makefile.configurations": [

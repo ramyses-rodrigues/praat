@@ -24,7 +24,7 @@ Prefs_begin (FunctionEditor)
 	InstancePrefs_addBool    (FunctionEditor, showSelectionViewer, 1, false)
 	InstancePrefs_addDouble  (FunctionEditor, arrowScrollStep,     1, U"0.05")
 
-	/* Ramyses: guardar último path salvo...*/
+	/* Ramyses: Para guardar último path salvo...*/
 	InstancePrefs_addString  (FunctionEditor, stringLastSavedPath,     1, U"")
 
 Prefs_end (FunctionEditor)
