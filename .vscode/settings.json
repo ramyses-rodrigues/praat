@@ -5,6 +5,11 @@
             "cwd": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat",
             "binaryPath": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat\\Praat_Mod.exe",
             "binaryArgs": []
+        },
+        {
+            "cwd": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\praat",
+            "binaryPath": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\praat\\Praat_Mod.exe",
+            "binaryArgs": []
         }
     ],
     "makefile.configurations": [
