@@ -1745,7 +1745,8 @@ static void warning_fileTooSmall (MelderFile file, integer numberOfChannels, con
 
 void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 	FILE *f = file -> filePointer;   // this function must have a MelderFile argument, because it can warn (which needs a filename)	
-	autoMelderProgress progress (U"Carregando Sound...");
+	// autoMelderProgress progress (U"Carregando Sound...");
+	Melder_progress(0.0, U"Carregando Sound...");
 	try {		
 		integer numberOfChannels = buffer.nrow;
 		integer numberOfSamples = buffer.ncol;		
@@ -2159,7 +2160,8 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 		}
 	} catch (MelderError) {
 		Melder_clearError ();   // interrupted, no error
-		Melder_warning(U"Audio samples not completaly read from file."); 		
+		Melder_warning(U"Audio samples not completaly read from file.");
+		Melder_progress(1.0, U"Erro..."); 		
 	}
 }
 
