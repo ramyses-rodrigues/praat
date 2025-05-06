@@ -3292,7 +3292,7 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
 		MelderString_append (&command, U"Read from file... ", file->path);
 		status = praat_executeCommand (nullptr, command.string);		
-		praat_updateSelection();
+		praat_updateSelection(); // executado dentro de praat_executeCommand(...)
 
 		// UpdateWindow(FindWindow( NULL, Melder_peek32toW (U"Praat Objects")));		
 		UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));

@@ -2145,7 +2145,9 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 			case Melder_FLAC_COMPRESSION_16:
 			case Melder_FLAC_COMPRESSION_24:
 			case Melder_FLAC_COMPRESSION_32:
+				Melder_progress(0.0, U"Lendo arquvio MP3. Aguarde...");
 				Melder_readFlacFile (f, buffer);
+				Melder_progress(1.0, U"Lendo arquvio MP3. Concluído.");
 				break;
 			case Melder_MPEG_COMPRESSION_16:
 			case Melder_MPEG_COMPRESSION_24:
@@ -2158,11 +2160,14 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 			default:
 				Melder_throw (U"Unknown encoding ", encoding, U".");
 		}
+		
+		Melder_progress(1.0, U"Concluído."); // executado de qualquer forma, mesmo com erro...
+
 	} catch (MelderError) {
 		Melder_clearError ();   // interrupted, no error
 		Melder_warning(U"Audio samples not completaly read from file.");
 		Melder_progress(1.0, U"Erro..."); 		
-	}
+	}	
 }
 
 void Melder_readAudioToShort (MelderFile file, integer numberOfChannels, int encoding, short *buffer, integer numberOfSamples) {
