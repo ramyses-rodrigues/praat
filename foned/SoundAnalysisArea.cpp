@@ -2137,7 +2137,8 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 			) :
 			extractSound (me, my startWindow() - margin, my endWindow() + margin)
 		);
-	// autoSound sound  = Sound_resample(snd.get(), 8000, 100);
+	
+	// reamostra
 	autoSound sound  = Sound_resample(snd.get(), 2* maxFrequencySpectrumLPC, 100);
 	Sound_scaleIntensity(sound.get(), 0.9);
 	
@@ -2262,9 +2263,9 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	if (my default_picture_eraseFirst())
 	    my setInstancePref_picture_eraseFirst(false);
 
-	Spectrum_draw(aSpectrum.get(), g, fmin, fmax, dbmin, dbmax, false);
+	Spectrum_draw(aSpectrum.get(), g, fmin, fmax, dbmin, dbmax, false); // desenha curva
 	Graphics_drawInnerBox (g); // desenha moldura
-	Graphics_textBottom (g, true, U"Frequency (Hz)");
+	Graphics_textBottom (g, true, U"Frequency (Hz)"); // desenha texto
 	// Graphics_marksBottom (g, 2, true, true, true);
 	Graphics_marksBottomEvery (g, 1.0, 1000, true, true, true);
 	
@@ -2277,6 +2278,7 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 
 	DataGui_closePraatPicture (me);	
 }
+
 /* Ramyses: desenhar formant spectrum na janela de desenho para commparar fones */
 static void QUERY_DATA_FOR_REAL__getLPCSpectrumAtTime (SoundAnalysisArea me, EDITOR_ARGS) {
 	do_drawLPCSpectrum (me, 1, optionalInterpreter);
