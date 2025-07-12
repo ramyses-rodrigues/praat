@@ -2445,7 +2445,7 @@ modifiers & _motif_SHIFT_MASK ? " shift" : "", message -> message == WM_KEYDOWN 
 			/*
 			 * If the Command key is pressed with a printable character, this is often a menu shortcut.
 			 */
-			} else if (modifiers & _motif_COMMAND_MASK) {
+			} else if ((modifiers & _motif_COMMAND_MASK) && ! (modifiers & _motif_OPTION_MASK)) {
 				if (MEMBER (me, Text) && (kar == 'X' || kar == 'C' || kar == 'V' || kar == 'Z')) {
 					;   // let window proc handle text editing
 				} else if (kar >= 186) {
@@ -2468,7 +2468,8 @@ modifiers & _motif_SHIFT_MASK ? " shift" : "", message -> message == WM_KEYDOWN 
 						return;
 					}
 				} else {
-					if (win_processKeyboardEquivalent (my shell, kar, modifiers)) return;   // handle shortcuts like Ctrl-T and Ctrl-Alt-T
+					if (win_processKeyboardEquivalent (my shell, kar, modifiers))
+						return;   // handle shortcuts like Ctrl-T (but not Ctrl-Alt-T, because of Alt_GR on some keyboards)
 					/* Let window proc handle international Alt-GR (= Ctrl-Alt) sequences, which are plain characters. */
 				}
 			}
