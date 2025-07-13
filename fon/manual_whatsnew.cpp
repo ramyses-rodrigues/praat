@@ -29,6 +29,10 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.39# (13 July 2025)
+• Calibrated cepstral peak prominence (@@PowerCepstrogram: Get CPPS...@).
+• Windows: restored “\@ ”, “~” and “\bs” on Latin-American Spanish keyboards.
+
 ##6.4.38# (1 July 2025)
 • Macintosh and Windows: put back Charis SIL 6.200 for downloading with older Praat versions.
 • PairDistribution: ##Set weight...#.
