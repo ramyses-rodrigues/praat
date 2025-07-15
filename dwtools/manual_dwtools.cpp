@@ -3703,7 +3703,7 @@ LIST_ITEM (U"\\bu ##Get real part of root...#")
 LIST_ITEM (U"\\bu ##Get imaginary part of root...#")
 MAN_END
 
-MAN_BEGIN (U"Sampled data analysis settings...", U"djmw", 20250706)
+MAN_BEGIN (U"Sampled data analysis settings...", U"djmw", 20250714)
 INTRO (U"This setting determines how fast your data analyses will be performed on your computer. ")
 ENTRY (U"Settings")
 TERM (U"##Use multi-threading#")
@@ -3715,13 +3715,24 @@ DEFINITION (U"determines the number of threads that you would like to use. Most 
 	" that are needed to perform its analysis have to be allocated beforehand. In this way each thread has its "
 	"own memory and does not interfere with other threads.")
 TERM (U"##Min. frames / thread#")
-DEFINITION (U"the minimum number of frames in a thread. This number should not be too low otherwise ")
+DEFINITION (U"the minimum number of frames in a thread. This number should not be too low otherwise no speed gain can be achived.")
 TERM (U"##Max. frames / thread#")
-DEFINITION (U"the maximum number of frames in a thread. ")
+DEFINITION (U"the maximum number of frames in a thread. If you have chosen this number equal to the ##Min. frames / thread#"
+	"then exactly this number of frames per thread will be used. ")
 TERM (U"##Extra analysis info#")
 DEFINITION (U"returns extra information for each analysed frame in the info window.")
 ENTRY (U"Examples")
-NORMAL (U"Suppose we have 10 threads available for an analysis that needs 500 frames to be processed. ")
+NORMAL (U"Suppose we have 10 threads available for an analysis that needs 500 frames to be processed. "
+ "Lets suppose that 50 frames per thread has been selected. This means that 10 threads will be used and each "
+ "thread analyses 50 frames. The first thread will analyse frames 1 to 50, the second thread will analyse "
+ "frames 51 till 100, the third thread will analyse frames 101 till 150, etc. The tenth thread will analyse "
+ "frames 451 till 500. All these threads will be executed, in parallel, almost at the same time, which guarantees "
+ "a significant decrease in analysis time.\n"
+ "How much it will speed up depends on a number of factors, the most important one being whether the data to be analyzed "
+ "in the thread and the memory needed for the analysis fit into the cache memory of each processor. "
+ "In general this means that you should not process too many frames per thread because swapping data in and out of cache "
+ "memory will cost extra time. "
+)
 MAN_END
 
 MAN_BEGIN (U"Scree plot", U"djmw", 20040331)
