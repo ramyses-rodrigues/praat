@@ -27,9 +27,11 @@
 #include "SampledIntoSampledStatus_def.h"
 
 void SampledIntoSampledStatus_init (integer numberOfFrames);
+
 autoSampledIntoSampledStatus SampledIntoSampledStatus_create (integer numberOfFrames);
 
 void SoundIntoSampledStatus_init (integer numberOfFrames);
+
 autoSoundIntoSampledStatus SoundIntoSampledStatus_create (integer numberOfFrames);
 
 
