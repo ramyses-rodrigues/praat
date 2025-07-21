@@ -203,6 +203,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`log10` (%x) – logarithm, base 10
 , @`log10#` (%`vector#`) – base-10 logarithm of each element of %`vector#`
 , @`log10##` (%`matrix##`) – base-10 logarithm of each cell of %`matrix##`
+, @`lowerCase$` (%`string$`) – turns all capitals into lower case
 , @`lowerCaseAppName$` ( ) – the name of the app in lower snake case, e.g. `praat` or `praat_for_hospitals`
 , @`max` (%`x`, `...`) – maximum
 , @`mean` (%`v#`) – average of the elements of a vector
@@ -371,6 +372,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`unicode` (%`c$`) – the Unicode codepoint number that corresponds to character %`c$`
 , @`unicode$` (%`n`) – the character that corresponds to Unicode codepoint %`n`
 , @`unicodeToBackslashTrigraphs$` (%`string$`) – convert e.g. \ct to \bsct
+, @`upperCase$` (%`string$`) – turns all lower-case characters into capitals
 , @`upperCaseAppName$` ( ) – the name of the app in upper camel case, e.g. `Praat` or `PraatForHospitals`
 , @`variableExists` (%`variableName$`) – does the variable %`variableName$` exist?
 , @`vertical$` (%`stringArray$#`) – format a string array vertically
@@ -2839,6 +2841,29 @@ Syntax and semantics
 : compute the base-10 logarithm (@`log10`) of each cell of the matrix %`m##`.
 
 ################################################################################
+"`lowerCase$`"
+© Paul Boersma 2025
+
+A function that can be used in @@Formulas@. It turns all capitals
+into lower-case characters.
+
+Syntax and semantics
+====================
+#`lowerCase$` (%`string$`)
+: give the lower-case version of %`string$`, whereby all upper-case letters
+  have been replaced with lower-case letters.
+
+Tests
+=====
+{
+	\`{assert} \#{lowerCase$} ("HOwAREYou") = "howareyou"
+	\`{assert} \#{lowerCase$} ("Maria Ressa") = "maria ressa"
+	\`{assert} \#{lowerCase$} ("GSL") = "gsl"
+	\`{assert} \#{lowerCase$} ("ÖAV") = "öav"
+	\`{assert} \#{lowerCase$} ("TOUCHÉ") = "touché"
+}
+
+################################################################################
 "`lowerCaseAppName$`"
 © Paul Boersma 2024
 
@@ -5232,6 +5257,29 @@ Syntax and semantics
 #`unicodeToBackslashTrigraphs$` (%`string$`)
 : convert from unicode characters to backslash trigraphs,
 e.g. from “\ct” to “\bsct”.
+
+################################################################################
+"`upperCase$`"
+© Paul Boersma 2025
+
+A function that can be used in @@Formulas@. It turns all lower-case characters
+into capitals.
+
+Syntax and semantics
+====================
+#`upperCase$` (%`string$`)
+: give the upper-case version of %`string$`, whereby all lower-case letters
+  have been replaced with upper-case letters.
+
+Tests
+=====
+{
+	\`{assert} \#{upperCase$} ("HOwAREYou") = "HOWAREYOU"
+	\`{assert} \#{upperCase$} ("Maria Ressa") = "MARIA RESSA"
+	\`{assert} \#{upperCase$} ("e.g.") = "E.G."
+	\`{assert} \#{upperCase$} ("öav") = "ÖAV"
+	\`{assert} \#{upperCase$} ("touché") = "TOUCHÉ"
+}
 
 ################################################################################
 "`upperCaseAppName$`"
