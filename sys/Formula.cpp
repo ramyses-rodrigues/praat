@@ -190,7 +190,9 @@ enum { NO_SYMBOL_,
 		EMPTY_STRVEC_, READ_LINES_FROM_FILE_STRVEC_,
 		FILE_NAMES_STRVEC_, FOLDER_NAMES_STRVEC_, FILE_NAMES_CASE_INSENSITIVE_STRVEC_, FOLDER_NAMES_CASE_INSENSITIVE_STRVEC_,
 		SPLIT_BY_WHITESPACE_STRVEC_, SPLIT_BY_STRVEC_,
-	#define HIGH_FUNCTION_N  SPLIT_BY_STRVEC_
+		LOWER_CASE_STR_, LOWER_CAMEL_CASE_STR_, LOWER_SNAKE_CASE_STR_,
+		UPPER_CASE_STR_, UPPER_CAMEL_CASE_STR_, UPPER_SNAKE_CASE_STR_,
+	#define HIGH_FUNCTION_N  UPPER_SNAKE_CASE_STR_
 
 	/* String functions. */
 	#define LOW_STRING_FUNCTION  LOW_FUNCTION_STR1
@@ -350,6 +352,8 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"empty$#", U"readLinesFromFile$#",
 	U"fileNames$#", U"folderNames$#", U"fileNames_caseInsensitive$#", U"folderNames_caseInsensitive$#",
 	U"splitByWhitespace$#", U"splitBy$#",
+	U"lowerCase$", U"lowerCamelCase$", U"lowerSnakeCase$",
+	U"upperCase$", U"upperCamelCase$", U"upperSnakeCase$",
 
 	// LOW_FUNCTION_STR1
 		U"length", U"number", U"fileReadable", U"folderExists", U"tryToWriteFile", U"tryToAppendFile", U"deleteFile",
@@ -5715,6 +5719,96 @@ static void do_splitBy_STRVEC () {
 	autoSTRVEC result = splitBy_STRVEC (string->getString(), separator->getString());
 	pushStringVector (result.move());
 }
+static void do_lowerCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = lowerCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “lowerCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “lowerCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_lowerCamelCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = lowerCamelCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “lowerCamelCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “lowerCamelCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_lowerSnakeCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = lowerSnakeCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “lowerSnakeCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “lowerSnakeCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_upperCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = upperCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “upperCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “upperCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_upperCamelCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = upperCamelCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “upperCamelCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “upperCamelCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_upperSnakeCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = upperSnakeCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “upperSnakeCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “upperSnakeCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
 static void do_numericVectorElement () {
 	InterpreterVariable vector = parse [programPointer]. content.variable;
 	const Stackel element = pop;
@@ -8924,6 +9018,12 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case FOLDER_NAMES_CASE_INSENSITIVE_STRVEC_: { do_folderNames_caseInsensitive_STRVEC ();
 } break; case SPLIT_BY_WHITESPACE_STRVEC_: { do_splitByWhitespace_STRVEC ();
 } break; case SPLIT_BY_STRVEC_: { do_splitBy_STRVEC ();
+} break; case LOWER_CASE_STR_: { do_lowerCase_STR ();
+} break; case LOWER_CAMEL_CASE_STR_: { do_lowerCamelCase_STR ();
+} break; case LOWER_SNAKE_CASE_STR_: { do_lowerSnakeCase_STR ();
+} break; case UPPER_CASE_STR_: { do_upperCase_STR ();
+} break; case UPPER_CAMEL_CASE_STR_: { do_upperCamelCase_STR ();
+} break; case UPPER_SNAKE_CASE_STR_: { do_upperSnakeCase_STR ();
 /********** String functions of 1 variable: **********/
 } break; case LENGTH_: { do_length ();
 } break; case STRING_TO_NUMBER_: { do_number ();
