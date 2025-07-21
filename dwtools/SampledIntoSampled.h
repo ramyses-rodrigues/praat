@@ -38,32 +38,32 @@ inline void Sampled_requireEqualSampling (constSampled me,  constSampled thee) {
 		U"The sampling of ", me, U" and ", thee, U" should be equal.");
 }
 
-inline void Sampled_assertEqualSampling (constSampled me,  constSampled thee) {
+inline void SampledIntoSampled_assertEqualSampling (constSampled me,  constSampled thee) {
 	Melder_assert (me && thee);
 	Melder_assert (my x1 == thy x1 && my nx == thy nx && my dx == thy dx);
 }
 
-inline void Sampled_requireEqualDomains (constSampled me,  constSampled thee) {
+inline void SampledIntoSampled_requireEqualDomains (constSampled me,  constSampled thee) {
 	Melder_assert (me && thee);
 	Melder_require (my xmin == thy xmin && my xmax == thy xmax,
 		U"The domains of ", me, U" and ", thee, U" should be equal.");
 }
 
-inline void Sampled_assertEqualDomains (constSampled me,  constSampled thee) {
+inline void SampledIntoSampled_assertEqualDomains (constSampled me,  constSampled thee) {
 	Melder_assert (me && thee);
 	Melder_assert (my xmin == thy xmin && my xmax == thy xmax);
 }
 
-inline void Sampled_requireEqualDomainsAndSampling (constSampled me,  constSampled thee) {
+inline void SampledIntoSampled_requireEqualDomainsAndSampling (constSampled me,  constSampled thee) {
 	Melder_assert (me && thee);
-	Sampled_requireEqualDomains (me, thee);
+	SampledIntoSampled_requireEqualDomains (me, thee);
 	Sampled_requireEqualSampling (me, thee);
 }
 
-inline void Sampled_assertEqualDomainsAndSampling (constSampled me,  constSampled thee) {
+inline void SampledIntoSampled_assertEqualDomainsAndSampling (constSampled me,  constSampled thee) {
 	Melder_assert (me && thee);
-	Sampled_assertEqualDomains (me, thee);
-	Sampled_assertEqualSampling (me, thee);
+	SampledIntoSampled_assertEqualDomains (me, thee);
+	SampledIntoSampled_assertEqualSampling (me, thee);
 }
 
 void SampledIntoSampled_dataAnalysisSettings (bool useMultithreading, integer numberOfConcurrentThreadsToUse,

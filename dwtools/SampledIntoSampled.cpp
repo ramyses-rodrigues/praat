@@ -149,7 +149,7 @@ void SampledIntoSampled_getThreadingInfo (constSampledIntoSampled me, integer& n
 }
 
 void SampledIntoSampled_init (mutableSampledIntoSampled me, constSampled input, mutableSampled output) {
-	Sampled_assertEqualDomains (input, output);
+	SampledIntoSampled_assertEqualDomains (input, output);
 	my input = input;
 	my output = output;
 }
