@@ -32,4 +32,11 @@ void LPCFrameIntoLineSpectralFrequenciesFrame_init (LPCFrameIntoLineSpectralFreq
 autoLPCFrameIntoLineSpectralFrequenciesFrame LPCFrameIntoLineSpectralFrequenciesFrame_create (constLPC input, 
 	mutableLineSpectralFrequencies output);
 
+void LineSpectralFrequenciesFrameIntoLPCFrame_init
+	(mutableLineSpectralFrequenciesFrameIntoLPCFrame me, constLineSpectralFrequencies inputLSF, mutableLPC outputLPC);
+
+autoLineSpectralFrequenciesFrameIntoLPCFrame LineSpectralFrequenciesFrameIntoLPCFrame_create (
+	constLineSpectralFrequencies inputLSF, mutableLPC outputLPC	
+);
+	
 #endif /*_LPCFrameAndLineSpectralFrequenciesFrame_h_ */

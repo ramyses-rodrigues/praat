@@ -17,34 +17,34 @@
  */
 
 #include "melder.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame.h"
 #include "Roots_and_Formant.h"
 
 #include "oo_DESTROY.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_COPY.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_EQUAL.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_CAN_WRITE_AS_ENCODING.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_WRITE_TEXT.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_WRITE_BINARY.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_READ_TEXT.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_READ_BINARY.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 #include "oo_DESCRIPTION.h"
-#include "LPCFrameIntoLineSpectralFrequenciesFrame_def.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame_def.h"
 
 Thing_implement (LPCFrameIntoLineSpectralFrequenciesFrame, LPCFrameIntoSampledFrame, 0);
 
 void structLPCFrameIntoLineSpectralFrequenciesFrame :: allocateOutputFrames () {
 	for (integer iframe = 1; iframe <= output -> nx; iframe ++) {
-		LineSpectralFrequencies_Frame lsff = & lineSpectralFrequencies -> d_frames [iframe];
-		LineSpectralFrequencies_Frame_init (lsff, lineSpectralFrequencies -> maximumNumberOfFrequencies);
+		LineSpectralFrequencies_Frame lsff = & outputLSF -> d_frames [iframe];
+		LineSpectralFrequencies_Frame_init (lsff, outputLSF -> maximumNumberOfFrequencies);
 	}
 }
 
@@ -142,11 +142,11 @@ static integer Polynomial_into_Roots_searchOnGrid (Polynomial me, Roots thee, do
 	return numberOfRootsFound;
 }
 
-void structLPCFrameIntoLineSpectralFrequenciesFrame :: LPCFrameIntoLineSpectralFrequenciesFrame () {
+bool structLPCFrameIntoLineSpectralFrequenciesFrame :: inputFrameToOutputFrame () {
 	LPC_Frame inputFrame = & inputlpc -> d_frames [currentFrame];
-	LineSpectralFrequencies_Frame outputFrame = & lineSpectralFrequencies -> d_frames [currentFrame];
+	LineSpectralFrequencies_Frame outputFrame = & outputLSF -> d_frames [currentFrame];
 	Melder_assert (inputFrame -> nCoefficients == inputFrame -> a.size); // check invariant
-	const maximumFrequency = output -> 
+	const double maximumFrequency = outputLSF -> maximumFrequency;
 	/*
 		Construct Fs and Fa
 		divide out the zeros
@@ -156,16 +156,16 @@ void structLPCFrameIntoLineSpectralFrequenciesFrame :: LPCFrameIntoLineSpectralF
 	const integer half_order_gsum = gsum -> numberOfCoefficients - 1;
 	LPC_Frame_into_Polynomial_dif (inputFrame, gdif.get());
 	const integer half_order_gdif = gdif -> numberOfCoefficients - 1;
-	
+	double currentGridSize = gridSize;
 	integer numberOfBisections = 0, numberOfRootsFound = 0;
 	while (numberOfRootsFound  < half_order_gsum && numberOfBisections < 10) {
-		numberOfRootsFound = Polynomial_into_Roots_searchOnGrid (gsum.get(), roots.get(), gridSize);
-		gridSize *= 0.5;
+		numberOfRootsFound = Polynomial_into_Roots_searchOnGrid (gsum.get(), roots.get(), currentGridSize);
+		currentGridSize *= 0.5;
 		numberOfBisections++;
 	}
-	
-	Melder_require (numberOfBisections < 10,
-		U"Too many bisections.");
+	frameAnalysisInfo = 0;
+	if (numberOfBisections >= 10)
+		frameAnalysisInfo = 1; // too many bisections
 	/*
 		[gsum-> xmin, gsum -> xmax] <==> [nyquistFrequency, 0],
 		i.e. highest root corresponds to lowest frequency
@@ -185,6 +185,9 @@ void structLPCFrameIntoLineSpectralFrequenciesFrame :: LPCFrameIntoLineSpectralF
 			outputFrame -> numberOfFrequencies --;
 	}
 	outputFrame -> frequencies.resize (outputFrame -> numberOfFrequencies); // maintain invariant
+	frameAnalysisInfo = 0;
+	frameAnalysisIsOK = true;
+
 }
 
 void LPCFrameIntoLineSpectralFrequenciesFrame_init (mutableLPCFrameIntoLineSpectralFrequenciesFrame me, constLPC input,
@@ -209,7 +212,82 @@ autoLPCFrameIntoLineSpectralFrequenciesFrame LPCFrameIntoLineSpectralFrequencies
 	}
 }
 
+/****************** LineSpectralFrequencies to LPC *********************************/
+
+Thing_implement (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame, 0);
+
+void structLineSpectralFrequenciesFrameIntoLPCFrame :: allocateOutputFrames () {
+	for (integer iframe = 1; iframe <= outputLPC -> nx; iframe ++) {
+		LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
+		LineSpectralFrequencies_Frame lsfFrame = & inputLSF -> d_frames [iframe];
+		LPC_Frame_init (lpcFrame, lsfFrame -> numberOfFrequencies);
+	}
+}
 
 
-/* End of file LPCFrameIntoLineSpectralFrequenciesFrame.cpp */
+bool structLineSpectralFrequenciesFrameIntoLPCFrame :: inputFrameToOutputFrame () {
+	LPC_Frame lpcFrame = & outputLPC -> d_frames [currentFrame];
+	VEC a = lpcFrame -> a.get();
+	LineSpectralFrequencies_Frame lsfFrame = & inputLSF -> d_frames [currentFrame];
+	const double maximumFrequency = inputLSF -> maximumFrequency;
+	const integer numberOfFrequencies = lsfFrame -> numberOfFrequencies;
+	integer numberOfOmegas = (numberOfFrequencies + 1) / 2;
+	/*
+		Reconstruct Fs (z)
+		Use lpcFrame -> a as a buffer whose size changes!!!
+	*/
+	for (integer i = 1; i <= numberOfOmegas; i ++) {
+		const double omega = lsfFrame -> frequencies [2 * i - 1] / maximumFrequency * NUMpi;
+		a [i] = -2.0 * cos (omega);
+	}
+	Polynomial_initFromProductOfSecondOrderTerms (fs.get(), a.part (1, numberOfOmegas));
+	/*
+		Reconstruct Fa (z)
+	*/
+	numberOfOmegas = numberOfFrequencies / 2;
+	for (integer i = 1; i <= numberOfOmegas; i ++) {
+		const double omega = lsfFrame -> frequencies [2 * i] / maximumFrequency * NUMpi;
+		a [i] = -2.0 * cos (omega);
+	}
+	Polynomial_initFromProductOfSecondOrderTerms (fa.get(), a.part (1, numberOfOmegas));
+	
+	if (numberOfFrequencies % 2 == 0) {
+		Polynomial_multiply_firstOrderFactor (fs.get(), -1.0);   // * (z + 1)
+		Polynomial_multiply_firstOrderFactor (fa.get(), 1.0);   // * (z - 1)
+	} else {
+		Polynomial_multiply_secondOrderFactor (fa.get(), 1.0);   // * (z^2 - 1)
+	}
+	Melder_assert (fs -> numberOfCoefficients == fa -> numberOfCoefficients);
+	/*
+		A(z) = (Fs(z) + Fa(z) / 2
+	*/
+	for (integer i = 1; i <= fs -> numberOfCoefficients - 2; i ++)
+		a [lsfFrame -> numberOfFrequencies - i + 1] = 0.5 * (fs -> coefficients [i + 1] + fa -> coefficients [i + 1]);
+	frameAnalysisInfo = 0;
+	frameAnalysisIsOK = true;
+	return true;
+}
 
+void LineSpectralFrequenciesFrameIntoLPCFrame_init (
+	mutableLineSpectralFrequenciesFrameIntoLPCFrame me, constLineSpectralFrequencies inputLSF, mutableLPC outputLPC) 
+{
+	SampledFrameIntoSampledFrame_init (me, outputLPC);
+	my inputLSF = inputLSF;
+	my outputLPC = outputLPC;
+	my fs = Polynomial_create (-1.0, 1.0, inputLSF -> maximumNumberOfFrequencies + 2);
+	my fa = Polynomial_create (-1.0, 1.0, inputLSF -> maximumNumberOfFrequencies + 2);
+}
+
+autoLineSpectralFrequenciesFrameIntoLPCFrame LineSpectralFrequenciesFrameIntoLPCFrame_create 
+	(constLineSpectralFrequencies inputLSF, mutableLPC outputLPC)
+{
+	try {
+		autoLineSpectralFrequenciesFrameIntoLPCFrame me = Thing_new (LineSpectralFrequenciesFrameIntoLPCFrame);
+		LineSpectralFrequenciesFrameIntoLPCFrame_init (me.get(), inputLSF, outputLPC);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (inputLSF, U" no LineSpectralFrequenciesFrameIntoLPCFrame created.");
+	}	
+}
+
+/* End of file LPCFrameAndLineSpectralFrequenciesFrame.cpp */

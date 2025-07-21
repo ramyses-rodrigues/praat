@@ -22,9 +22,12 @@
 */
 
 #include "LPC_and_LineSpectralFrequencies.h"
+#include "LPCFrameAndLineSpectralFrequenciesFrame.h"
 #include "NUM2.h"
 #include "Polynomial.h"
 #include "Roots.h"
+#include "SampledIntoSampled.h"
+#include "SampledIntoSampledStatus.h"
 
 /*
 	Conversion from Y(w) to a polynomial in x (= 2 cos (w))
@@ -272,6 +275,9 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (LPC me, double gridS
 	}
 }
 
+/**************************** LineSpectralFrequencies to LPC **************************************************/
+
+
 /*
 	Polynomials fs & fs are buffering intermediate results
 */
@@ -311,7 +317,7 @@ static void LPC_Frame_initFromLineSpectralFrequencies_Frame (LPC_Frame me, LineS
 		my a [thy numberOfFrequencies - i + 1] = 0.5 * (fs -> coefficients [i + 1] + fa -> coefficients [i + 1]);
 }
 
-autoLPC LineSpectralFrequencies_to_LPC (LineSpectralFrequencies me) {
+autoLPC LineSpectralFrequencies_to_LPC_old (LineSpectralFrequencies me) {
 	try {
 		autoLPC thee = LPC_create (my xmin, my xmax, my nx, my dx, my x1, my maximumNumberOfFrequencies, 0.5 / my maximumFrequency);
 		autoPolynomial fs = Polynomial_create (-1.0, 1.0, my maximumNumberOfFrequencies + 2);
@@ -330,6 +336,27 @@ autoLPC LineSpectralFrequencies_to_LPC (LineSpectralFrequencies me) {
 	} catch (MelderError) {
 		Melder_throw (me, U": no LPC created from LineSpectralFrequencies.");
 	}
+}
+
+void LineSpectralFrequencies_into_LPC (LineSpectralFrequencies me, mutableLPC outputLPC) {
+	SampledIntoSampled_requireEqualDomainsAndSampling (me, outputLPC);
+	autoLineSpectralFrequenciesFrameIntoLPCFrame ws = LineSpectralFrequenciesFrameIntoLPCFrame_create (me, outputLPC);
+	autoSampledIntoSampledStatus status = SampledIntoSampledStatus_create (outputLPC -> nx);
+	autoSampledIntoSampled sis = SampledIntoSampled_create (me, outputLPC, ws.move(), status.move());
+	const integer numberOfErrorFrames = SampledIntoSampled_analyseThreaded (sis.get());
+	if (numberOfErrorFrames > 0)
+		Melder_warning (U"LineSpectralFrequencies_into_LPC: ", numberOfErrorFrames, U" frames have issues.");
+}
+
+autoLPC LineSpectralFrequencies_to_LPC (LineSpectralFrequencies me) {
+	try {
+		autoLPC thee = LPC_create (my xmin, my xmax, my nx, my dx, my x1, my maximumNumberOfFrequencies, 0.5 / my maximumFrequency);
+		LineSpectralFrequencies_into_LPC (me, thee.get());	
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": no LPC created from LineSpectralFrequencies.");
+	}	
+	
 }
 
 /* End of file LPC_and_LineSpectralFrequencies.cpp */
