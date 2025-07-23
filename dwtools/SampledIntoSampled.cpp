@@ -60,7 +60,7 @@ void SampledIntoSampled_preferences () {
 	Preferences_addInteger (U"SampledIntoSampled.numberOfConcurrentThreadsAvailable", & preferences.numberOfConcurrentThreadsAvailable, 20);
 	Preferences_addInteger (U"SampledIntoSampled.numberOfConcurrentThreadsToUse", & preferences.numberOfConcurrentThreadsToUse, 20);
 	Preferences_addInteger (U"SampledIntoSampled.maximumNumberOfFramesPerThread", & preferences.maximumNumberOfFramesPerThread, 40);
-	Preferences_addInteger (U"SampledIntoSampled.minimumNumberOfFramesPerThread", & preferences.maximumNumberOfFramesPerThread, 40);
+	Preferences_addInteger (U"SampledIntoSampled.minimumNumberOfFramesPerThread", & preferences.minimumNumberOfFramesPerThread, 40);
 	Preferences_addBool    (U"SampledIntoSampled.extraAnalysisInfo", & preferences.extraAnalysisInfo, false);
 }
 
@@ -271,8 +271,8 @@ void timeMultiThreading (double soundDuration) {
 	try {
 		Melder_require (preferences.numberOfConcurrentThreadsAvailable > 1,
 			U"No multi-threading possible.");
-		autoVEC framesPerThread {50, 100, 200, 400, 800, 1600, 3200};
-		const integer maximumNumberOfThreads = std::thread::hardware_concurrency ();
+		autoVEC framesPerThread { 10, 20, 30, 40, 50, 70, 100, 200, 400, 800, 1600, 3200 };
+		const integer maximumNumberOfThreads = 2 * std::thread::hardware_concurrency ();
 		autoSound me = Sound_createSimple (1_integer, soundDuration, 5500.0);
 		for (integer i = 1; i <= my nx; i++) {
 			const double time = my x1 + (i - 1) * my dx;
@@ -290,7 +290,7 @@ void timeMultiThreading (double soundDuration) {
 			for (integer index = 1; index <= framesPerThread.size; index ++) {
 				const integer numberOfFramesPerThread = framesPerThread [index];
 				SampledIntoSampled_dataAnalysisSettings (useMultiThreading, nThread,
-					numberOfFramesPerThread, numberOfFramesPerThread, extraAnalysisInfo);				
+						numberOfFramesPerThread, numberOfFramesPerThread, extraAnalysisInfo);
 				Melder_stopwatch ();
 				autoLPC lpc = Sound_to_LPC_burg (me.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
 				double t = Melder_stopwatch ();
