@@ -5377,21 +5377,19 @@ DIRECT (MODIFY_FIRST_OF_ONE_AND_ONE__Roots_Polynomial_polish) {
 
 
 FORM (SETTINGS__SampledDataAnalysisSettings, U"Sampled data analysis settings", U"Sampled data analysis settings...") {
-	COMMENT (U"This setting determines how fast your analyses will be performed on your computer.")
-	COMMENT (U"")
+	COMMENT (U"These settings determine how fast your analyses")
+	COMMENT (U"will be performed on your computer.")
 	BOOLEAN (useMultithreading, U"Use multi-threading", true)
 	COMMENT (SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo ())
-	COMMENT (U"")
 	NATURAL (numberOfConcurrentThreadsToUse, U"Number of threads to use",
-		Melder_integer (SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ()))
+			Melder_integer (SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ()))
 	COMMENT (U"The minimum number of frames to be analysed in a thread:")
-	COMMENT (U"")
-	INTEGER (minimumNumberOfFramesPerThread, U"Min. frames / thread",
-		Melder_integer (SampledIntoSampled_getMinimumNumberOfFramesPerThread ()))
-	COMMENT (U"The maximum number of frames to be analysed in a thread, where a value of 0 means no upper limit.")
-	COMMENT (U"")
-	INTEGER (maximumNumberOfFramesPerThread, U"Max. frames / thread",
-		Melder_integer (SampledIntoSampled_getMaximumNumberOfFramesPerThread ()))
+	INTEGER (minimumNumberOfFramesPerThread, U"Min. number of frames per thread",
+			Melder_integer (SampledIntoSampled_getMinimumNumberOfFramesPerThread ()))
+	COMMENT (U"The maximum number of frames to be analysed in a thread,")
+	COMMENT (U"where a value of 0 means no upper limit:")
+	INTEGER (maximumNumberOfFramesPerThread, U"Max. number of frames per thread",
+			Melder_integer (SampledIntoSampled_getMaximumNumberOfFramesPerThread ()))
 	BOOLEAN (extraAnalysisInfo, U"Extra analysis info", false)
 	OK
 DO
@@ -5400,7 +5398,7 @@ DO
 		maximumNumberOfFramesPerThread >= minimumNumberOfFramesPerThread,
 		U"The minimum number of frames per thread should not exceed the maximum number of frames per thread.");
 	SampledIntoSampled_dataAnalysisSettings (useMultithreading, numberOfConcurrentThreadsToUse, 
-		minimumNumberOfFramesPerThread, maximumNumberOfFramesPerThread, extraAnalysisInfo);
+			minimumNumberOfFramesPerThread, maximumNumberOfFramesPerThread, extraAnalysisInfo);
 	PREFS_END
 }
 
