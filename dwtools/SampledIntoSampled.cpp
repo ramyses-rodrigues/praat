@@ -1,10 +1,10 @@
 /* SampledIntoSampled.cpp
  *
- * Copyright (C) 2024 David Weenink
+ * Copyright (C) 2024,2025 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -48,7 +48,6 @@ Thing_implement (SampledIntoSampled, Daata, 0);
 
 static struct ThreadingPreferences {
 	bool useMultiThreading = true;
-	integer numberOfConcurrentThreadsAvailable = 20;
 	integer numberOfConcurrentThreadsToUse = 20;
 	integer maximumNumberOfFramesPerThread = 0; // 0: signals no limit
 	integer minimumNumberOfFramesPerThread = 40;
@@ -57,7 +56,6 @@ static struct ThreadingPreferences {
 
 void SampledIntoSampled_preferences () {
 	Preferences_addBool    (U"SampledIntoSampled.useMultiThreading", & preferences.useMultiThreading, true);
-	Preferences_addInteger (U"SampledIntoSampled.numberOfConcurrentThreadsAvailable", & preferences.numberOfConcurrentThreadsAvailable, 20);
 	Preferences_addInteger (U"SampledIntoSampled.numberOfConcurrentThreadsToUse", & preferences.numberOfConcurrentThreadsToUse, 20);
 	Preferences_addInteger (U"SampledIntoSampled.maximumNumberOfFramesPerThread", & preferences.maximumNumberOfFramesPerThread, 40);
 	Preferences_addInteger (U"SampledIntoSampled.minimumNumberOfFramesPerThread", & preferences.minimumNumberOfFramesPerThread, 40);
@@ -100,9 +98,10 @@ integer SampledIntoSampled_getNumberOfConcurrentThreadsToUse () {
 }
 
 void SampledIntoSampled_setNumberOfConcurrentThreadsToUse (integer numberOfConcurrentThreadsToUse) {
-	Melder_require (numberOfConcurrentThreadsToUse <= preferences.numberOfConcurrentThreadsAvailable,
+	Melder_require (numberOfConcurrentThreadsToUse <= SampledIntoSampled_getNumberOfConcurrentThreadsAvailable (),
 		U"The number of threads to use should not exceed the number of concurrent threads available (",
-			preferences.numberOfConcurrentThreadsAvailable, U"),");
+		SampledIntoSampled_getNumberOfConcurrentThreadsAvailable (), U"),"
+	);
 	preferences.numberOfConcurrentThreadsToUse = numberOfConcurrentThreadsToUse;
 }
 
@@ -263,13 +262,13 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 	the best way to show the results would be
 	Table > Scatter plot: "nFrames/thread", 0, 0, toLPC(s), 0, 0, nThread, 8, "yes"
 */
-void timeMultiThreading (double soundDuration) {
+void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 	/*
 		Save current multi-threading situation
 	*/
 	struct ThreadingPreferences savedPreferences = preferences;
 	try {
-		Melder_require (preferences.numberOfConcurrentThreadsAvailable > 1,
+		Melder_require (SampledIntoSampled_getNumberOfConcurrentThreadsAvailable () > 1,
 			U"No multi-threading possible.");
 		autoVEC framesPerThread { 10, 20, 30, 40, 50, 70, 100, 200, 400, 800, 1600, 3200 };
 		const integer maximumNumberOfThreads = 2 * std::thread::hardware_concurrency ();
