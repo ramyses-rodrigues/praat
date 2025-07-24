@@ -1,10 +1,10 @@
 /* SampledIntoSampled.cpp
  *
- * Copyright (C) 2024 David Weenink
+ * Copyright (C) 2024,2025 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -263,7 +263,7 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 	the best way to show the results would be
 	Table > Scatter plot: "nFrames/thread", 0, 0, toLPC(s), 0, 0, nThread, 8, "yes"
 */
-void timeMultiThreading (double soundDuration) {
+void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 	/*
 		Save current multi-threading situation
 	*/
