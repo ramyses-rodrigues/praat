@@ -73,7 +73,6 @@ bool SampledIntoSampled_useMultiThreading ();
 
 void SampledIntoSampled_setMultiThreading (bool useMultiThreading);
 
-integer SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ();
 conststring32 SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo (); // 
 
 integer SampledIntoSampled_getNumberOfConcurrentThreadsToUse ();

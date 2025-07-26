@@ -20,10 +20,9 @@
 #include "SampledIntoSampled.h"
 #include "Sound_and_LPC.h"
 #include "Sound_extensions.h"
-#include <thread>
+#include "MelderThread.h"
 #include <atomic>
 #include "NUM2.h"
-#include "melder_str32.h"
 
 #include "oo_DESTROY.h"
 #include "SampledIntoSampled_def.h"
@@ -79,15 +78,12 @@ bool SampledIntoSampled_useMultiThreading () {
 void SampledIntoSampled_setMultiThreading (bool useMultiThreading) {
 	preferences.useMultiThreading = useMultiThreading;
 }
-integer SampledIntoSampled_getNumberOfConcurrentThreadsAvailable () {
-	return std::thread::hardware_concurrency ();
-}
 
 conststring32 SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo () {
 	static char32 threadingInfoString [80];
 	MelderString info;
 	MelderString_append (& info, U"The maximum number of concurrent threads available on your machine is ",
-		Melder_integer (SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ()), U".");
+			MelderThread_getNumberOfProcessors (), U".");
 	str32cpy (threadingInfoString, info.string);
 	MelderString_free (& info);
 	return threadingInfoString;
@@ -98,10 +94,6 @@ integer SampledIntoSampled_getNumberOfConcurrentThreadsToUse () {
 }
 
 void SampledIntoSampled_setNumberOfConcurrentThreadsToUse (integer numberOfConcurrentThreadsToUse) {
-	Melder_require (numberOfConcurrentThreadsToUse <= SampledIntoSampled_getNumberOfConcurrentThreadsAvailable (),
-		U"The number of threads to use should not exceed the number of concurrent threads available (",
-		SampledIntoSampled_getNumberOfConcurrentThreadsAvailable (), U"),"
-	);
 	preferences.numberOfConcurrentThreadsToUse = numberOfConcurrentThreadsToUse;
 }
 
@@ -129,7 +121,7 @@ bool SampledIntoSampled_getExtraAnalysisInfo () {
 }
 
 void SampledIntoSampled_getThreadingInfo (constSampledIntoSampled me, integer& numberOfThreads, integer& numberOfFramesPerThread) {
-	const integer numberOfConcurrentThreadsAvailable = SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ();
+	const integer numberOfConcurrentThreadsAvailable = MelderThread_getNumberOfProcessors ();
 	const integer numberOfConcurrentThreadsToUse = SampledIntoSampled_getNumberOfConcurrentThreadsToUse ();
 	const integer minimumNumberOfFramesPerThread = SampledIntoSampled_getMinimumNumberOfFramesPerThread ();
 	const integer maximumNumberOfFramesPerThread = SampledIntoSampled_getMaximumNumberOfFramesPerThread ();
@@ -268,8 +260,6 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 	*/
 	struct ThreadingPreferences savedPreferences = preferences;
 	try {
-		Melder_require (SampledIntoSampled_getNumberOfConcurrentThreadsAvailable () > 1,
-			U"No multi-threading possible.");
 		autoVEC framesPerThread { 10, 20, 30, 40, 50, 70, 100, 200, 400, 800, 1600, 3200 };
 		const integer maximumNumberOfThreads = 2 * std::thread::hardware_concurrency ();
 		autoSound me = Sound_createSimple (1_integer, soundDuration, 5500.0);

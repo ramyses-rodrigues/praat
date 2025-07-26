@@ -65,6 +65,7 @@
 
 #include "NUMcomplex.h"
 #include "NUMmachar.h"
+#include "MelderThread.h"
 
 #include "ActivationList.h"
 #include "AmplitudeTier.h"
@@ -5382,7 +5383,7 @@ FORM (SETTINGS__SampledDataAnalysisSettings, U"Sampled data analysis settings", 
 	BOOLEAN (useMultithreading, U"Use multi-threading", true)
 	COMMENT (SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo ())
 	NATURAL (numberOfConcurrentThreadsToUse, U"Number of threads to use",
-			Melder_integer (SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ()))
+			Melder_integer (MelderThread_getNumberOfProcessors ()))
 	COMMENT (U"The minimum number of frames to be analysed in a thread:")
 	INTEGER (minimumNumberOfFramesPerThread, U"Min. number of frames per thread",
 			Melder_integer (SampledIntoSampled_getMinimumNumberOfFramesPerThread ()))
