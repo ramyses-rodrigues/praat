@@ -1,10 +1,10 @@
 /* NUMrandom.cpp
  *
- * Copyright (C) 1992-2006,2008,2011,2012,2014-2018,2020 Paul Boersma
+ * Copyright (C) 1992-2006,2008,2011,2012,2014-2018,2020,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -84,6 +84,8 @@
 #define UM  UINT64_C (0xFFFFFFFF80000000) /* Most significant 33 bits */
 #define LM  UINT64_C (0x7FFFFFFF) /* Least significant 31 bits */
 
+constexpr integer theNumberOfRandomGenerators = NUMrandom_maximumNumberOfParallelThreads + 3;
+
 class NUMrandom_State { public:
 
 	/** The state vector.
@@ -123,7 +125,7 @@ class NUMrandom_State { public:
 	/* key_length is its length */
 	void init_by_array64 (uint64 init_key[], unsigned int key_length);
 
-} states [17];
+} states [theNumberOfRandomGenerators];
 
 /* initialize the array with a number of seeds */
 void NUMrandom_State :: init_by_array64 (uint64 init_key [], unsigned int key_length)
@@ -134,7 +136,7 @@ void NUMrandom_State :: init_by_array64 (uint64 init_key [], unsigned int key_le
 	unsigned int k = ( NN > key_length ? NN : key_length );
 	for (; k; k --) {
 		array [i] = (array [i] ^ ((array [i - 1] ^ (array [i - 1] >> 62)) * UINT64_C (3935559000370003845)))
-		  + init_key [j] + (uint64) j;   // non-linear
+				+ init_key [j] + (uint64) j;   // non-linear
 		i ++;
 		j ++;
 		if (i >= NN) { array [0] = array [NN - 1]; i = 1; }
@@ -142,7 +144,7 @@ void NUMrandom_State :: init_by_array64 (uint64 init_key [], unsigned int key_le
 	}
 	for (k = NN - 1; k; k --) {
 		array [i] = (array [i] ^ ((array [i - 1] ^ (array [i - 1] >> 62)) * UINT64_C (2862933555777941757)))
-		  - (uint64) i;   // non-linear
+				- (uint64) i;   // non-linear
 		i ++;
 		if (i >= NN) { array [0] = array [NN - 1]; i = 1; }
 	}
@@ -170,7 +172,7 @@ static bool theInited = false;
 void NUMrandom_initializeSafelyAndUnpredictably () {
 	const uint64 ticksSince1969 = getTicksSince1969 ();   // possibly microseconds
 	const uint64 ticksSinceBoot = getTicksSinceBoot ();   // possibly nanoseconds
-	for (int threadNumber = 0; threadNumber <= 16; threadNumber ++) {
+	for (int threadNumber = 0; threadNumber < theNumberOfRandomGenerators; threadNumber ++) {
 		constexpr integer numberOfKeys = 7;
 		uint64 keys [numberOfKeys];
 		keys [0] = ticksSince1969;   // unique between boots of the same computer
@@ -193,6 +195,32 @@ void NUMrandom_initializeSafelyAndUnpredictably () {
 			case 14: keys [2] = UINT64_C  (1238716515545475765); keys [3] = UINT64_C  (8435674023875847388); break;
 			case 15: keys [2] = UINT64_C  (6127715675014756456); keys [3] = UINT64_C  (2435788450287508457); break;
 			case 16: keys [2] = UINT64_C  (1081237546238975884); keys [3] = UINT64_C  (2939783238574293882); break;
+			case 17: keys [2] = UINT64_C  (8375036306567876574); keys [3] = UINT64_C  (8540574357184754857); break;
+			case 18: keys [2] = UINT64_C  (3850245655647557647); keys [3] = UINT64_C  (4364576692676547674); break;
+			case 19: keys [2] = UINT64_C  (2057843567436577565); keys [3] = UINT64_C  (8438578345787893745); break;
+			case 20: keys [2] = UINT64_C (10123890498732874894); keys [3] = UINT64_C (12091287549854854899); break;
+			case 21: keys [2] = UINT64_C  (2318912478924387389); keys [3] = UINT64_C  (1209397927247838139); break;
+			case 22: keys [2] = UINT64_C   (875843754798401029); keys [3] = UINT64_C (12030941286537547893); break;
+			case 23: keys [2] = UINT64_C (10139892874834379012); keys [3] = UINT64_C  (9129821378428732498); break;
+			case 24: keys [2] = UINT64_C   (919818490388575879); keys [3] = UINT64_C (10939848610941094810); break;
+			case 25: keys [2] = UINT64_C  (9129839465819017879); keys [3] = UINT64_C  (9189102791272104190); break;
+			case 26: keys [2] = UINT64_C  (4756874192190000982); keys [3] = UINT64_C  (3109570210921901080); break;
+			case 27: keys [2] = UINT64_C (12183112903019492499); keys [3] = UINT64_C (12097659104981290001); break;
+			case 28: keys [2] = UINT64_C  (9028903478201080929); keys [3] = UINT64_C  (4834934012959700481); break;
+			case 29: keys [2] = UINT64_C  (2194569100499384010); keys [3] = UINT64_C  (1839749894208298429); break;
+			case 30: keys [2] = UINT64_C  (3983209023438537234); keys [3] = UINT64_C  (7861159102090250989); break;
+			case 31: keys [2] = UINT64_C  (2194849810939034937); keys [3] = UINT64_C  (3119014928483094870); break;
+			case 32: keys [2] = UINT64_C  (3048135691040185393); keys [3] = UINT64_C   (192186502167157518); break;
+			case 33: keys [2] = UINT64_C (12190902471094839890); keys [3] = UINT64_C  (8737946092598409589); break;
+			case 34: keys [2] = UINT64_C  (3599358408609356095); keys [3] = UINT64_C  (8937295898493095840); break;
+			case 35: keys [2] = UINT64_C    (45076835923445695); keys [3] = UINT64_C   (194634597229574509); break;
+			case 36: keys [2] = UINT64_C   (836585748558470458); keys [3] = UINT64_C  (2289506565038756578); break;
+			case 37: keys [2] = UINT64_C   (832563659023943438); keys [3] = UINT64_C  (1238264921469198284); break;
+			case 38: keys [2] = UINT64_C (10393949889702093820); keys [3] = UINT64_C  (2198245910013109200); break;
+			case 39: keys [2] = UINT64_C  (2001909384819394839); keys [3] = UINT64_C (13716710394194359394); break;
+			case 40: keys [2] = UINT64_C (14966767595485485049); keys [3] = UINT64_C  (1889568829023490839); break;
+			case 41: keys [2] = UINT64_C  (3856928438491014839); keys [3] = UINT64_C  (4411281012393465812); break;
+			case 42: keys [2] = UINT64_C  (1093814878568456475); keys [3] = UINT64_C  (1938904975709295894); break;
 			default: Melder_fatal (U"Thread number too high.");
 		}
 		keys [4] = (uint64) (int64) getpid ();   // unique between processes that run simultaneously on the same computer
@@ -204,7 +232,7 @@ void NUMrandom_initializeSafelyAndUnpredictably () {
 	theInited = true;
 }
 void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed) {
-	for (int threadNumber = 0; threadNumber <= 16; threadNumber ++)
+	for (int threadNumber = 0; threadNumber < theNumberOfRandomGenerators; threadNumber ++)
 		seed = states [threadNumber]. init_genrand64 (seed);
 	theInited = true;
 }
@@ -324,7 +352,7 @@ double NUMrandomGauss (double mean, double standardDeviation) {
 		if (s == 0.0) {
 			x = my y = 0.0;
 		} else {
-			double factor = sqrt (-2.0 * log (s) / s);
+			const double factor = sqrt (-2.0 * log (s) / s);
 			x *= factor;
 			my y *= factor;
 		}
@@ -351,7 +379,7 @@ double NUMrandomGauss_mt (int threadNumber, double mean, double standardDeviatio
 		if (s == 0.0) {
 			x = my y = 0.0;
 		} else {
-			double factor = sqrt (-2.0 * log (s) / s);
+			const double factor = sqrt (-2.0 * log (s) / s);
 			x *= factor;
 			my y *= factor;
 		}
