@@ -247,7 +247,7 @@ static void LineSpectralFrequencies_Frame_initFromLPC_Frame_grid (LineSpectralFr
 	my frequencies.resize (my numberOfFrequencies); // maintain invariant
 }
 
-autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (LPC me, double gridSize) {
+autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies_old (LPC me, double gridSize) {
 	try {
 		if (gridSize == 0.0)
 			gridSize = 0.02;
@@ -275,6 +275,29 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (LPC me, double gridS
 	}
 }
 
+void LPC_into_LineSpectralFrequencies (constLPC me, mutableLineSpectralFrequencies outputLSF, double gridSize) {
+	SampledIntoSampled_requireEqualDomainsAndSampling (me, outputLSF);
+	autoLPCFrameIntoLineSpectralFrequenciesFrame ws = LPCFrameIntoLineSpectralFrequenciesFrame_create (me, outputLSF);
+	if (gridSize <= 0.0)
+		gridSize = 0.02;
+	ws -> gridSize = gridSize;
+	autoLPCAndLineSpectralFrequenciesStatus status = LPCAndLineSpectralFrequenciesStatus_create (outputLSF -> nx);
+	autoSampledIntoSampled sis = SampledIntoSampled_create (me, outputLSF, ws.move(), status.move());
+	const integer numberOfErrorFrames = SampledIntoSampled_analyseThreaded (sis.get());
+	if (numberOfErrorFrames > 0)
+		Melder_warning (U"LineSpectralFrequencies_into_LPC: ", numberOfErrorFrames, U" frames have issues.");
+}
+
+autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double gridSize) {
+	try {
+		const double nyquistFrequency = 0.5 / my samplingPeriod;
+		autoLineSpectralFrequencies outputLSF = LineSpectralFrequencies_create (my xmin, my xmax, my nx, my dx, my x1, my maxnCoefficients, nyquistFrequency);
+		LPC_into_LineSpectralFrequencies (me, outputLSF.get(), gridSize);
+		return outputLSF;
+	} catch (MelderError) {
+		Melder_throw (me, U": no LineSpectralFrequencies created.");
+	}
+}
 /**************************** LineSpectralFrequencies to LPC **************************************************/
 
 
@@ -338,25 +361,24 @@ autoLPC LineSpectralFrequencies_to_LPC_old (LineSpectralFrequencies me) {
 	}
 }
 
-void LineSpectralFrequencies_into_LPC (LineSpectralFrequencies me, mutableLPC outputLPC) {
+void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC) {
 	SampledIntoSampled_requireEqualDomainsAndSampling (me, outputLPC);
 	autoLineSpectralFrequenciesFrameIntoLPCFrame ws = LineSpectralFrequenciesFrameIntoLPCFrame_create (me, outputLPC);
-	autoSampledIntoSampledStatus status = SampledIntoSampledStatus_create (outputLPC -> nx);
+	autoLPCAndLineSpectralFrequenciesStatus status = LPCAndLineSpectralFrequenciesStatus_create (outputLPC -> nx);
 	autoSampledIntoSampled sis = SampledIntoSampled_create (me, outputLPC, ws.move(), status.move());
 	const integer numberOfErrorFrames = SampledIntoSampled_analyseThreaded (sis.get());
 	if (numberOfErrorFrames > 0)
 		Melder_warning (U"LineSpectralFrequencies_into_LPC: ", numberOfErrorFrames, U" frames have issues.");
 }
 
-autoLPC LineSpectralFrequencies_to_LPC (LineSpectralFrequencies me) {
+autoLPC LineSpectralFrequencies_to_LPC (constLineSpectralFrequencies me) {
 	try {
 		autoLPC thee = LPC_create (my xmin, my xmax, my nx, my dx, my x1, my maximumNumberOfFrequencies, 0.5 / my maximumFrequency);
 		LineSpectralFrequencies_into_LPC (me, thee.get());	
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no LPC created from LineSpectralFrequencies.");
-	}	
-	
+	}
 }
 
 /* End of file LPC_and_LineSpectralFrequencies.cpp */

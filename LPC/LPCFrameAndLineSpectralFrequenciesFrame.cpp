@@ -143,7 +143,7 @@ static integer Polynomial_into_Roots_searchOnGrid (Polynomial me, Roots thee, do
 }
 
 bool structLPCFrameIntoLineSpectralFrequenciesFrame :: inputFrameToOutputFrame () {
-	LPC_Frame inputFrame = & inputlpc -> d_frames [currentFrame];
+	LPC_Frame inputFrame = & inputLPC -> d_frames [currentFrame];
 	LineSpectralFrequencies_Frame outputFrame = & outputLSF -> d_frames [currentFrame];
 	Melder_assert (inputFrame -> nCoefficients == inputFrame -> a.size); // check invariant
 	const double maximumFrequency = outputLSF -> maximumFrequency;
@@ -187,16 +187,19 @@ bool structLPCFrameIntoLineSpectralFrequenciesFrame :: inputFrameToOutputFrame (
 	outputFrame -> frequencies.resize (outputFrame -> numberOfFrequencies); // maintain invariant
 	frameAnalysisInfo = 0;
 	frameAnalysisIsOK = true;
-
+	return true;
 }
 
 void LPCFrameIntoLineSpectralFrequenciesFrame_init (mutableLPCFrameIntoLineSpectralFrequenciesFrame me, constLPC input,
 	mutableLineSpectralFrequencies output)
 {
-		const integer numberOfCoefficients = input -> maxnCoefficients + 1;
-		my gsum = Polynomial_create (-2.0, 2.0, numberOfCoefficients); // large enough
-		my gdif = Polynomial_create (-2.0, 2.0, numberOfCoefficients);
-		my roots = Roots_create (numberOfCoefficients / 2);
+	SampledFrameIntoSampledFrame_init (me, output);
+	LPCFrameIntoSampledFrame_init (me, input);
+	my outputLSF = output;
+	const integer numberOfCoefficients = input -> maxnCoefficients + 1;
+	my gsum = Polynomial_create (-2.0, 2.0, numberOfCoefficients); // large enough
+	my gdif = Polynomial_create (-2.0, 2.0, numberOfCoefficients);
+	my roots = Roots_create (numberOfCoefficients / 2);
 }
 
 autoLPCFrameIntoLineSpectralFrequenciesFrame LPCFrameIntoLineSpectralFrequenciesFrame_create (constLPC input, 

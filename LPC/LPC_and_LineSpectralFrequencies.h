@@ -22,9 +22,13 @@
 #include "LPC.h"
 #include "LineSpectralFrequencies.h"
 
-autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (LPC me, double gridSize);
+void LPC_into_LineSpectralFrequencies (constLPC me, mutableLineSpectralFrequencies outputLSF, double gridSize);
 
-autoLPC LineSpectralFrequencies_to_LPC (LineSpectralFrequencies me);
+autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double gridSize);
+
+void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC);
+
+autoLPC LineSpectralFrequencies_to_LPC (constLineSpectralFrequencies me);
 
 
 #endif /* _LPC_and_LineSpectralFrequencies_h_ */
