@@ -41,7 +41,7 @@
 Thing_implement (LPCFrameIntoSampledFrame, SampledFrameIntoSampledFrame, 0);
 
 void LPCFrameIntoSampledFrame_init (mutableLPCFrameIntoSampledFrame me, constLPC input) {
-	my inputlpc = input;
+	my inputLPC = input;
 	my order = input -> maxnCoefficients;
 }
 

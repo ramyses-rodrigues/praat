@@ -151,9 +151,9 @@ autoSampledIntoSampled SampledIntoSampled_create (constSampled input, mutableSam
 	try {
 		autoSampledIntoSampled me = Thing_new (SampledIntoSampled);
 		SampledIntoSampled_init (me.get(), input, output);
-		my frameIntoFrame.adoptFromAmbiguousOwner (ws.releaseToAmbiguousOwner());
+		my frameIntoFrame = ws.move();
 		my frameIntoFrame -> allocateOutputFrames ();
-		my status.adoptFromAmbiguousOwner (status.releaseToAmbiguousOwner());
+		my status = status.move();
 		const bool updateStatus = SampledIntoSampled_getExtraAnalysisInfo ();
 		SampledFrameIntoSampledFrame_initForStatusUpdates (my frameIntoFrame.get(), my status.get(), updateStatus);
 		return me;

@@ -100,4 +100,9 @@ Thing_define (SoundAndLPCIntoFormantRobustStatus, SampledIntoSampledStatus) {
 
 autoSoundAndLPCIntoFormantRobustStatus SoundAndLPCIntoFormantRobustStatus_create (integer numberOfFrames);
 
+Thing_define (LPCAndLineSpectralFrequenciesStatus, SampledIntoSampledStatus) {
+};
+
+autoLPCAndLineSpectralFrequenciesStatus LPCAndLineSpectralFrequenciesStatus_create (integer numberOfFrames);
+
 #endif /* _SampledIntoSampledStatus_h_ */	

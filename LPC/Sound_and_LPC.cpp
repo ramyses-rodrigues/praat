@@ -151,15 +151,15 @@ autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiv
 }
 
 
-void LPC_and_Sound_into_LPC_robust (constLPC inputlpc, constSound sound, mutableLPC outputlpc, double effectiveAnalysisWidth, double k_stdev,
+void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound sound, mutableLPC outputlpc, double effectiveAnalysisWidth, double k_stdev,
 	integer itermax, double tol, bool wantlocation)
 {
 	try {
-		Sound_and_LPC_require_equalDomainsAndSamplingPeriods (sound, inputlpc);	
+		Sound_and_LPC_require_equalDomainsAndSamplingPeriods (sound, inputLPC);	
 		const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
 		double location = 0.0;
 		checkLPCAnalysisParameters_e (sound -> dx, sound -> nx, physicalAnalysisWidth, outputlpc -> maxnCoefficients);
-		autoLPCAndSoundFramesIntoLPCFrameRobust ws = LPCAndSoundFramesIntoLPCFrameRobust_create (inputlpc, sound, outputlpc,
+		autoLPCAndSoundFramesIntoLPCFrameRobust ws = LPCAndSoundFramesIntoLPCFrameRobust_create (inputLPC, sound, outputlpc,
 			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, location, wantlocation);
 		autoSoundIntoLPCStatus status = SoundIntoLPCStatus_create (outputlpc -> nx);
 		autoSampledIntoSampled sis = SampledIntoSampled_create (sound, outputlpc, ws.move(), status.move());
@@ -187,8 +187,8 @@ void Sound_into_LPCrobust_common (constSound me, mutableLPC outputlpc, autoSound
 	double k_stdev, integer itermax, double tol, bool wantlocation)
 {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputlpc);
-	autoLPC inputlpc = Data_copy (outputlpc);
-	autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC = LPCAndSoundFramesIntoLPCFrameRobust_create (inputlpc.get(), me, outputlpc, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, 0.0, wantlocation);
+	autoLPC inputLPC = Data_copy (outputlpc);
+	autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC = LPCAndSoundFramesIntoLPCFrameRobust_create (inputLPC.get(), me, outputlpc, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, 0.0, wantlocation);
 	autoSoundFrameIntoLPCFrameRobust soundIntoLPCrobust = SoundFrameIntoLPCFrameRobust_create (soundIntoLPCany.move(),
 		lpcAndSoundIntoLPC.move());
 	autoSoundIntoLPCStatus status = SoundIntoLPCStatus_create (outputlpc -> nx); // TODO adapt

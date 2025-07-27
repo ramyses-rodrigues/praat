@@ -92,7 +92,7 @@ oo_END_CLASS (SoundFrameIntoLPCFrameMarple)
 
 #define ooSTRUCT LPCAndSoundFramesIntoLPCFrameRobust
 oo_DEFINE_CLASS (LPCAndSoundFramesIntoLPCFrameRobust, SoundFrameIntoLPCFrame)
-	oo_UNSAFE_BORROWED_TRANSIENT_CONST_OBJECT_REFERENCE (LPC, inputlpc)	// TODO rename as otherInputLPC ?
+	oo_UNSAFE_BORROWED_TRANSIENT_CONST_OBJECT_REFERENCE (LPC, inputLPC)	// TODO rename as otherInputLPC ?
 	oo_STRUCT (LPC_Frame, otherInputLPCFrame)
 	
 	oo_INTEGER (currentPredictionOrder)
@@ -107,9 +107,9 @@ oo_DEFINE_CLASS (LPCAndSoundFramesIntoLPCFrameRobust, SoundFrameIntoLPCFrame)
 	oo_DOUBLE (scale)
 	oo_VEC (error, soundFrameSize)
 	oo_VEC (sampleWeights, soundFrameSize)
-	oo_VEC (coefficients, inputlpc -> maxnCoefficients)
-	oo_VEC (covariancesw, inputlpc -> maxnCoefficients)
-	oo_MAT (covarmatrixw, inputlpc -> maxnCoefficients, inputlpc -> maxnCoefficients)
+	oo_VEC (coefficients, inputLPC -> maxnCoefficients)
+	oo_VEC (covariancesw, inputLPC -> maxnCoefficients)
+	oo_MAT (covarmatrixw, inputLPC -> maxnCoefficients, inputLPC -> maxnCoefficients)
 	oo_INTEGER (computedSVDworksize)
 	oo_OBJECT (SVD, 1, svd)
 	oo_VEC (svdwork1, computedSVDworksize)

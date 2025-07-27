@@ -76,21 +76,21 @@ void structLPCFrameIntoFormantFrame :: getInputFrame () {
 }
 
 bool structLPCFrameIntoFormantFrame :: inputFrameToOutputFrame () {
-	Formant_Frame formantf = & formant -> frames [currentFrame];
-	LPC_Frame inputlpcf = & inputlpc -> d_frames [currentFrame];
-	formantf -> intensity = inputlpcf -> gain;
-	if (inputlpcf -> nCoefficients == 0) {
-		formantf -> numberOfFormants = 0;
-		formantf -> formant.resize (formantf -> numberOfFormants); // maintain invariant
+	Formant_Frame formantFrame = & formant -> frames [currentFrame];
+	LPC_Frame inputLPCFrame = & inputLPC -> d_frames [currentFrame];
+	formantFrame -> intensity = inputLPCFrame -> gain;
+	if (inputLPCFrame -> nCoefficients == 0) {
+		formantFrame -> numberOfFormants = 0;
+		formantFrame -> formant.resize (formantFrame -> numberOfFormants); // maintain invariant
 		frameAnalysisInfo = 1;	
 		return true;
 	}
 	frameAnalysisInfo = 0;
-	const double samplingFrequency = 1.0 / inputlpc -> samplingPeriod;
-	LPC_Frame_into_Polynomial (inputlpcf, p.get());
+	const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;
+	LPC_Frame_into_Polynomial (inputLPCFrame, p.get());
 	Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
 	Roots_fixIntoUnitCircle (roots.get());
-	Roots_into_Formant_Frame (roots.get(), formantf, samplingFrequency, margin);
+	Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
 	return true;
 }
 
