@@ -2,11 +2,11 @@
 #define _MelderThread_h_
 /* MelderThread.h
  *
- * Copyright (C) 2014-2018,2020 Paul Boersma
+ * Copyright (C) 2014-2018,2020,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -23,7 +23,7 @@
 #include <thread>
 
 inline integer MelderThread_getNumberOfProcessors () {
-	return uinteger_to_integer (std::thread::hardware_concurrency ());
+	return Melder_clippedLeft (1_integer, uinteger_to_integer (std::thread::hardware_concurrency ()));
 }
 
 template <class T> void MelderThread_run (void (*func) (T *), autoSomeThing <T> *args, integer numberOfThreads) {

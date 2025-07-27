@@ -41,7 +41,7 @@
 
 Thing_implement (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame, 0);
 
-integer getSoundFrameSize_uneven (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
+static integer getSoundFrameSize_uneven (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
 	const double halfFrameDuration = 0.5 * approximatePhysicalAnalysisWidth;
 	const integer halfFrameSamples = Melder_ifloor (halfFrameDuration / samplingPeriod);
 	return 2 * halfFrameSamples + 1;

@@ -2,11 +2,11 @@
 #define _SampledIntoSampled_h_
 /* SampledIntoSampled.h
  *
- * Copyright (C) 2024-2025 David Weenink
+ * Copyright (C) 2024,2025 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -73,7 +73,6 @@ bool SampledIntoSampled_useMultiThreading ();
 
 void SampledIntoSampled_setMultiThreading (bool useMultiThreading);
 
-integer SampledIntoSampled_getNumberOfConcurrentThreadsAvailable ();
 conststring32 SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo (); // 
 
 integer SampledIntoSampled_getNumberOfConcurrentThreadsToUse ();
@@ -93,7 +92,7 @@ void SampledIntoSampled_getThreadingInfo (constSampledIntoSampled me, integer& n
 
 /*********** timing only *********/
 
-void timeMultiThreading (double soundDuration);
+void SampledIntoSampled_timeMultiThreading (double soundDuration);
 
 #endif /* _SampledIntoSampled_h_ */
 
