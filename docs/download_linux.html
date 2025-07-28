@@ -38,26 +38,23 @@ On Ubuntu this may be:</p>
    sudo apt install libasound2   # the ALSA audio library
    sudo apt install libjack0     # the Jack audio library
    sudo apt install libcanberra-gtk-module     # needed only if your system complains about missing this
-
 </code>
 
-<p>On Fedora, the first installs may be:</p>
+<p>On Fedora, the installs may just be:</p>
 
-<code style="white-space:pre-wrap">   sudo dnf install libcxx      # the C++ standard library
+<code style="white-space:pre-wrap">   sudo dnf install libcxx           # the C++ standard library
    sudo dnf install llvm-libunwind   # needed by the C++ standard library
-
 </code>
 
-If you use Praat for the first time, choose <b>Intro</b> from the Help menu.</p>
+<p>If you use Praat for the first time, choose <b>Intro</b> from the Help menu.</p>
 
 <hr><h3>3. Phonetic symbols</h3>
 <p>If you want to see good phonetic characters,
 you have to install the Charis SIL and Doulos SIL fonts,
 for instance from the packages <b>fonts-sil-charis</b> and <b>fonts-sil-doulos</b> on Debian or Ubuntu:</p>
 
-<code>
-&nbsp;&nbsp;&nbsp;sudo apt install fonts-sil-charis<br>
-&nbsp;&nbsp;&nbsp;sudo apt install fonts-sil-doulos
+<code style="white-space:pre-wrap">   sudo apt install fonts-sil-charis
+   sudo apt install fonts-sil-doulos
 </code>
 
 <p>If you cannot install those packages, you can download the two fonts
@@ -66,7 +63,10 @@ from <a href=http://www.sil.org>Summer Institute of Linguistics</a> and follow t
 <hr><h3>4. Running Praat from the command line</h3>
 <p>To run Praat from a terminal window,
 write a Praat script and specify that script on the command line, optionally with arguments, e.g.:</p>
-<code>&nbsp;&nbsp;&nbsp;praat --run playsinewave.praat 377 0.9</code>
+
+<code style="white-space:pre-wrap">   praat --run playsinewave.praat 377 0.9
+</code>
+
 <p>For details see <a href="manual/Scripting_6_9__Calling_from_the_command_line.html">Calling from the command line</a> in the Scripting manual.</p>
 
 <hr><h3>5. Known possible problems, and their solution</h3>
@@ -82,7 +82,8 @@ to get audio to work.</p>
 <p>Praat is <a href="https://packages.debian.org/source/sid/praat">included</a> in
 the Debian distribution. To install Praat on your Debian computer, do</p>
 
-<code>&nbsp;&nbsp;&nbsp;aptitude install praat</code>
+<code style="white-space:pre-wrap">   aptitude install praat
+</code>
 
 <p>The Debian package includes a <code>praat-open-files</code>
 command that allows opening files from the command line inside a Praat
