@@ -169,12 +169,12 @@ autoPhoto Photo_readFromImageFile (MelderFile file) {
 			CGImageRef image = CGImageSourceCreateImageAtIndex (imageSource, 0, nullptr);
 			CFRelease (imageSource);
 			if (image) {
-				const integer width = uinteger_to_integer (CGImageGetWidth (image));
-				const integer height = uinteger_to_integer (CGImageGetHeight (image));
+				const integer width = uinteger_to_integer_a (CGImageGetWidth (image));
+				const integer height = uinteger_to_integer_a (CGImageGetHeight (image));
 				me = Photo_createSimple (height, width);
-				const integer bitsPerPixel = uinteger_to_integer (CGImageGetBitsPerPixel (image));
-				const integer bitsPerComponent = uinteger_to_integer (CGImageGetBitsPerComponent (image));
-				const integer bytesPerRow = uinteger_to_integer (CGImageGetBytesPerRow (image));
+				const integer bitsPerPixel = uinteger_to_integer_a (CGImageGetBitsPerPixel (image));
+				const integer bitsPerComponent = uinteger_to_integer_a (CGImageGetBitsPerComponent (image));
+				const integer bytesPerRow = uinteger_to_integer_a (CGImageGetBytesPerRow (image));
 				trace (
 					bitsPerPixel, U" bits per pixel, ",
 					bitsPerComponent, U" bits per component, ",
@@ -307,12 +307,12 @@ autoPhoto Photo_readFromImageFile (MelderFile file) {
 		}
 		CGDataProviderRef dataProvider = CGDataProviderCreateWithData (nullptr,
 			imageData,
-			integer_to_uinteger (bytesPerRow * numberOfRows),
+			integer_to_uinteger_a (bytesPerRow * numberOfRows),
 			_mac_releaseDataCallback   // needed?
 		);
 		Melder_assert (dataProvider);
-		CGImageRef image = CGImageCreate (integer_to_uinteger (my nx), integer_to_uinteger (numberOfRows),
-			8, 32, integer_to_uinteger (bytesPerRow), colourSpace, kCGImageAlphaLast, dataProvider, nullptr, false, kCGRenderingIntentDefault);
+		CGImageRef image = CGImageCreate (integer_to_uinteger_a (my nx), integer_to_uinteger_a (numberOfRows),
+			8, 32, integer_to_uinteger_a (bytesPerRow), colourSpace, kCGImageAlphaLast, dataProvider, nullptr, false, kCGRenderingIntentDefault);
 		CGDataProviderRelease (dataProvider);
 		Melder_assert (image);
 		NSString *path = (NSString *) MelderFile_peekPathCfstring (file);

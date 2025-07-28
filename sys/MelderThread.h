@@ -23,11 +23,11 @@
 #include <thread>
 
 inline integer MelderThread_getNumberOfProcessors () {
-	return Melder_clippedLeft (1_integer, uinteger_to_integer (std::thread::hardware_concurrency ()));
+	return Melder_clippedLeft (1_integer, uinteger_to_integer_a (std::thread::hardware_concurrency ()));
 }
 
 template <class T> void MelderThread_run (void (*func) (T *), autoSomeThing <T> *args, integer numberOfThreads) {
-	uinteger unsignedNumberOfThreads = integer_to_uinteger (numberOfThreads);
+	uinteger unsignedNumberOfThreads = integer_to_uinteger_a (numberOfThreads);
 	if (unsignedNumberOfThreads == 1) {
 		func (args [0].get());
 	} else {
