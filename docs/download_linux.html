@@ -26,9 +26,11 @@ Or you may get Praat from <a href="http://packages.debian.org/unstable/science/p
 or compile it yourself (64-bit or 32-bit) from the <a href="download_sources.html">source code</a>.</p>
 
 <hr><h3>2. How to start</h3>
-<p>Praat will work fine wherever it is on your disk; just type <b>./praat</b> into a terminal window.</p>
+<p>Praat will work fine wherever it is on your disk; just type <b>./praat</b> into a terminal window
+after cd-ing to Praat’s folder.</p>
 <p>If Praat doesn’t start immediately (i.e. it may complain about missing <code>.so</code> files),
-then you may have to install one or more standard (system or audio) libraries on which Praat depends:</p>
+then you may have to install one or more standard (system or audio) libraries on which Praat depends.
+On Ubuntu this may be:</p>
 
 <code style="white-space:pre-wrap">   sudo apt install libc++1      # the C++ standard library
    sudo apt install libgtk-3-0   # the graphics toolkit
@@ -39,7 +41,13 @@ then you may have to install one or more standard (system or audio) libraries on
 
 </code>
 
-or click the icon.
+<p>On Fedora, the first installs may be:</p>
+
+<code style="white-space:pre-wrap">   sudo dnf install libcxx      # the C++ standard library
+   sudo dnf install llvm-libunwind   # needed by the C++ standard library
+
+</code>
+
 If you use Praat for the first time, choose <b>Intro</b> from the Help menu.</p>
 
 <hr><h3>3. Phonetic symbols</h3>
