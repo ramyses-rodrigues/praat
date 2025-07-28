@@ -1,10 +1,10 @@
 /* Picture.cpp
  *
- * Copyright (C) 1992-2022,2024 Paul Boersma, 2008 Stefan de Konink, 2010 Franz Brauße
+ * Copyright (C) 1992-2022,2024,2025 Paul Boersma, 2008 Stefan de Konink, 2010 Franz Brauße
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -236,7 +236,7 @@ void Picture_readFromPraatPictureFile (Picture me, MelderFile file) {
 	try {
 		autofile f = Melder_fopen (file, "rb");
 		char line [200];
-		integer n = uinteger_to_integer (fread (line, 1, 199, f));
+		integer n = uinteger_to_integer_a (fread (line, 1, 199, f));
 		line [n] = '\0';
 		const char *tag = "PraatPictureFile";
 		char *end = strstr (line, tag);
@@ -244,7 +244,7 @@ void Picture_readFromPraatPictureFile (Picture me, MelderFile file) {
 			Melder_throw (U"This is not a Praat picture file.");
 		*end = '\0';
 		rewind (f);
-		fread (line, 1, integer_to_uinteger (end - line + Melder8_length (tag)), f);
+		fread (line, 1, integer_to_uinteger_a (end - line + Melder8_length (tag)), f);
 		Graphics_readRecordings (my graphics.get(), f);
 		Graphics_updateWs (my graphics.get());
 		f.close (file);
@@ -255,7 +255,7 @@ void Picture_readFromPraatPictureFile (Picture me, MelderFile file) {
 
 #ifdef macintosh
 static size_t appendBytes (void *info, const void *buffer, size_t count) {
-    CFDataAppendBytes ((CFMutableDataRef) info, (const UInt8 *) buffer, uinteger_to_integer (count));
+    CFDataAppendBytes ((CFMutableDataRef) info, (const UInt8 *) buffer, uinteger_to_integer_a (count));
     return count;
 }
 void Picture_copyToClipboard (Picture me) {

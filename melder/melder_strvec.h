@@ -111,7 +111,7 @@ public:
 		our size = givenSize;
 	}
 	explicit _autostringautovector (std::initializer_list <const conststring32> list) {
-		our size = uinteger_to_integer (list.size());
+		our size = uinteger_to_integer_a (list.size());
 		our elements = MelderArray:: _alloc <autostring32> (our size, MelderArray::kInitializationType::ZERO);
 		our _capacity = our size;
 		autostring32 *p = our elements;

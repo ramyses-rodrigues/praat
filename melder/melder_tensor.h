@@ -217,7 +217,7 @@ struct autovector {
 		our _capacity = givenSize;
 	}
 	autovector (std::initializer_list <const T> list) {
-		our size = uinteger_to_integer (list.size());
+		our size = uinteger_to_integer_a (list.size());
 		our cells = MelderArray:: _alloc <T> (our size, MelderArray::kInitializationType::RAW);   // raw is possible because T is copyable data
 		T *p = our cells;
 		for (auto cell : list)
@@ -693,14 +693,14 @@ struct automatrix {
 		our ncol = givenNcol;
 	}
 	automatrix (std::initializer_list <std::initializer_list <T>> list) {
-		our nrow = uinteger_to_integer (list.size());
+		our nrow = uinteger_to_integer_a (list.size());
 		Melder_assert (our nrow > 0);   // empty matrices should be created with automatrix<T>() or automatrix<T> (0, 10) or so
-		our ncol = uinteger_to_integer (list.begin()->size());
+		our ncol = uinteger_to_integer_a (list.begin()->size());
 		Melder_assert (our ncol > 0);   // empty matrices should be created with automatrix<T>() or automatrix<T> (10, 0) or so
 		our cells = MelderArray:: _alloc <T> (our nrow * our ncol, MelderArray::kInitializationType::RAW);
 		T *p = our cells;
 		for (auto row : list) {
-			const integer numberOfColumnsInThisRow = uinteger_to_integer (row.size());
+			const integer numberOfColumnsInThisRow = uinteger_to_integer_a (row.size());
 			Melder_assert (numberOfColumnsInThisRow == our ncol);   // unfortunately, no support for static_assert here in C++17
 			for (auto cell : row)
 				* (p ++) = cell;
