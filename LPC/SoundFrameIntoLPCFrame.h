@@ -40,7 +40,7 @@ autoSoundFrameIntoLPCFrameMarple SoundFrameIntoLPCFrameMarple_create (constSound
 		double tol1, double tol2
 );
 
-autoLPCAndSoundFramesIntoLPCFrameRobust LPCAndSoundFramesIntoLPCFrameRobust_create (constLPC inputlpc, constSound inputsound, mutableLPC outputlpc,
+autoLPCAndSoundFramesIntoLPCFrameRobust LPCAndSoundFramesIntoLPCFrameRobust_create (constLPC inputLPC, constSound inputsound, mutableLPC outputlpc,
 	double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, double location, bool wantlocation
 );
 

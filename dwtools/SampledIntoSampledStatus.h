@@ -23,7 +23,11 @@
 
 #include "SampledIntoSampledStatus_def.h"
 
+void SampledIntoSampledStatus_init (integer numberOfFrames);
+
 autoSampledIntoSampledStatus SampledIntoSampledStatus_create (integer numberOfFrames);
+
+void SoundIntoSampledStatus_init (integer numberOfFrames);
 
 autoSoundIntoSampledStatus SoundIntoSampledStatus_create (integer numberOfFrames);
 
@@ -92,5 +96,10 @@ Thing_define (SoundAndLPCIntoFormantRobustStatus, SampledIntoSampledStatus) {
 };
 
 autoSoundAndLPCIntoFormantRobustStatus SoundAndLPCIntoFormantRobustStatus_create (integer numberOfFrames);
+
+Thing_define (LPCAndLineSpectralFrequenciesStatus, SampledIntoSampledStatus) {
+};
+
+autoLPCAndLineSpectralFrequenciesStatus LPCAndLineSpectralFrequenciesStatus_create (integer numberOfFrames);
 
 #endif /* _SampledIntoSampledStatus_h_ */	
