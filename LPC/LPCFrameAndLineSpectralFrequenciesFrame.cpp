@@ -185,10 +185,90 @@ bool structLPCFrameIntoLineSpectralFrequenciesFrame :: inputFrameToOutputFrame (
 			outputFrame -> numberOfFrequencies --;
 	}
 	outputFrame -> frequencies.resize (outputFrame -> numberOfFrequencies); // maintain invariant
-	frameAnalysisInfo = 0;
 	frameAnalysisIsOK = true;
 	return true;
 }
+
+#if 0
+/* g [0]+g [1]x + ... g [m]*x^ m = 0 ; m should be even
+ * Semenov, Kalyuzhny, Kovtonyuk (2003), Efficient calculation of line spectral frequencies based on new method for solution of transcendental equations,
+ * ICASSP 2003, 457--460
+ * 		g [0 .. g_order]
+ * 		work [0.. g_order + 1 + (numberOfDerivatives + 1) * 5]
+ * 		root [1 .. (g_order+1)/2]
+ */
+static void Roots_fromPolynomial (Roots me, Polynomial g, integer numberOfDerivatives, double *work) {
+	if (numberOfDerivatives < 3) {
+		Melder_throw (U"Number of derivatives should be at least 3.");
+	}
+	double xmin = -1.0, xmax = 1.0;
+	integer numberOfRootsFound = 0;
+	integer g_order = g -> numberOfCoefficients - 1;
+	double *gabs = work, *fact = gabs + g_order + 1, *p2 = fact + numberOfDerivatives + 1;
+	double *derivatives = p2 + numberOfDerivatives + 1, *constraints = derivatives + numberOfDerivatives + 1;
+	double *intervals = constraints + numberOfDerivatives + 1;
+	
+	/* Fill vectors with j! and 2^j only once */
+	fact [0] = p2 [0] = 1.0;
+	for (integer j = 1; j <= numberOfDerivatives; j ++) {
+		fact [j] = fact [j - 1] * j; // j!
+		p2 [j] = p2 [j - 1] * 2.0; // 2^j
+	}
+	
+	/* The constraints M [j] (Semenov et al. eq. (8)) can be calculated by taking absolute values of 
+	 * the polynomial coefficients and evaluating the polynomial and the derivatives at x = 1.0
+	 */
+	for (integer k = 0; k <= g_order; k ++) {
+		gabs [k] = fabs (g -> coefficients [k + 1]);
+	}
+	evaluatePolynomialAndDerivatives (gabs, g_order, 1.0, constraints, numberOfDerivatives);
+	intervals [0] = 1.0;
+	while (numberOfRootsFound < g_order || xmin == xmax) {
+		double dsum1 = 0.0, dsum2 = 0.0;
+		double xmid = (xmin + xmax) / 2.0;
+		evaluatePolynomialAndDerivatives (g, g_order, xmid, derivatives, numberOfDerivatives);
+		double fxmid = derivatives [0], fdxmin = derivatives [1];
+		integer j = 1;
+		bool rootsOnIntervalPossible_f = true, rootsOnIntervalPossible_df = true;
+		while (j <= numberOfDerivatives && (rootsOnIntervalPossible_f || rootsOnIntervalPossible_df)) {
+			intervals [j] = intervals [j - 1] * (xmax - xmin);
+			integer k = j - 1;
+			if (j > 1) {   // start at first derivative
+				dsum1 += fabs (derivatives [k]) * intervals [k] / (p2 [k] * fact [k]);
+			}
+			if (j > 2) {   // start at second derivative
+				dsum2 += fabs (derivatives [k]) * intervals [k - 1] / (p2 [k - 1] * fact [k - 1]);
+				if (rootsOnIntervalPossible_f) {
+					double testValue1 = dsum1 + constraints [j] * intervals [j] / (p2 [j] * fact [j]);
+					rootsOnIntervalPossible_f = ! (fxmid + testValue1 < 0.0 || fxmid - testValue1 > 0.0);
+				}
+				if (rootsOnIntervalPossible_df) {
+					double testValue2 = dsum2 + constraints [j] * intervals [j - 1] / (p2 [j - 1] * fact [j - 1]);
+					rootsOnIntervalPossible_df = ! (fdxmin + testValue2 < 0.0 || fdxmin - testValue2 > 0.0);
+				}
+			}
+			j++;
+		}
+		if (rootsOnIntervalPossible_f) {
+			if (rootsOnIntervalPossible_df) {   // f(x) uncertain && f'(x) uncertain: bisect
+				xmax = xmid;
+			} else {   // f(x) uncertain; f'(x) certain
+				double fxmin = evaluatePolynomial (g, g_order, xmin);
+				double fxmax = evaluatePolynomial (g, g_order, xmax);
+				if (fxmin * fxmax <= 0.0) {
+					double root;
+					NUMnrbis (dpoly, xmin, xmax, &poly, &root);
+					roots [++numberOfRootsFound] = root;
+				} else {
+					xmin = xmax; xmax = 1.0;
+				}
+			}
+		} else {
+			xmin = xmax; xmax = 1.0;
+		}
+	}	
+}
+#endif
 
 void LPCFrameIntoLineSpectralFrequenciesFrame_init (mutableLPCFrameIntoLineSpectralFrequenciesFrame me, constLPC input,
 	mutableLineSpectralFrequencies output)
