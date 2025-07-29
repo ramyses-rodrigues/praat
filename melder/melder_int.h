@@ -90,15 +90,15 @@ inline integer operator"" _integer (unsigned long long value) { return integer (
 	This entails that we assume that these types can be converted to each other without bounds checking.
 	We therefore crash Praat if this second assumption is not met.
 */
-inline uinteger integer_to_uinteger (integer n) {
+inline uinteger integer_to_uinteger_a (integer n) {
 	Melder_assert (n >= 0);
 	return (uinteger) n;
 }
-inline integer uinteger_to_integer (uinteger n) {
+inline integer uinteger_to_integer_a (uinteger n) {
 	Melder_assert (n <= INTEGER_MAX);
 	return (integer) n;
 }
-inline int32 integer_to_int32 (integer n) {
+inline int32 integer_to_int32_a (integer n) {
 	Melder_assert (n >= INT32_MIN && n <= INT32_MAX);
 	return (int32) n;
 }

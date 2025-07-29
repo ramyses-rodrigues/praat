@@ -19,10 +19,7 @@
  */
 
 
-#include "Data.h"
-#include "melder.h"
 #include "Sampled.h"
-#include "SampledIntoSampledStatus.h"
 
 #include "SampledIntoSampledStatus_def.h"
 

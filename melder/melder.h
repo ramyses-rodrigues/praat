@@ -2,11 +2,11 @@
 #define _melder_h_
 /* melder.h
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -57,7 +57,7 @@
 #define stringize_helper(s)  #s
 
 #include "melder_assert.h"   // Melder_assert
-#include "melder_int.h"   // <stdint.h>, int64, integer_to_uinteger (requires Melder_assert)
+#include "melder_int.h"   // <stdint.h>, int64, integer_to_uinteger_a (requires Melder_assert)
 #include "melder_pointer.h"   // NULL
 #include "melder_real.h"   // longdouble, MelderPoint, MelderRealRange
 #include "NUMmath.h"   // <math.h>, NUMpi, undefined

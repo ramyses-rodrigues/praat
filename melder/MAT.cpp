@@ -513,9 +513,9 @@ void MATmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU co
 //Melder_casual (U"start ", Melder_stopwatch ());
 		MPSMatrixMultiplication *matrixMultiplication = [[MPSMatrixMultiplication alloc]
 			initWithDevice: gpuDevice
-			resultRows: integer_to_uinteger (target.nrow)
-			resultColumns: integer_to_uinteger (target.ncol)
-			interiorColumns: integer_to_uinteger (x.ncol)
+			resultRows: integer_to_uinteger_a (target.nrow)
+			resultColumns: integer_to_uinteger_a (target.ncol)
+			interiorColumns: integer_to_uinteger_a (x.ncol)
 		];
 		Melder_assert (matrixMultiplication != nil);
 

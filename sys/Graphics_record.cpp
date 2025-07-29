@@ -455,10 +455,12 @@ void Graphics_play (Graphics me, Graphics thee) {
 
 void Graphics_writeRecordings (Graphics me, FILE *f) {
 	const double * p = my record;
-	const double *const endp = p + my irecord;
 	if (! p)
 		return;
-	binputi32 (integer_to_int32 (my irecord), f);
+	const double *const endp = p + my irecord;
+	if (my irecord > INT32_MAX)
+		Melder_throw (U"Graphics recordings too large to save (", my irecord, U" elements).");
+	binputi32 (integer_to_int32_a (my irecord), f);   // guarded conversion
 	while (p < endp) {
 		#define get  (* ++ p)
 		const int opcode = (int) get;
@@ -467,8 +469,9 @@ void Graphics_writeRecordings (Graphics me, FILE *f) {
 		const integer largestIntegerRepresentableAs32BitFloat = 0x00FFFFFF;
 		if (numberOfArguments > largestIntegerRepresentableAs32BitFloat) {
 			binputr32 (-1.0, f);
-			binputi32 (integer_to_int32 (numberOfArguments), f);
-			//Melder_warning ("This picture is very large!");
+			if (numberOfArguments > INT32_MAX)
+				Melder_throw (U"Graphics element too large to save (", numberOfArguments, U" arguments).");
+			binputi32 (integer_to_int32_a (numberOfArguments), f);   // guarded conversion
 		} else {
 			binputr32 ((float) numberOfArguments, f);
 		}
@@ -477,7 +480,7 @@ void Graphics_writeRecordings (Graphics me, FILE *f) {
 			binputr32 (get, f);   // y
 			binputr32 (get, f);   // length
 			Melder_assert (sizeof (double) == 8);
-			if (uinteger_to_integer (fwrite (++ p, 8, integer_to_uinteger (numberOfArguments - 3), f)) < numberOfArguments - 3)   // text
+			if (uinteger_to_integer_a (fwrite (++ p, 8, integer_to_uinteger_a (numberOfArguments - 3), f)) < numberOfArguments - 3)   // text
 				Melder_throw (U"Error writing graphics recordings.");
 			p += numberOfArguments - 4;
 		} else if (opcode == IMAGE_FROM_FILE) {
@@ -487,7 +490,7 @@ void Graphics_writeRecordings (Graphics me, FILE *f) {
 			binputr32 (get, f);   // y2
 			binputr32 (get, f);   // length
 			Melder_assert (sizeof (double) == 8);
-			if (uinteger_to_integer (fwrite (++ p, 8, integer_to_uinteger (numberOfArguments - 5), f)) < numberOfArguments - 5)   // text
+			if (uinteger_to_integer_a (fwrite (++ p, 8, integer_to_uinteger_a (numberOfArguments - 5), f)) < numberOfArguments - 5)   // text
 				Melder_throw (U"Error writing graphics recordings.");
 			p += numberOfArguments - 6;
 		} else {
@@ -522,7 +525,7 @@ void Graphics_readRecordings (Graphics me, FILE *f) {
 				put (bingetr32 (f));   // x
 				put (bingetr32 (f));   // y
 				put (bingetr32 (f));   // length
-				if (uinteger_to_integer (fread (++ p, 8, integer_to_uinteger (numberOfArguments - 3), f)) < numberOfArguments - 3)   // text
+				if (uinteger_to_integer_a (fread (++ p, 8, integer_to_uinteger_a (numberOfArguments - 3), f)) < numberOfArguments - 3)   // text
 					Melder_throw (U"Error reading graphics recordings.");
 				p += numberOfArguments - 4;
 			} else if (opcode == IMAGE_FROM_FILE) {
@@ -531,7 +534,7 @@ void Graphics_readRecordings (Graphics me, FILE *f) {
 				put (bingetr32 (f));   // y1
 				put (bingetr32 (f));   // y2
 				put (bingetr32 (f));   // length
-				if (uinteger_to_integer (fread (++ p, 8, integer_to_uinteger (numberOfArguments - 5), f)) < numberOfArguments - 5)   // text
+				if (uinteger_to_integer_a (fread (++ p, 8, integer_to_uinteger_a (numberOfArguments - 5), f)) < numberOfArguments - 5)   // text
 					Melder_throw (U"Error reading graphics recordings.");
 				p += numberOfArguments - 6;
 			} else {

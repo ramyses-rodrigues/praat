@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -467,8 +467,8 @@ int FileInMemory_fgetc (FileInMemory me) {
 size_t FileInMemory_fread (void *void_buffer, size_t elementSize_unsigned, size_t numberOfElementsThatShouldBeRead_unsigned, FileInMemory me) {
 	Melder_assert (me);
 	Melder_assert (my isOpen);
-	const integer elementSize = uinteger_to_integer (elementSize_unsigned);
-	const integer numberOfElementsThatShouldBeRead = uinteger_to_integer (numberOfElementsThatShouldBeRead_unsigned);
+	const integer elementSize = uinteger_to_integer_a (elementSize_unsigned);
+	const integer numberOfElementsThatShouldBeRead = uinteger_to_integer_a (numberOfElementsThatShouldBeRead_unsigned);
 	const double numberOfBytesThatShouldBeRead_real = (double) elementSize * (double) numberOfElementsThatShouldBeRead;
 	integer numberOfBytesThatShouldBeRead;
 	if (numberOfBytesThatShouldBeRead_real > (double) INTEGER_MAX) {
@@ -522,7 +522,7 @@ size_t FileInMemory_fread (void *void_buffer, size_t elementSize_unsigned, size_
 	}
 	my d_position += numberOfBytesCopied;
 	Melder_assert (my d_position <= my d_numberOfBytes);
-	return integer_to_uinteger (numberOfElementsThatWillBeRead);
+	return integer_to_uinteger_a (numberOfElementsThatWillBeRead);
 }
 
 /*
