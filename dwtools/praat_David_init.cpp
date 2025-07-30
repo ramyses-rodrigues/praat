@@ -5412,7 +5412,7 @@ DIRECT (INFO_NONE__Praat_ReportFloatingPointProperties) {
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"Double precision floating point properties of this machine,");
 		MelderInfo_writeLine (U"as calculated by algorithms from the Binary Linear Algebra System (BLAS)");
-		MelderInfo_writeLine (U"Radix: ", NUMfpp -> base);
+		MelderInfo_writeLine (U"\nRadix: ", NUMfpp -> base);
 		MelderInfo_writeLine (U"Number of digits in mantissa: ", NUMfpp -> t);
 		MelderInfo_writeLine (U"Smallest exponent before (gradual) underflow (expmin): ", NUMfpp -> emin);
 		MelderInfo_writeLine (U"Largest exponent before overflow (expmax): ", NUMfpp -> emax);
@@ -5422,7 +5422,8 @@ DIRECT (INFO_NONE__Praat_ReportFloatingPointProperties) {
 		MelderInfo_writeLine (U"Underflow threshold (= radix ^ (expmin - 1)): ", NUMfpp -> rmin);
 		MelderInfo_writeLine (U"Safe minimum (such that its inverse does not overflow): ", NUMfpp -> sfmin);
 		MelderInfo_writeLine (U"Overflow threshold (= (1 - eps) * radix ^ expmax): ", NUMfpp -> rmax);
-		MelderInfo_writeLine (U"\nA long double is ", sizeof (longdouble), U" bytes");
+		MelderInfo_writeLine (U"\nA long double is ", sizeof (long double), U" bytes");
+		MelderInfo_writeLine (U"A longdouble is ", sizeof (longdouble), U" bytes");
 		MelderInfo_close ();
 	INFO_NONE_END
 }

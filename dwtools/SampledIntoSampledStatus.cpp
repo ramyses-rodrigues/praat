@@ -18,7 +18,6 @@
 
 
 #include "SampledIntoSampledStatus.h"
-#include "melder.h"
 
 #include "oo_DESTROY.h"
 #include "SampledIntoSampledStatus_def.h"
@@ -48,7 +47,7 @@ void structSampledIntoSampledStatus :: showStatus () {
 	MelderInfo_close ();
 }
 
-void SampledIntoSampledStatus_init (SampledIntoSampledStatus me, integer numberOfFrames) {
+static void SampledIntoSampledStatus_init (SampledIntoSampledStatus me, integer numberOfFrames) {
 	my numberOfFrames = numberOfFrames;
 	my frameIntoFrameInfo = zero_INTVEC (numberOfFrames);
 }
@@ -64,7 +63,7 @@ void structSoundIntoSampledStatus :: showStatus () {
 	MelderInfo_close ();
 }
 
-void SoundIntoSampledStatus_init (SoundIntoSampledStatus me, integer numberOfFrames) {
+static void SoundIntoSampledStatus_init (SoundIntoSampledStatus me, integer numberOfFrames) {
 	SampledIntoSampledStatus_init (me, numberOfFrames);
 	my soundFrameBegins = zero_INTVEC (numberOfFrames);
 }

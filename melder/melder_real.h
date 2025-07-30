@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -28,7 +28,7 @@
 	But they are *very* slow (i.e. software-emulated) on ARM64 processors, which is why Xcode on the Mac and Clang on Windows
 	typically regard a "long double" as being 64 bits, i.e. identical to a "double".
 	On ARM64 Linux, Gcc regards "long double" as 128 bits, but this is very slow (more than 100 times slower than "double"),
-	so we give up and define "long double" as "double" on ARM64 Linux, just as was already the case on ARM64 Windows and ARM64 Mac.
+	so we give up and define "longdouble" as "double" on ARM64 Linux, just as was already the case on ARM64 Windows and ARM64 Mac.
 
 	The condition could therefore be
 		#if defined (linux) && (defined (__aarch64__) || defined (_M_ARM64_))
