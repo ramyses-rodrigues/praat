@@ -518,14 +518,14 @@ end:
 
 Thing_implement (LPCAndSoundFramesIntoLPCFrameRobust, SoundFrameIntoLPCFrame, 0);
 
-autoLPCAndSoundFramesIntoLPCFrameRobust LPCAndSoundFramesIntoLPCFrameRobust_create (constLPC inputlpc, constSound input,
+autoLPCAndSoundFramesIntoLPCFrameRobust LPCAndSoundFramesIntoLPCFrameRobust_create (constLPC inputLPC, constSound input,
 	mutableLPC output, double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax,
 	double tol, double location, bool wantlocation)
 {
 	try {
 		autoLPCAndSoundFramesIntoLPCFrameRobust me = Thing_new (LPCAndSoundFramesIntoLPCFrameRobust);
 		SoundFrameIntoLPCFrame_init (me.get(), input, output, effectiveAnalysisWidth, windowShape);
-		my inputlpc = inputlpc;
+		my inputLPC = inputLPC;
 		my k_stdev = k_stdev;
 		my itermax = itermax;
 		my tol1 = tol;
@@ -605,14 +605,14 @@ static void LPCAndSoundFramesIntoLPCFrameRobust_solvelpc (mutableLPCAndSoundFram
 }
 
 bool structLPCAndSoundFramesIntoLPCFrameRobust :: inputFrameToOutputFrame () {
-	LPC_Frame inputlpcf = & inputlpc -> d_frames [currentFrame];
+	LPC_Frame inputLPCFrame = & inputLPC -> d_frames [currentFrame];
 	LPC_Frame outputlpcf = & outputlpc -> d_frames [currentFrame];
-	currentPredictionOrder = inputlpcf -> nCoefficients;
-	for (integer i = 1; i <= inputlpcf -> nCoefficients; i ++)
-		outputlpcf -> a[i] = inputlpcf -> a [i];
+	currentPredictionOrder = inputLPCFrame -> nCoefficients;
+	for (integer i = 1; i <= inputLPCFrame -> nCoefficients; i ++)
+		outputlpcf -> a[i] = inputLPCFrame -> a [i];
 	if (currentPredictionOrder == 0) // is empty frame ?
 		return true;
-	outputlpcf -> gain = inputlpcf -> gain;
+	outputlpcf -> gain = inputLPCFrame -> gain;
 	
 	VEC inout_a = outputlpcf -> a.part (1, currentPredictionOrder);
 	iter = 0;
@@ -639,7 +639,7 @@ bool structLPCAndSoundFramesIntoLPCFrameRobust :: inputFrameToOutputFrame () {
 		} catch (MelderError) {
 			Melder_clearError (); // No change could be made
 			frameAnalysisInfo = 2; // solvelpc in error
-			inputlpcf -> copy (outputlpcf);
+			inputLPCFrame -> copy (outputlpcf);
 			return false;
 		}
 	} while (++ iter < itermax && farFromScale);
@@ -663,8 +663,8 @@ autoSoundFrameIntoLPCFrameRobust SoundFrameIntoLPCFrameRobust_create (autoSoundF
 {
 	try {
 		autoSoundFrameIntoLPCFrameRobust me = Thing_new (SoundFrameIntoLPCFrameRobust);
-		my soundIntoLPC.adoptFromAmbiguousOwner (soundIntoLPC.releaseToAmbiguousOwner());
-		my lpcAndSoundIntoLPC.adoptFromAmbiguousOwner (lpcAndSoundIntoLPC.releaseToAmbiguousOwner());
+		my soundIntoLPC = soundIntoLPC.move();
+		my lpcAndSoundIntoLPC = lpcAndSoundIntoLPC.move();
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameRobust.");

@@ -170,7 +170,7 @@ void PowerCepstrogram_into_Matrix_CPP (PowerCepstrogram me, mutableMatrix thee, 
 	double pitchCeiling, double deltaF0, kVector_peakInterpolation peakInterpolationType, double qminFit, double qmaxFit,
 	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod)
 {
-		Sampled_assertEqualDomains (me, thee);
+		SampledIntoSampled_assertEqualDomains (me, thee);
 		
 		autoPowerCepstrogramFrameIntoMatrixFrame ws = PowerCepstrogramFrameIntoMatrixFrame_create (me, thee, qminFit, qmaxFit, trendLineType, fitMethod);
 		ws -> getSlopeAndIntercept = true;
@@ -410,7 +410,7 @@ autoPowerCepstrogram Matrix_to_PowerCepstrogram (Matrix me) {
 }
 
 void Sound_into_PowerCepstrogram (Sound input, PowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	Sampled_assertEqualDomains (input,  output);
+	SampledIntoSampled_assertEqualDomains (input,  output);
 	autoSoundFrameIntoPowerCepstrogramFrame ws = SoundFrameIntoPowerCepstrogramFrame_create (input, output, effectiveAnalysisWidth, windowShape);
 	autoSoundIntoPowerCepstrogramStatus status = SoundIntoPowerCepstrogramStatus_create (output -> nx);
 	autoSampledIntoSampled sis = SampledIntoSampled_create (input, output, ws.move(), status.move());

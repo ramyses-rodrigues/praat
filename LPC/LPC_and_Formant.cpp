@@ -23,7 +23,7 @@
 #include "Roots_and_Formant.h"
 
 void LPC_into_Formant (constLPC me, mutableFormant thee, double margin) {
-	Sampled_requireEqualDomainsAndSampling (me, thee);
+	SampledIntoSampled_requireEqualDomainsAndSampling (me, thee);
 
 	autoLPCFrameIntoFormantFrame ws = LPCFrameIntoFormantFrame_create (me, thee, margin);
 	autoLPCIntoFormantStatus status = LPCIntoFormantStatus_create (thy nx);

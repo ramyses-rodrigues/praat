@@ -201,4 +201,16 @@ autoSoundAndLPCIntoFormantRobustStatus SoundAndLPCIntoFormantRobustStatus_create
 	}
 }
 
+Thing_implement (LPCAndLineSpectralFrequenciesStatus, SampledIntoSampledStatus, 0);
+
+autoLPCAndLineSpectralFrequenciesStatus LPCAndLineSpectralFrequenciesStatus_create (integer numberOfFrames) {
+	try {
+		autoLPCAndLineSpectralFrequenciesStatus me = Thing_new (LPCAndLineSpectralFrequenciesStatus);
+		SampledIntoSampledStatus_init (me.get(), numberOfFrames);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create LPCAndLineSpectralFrequenciesStatus.");
+	}
+}
+
 /* End of file SampledIntoSampledStatus.cpp */	
