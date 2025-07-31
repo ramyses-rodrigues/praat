@@ -82,11 +82,11 @@ void structDataModeler :: v1_info () {
 	MelderInfo_writeLine (U"      Residual standard deviation: ", residualStdev);
 }
 
-inline long double scaleX_identity (DataModeler /* me */, double x) {
+inline longdouble scaleX_identity (DataModeler /* me */, double x) {
 	return x;
 }
 
-inline long double scaleX_centralize (DataModeler me, double x) {
+inline longdouble scaleX_centralize (DataModeler me, double x) {
 	/*
 		from interval [xmin, xmax] to interval [- (xmax + xmin)/2, + (xmax + xmin)/2]
 	*/
@@ -138,7 +138,7 @@ static void polynomial_evaluateDerivative (DataModeler me, double x, vector<stru
 	polynome_evaluateBasisFunctions (me, x, dydp);
 }
 
-long double legendre_scaleX (DataModeler me, double x) {
+longdouble legendre_scaleX (DataModeler me, double x) {
 	/*
 		Legendre functions are only defined on the domain [-1, 1]
 	*/

@@ -262,54 +262,6 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 	}
 }
 
-Thing_define (Sound_into_Pitch_Args, Thing) { public:
-	Sound sound;
-	Pitch pitch;
-	integer firstFrame, lastFrame;
-	double pitchFloor;
-	int maxnCandidates, method;
-	double voicingThreshold, octaveCost, dt_window;
-	integer nsamp_window, halfnsamp_window, maximumLag, nsampFFT, nsamp_period, halfnsamp_period, brent_ixmax, brent_depth;
-	double globalPeak;
-	VEC window, windowR;
-	bool isMainThread;
-	volatile int *cancelled;
-	autoNUMFourierTable fftTable;
-	autoMAT frame;
-	autoVEC ac, rbuffer, localMean;
-	double *r;
-	autoINTVEC imax;
-};
-
-Thing_implement (Sound_into_Pitch_Args, Thing, 0);
-
-static void Sound_into_Pitch (Sound_into_Pitch_Args me)
-{
-	for (integer iframe = my firstFrame; iframe <= my lastFrame; iframe ++) {
-		const Pitch_Frame pitchFrame = & my pitch -> frames [iframe];
-		const double t = Sampled_indexToX (my pitch, iframe);
-		if (my isMainThread) {
-			try {
-				Melder_progress (0.1 + 0.8 * (iframe - my firstFrame) / (my lastFrame - my firstFrame),
-					U"Sound to Pitch: analysing ", my lastFrame, U" frames");
-			} catch (MelderError) {
-				*my cancelled = 1;
-				throw;
-			}
-		} else if (*my cancelled) {
-			return;
-		}
-		Sound_into_PitchFrame (my sound, pitchFrame, t,
-			my pitchFloor, my maxnCandidates, my method, my voicingThreshold, my octaveCost,
-			my fftTable.get(), my dt_window, my nsamp_window, my halfnsamp_window,
-			my maximumLag, my nsampFFT, my nsamp_period, my halfnsamp_period,
-			my brent_ixmax, my brent_depth, my globalPeak,
-			my frame.get(), my ac.get(), my window, my windowR,
-			my r, my imax.get(), my localMean.get()
-		);
-	}
-}
-
 autoPitch Sound_to_Pitch_any (Sound me,
 	int method, double periodsPerWindow,
 	double dt, double pitchFloor, double pitchCeiling,
@@ -493,52 +445,70 @@ autoPitch Sound_to_Pitch_any (Sound me,
 		Melder_clip (1_integer, & numberOfThreads, 16_integer);
 		numberOfFramesPerThread = (numberOfFrames - 1) / numberOfThreads + 1;
 
-		autoSound_into_Pitch_Args args [16];
-		integer firstFrame = 1, lastFrame = numberOfFramesPerThread;
 		volatile int cancelled = 0;
-		for (int ithread = 1; ithread <= numberOfThreads; ithread ++) {
-			if (ithread == numberOfThreads)
-				lastFrame = numberOfFrames;
-			autoSound_into_Pitch_Args arg = Thing_new (Sound_into_Pitch_Args);
-			arg -> sound = me;
-			arg -> pitch = thee.get();
-			arg -> firstFrame = firstFrame;
-			arg -> lastFrame = lastFrame;
-			arg -> pitchFloor = pitchFloor;
-			arg -> maxnCandidates = maxnCandidates;
-			arg -> method = method;
-			arg -> voicingThreshold = voicingThreshold;
-			arg -> octaveCost = octaveCost;
-			arg -> dt_window = dt_window;
-			arg -> nsamp_window = nsamp_window;
-			arg -> halfnsamp_window = halfnsamp_window;
-			arg -> maximumLag = maximumLag;
-			arg -> nsampFFT = nsampFFT;
-			arg -> nsamp_period = nsamp_period;
-			arg -> halfnsamp_period = halfnsamp_period;
-			arg -> brent_ixmax = brent_ixmax;
-			arg -> brent_depth = brent_depth;
-			arg -> globalPeak = globalPeak;
-			arg -> window = window.get();
-			arg -> windowR = windowR.get();
-			arg -> isMainThread = ( ithread == numberOfThreads );
-			arg -> cancelled = & cancelled;
+		auto Sound_into_Pitch_lambda = [=, & cancelled, & thee, & window, & windowR] (int ithread, integer firstFrame, integer lastFrame) {
+			autoMAT frame;
+			autoNUMFourierTable fftTable;
+			autoVEC ac;
 			if (method >= FCC_NORMAL) {   // cross-correlation
-				arg -> frame = zero_MAT (my ny, nsamp_window);
+				frame = zero_MAT (my ny, nsamp_window);
 			} else {   // autocorrelation
-				arg -> fftTable = NUMFourierTable_create (nsampFFT);
-				arg -> frame = zero_MAT (my ny, nsampFFT);
-				arg -> ac = zero_VEC (nsampFFT);
+				fftTable = NUMFourierTable_create (nsampFFT);
+				frame = zero_MAT (my ny, nsampFFT);
+				ac = zero_VEC (nsampFFT);
 			}
-			arg -> rbuffer = zero_VEC (2 * nsamp_window + 1);
-			arg -> r = & arg -> rbuffer [1 + nsamp_window];
-			arg -> imax = zero_INTVEC (maxnCandidates);
-			arg -> localMean = zero_VEC (my ny);
-			args [ithread - 1] = std::move (arg);
-			firstFrame = lastFrame + 1;
-			lastFrame += numberOfFramesPerThread;
+			autoVEC rbuffer = zero_VEC (2 * nsamp_window + 1);
+			double *r = & rbuffer [1 + nsamp_window];
+			autoINTVEC imax = zero_INTVEC (maxnCandidates);
+			autoVEC localMean = zero_VEC (my ny);
+			for (integer iframe = firstFrame; iframe <= lastFrame; iframe ++) {
+				Pitch_Frame pitchFrame = & thy frames [iframe];
+				const double t = Sampled_indexToX (thee.get(), iframe);
+				if (ithread == numberOfThreads) {
+					try {
+						Melder_progress (0.1 + 0.8 * (iframe - firstFrame) / (lastFrame - firstFrame),
+							U"Sound to Pitch: analysing ", lastFrame, U" frames");
+					} catch (MelderError) {
+						cancelled = true;
+						throw;
+					}
+				} else if (cancelled) {
+					return;
+				}
+				Sound_into_PitchFrame (me, pitchFrame, t,
+					pitchFloor, maxnCandidates, method, voicingThreshold, octaveCost,
+					fftTable.get(), dt_window, nsamp_window, halfnsamp_window,
+					maximumLag, nsampFFT, nsamp_period, halfnsamp_period,
+					brent_ixmax, brent_depth, globalPeak,
+					frame.get(), ac.get(), window.get(), windowR.get(),
+					r, imax.get(), localMean.get()
+				);
+			}
+		};
+		uinteger unsignedNumberOfThreads = integer_to_uinteger_a (numberOfThreads);
+		if (unsignedNumberOfThreads == 1) {
+			Sound_into_Pitch_lambda (0, 1, numberOfFrames);
+		} else {
+			std::vector <std::thread> thread (unsignedNumberOfThreads);
+			try {
+				integer firstFrame = 1, lastFrame = numberOfFramesPerThread;
+				for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++) {
+					if (ithread == unsignedNumberOfThreads)
+						lastFrame = numberOfFrames;
+					thread [ithread - 1] = std::thread (Sound_into_Pitch_lambda, ithread, firstFrame, lastFrame);
+					firstFrame = lastFrame + 1;
+					lastFrame += numberOfFramesPerThread;
+				}
+				Sound_into_Pitch_lambda (unsignedNumberOfThreads, firstFrame, numberOfFrames);
+			} catch (MelderError) {
+				for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
+					if (thread [ithread - 1]. joinable ())
+						thread [ithread - 1]. join ();
+				throw;
+			}
+			for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
+				thread [ithread - 1]. join ();
 		}
-		MelderThread_run (Sound_into_Pitch, args, numberOfThreads);
 
 		Melder_progress (0.95, U"Sound to Pitch: path finder");
 		Pitch_pathFinder (thee.get(), silenceThreshold, voicingThreshold,

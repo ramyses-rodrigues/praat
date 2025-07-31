@@ -482,8 +482,8 @@ static bool workProc (void *closure) {
 			my samplesPlayed = my numberOfSamples;
 			return flush ();
   		} else {
-  			static integer previousTime = 0;
-  			uinteger currentTime = clock ();
+  			static double previousTime = 0.0;
+  			const double currentTime = Melder_clock ();
   			if (Melder_debug == 1) {
 				my samplesPlayed = (Melder_clock () - theStartingTime) * my sampleRate;
   			} else {
@@ -492,7 +492,7 @@ static bool workProc (void *closure) {
 	  			waveOutGetPosition (my hWaveOut, & mmtime, sizeof (MMTIME));
 				my samplesPlayed = mmtime. u.cb / (2 * my numberOfChannels);
 			}
-			if (/* Melder_debug != 4 || */ currentTime - previousTime > CLOCKS_PER_SEC / 100) {
+			if (/* Melder_debug != 4 || */ currentTime - previousTime > 0.01) {
 				previousTime = currentTime;
 				if (my callback && ! my callback (my closure, my samplesPlayed))
 					return flush ();

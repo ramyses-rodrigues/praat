@@ -111,7 +111,7 @@ bool structSoundFrameIntoLPCFrameAuto :: inputFrameToOutputFrame ()  {
 	lpcf -> gain = gain;
 	integer i = 1;
 	for (i = 2; i <= order; i ++) {
-		long double s = 0.0;
+		longdouble s = 0.0;
 		for (integer j = 1; j <= i; j ++)
 			s += r [i - j + 2] * a [j];
 		rc [i] = - s / gain;

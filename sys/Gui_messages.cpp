@@ -5,7 +5,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -190,13 +190,13 @@ static void _Melder_dia_init (GuiDialog *dia, GuiProgressBar *scale, GuiLabel *l
 }
 
 static void gui_progress (double progress, conststring32 message) {
-	static clock_t lastTime;
+	static double lastTime;
 	static GuiDialog dia = nullptr;
 	static GuiProgressBar scale = nullptr;
 	static GuiLabel label1 = nullptr, label2 = nullptr;
-	clock_t now = clock ();
+	const double now = Melder_clock ();
 	if (progress <= 0.0 || progress >= 1.0 ||
-		now - lastTime > CLOCKS_PER_SEC / 4)   // this time step must be much longer than the null-event waiting time
+		now - lastTime > 0.25)   // this time step must be much longer than the null-event waiting time
 	{
 		if (! dia)
 			_Melder_dia_init (& dia, & scale, & label1, & label2, & theProgressCancelButton, false);
@@ -215,15 +215,15 @@ static void gui_drawingarea_cb_expose (Thing /* boss */, GuiDrawingArea_ExposeEv
 }
 
 static void * gui_monitor (double progress, conststring32 message) {
-	static clock_t lastTime;
+	static double lastTime;
 	static GuiDialog dia = nullptr;
 	static GuiProgressBar scale = nullptr;
 	static GuiDrawingArea drawingArea = nullptr;
 	static GuiButton cancelButton = nullptr;
 	static GuiLabel label1 = nullptr, label2 = nullptr;
-	clock_t now = clock ();
+	const double now = Melder_clock ();
 	if (progress <= 0.0 || progress >= 1.0 ||
-		now - lastTime > CLOCKS_PER_SEC / 4)   // this time step must be much longer than the null-event waiting time
+		now - lastTime > 0.25)   // this time step must be much longer than the null-event waiting time
 	{
 		if (! dia) {
 			_Melder_dia_init (& dia, & scale, & label1, & label2, & cancelButton, true);
