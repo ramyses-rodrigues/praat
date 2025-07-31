@@ -187,8 +187,13 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);
 				workThreads. addItem_move (frameIntoFrameCopy.move());
 			}
-		
-			autovector<std::thread> threads = autovector<std::thread> (numberOfThreads, MelderArray::kInitializationType::ZERO);
+
+			/*
+				The following cannot be an `autovector`, because autovectors don't destroy their elements.
+				So it has to be std::vector.
+				Also, the default initialization of a std::thread my not be guaranteed to be all zeroes.
+			*/
+			std::vector<std::thread> threads (1+numberOfThreads);
 			integer numberOfThreadsInRun;
 			try {
 				const integer numberOfThreadRuns = Melder_iroundUp ((double) numberOfThreadsNeeded / numberOfThreads);
