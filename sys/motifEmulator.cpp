@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -121,8 +121,8 @@ static XtPointer theWorkProcClosures [10];
 static int theNumberOfTimeOuts;
 static XtTimerCallbackProc theTimeOutProcs [10];
 static XtPointer theTimeOutClosures [10];
-static clock_t theTimeOutStarts [10];
-static uinteger theTimeOutIntervals [10];
+static double theTimeOutStarts [10];
+static double theTimeOutIntervals [10];
 
 static void Native_move (GuiObject w, int dx, int dy);   // forward
 
@@ -1392,14 +1392,14 @@ void XtRemoveWorkProc (XtWorkProcId id) {
 	theNumberOfWorkProcs --;
 }
 
-XtIntervalId GuiAddTimeOut (uinteger interval, XtTimerCallbackProc proc, XtPointer closure) {
+XtIntervalId GuiAddTimeOut (double interval, XtTimerCallbackProc proc, XtPointer closure) {
 	integer i = 1;
 	while (i < 10 && theTimeOutProcs [i])
 		i ++;
 	Melder_assert (i < 10);
 	theTimeOutProcs [i] = proc;
-	theTimeOutStarts [i] = clock ();
-	theTimeOutIntervals [i] = (interval * (double) CLOCKS_PER_SEC) / 1000;
+	theTimeOutStarts [i] = Melder_clock ();
+	theTimeOutIntervals [i] = interval;
 	theTimeOutClosures [i] = closure;
 	theNumberOfTimeOuts ++;
 	return i;
@@ -2263,9 +2263,9 @@ static void processWorkProcsAndTimeOuts () {
 				if (theWorkProcs [i] (theWorkProcClosures [i]))
 					XtRemoveWorkProc (i);
 	if (theNumberOfTimeOuts != 0) {
-		clock_t now = clock ();
+		const double now = Melder_clock ();
 		for (integer i = 1; i < 10; i ++) if (theTimeOutProcs [i]) {
-			static volatile clock_t timeElapsed;   // careful: use 32-bit integers circularly; prevent optimization
+			static volatile double timeElapsed;
 			timeElapsed = now - theTimeOutStarts [i];
 			if (timeElapsed > theTimeOutIntervals [i]) {
 				theTimeOutProcs [i] (theTimeOutClosures [i], & i);

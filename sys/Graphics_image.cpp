@@ -42,7 +42,7 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me,
 	double minimum, double maximum,
 	integer clipx1, integer clipx2, integer clipy1, integer clipy2, bool interpolate)
 {
-	/*integer t=clock();*/
+	/*double t=Melder_clock();*/
 	integer nx = ix2 - ix1 + 1;   /* The number of cells along the horizontal axis. */
 	integer ny = iy2 - iy1 + 1;   /* The number of cells along the vertical axis. */
 	double dx = (double) (x2DC - x1DC) / (double) nx;   /* Horizontal pixels per cell. Positive. */
