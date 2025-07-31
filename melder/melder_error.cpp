@@ -1,10 +1,10 @@
 /* melder_error.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -17,6 +17,8 @@
  */
 
 #include "melder.h"
+
+/* global */ std::mutex theMelder_error_mutex;
 
 static void defaultErrorProc (conststring32 message) {
 	MelderConsole::write (str32str (message, U"You interrupted ") ? U"User interrupt: " : U"Error: ", true);
@@ -113,7 +115,6 @@ void Melder_flushError () {
 	}
 }
 
-#include <mutex>
 static std::mutex theMelder_crash_mutex;   // to guard against simultaneous crashes in multiple threads
 
 void Melder_fatal_ (const MelderArg& arg1,
