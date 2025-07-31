@@ -156,8 +156,6 @@ autoSoundFrameIntoLPCFrameCovar SoundFrameIntoLPCFrameCovar_create (constSound i
 	}
 }
 
-
-
 /*
 	Markel & Gray, Linear Prediction of Speech, page 221
 */
@@ -514,6 +512,27 @@ end:
 	return frameAnalysisInfo == 0 || frameAnalysisInfo == 4 || frameAnalysisInfo == 5;
 }
 
+/****************************** PLP (Hermansky) method *********************************************************/
+
+Thing_implement (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame, 0);
+
+autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input, mutableLPC output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
+	try {
+		autoSoundFrameIntoLPCFramePLP me = Thing_new (SoundFrameIntoLPCFramePLP);
+		SoundFrameIntoLPCFrame_init (me.get(), input, output, effectiveAnalysisWidth, windowShape);		// use 'a' instead of defining 'c'
+		
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameMarple.");
+	}
+}
+
+bool structSoundFrameIntoLPCFramePLP :: inputFrameToOutputFrame () {
+	
+	
+	return bool;
+}
+
 /*********************** robust method ******************************/
 
 Thing_implement (LPCAndSoundFramesIntoLPCFrameRobust, SoundFrameIntoLPCFrame, 0);
@@ -659,6 +678,7 @@ bool structSoundFrameIntoLPCFrameRobust :: inputFrameToOutputFrame () {
 void structSoundFrameIntoLPCFrameRobust :: saveOutputFrame () {
 	lpcAndSoundIntoLPC -> saveOutputFrame ();
 }
+
 autoSoundFrameIntoLPCFrameRobust SoundFrameIntoLPCFrameRobust_create (autoSoundFrameIntoLPCFrame soundIntoLPC, autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC)
 {
 	try {

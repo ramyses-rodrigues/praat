@@ -76,6 +76,16 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameBurg, SoundFrameIntoLPCFrame)
 oo_END_CLASS (SoundFrameIntoLPCFrameBurg)
 #undef ooSTRUCT
 
+#define ooSTRUCT SoundFrameIntoLPCFramePLP
+oo_DEFINE_CLASS (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame)
+	
+	#if oo_DECLARING
+		bool inputFrameToOutputFrame (void) override;
+	#endif
+		
+oo_END_CLASS (SoundFrameIntoLPCFramePLP)
+#undef ooSTRUCT
+
 #define ooSTRUCT SoundFrameIntoLPCFrameMarple
 oo_DEFINE_CLASS (SoundFrameIntoLPCFrameMarple, SoundFrameIntoLPCFrame)
 	oo_DOUBLE (tol2)
