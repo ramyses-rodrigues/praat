@@ -437,16 +437,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		integer numberOfFramesPerThread = 20;
-		integer numberOfThreads = (numberOfFrames - 1) / numberOfFramesPerThread + 1;
-		const integer numberOfProcessors = MelderThread_getNumberOfProcessors ();
-		trace (numberOfProcessors, U" processors");
-		Melder_clipRight (& numberOfThreads, numberOfProcessors);
-		Melder_clip (1_integer, & numberOfThreads, 16_integer);
-		numberOfFramesPerThread = (numberOfFrames - 1) / numberOfThreads + 1;
-
-		volatile int cancelled = 0;
-		auto Sound_into_Pitch_lambda = [=, & cancelled, & thee, & window, & windowR] (int ithread, integer firstFrame, integer lastFrame) {
+		MelderThread_BEGIN (numberOfFrames, 20, false, /* integer */ firstFrame, /* integer */ lastFrame) {
 			autoMAT frame;
 			autoNUMFourierTable fftTable;
 			autoVEC ac;
@@ -462,18 +453,15 @@ autoPitch Sound_to_Pitch_any (Sound me,
 			autoINTVEC imax = zero_INTVEC (maxnCandidates);
 			autoVEC localMean = zero_VEC (my ny);
 			for (integer iframe = firstFrame; iframe <= lastFrame; iframe ++) {
+				MelderThread_OPPORTUNITY_TO_BAIL_OUT
 				Pitch_Frame pitchFrame = & thy frames [iframe];
 				const double t = Sampled_indexToX (thee.get(), iframe);
-				if (ithread == numberOfThreads) {
-					try {
-						Melder_progress (0.1 + 0.8 * (iframe - firstFrame) / (lastFrame - firstFrame),
-							U"Sound to Pitch: analysing ", lastFrame, U" frames");
-					} catch (MelderError) {
-						cancelled = true;
-						throw;
-					}
-				} else if (cancelled) {
-					return;
+				if (MelderThread_CURRENT == MelderThread_MASTER) {
+					const double estimatedFractionAnalysed = 1.0 * (iframe - firstFrame) / (lastFrame - firstFrame);
+					Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
+						U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+						U" out of ", numberOfFrames, U" frames"
+					);
 				}
 				Sound_into_PitchFrame (me, pitchFrame, t,
 					pitchFloor, maxnCandidates, method, voicingThreshold, octaveCost,
@@ -484,31 +472,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 					r, imax.get(), localMean.get()
 				);
 			}
-		};
-		uinteger unsignedNumberOfThreads = integer_to_uinteger_a (numberOfThreads);
-		if (unsignedNumberOfThreads == 1) {
-			Sound_into_Pitch_lambda (0, 1, numberOfFrames);
-		} else {
-			std::vector <std::thread> thread (unsignedNumberOfThreads);
-			try {
-				integer firstFrame = 1, lastFrame = numberOfFramesPerThread;
-				for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++) {
-					if (ithread == unsignedNumberOfThreads)
-						lastFrame = numberOfFrames;
-					thread [ithread - 1] = std::thread (Sound_into_Pitch_lambda, ithread, firstFrame, lastFrame);
-					firstFrame = lastFrame + 1;
-					lastFrame += numberOfFramesPerThread;
-				}
-				Sound_into_Pitch_lambda (unsignedNumberOfThreads, firstFrame, numberOfFrames);
-			} catch (MelderError) {
-				for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
-					if (thread [ithread - 1]. joinable ())
-						thread [ithread - 1]. join ();
-				throw;
-			}
-			for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
-				thread [ithread - 1]. join ();
-		}
+		} MelderThread_END
 
 		Melder_progress (0.95, U"Sound to Pitch: path finder");
 		Pitch_pathFinder (thee.get(), silenceThreshold, voicingThreshold,
