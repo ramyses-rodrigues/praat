@@ -2,11 +2,11 @@
 #define _melder_error_h_
 /* melder_error.h
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2021,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -22,6 +22,7 @@ class MelderError {
 public:
 	static void _append (conststring32 message);
 };
+extern std::mutex theMelder_error_mutex;
 
 void Melder_appendError_noLine (const MelderArg& arg1);
 
@@ -54,6 +55,7 @@ void _recursiveTemplate_Melder_appendError (const MelderArg& first, Args... rest
 
 template <typename... Args>
 void Melder_appendError (const MelderArg& first, Args... rest) {
+	std::lock_guard lock (theMelder_error_mutex);
 	_recursiveTemplate_Melder_appendError (first, rest...);
 	MelderError::_append (U"\n");
 }
