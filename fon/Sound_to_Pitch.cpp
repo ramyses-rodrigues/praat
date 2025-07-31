@@ -437,7 +437,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		MelderThread_BEGIN (numberOfFrames, 20, false, firstFrame, lastFrame)
+		MelderThread_BEGIN (numberOfFrames, 20, false, /* integer */ firstFrame, /* integer */ lastFrame) {
 			autoMAT frame;
 			autoNUMFourierTable fftTable;
 			autoVEC ac;
@@ -472,7 +472,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 					r, imax.get(), localMean.get()
 				);
 			}
-		MelderThread_END
+		} MelderThread_END
 
 		Melder_progress (0.95, U"Sound to Pitch: path finder");
 		Pitch_pathFinder (thee.get(), silenceThreshold, voicingThreshold,

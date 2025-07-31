@@ -233,7 +233,7 @@ void NUMrandom_initializeSafelyAndUnpredictably () {
 }
 void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed) {
 	for (int threadNumber = 0; threadNumber < theNumberOfRandomGenerators; threadNumber ++)
-		seed = states [threadNumber]. init_genrand64 (seed);
+		seed = states [threadNumber]. init_genrand64 (seed + (uint64) threadNumber);
 	theInited = true;
 }
 
