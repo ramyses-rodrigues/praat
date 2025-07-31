@@ -38,7 +38,7 @@ integer MelderThread_computeNumberOfThreads (
 	const integer _numberOfThreads_ = MelderThread_computeNumberOfThreads (_numberOfElements_, thresholdNumberOfElementsPerThread, useRandom);  \
 	std::atomic <bool> _thrown_ = false;  \
 	/* We hand all local variables over to the thread lambda by reference, */  \
-	/* because many variables (namely those that have to change, such as `_lambdaHasThrown_`, */  \
+	/* because many variables (namely those that have to change, such as `_thrown_`, */  \
 	/* and those whose copy constructor has been deleted, such as our autoPitch `thee` and our autoVECs `window` and `windowR`) */  \
 	/* cannot be copied into the lambda. */  \
 	auto _lambda_ = [&] (integer _ithread_, integer firstElement, integer lastElement) {  \
@@ -54,27 +54,27 @@ integer MelderThread_computeNumberOfThreads (
 		_lambda_ (MelderThread_MASTER, 1, _numberOfElements_);  \
 	} else {  \
 		const integer _numberOfExtraThreads = _numberOfThreads_ - 1;   /* At least 1. */  \
-		std::vector <std::thread> thread { uinteger (_numberOfExtraThreads) };   /* Safe cast. */  \
+		std::vector <std::thread> _spawns { uinteger (_numberOfExtraThreads) };   /* Safe cast. */  \
 		const integer _base = _numberOfElements_ / _numberOfThreads_;  \
 		const integer _remainder = _numberOfElements_ % _numberOfThreads_;  \
 		integer _firstElement = 1;  \
 		try {  \
 			for (integer _ispawn1 = 1; _ispawn1 <= _numberOfExtraThreads; _ispawn1 ++) {   /* _ispawn1 is base-1 */  \
 				const integer _lastElement = _firstElement + _base - 1 + ( _ispawn1 <= _remainder );  \
-				thread [uinteger (_ispawn1 - 1)] = std::thread (_lambda_, _ispawn1, _firstElement, _lastElement);  \
+				_spawns [uinteger (_ispawn1 - 1)] = std::thread (_lambda_, _ispawn1, _firstElement, _lastElement);  \
 				_firstElement = _lastElement + 1;  \
 			}  \
 		} catch (...) {  \
 			_thrown_ = true;   /* Try to stop any threads that were already spawned. */  \
-			for (size_t _ispawn0 = 0; _ispawn0 < _numberOfExtraThreads; _ispawn0 ++)   /* _ispawn0 is base-0 */  \
-				if (thread [_ispawn0]. joinable ())   /* Any extra thread already spawned. */  \
-					thread [_ispawn0]. join ();   /* Wait for the spawned thread to finish, hopefully soon. */  \
+			for (size_t _ispawn0 = 0; _ispawn0 < _spawns.size(); _ispawn0 ++)   /* _ispawn0 is base-0 */  \
+				if (_spawns [_ispawn0]. joinable ())   /* Any extra thread already spawned. */  \
+					_spawns [_ispawn0]. join ();   /* Wait for the spawned thread to finish, hopefully soon. */  \
 			Melder_throw (U"Couldn't start a thread. Contact the author.");  \
 		}  \
 		Melder_assert (_firstElement + _base - 1 == _numberOfElements_);  \
 		_lambda_ (MelderThread_MASTER, _firstElement, _numberOfElements_);  \
-		for (size_t _ispawn0 = 0; _ispawn0 < _numberOfExtraThreads; _ispawn0 ++)   /* _ispawn0 is base-0 */  \
-			thread [_ispawn0]. join ();  \
+		for (size_t _ispawn0 = 0; _ispawn0 < _spawns.size(); _ispawn0 ++)   /* _ispawn0 is base-0 */  \
+			_spawns [_ispawn0]. join ();  \
 	}  \
 	if (_thrown_)  \
 		throw MelderError();  \
