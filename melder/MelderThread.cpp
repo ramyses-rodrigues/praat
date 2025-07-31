@@ -1,8 +1,6 @@
-#ifndef _MelderThread_h_
-#define _MelderThread_h_
-/* MelderThread.h
+/* MelderThread.cpp
  *
- * Copyright (C) 2014-2018,2020,2025 Paul Boersma
+ * Copyright (C) 2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,34 +16,20 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vector>
-#include "Thing.h"
-#include <thread>
+#include "MelderThread.h"
 
-inline integer MelderThread_getNumberOfProcessors () {
-	return Melder_clippedLeft (1_integer, uinteger_to_integer_a (std::thread::hardware_concurrency ()));
+integer MelderThread_computeNumberOfThreads (
+	const integer numberOfElements,
+	const integer thresholdNumberOfElementsPerThread,
+	const bool useRandom)
+{
+	/* mutable clip */ integer numberOfThreads = numberOfElements / thresholdNumberOfElementsPerThread;   // round down
+	Melder_clipRight (& numberOfThreads, MelderThread_getNumberOfProcessors ());
+	if (useRandom)
+		Melder_clipRight (& numberOfThreads, NUMrandom_maximumNumberOfParallelThreads);
+	Melder_clipLeft (1_integer, & numberOfThreads);
+	return numberOfThreads;
 }
 
-template <class T> void MelderThread_run (void (*func) (T *), autoSomeThing <T> *args, integer numberOfThreads) {
-	uinteger unsignedNumberOfThreads = integer_to_uinteger_a (numberOfThreads);
-	if (unsignedNumberOfThreads == 1) {
-		func (args [0].get());
-	} else {
-		std::vector <std::thread> thread (unsignedNumberOfThreads);
-		try {
-			for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
-				thread [ithread - 1] = std::thread (func, args [ithread - 1].get());
-			func (args [unsignedNumberOfThreads - 1].get());
-		} catch (MelderError) {
-			for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
-				if (thread [ithread - 1]. joinable ())
-					thread [ithread - 1]. join ();
-			throw;
-		}
-		for (uinteger ithread = 1; ithread < unsignedNumberOfThreads; ithread ++)
-			thread [ithread - 1]. join ();
-	}
-}
 
-/* End of file MelderThread.h */
-#endif
+/* End of file MelderThread.cpp */
