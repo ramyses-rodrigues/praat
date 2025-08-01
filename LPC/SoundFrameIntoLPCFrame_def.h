@@ -78,7 +78,10 @@ oo_END_CLASS (SoundFrameIntoLPCFrameBurg)
 
 #define ooSTRUCT SoundFrameIntoLPCFramePLP
 oo_DEFINE_CLASS (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame)
-	
+	oo_INTEGER (numberOfFourierSamples)
+	oo_VEC (fftData, numberOfFourierSamples)
+	oo_OBJECT (NUMFourierTable, 0, fourierTable) // data for forward & back have equal dimensions!!
+
 	#if oo_DECLARING
 		bool inputFrameToOutputFrame (void) override;
 	#endif

@@ -516,6 +516,44 @@ end:
 
 Thing_implement (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame, 0);
 
+static void hzIntoBarks (double f1, double df, VEC const& barks) {
+	for (integer i = 1; i <= barks.size; i ++) {
+		const double f600 = (f1 + (i - 1) * df) / 600.0;
+		barks [i] = 6.0 * log (f600 + sqrt (1 + f600 * f600));
+	}
+}
+
+static void barkIntoHz (double b1, double db, VEC const& hertz) {
+	for (integer i = 1; i <= hertz.size; i ++) {
+		const double bark6 = (b1 + (i - 1) * db) / 6.0;
+		hertz [i] = 600.0 * sinh (bark6);
+	}
+}
+
+bool structSoundFrameIntoLPCFramePLP :: inputFrameToOutputFrame () {
+	/*
+		Step 1: power spectral analysis
+	 */
+	fftData.part (1, soundFrameSize)  <<=  soundFrame;
+	if (numberOfFourierSamples > soundFrameSize)
+		fftData.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
+	NUMfft_forward (fourierTable.get(), fftData.get());
+	for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
+		fftData [i] *= sound -> dx;
+	power [1] = fftData [1] * fftData [1];
+	for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
+		const double re = fftData [2 * i], im = fftData [2 * i + 1];
+		power [i + 1] = re * re + im * im;
+	}
+	fftData [numberOfFourierSamples / 2 + 1] = fftData [numberOfFourierSamples] * fftData [numberOfFourierSamples];
+	/*
+		Step 2:
+	 */
+
+
+	return true;
+}
+
 autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input, mutableLPC output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
 	try {
 		autoSoundFrameIntoLPCFramePLP me = Thing_new (SoundFrameIntoLPCFramePLP);
@@ -525,12 +563,6 @@ autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input
 	} catch (MelderError) {
 		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameMarple.");
 	}
-}
-
-bool structSoundFrameIntoLPCFramePLP :: inputFrameToOutputFrame () {
-	
-	
-	return bool;
 }
 
 /*********************** robust method ******************************/
