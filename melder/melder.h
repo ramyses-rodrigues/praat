@@ -33,6 +33,7 @@
 #include <new>   // placement new
 #include <algorithm>   // std::min
 #include <limits>   // std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()
+#include <thread>
 
 /*
 	Law of Demeter for class functions defined outside class definition.

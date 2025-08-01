@@ -18,6 +18,8 @@
 
 #include "MelderThread.h"
 
+/* global */ std::thread::id theMelder_error_threadId;
+
 integer MelderThread_computeNumberOfThreads (
 	const integer numberOfElements,
 	const integer thresholdNumberOfElementsPerThread,

@@ -76,8 +76,10 @@ integer MelderThread_computeNumberOfThreads (
 		for (size_t _ispawn0 = 0; _ispawn0 < _spawns.size(); _ispawn0 ++)   /* _ispawn0 is base-0 */  \
 			_spawns [_ispawn0]. join ();  \
 	}  \
-	if (_thrown_)  \
+	if (_thrown_) {  \
+		theMelder_error_threadId = std::this_thread::get_id ();  \
 		throw MelderError();  \
+	}  \
 }
 
 /*
