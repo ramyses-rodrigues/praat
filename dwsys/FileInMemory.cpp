@@ -1215,7 +1215,7 @@ static void testOneFile (
 	}
 }
 
-void test_FileInMemory_io (void) {
+void test_FileInMemory_io () {
 	try {
 		/*
 			Clean up the rubbish left over from any previous failed call.

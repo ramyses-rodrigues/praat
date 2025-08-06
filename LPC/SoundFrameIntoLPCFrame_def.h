@@ -60,7 +60,8 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameCovar, SoundFrameIntoLPCFrame)
 	oo_VEC (cc, orderp1)
 	
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
 	#endif
 		
 oo_END_CLASS (SoundFrameIntoLPCFrameCovar)
@@ -73,7 +74,8 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameBurg, SoundFrameIntoLPCFrame)
 	oo_VEC (aa, order)
 	
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
 	#endif
 		
 oo_END_CLASS (SoundFrameIntoLPCFrameBurg)
@@ -87,7 +89,8 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameMarple, SoundFrameIntoLPCFrame)
 	oo_VEC (r, orderp1)
 	
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
 	#endif
 		
 oo_END_CLASS (SoundFrameIntoLPCFrameMarple)
@@ -121,7 +124,8 @@ oo_DEFINE_CLASS (LPCAndSoundFramesIntoLPCFrameRobust, SoundFrameIntoLPCFrame)
 	oo_VEC (huberwork, soundFrameSize)
 	
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
 	#endif
 
 oo_END_CLASS (LPCAndSoundFramesIntoLPCFrameRobust)
@@ -134,8 +138,10 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame)
 	oo_OBJECT (LPCAndSoundFramesIntoLPCFrameRobust, 0, lpcAndSoundIntoLPC)
 
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
-		void saveOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
+		void saveOutputFrame ()
+			override;
 	#endif
 
 oo_END_CLASS (SoundFrameIntoLPCFrameRobust)

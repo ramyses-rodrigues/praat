@@ -29,11 +29,10 @@ oo_DEFINE_CLASS (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame)
 	oo_VEC (windowFunction, soundFrameSize)		// the actual window used
 
 	#if oo_DECLARING
-	
-		VEC soundFrame; // the sound samples to analyse TODO row from oo_MAT for multi channel
-		void getInputFrame (void) override;
+		VEC soundFrame;   // the sound samples to analyse TODO row from oo_MAT for multi channel
+		void getInputFrame ()
+			override;
 		integer (*getSoundFrameSize) (double approximatePhysicalAnalysisWidth, double samplingPeriod);
-
 	#endif
 		
 	#if oo_COPYING

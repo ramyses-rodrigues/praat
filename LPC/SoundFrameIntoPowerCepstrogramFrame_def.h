@@ -25,11 +25,10 @@ oo_DEFINE_CLASS (SoundFrameIntoPowerCepstrogramFrame, SoundFrameIntoMatrixFrame)
 	oo_OBJECT (NUMFourierTable, 0, fourierTable) // data for forward & back have equal dimensions!!
 	oo_OBJECT (PowerCepstrum, 0, powercepstrum)
 	#if oo_DECLARING
-
-		bool inputFrameToOutputFrame (void) override;
-		
-		void saveOutputFrame (void) override;
-		
+		bool inputFrameToOutputFrame ()
+			override;
+		void saveOutputFrame ()
+			override;
 	#endif
 
 oo_END_CLASS (SoundFrameIntoPowerCepstrogramFrame)

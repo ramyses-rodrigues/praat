@@ -23,7 +23,7 @@ oo_DEFINE_CLASS (LPCFrameIntoSampledFrame, SampledFrameIntoSampledFrame)
 	oo_INTEGER (order) // for conveniance inputLPC -> maxnCoefficients
 
 	#if oo_DECLARING
-		void saveLocalOutputFrames (void)
+		void saveLocalOutputFrames ()
 			override { };
 	#endif
 
