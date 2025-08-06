@@ -56,7 +56,7 @@ void structSoundFrameIntoMatrixFrame :: allocateMemoryAfterThreadsAreKnown () {
 	localOutput = zero_MAT (matrix -> ny, maximumNumberOfFrames);
 }
 
-void structSoundFrameIntoMatrixFrame :: saveLocalOutputFrames (void) {
+void structSoundFrameIntoMatrixFrame :: saveLocalOutputFrames () {
 	Melder_assert (localOutput.ncol == maximumNumberOfFrames);
 	Melder_assert (localOutput.nrow == matrix -> ny);
 	integer outputcol = startFrame;

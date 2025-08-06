@@ -23,12 +23,16 @@ oo_DEFINE_CLASS (SoundFrameIntoFormantFrame, SoundFrameIntoSampledFrame)
 	oo_OBJECT (LPCFrameIntoFormantFrame, 0, lpcIntoFormant)
 
 	#if oo_DECLARING
-
-		void getInputFrame (void) override;
-		void allocateOutputFrames (void) override;
-		bool inputFrameToOutputFrame (void) override;
-		void saveOutputFrame (void) override;
-		void saveLocalOutputFrames (void) {};
+		void getInputFrame (void)
+			override;
+		void allocateOutputFrames (void)
+			override;
+		bool inputFrameToOutputFrame (void)
+			override;
+		void saveOutputFrame (void)
+			override;
+		void saveLocalOutputFrames (void)
+			override { };
 	#endif
 
 oo_END_CLASS (SoundFrameIntoFormantFrame)

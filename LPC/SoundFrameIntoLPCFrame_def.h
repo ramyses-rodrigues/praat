@@ -26,11 +26,14 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame)
 	oo_VEC (a, orderp1)		// common work vector
 
 	#if oo_DECLARING
-	
-		void allocateOutputFrames (void) override;
-		bool inputFrameToOutputFrame (void) override;
-		void saveOutputFrame (void) override;
-		void saveLocalOutputFrames (void) {};
+		void allocateOutputFrames (void)
+			override;
+		bool inputFrameToOutputFrame (void)
+			override;
+		void saveOutputFrame (void)
+			override;
+		void saveLocalOutputFrames (void)
+			override { };
 	#endif
 
 oo_END_CLASS (SoundFrameIntoLPCFrame)

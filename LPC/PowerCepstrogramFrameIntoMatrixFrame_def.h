@@ -29,15 +29,14 @@ oo_DEFINE_CLASS (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoMatrixFra
 	oo_BOOLEAN (trendSubtracted) // TODO ?? needed
 	
 	#if oo_DECLARING
-
-		void getInputFrame () override;
-
-		bool inputFrameToOutputFrame (void) override;
-		
-		void saveOutputFrame () override;
-
-		void saveLocalOutputFrames (void) override;
-
+		void getInputFrame ()
+			override;
+		bool inputFrameToOutputFrame (void)
+			override;
+		void saveOutputFrame ()
+			override;
+		void saveLocalOutputFrames (void)
+			override;
 	#endif
 oo_END_CLASS (PowerCepstrogramFrameIntoMatrixFrame)
 #undef ooSTRUCT

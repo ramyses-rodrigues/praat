@@ -28,12 +28,16 @@ oo_DEFINE_CLASS (LPCFrameIntoFormantFrame, LPCFrameIntoSampledFrame)
 	oo_VEC (buffer, bufferSize)
 	
 	#if oo_DECLARING
-	
-		void getInputFrame (void) override;
-		void allocateOutputFrames (void) override;
-		bool inputFrameToOutputFrame (void) override;
-		void saveOutputFrame (void) override;
-		void saveLocalOutputFrames (void) {};
+		void getInputFrame (void)
+			override;
+		void allocateOutputFrames (void)
+			override;
+		bool inputFrameToOutputFrame (void)
+			override;
+		void saveOutputFrame (void)
+			override;
+		void saveLocalOutputFrames (void)
+			override { };
 	#endif
 
 oo_END_CLASS (LPCFrameIntoFormantFrame)
