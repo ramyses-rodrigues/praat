@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -28,12 +28,16 @@ oo_DEFINE_CLASS (LPCFrameIntoFormantFrame, LPCFrameIntoSampledFrame)
 	oo_VEC (buffer, bufferSize)
 	
 	#if oo_DECLARING
-	
-		void getInputFrame (void) override;
-		void allocateOutputFrames (void) override;
-		bool inputFrameToOutputFrame (void) override;
-		void saveOutputFrame (void) override;
-		void saveLocalOutputFrames (void) {};
+		void getInputFrame ()
+			override;
+		void allocateOutputFrames ()
+			override;
+		bool inputFrameToOutputFrame ()
+			override;
+		void saveOutputFrame ()
+			override;
+		void saveLocalOutputFrames ()
+			override { };
 	#endif
 
 oo_END_CLASS (LPCFrameIntoFormantFrame)

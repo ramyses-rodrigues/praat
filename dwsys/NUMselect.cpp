@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -19,7 +19,7 @@
 #include "NUMselect.h"
 #include "Permutation.h"
 
-void timeMedian (void) {
+void timeMedian () {
     try {
         Melder_clearInfo ();
         autoINTVEC numberOfElements {11_integer, 101_integer, 1001_integer, 10001_integer, 100001_integer};

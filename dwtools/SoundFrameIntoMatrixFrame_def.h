@@ -23,13 +23,12 @@ oo_DEFINE_CLASS (SoundFrameIntoMatrixFrame, SoundFrameIntoSampledFrame)
 	oo_MAT (localOutput, matrix -> ny, maximumNumberOfFrames)
 	
 	#if oo_DECLARING
-
-		void allocateOutputFrames (void) override;  // allocates the localOutput matrix
-		
-		void saveLocalOutputFrames (void) override;
-		
-		void allocateMemoryAfterThreadsAreKnown () override;
-
+		void allocateOutputFrames ()
+			override;  // allocates the localOutput matrix
+		void saveLocalOutputFrames ()
+			override;
+		void allocateMemoryAfterThreadsAreKnown ()
+			override;
 	#endif
 		
 oo_END_CLASS (SoundFrameIntoMatrixFrame)
