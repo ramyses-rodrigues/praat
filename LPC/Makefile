@@ -1,5 +1,5 @@
 # Makefile of the library "LPC"
-# David Weenink and Paul Boersma, 29 July 2025
+# David Weenink and Paul Boersma, 7 August 2025
 
 include ../makefile.defs
 
@@ -12,7 +12,7 @@ OBJECTS = Cepstrum.o Cepstrumc.o Cepstrum_and_Spectrum.o \
 	FormantModeler.o FormantModelerList.o \
 	FormantPath.o FormantPath_to_IntervalTier.o FormantPathArea.o FormantPathEditor.o \
 	LineSpectralFrequencies.o \
-	LPCFrameIntoSampledFrame.o LPCFrameIntoFormantFrame.o LPCFrameAndLineSpectralFrequenciesFrame.cpp \
+	LPCFrameIntoSampledFrame.o LPCFrameIntoFormantFrame.o LPCFrameAndLineSpectralFrequenciesFrame.o \
 	LPC.o \
 	LPC_and_Formant.o LPC_and_Cepstrumc.o \
 	LPC_and_LFCC.o \
