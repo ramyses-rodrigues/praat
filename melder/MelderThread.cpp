@@ -25,7 +25,8 @@ integer MelderThread_computeNumberOfThreads (
 	const integer thresholdNumberOfElementsPerThread,
 	const bool useRandom)
 {
-	/* mutable clip */ integer numberOfThreads = numberOfElements / thresholdNumberOfElementsPerThread;   // round down
+	/* mutable clip */ integer numberOfThreads = Melder_iroundDown ((double) numberOfElements / thresholdNumberOfElementsPerThread);
+			// round down, assuming that the first spawned thread is the costiest
 	Melder_clipRight (& numberOfThreads, MelderThread_getNumberOfProcessors ());
 	if (useRandom)
 		Melder_clipRight (& numberOfThreads, NUMrandom_maximumNumberOfParallelThreads);

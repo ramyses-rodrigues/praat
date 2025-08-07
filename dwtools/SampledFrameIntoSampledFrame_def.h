@@ -42,21 +42,13 @@ oo_DEFINE_CLASS (SampledFrameIntoSampledFrame, Daata)
 	oo_DOUBLE (tol1)
 
 	#if oo_DECLARING
-
-		virtual void getInputFrame (void);
-
-		virtual bool inputFrameToOutputFrame (void); // the analysis, also sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
-
-		virtual void saveOutputFrame (void);
-
+		virtual void getInputFrame ();
+		virtual bool inputFrameToOutputFrame ();   // the analysis, also sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
+		virtual void saveOutputFrame ();
 		virtual void inputFramesToOutputFrames (integer fromFrame, integer toFrame); // sets 'currentFrame'
-
-		virtual void allocateOutputFrames (void);
-		
+		virtual void allocateOutputFrames ();
 		virtual void allocateMemoryAfterThreadsAreKnown ();
-		
-		virtual void saveLocalOutputFrames (void) {};
-
+		virtual void saveLocalOutputFrames () { };
 	#endif
 
 oo_END_CLASS (SampledFrameIntoSampledFrame)

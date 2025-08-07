@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but
@@ -27,12 +27,12 @@ oo_DEFINE_CLASS (LPCFrameIntoLineSpectralFrequenciesFrame, LPCFrameIntoSampledFr
 	oo_OBJECT (Polynomial, 0, gdif)
 	oo_OBJECT (Roots, 0, roots)
 	oo_DOUBLE (gridSize)
-	#if oo_DECLARING
-	
-		bool inputFrameToOutputFrame (void) override ; // the analysis, also sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
 
-		void allocateOutputFrames (void) override;
-		
+	#if oo_DECLARING
+		bool inputFrameToOutputFrame ()
+			override ; // the analysis, also sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
+		void allocateOutputFrames ()
+			override;
 	#endif
 
 oo_END_CLASS (LPCFrameIntoLineSpectralFrequenciesFrame)
@@ -45,12 +45,12 @@ oo_DEFINE_CLASS (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampl
 	oo_UNSAFE_BORROWED_TRANSIENT_MUTABLE_OBJECT_REFERENCE (LPC, outputLPC)
 	oo_OBJECT (Polynomial, 0, fs)
 	oo_OBJECT (Polynomial, 0, fa)
-	#if oo_DECLARING
-	
-		bool inputFrameToOutputFrame (void) override ; // the analysis, sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
 
-		void allocateOutputFrames (void) override;
-		
+	#if oo_DECLARING
+		bool inputFrameToOutputFrame ()
+			override;   // the analysis, sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
+		void allocateOutputFrames ()
+			override;
 	#endif
 
 oo_END_CLASS (LineSpectralFrequenciesFrameIntoLPCFrame)

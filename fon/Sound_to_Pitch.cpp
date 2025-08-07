@@ -437,7 +437,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		MelderThread_BEGIN (numberOfFrames, 20, false, /* integer */ firstFrame, /* integer */ lastFrame) {
+		MelderThread_BEGIN (numberOfFrames, 5, false, /* integer */ firstFrame, /* integer */ lastFrame) {
 			autoMAT frame;
 			autoNUMFourierTable fftTable;
 			autoVEC ac;
@@ -457,7 +457,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 				Pitch_Frame pitchFrame = & thy frames [iframe];
 				const double t = Sampled_indexToX (thee.get(), iframe);
 				if (MelderThread_CURRENT == MelderThread_MASTER) {
-					const double estimatedFractionAnalysed = 1.0 * (iframe - firstFrame) / (lastFrame - firstFrame);
+					const double estimatedFractionAnalysed = (iframe - firstFrame + 0.5) / (lastFrame - firstFrame + 1.0);
 					Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
 						U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
 						U" out of ", numberOfFrames, U" frames"
