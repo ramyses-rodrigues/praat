@@ -21,6 +21,7 @@
 #include "melder.h"
 #include <vector>
 #include <thread>
+#include <atomic>
 
 inline integer MelderThread_getNumberOfProcessors () {
 	return Melder_clippedLeft (1_integer, uinteger_to_integer_a (std::thread::hardware_concurrency ()));
