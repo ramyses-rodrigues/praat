@@ -93,6 +93,13 @@ conststring32 Melder_getError () {
 }
 
 void Melder_appendError_noLine (const MelderArg& arg) {
+	std::lock_guard lock (theMelder_error_mutex);
+	if (Melder_hasError ()) {
+		if (Melder_thisThread_getUniqueID () != theMelder_error_threadId)
+			return;
+	} else {
+		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
+	}
 	MelderError::_append (arg._arg);
 }
 
