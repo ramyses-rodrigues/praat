@@ -33,7 +33,7 @@
 #include <new>   // placement new
 #include <algorithm>   // std::min
 #include <limits>   // std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()
-#include <thread>
+#include <atomic>   // std::atomic<integer>
 
 /*
 	Law of Demeter for class functions defined outside class definition.
@@ -83,6 +83,7 @@
 
 #include "MelderArg.h"   // MelderArg (requires Melder_double, MelderFile, Melder_VEC)
 #include "MelderString.h"   // MelderString_append (requires MelderArg)
+#include "MelderThread.h"   // Melder_thisThread_getUniqueID
 #include "melder_textencoding.h"   // Melder_length_utf8, Melder_32to8 (requires MelderString)
 #include "melder_debug.h"   // trace (requires MelderFile, MelderArg, MelderString), Melder_debug
 #include "MelderFile.h"   // MelderFile_open (requires MelderFile), MelderFile_write (requires MelderArg)

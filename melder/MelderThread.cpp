@@ -16,14 +16,22 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MelderThread.h"
+#include "melder.h"
 
 integer MelderThread_getNumberOfProcessors () {
 	//return 1;   // un-comment-out to force single-threading
 	return Melder_clippedLeft (1_integer, uinteger_to_integer_a (std::thread::hardware_concurrency ()));
 }
 
-/* global */ std::thread::id theMelder_error_threadId;
+/* global */ std::atomic <integer> theMelder_error_threadId;
+
+integer Melder_thisThread_getUniqueID () {
+	static std::atomic <integer> uniqueID = 0;
+	static thread_local integer thisThread_uniqueID = uniqueID ++;
+	//TRACE
+	trace (thisThread_uniqueID);
+	return thisThread_uniqueID;
+}
 
 integer MelderThread_computeNumberOfThreads (
 	const integer numberOfElements,
@@ -90,7 +98,7 @@ void MelderThread_run (
 			spawns [ispawn0]. join ();
 	}
 	if (*p_errorFlag) {
-		theMelder_error_threadId = std::this_thread::get_id ();   // TODO: make this truly unique
+		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 		throw MelderError();   // turn the error flag back into a MelderError
 	}
 }

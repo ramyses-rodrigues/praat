@@ -23,7 +23,7 @@ public:
 	static void _append (conststring32 message);
 };
 extern std::mutex theMelder_error_mutex;
-extern std::thread::id theMelder_error_threadId;
+extern std::atomic <integer> theMelder_error_threadId;
 
 bool Melder_hasError ();
 bool Melder_hasError (conststring32 partialError);
@@ -70,10 +70,10 @@ template <typename... Args>
 void Melder_appendError (const MelderArg& first, Args... rest) {
 	std::lock_guard lock (theMelder_error_mutex);
 	if (Melder_hasError ()) {
-		if (std::this_thread::get_id () != theMelder_error_threadId)
+		if (Melder_thisThread_getUniqueID () != theMelder_error_threadId)
 			return;
 	} else {
-		theMelder_error_threadId = std::this_thread::get_id ();
+		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 	}
 	_recursiveTemplate_Melder_appendError (first, rest...);
 	MelderError::_append (U"\n");
