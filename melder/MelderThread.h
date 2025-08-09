@@ -30,16 +30,6 @@ integer MelderThread_computeNumberOfThreads (
 	bool useRandom
 );
 
-#define MelderThread_DEFINE(threadNumber, firstElement, lastElement)  \
-{  \
-	std::atomic <bool> _thrown_ = false;  \
-	/* We hand all local variables over to the thread lambda by reference, */  \
-	/* because many variables (namely those that have to change, such as `_thrown_`, */  \
-	/* and those whose copy constructor has been deleted, such as our autoPitch `thee` and our autoVECs `window` and `windowR`) */  \
-	/* cannot be copied into the lambda. */  \
-	auto _lambda_ = [&] (integer threadNumber, integer firstElement, integer lastElement) {  \
-		try {
-
 #define MelderThread_TRY  \
 	try {
 
