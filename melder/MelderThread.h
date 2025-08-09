@@ -30,6 +30,16 @@ integer MelderThread_computeNumberOfThreads (
 	bool useRandom
 );
 
+/*
+	The following is a replacement for std::this_thread::get_id(),
+	which is not guaranteeed to return a unique ID.
+
+	A case where this matters is if a throwing thread has finished,
+	and then a new thread is created with the same idea and quickly throws as well.
+	Admittedly, this is rare, but it is not impossible and it is easy to prevent it.
+*/
+integer Melder_thisThread_getUniqueID ();
+
 #define MelderThread_TRY  \
 	try {
 
