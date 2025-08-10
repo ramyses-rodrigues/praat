@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "PowerCepstrum.h"
 #include "SlopeSelector.h"
@@ -33,4 +32,4 @@ autoPowerCepstrumWorkspace PowerCepstrumWorkspace_create (constPowerCepstrum the
 void PowerCepstrumWorkspace_initPeakSearchPart (mutablePowerCepstrumWorkspace me, double qminSearchInterval,
 	double qmaxSearchInterval, kVector_peakInterpolation peakInterpolationType);
 
-#endif / * PowerCepstrumWorkspace_h_ */
+#endif /* PowerCepstrumWorkspace_h_ */

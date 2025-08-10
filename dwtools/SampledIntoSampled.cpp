@@ -16,12 +16,12 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <thread>
+
 #include "Preferences.h"
 #include "SampledIntoSampled.h"
 #include "Sound_and_LPC.h"
 #include "Sound_extensions.h"
-#include "MelderThread.h"
-#include <atomic>
 #include "NUM2.h"
 
 #include "oo_DESTROY.h"

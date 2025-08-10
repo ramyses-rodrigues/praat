@@ -17,6 +17,7 @@
  */
 
 #include "melder.h"
+#include <thread>
 
 integer MelderThread_getNumberOfProcessors () {
 	//return 1;   // un-comment-out to force single-threading
