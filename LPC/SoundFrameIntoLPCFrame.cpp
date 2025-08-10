@@ -530,6 +530,80 @@ static void barkIntoHz (double b1, double db, VEC const& hertz) {
 	}
 }
 
+static void equalLoudnessPreemphasis (VEC const& elp, double f1, double df) {
+	for (integer i = 1; i <= elp.size; i ++) {
+		const double w = NUM2pi * (f1 + (i - 1) * df);
+		const double w2 = w * w, w2p = (w2 + 6.3e6);
+		elp [i] = (w2 + 56.8e6) * w2 * w2 / (w2p * w2p * (w2 + 0.38e9));
+	}
+	const double emax = NUMmax_e (elp);
+	elp /= emax; // now between 0 and 1
+}
+
+static inline double hertzToBark (double f_hz) {
+	double f = f_hz / 600.0;
+	return 6.0 * log (f + sqrt (f * f + 1.0));
+}
+
+static inline double barkToHertz (double f_bark) {
+	return 600.0 * sinh (f_bark / 6.0);
+}
+
+autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input, mutableLPC output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
+	try {
+		autoSoundFrameIntoLPCFramePLP me = Thing_new (SoundFrameIntoLPCFramePLP);
+		SoundFrameIntoLPCFrame_init (me.get(), input, output, effectiveAnalysisWidth, windowShape);             // use 'a' instead of defining 'c'
+		my numberOfFourierSamples = Melder_iroundUpToPowerOfTwo (my frameAsSound -> nx);
+		my fourierTable = NUMFourierTable_create (my numberOfFourierSamples);
+		my fftData = raw_VEC (my numberOfFourierSamples);
+		my numberOfFrequencies = my numberOfFourierSamples / 2 + 1;
+		const double df = 1.0 / (my frameAsSound -> dx * my numberOfFourierSamples);
+		my equalLoudnessPreemphasis = raw_VEC (my numberOfFrequencies);
+		const double nyquistFrequency = 0.5 / my frameAsSound -> dx;
+		const double fmax_bark = hertzToBark (nyquistFrequency);
+		my numberOfCriticalBandSamples = Melder_ifloor (fmax_bark) + 2;
+		equalLoudnessPreemphasis (my equalLoudnessPreemphasis.get(), 0.0, df);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameMarple.");
+	}
+}
+
+void Sound_into_Spectrum (Sound me, Spectrum thee, NUMFourierTable fourierTable, bool fast) {
+	const integer numberOfFourierSamples = ( fast ? Melder_iroundUpToPowerOfTwo (my nx) : my nx );
+	const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
+	Melder_assert (thy nx == numberOfFourierSamples);
+	Melder_assert (fourierTable -> n == numberOfFourierSamples);
+	Melder_assert (thy xmax == );
+}
+
+void structSoundFrameIntoLPCFramePLP :: getFilterCharacteristics () {
+	struct filter {
+		double fb, fm, fe;
+		integer i1, i2;
+		integer iv1, iv2;
+	}
+	autoVEC coeffs;
+	const double nyquistFrequency = 0.5 / my frameAsSound -> dx;
+	const double df = 1.0 / (my frameAsSound -> dx * my numberOfFourierSamples);
+	const double fmax_bark = hertzToBark (nyquistFrequency);
+	numberOfCriticalBandSamples = Melder_ifloor (fmax_bark) + 2;
+	const double df_bark = fmax_bark / (numberOfCriticalBandSamples - 1);
+	autoVEC coeffs;
+	autoSTRUCTVEC (struct filter, filters, nfilters);
+	for (integer ifilter = 1; ifilter <= nfilters; ifilter ++) {
+		struct filter *fstruct = & filters [ifilter];
+		const double fm_bark = ifilter * df_bark;
+		const double fb_bark = Melder_clipLeft (0.0, f_bark - 2.5);
+		const double fe_bark = Melder_clipRight (f_bark + 1.3, fmax_bark);
+		const double fstruct -> fb = barkToHertz (fb_bark);
+		const double fstruct -> fe = barkToHertz (fe_bark);
+		const double fstruct -> fm = barkToHertz (fm_bark);
+
+	}
+
+}
+
 bool structSoundFrameIntoLPCFramePLP :: inputFrameToOutputFrame () {
 	/*
 		Step 1: power spectral analysis
@@ -540,30 +614,24 @@ bool structSoundFrameIntoLPCFramePLP :: inputFrameToOutputFrame () {
 	NUMfft_forward (fourierTable.get(), fftData.get());
 	for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
 		fftData [i] *= sound -> dx;
+	VEC power = fftData.part (1, numberOfFrequencies);
 	power [1] = fftData [1] * fftData [1];
 	for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
 		const double re = fftData [2 * i], im = fftData [2 * i + 1];
 		power [i + 1] = re * re + im * im;
 	}
-	fftData [numberOfFourierSamples / 2 + 1] = fftData [numberOfFourierSamples] * fftData [numberOfFourierSamples];
+	power [numberOfFrequencies] = fftData [numberOfFourierSamples] * fftData [numberOfFourierSamples];
 	/*
-		Step 2:
+		Step 2: Equal loudness pre-emphasis
 	 */
-
+	power  *=  equalLoudnessPreemphasis.get();
+	/*
+		Step 3: Critical band resolution
+	*/
 
 	return true;
 }
 
-autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input, mutableLPC output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	try {
-		autoSoundFrameIntoLPCFramePLP me = Thing_new (SoundFrameIntoLPCFramePLP);
-		SoundFrameIntoLPCFrame_init (me.get(), input, output, effectiveAnalysisWidth, windowShape);		// use 'a' instead of defining 'c'
-		
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameMarple.");
-	}
-}
 
 /*********************** robust method ******************************/
 

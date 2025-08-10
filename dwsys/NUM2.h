@@ -18,14 +18,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- djmw 20020815 GPL header
-*/
-
-#include <algorithm>
-#include <limits.h>
 #include "ExtendedReal.h"
-#include "melder.h"
 #include "MAT_numerics.h"
 #include "NUMsorting.h"
 #include "NUMFourier.h"

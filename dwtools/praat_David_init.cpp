@@ -65,7 +65,6 @@
 
 #include "NUMcomplex.h"
 #include "NUMmachar.h"
-#include "MelderThread.h"
 
 #include "ActivationList.h"
 #include "AmplitudeTier.h"
