@@ -16,7 +16,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "melder.h"
 #include "NUMFourier.h"
 
 #include "oo_DESTROY.h"

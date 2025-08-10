@@ -18,7 +18,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "melder.h"
 #include "Data.h"
 
 #include "NUMFourierTable_def.h"
