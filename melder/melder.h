@@ -34,6 +34,7 @@
 #include <algorithm>   // std::min
 #include <limits>   // std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()
 #include <atomic>   // std::atomic<integer>
+#include <thread>   // perhaps not needed
 
 /*
 	Law of Demeter for class functions defined outside class definition.

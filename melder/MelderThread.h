@@ -18,10 +18,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "melder.h"
-#include <vector>
-#include <thread>
-
 integer MelderThread_getNumberOfProcessors ();
 
 integer MelderThread_computeNumberOfThreads (

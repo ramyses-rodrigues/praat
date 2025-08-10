@@ -20,8 +20,6 @@
 #include "SampledIntoSampled.h"
 #include "Sound_and_LPC.h"
 #include "Sound_extensions.h"
-#include "MelderThread.h"
-#include <atomic>
 #include "NUM2.h"
 
 #include "oo_DESTROY.h"

@@ -34,7 +34,6 @@
 
 #include "Sound_to_Pitch.h"
 #include "NUM2.h"
-#include "MelderThread.h"
 #include "Sound_and_Spectrum.h"
 
 #define AC_HANNING  0
@@ -398,7 +397,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 			*/
 			windowR. resize (nsampFFT);
 			window. resize (nsamp_window);
-			autoNUMFourierTable fftTable =  NUMFourierTable_create (nsampFFT);
+			autoNUMFourierTable fftTable = NUMFourierTable_create (nsampFFT);
 
 			/*
 				A Gaussian or Hanning window is applied against phase effects.
@@ -462,10 +461,9 @@ autoPitch Sound_to_Pitch_any (Sound me,
 					   because exceptions cannot pass from non-main threads to the main thread.
 					2. The `try` has to establish a unique ID for this thread,
 					   because only the first throwing threads is allowed to show its error messages in the UI.
-				So we handle try-catch pairs that are inside a MelderThread in a special way,
-				for which we use the MelderThread_TRY and MelderThread_CATCH macros.
+				So we handle try-catch pairs that are inside a MelderThread in a special way.
 			*/
-			MelderThread_TRY   // because this function can throw
+			try {
 				autoMAT frame;
 				autoNUMFourierTable fftTable;
 				autoVEC ac;
@@ -501,7 +499,10 @@ autoPitch Sound_to_Pitch_any (Sound me,
 						r, imax.get(), localMean.get()
 					);
 				}
-			MelderThread_CATCH (errorFlag)   // because this function can throw
+			} catch (MelderError) {
+				errorFlag = true;
+				return;
+			}
 		};
 		MelderThread_run (& errorFlag, numberOfFrames, 5, false, Sound_to_Pitch_threadFunction);
 
