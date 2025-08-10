@@ -36,15 +36,6 @@ integer MelderThread_computeNumberOfThreads (
 */
 integer Melder_thisThread_getUniqueID ();
 
-#define MelderThread_TRY  \
-	try {
-
-#define MelderThread_CATCH(errorFlag)  \
-	} catch (MelderError) {  \
-		errorFlag = true;  \
-		return;  \
-	}
-
 void MelderThread_run (
 	std::atomic <bool> *p_errorFlag,
 	integer numberOfElements,
@@ -52,6 +43,195 @@ void MelderThread_run (
 	bool useRandom,
 	std::function <void (integer threadNumber, integer firstElement, integer lastElement)> const& threadFunction
 );
+
+/*
+	Here is how these functions help you create simple parallel procedures.
+	Our example is pitch analysis in Praat (see fon/Sound_to_Pitch.cpp for details).
+
+	You start with defining the function:
+
+		autoPitch Sound_to_Pitch (Sound me, integer maxnCandidates, ...)
+		{
+
+	The function can throw:
+			try {
+
+	Then you create the result of the function:
+
+				autoPitch thee = Pitch_create (...);
+
+	Then you create the intermediate objects that are read-only for all threads
+	(so that you have to create them only once):
+
+				autoVEC window = ...;   // the window shape
+				autoVEC windowR = ...;   // the autocorrelation of the window shape
+
+	You can open a progress bar if you want:
+
+				autoMelderProgress progress (U"Sound to Pitch...");
+
+	Then you define the "thread function", which is a lambda that is called for every thread.
+	The thread function is not allowed to throw exceptions, because exceptions cannot pass
+	directly from a newly spawned thread into the master thread. Therefore,
+	any exception generated with the thread function has to translate each MelderError
+	into an error flag:
+
+				std::atomic <bool> errorFlag = false;
+
+	You then define the thread function as a lambda.
+	We hand all local variables over to the thread function by reference,
+	because many variables (namely those that have to change, such as `errorFlag`,
+	and those whose copy constructor has been deleted,
+	such as our autoPitch `thee` and our autoVECs `window` and `windowR`,
+	cannot be copied into the lambda.
+
+				auto Sound_to_Pitch_threadFunction = [&] (integer threadNumber, integer firstFrame, integer lastFrame) {
+
+	We could also have said [=, & errorFlag, & thee, & window, & windowR],
+	whereby most variables would have been handed over to the lambda by value,
+	but simply handing over all variables by reference is more straightforward and not really slower.
+
+	The thread function can throw, so you need a `try`-`catch` pair:
+					try {
+
+	Inside the thread function you first create the objects that are different for each thread, such as buffers:
+
+						autoMAT frame = zero_MAT (my ny, ...);
+						autoNUMFourierTable fftTable = NUMFourierTable_create (...);
+						autoVEC ac = zero_VEC (...);
+						autoVEC rbuffer = zero_VEC (...);
+						double *r = & rbuffer [...];
+						autoINTVEC imax = zero_INTVEC (maxnCandidates);
+						autoVEC localMean = zero_VEC (my ny);
+
+	You can now cycle over the frames that belong to the thread:
+
+						for (integer iframe = firstFrame; iframe <= lastFrame; iframe ++) {
+
+	Each frame provides an opportunity to bail out from the thread function (and therefore to abort the thread):
+
+							if (errorFlag)
+								return;   // abort this thread
+
+	If not aborted, you can now do the pitch analysis for the present frame:
+	
+							Pitch_Frame pitchFrame = & thy frames [iframe];
+							Sound_into_PitchFrame (me, pitchFrame, maxnCandidates,
+								window.get(), windowR.get(),
+								frame.get(), fftTable.get(), ac.get(),
+								r, imax.get(), localMean.get()
+							);
+
+	You can update the progress bar if you are in the master thread, which has threadNumber 0.
+	You can do that anywhere in the frame loop; here we do it at the end of it:
+
+							if (threadNumber == 0) {
+								const double estimatedFractionAnalysed = (iframe - firstFrame + 0.5) / (lastFrame - firstFrame + 1.0);
+								Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
+									U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+									U" out of ", numberOfFrames, U" frames"
+								);
+							}
+						}
+
+	The `catch` differs from the normal "catch (MelderError) { Melder_throw (...); }",
+	in that it has to convert the MelderError into an error flag:
+
+					} catch (MelderError) {
+						errorFlag = true;
+						return;
+					}
+
+	Finally, you close the lambda and call it:
+
+				};
+				MelderThread_run (& errorFlag, numberOfFrames, 5, false, Sound_to_Pitch_threadFunction);
+
+	You also close the progress bar and return the result:
+
+				Melder_progress (0.95, U"Sound to Pitch: path finder");
+				return thee;
+
+	You end with the `catch` of Sound_to_Pitch itself:
+
+			} catch (MelderError) {
+				Melder_throw (me, U": pitch analysis not performed.");
+			}
+		}
+*/
+
+/*
+	The above procedure can be simplified a bit by using the following four macros.
+	We surround the code by an extra pair of braces in order to allow multiple use within a function:
+*/
+
+#define MelderThread_DEFINE_PER_THREAD(_ithread_)  \
+	{/* start of scope of `_errorFlag_` and `_threadFunction_` */  \
+		std::atomic <bool> _errorFlag_ = false;  \
+		auto _threadFunction_ = [&] (integer _ithread_, integer _firstElement_, integer _lastElement_) {  \
+			try {
+
+#define MelderThread_DEFINE_PER_ELEMENT(_ielement_)  \
+				for (integer _ielement_ = _firstElement_; _ielement_ <= _lastElement_; _ielement_ ++) {  \
+					if (_errorFlag_)  \
+						return;
+
+#define MelderThread_RUN(numberOfElements, thresholdNumberOfElementsPerThread, useRandom)  \
+				}  \
+			} catch (MelderError) {  \
+				_errorFlag_ = true;  \
+				return;  \
+			}  \
+		};  \
+		MelderThread_run (& _errorFlag_, numberOfElements, thresholdNumberOfElementsPerThread, useRandom, _threadFunction_);  \
+	}/* end of scope of `_errorFlag_` and `_threadFunction_` */
+
+#define MelderThread_GET_ESTIMATED_FRACTION_ANALYSED(ielement)  \
+	((ielement) - _firstElement_ + 0.5) / (_lastElement_ - _firstElement_ + 1.0)
+
+/*
+	The whole Sound_to_Pitch then becomes:
+
+		autoPitch Sound_to_Pitch (Sound me, integer maxnCandidates, ...)
+		{
+			try {
+				autoPitch thee = Pitch_create (...);
+				autoVEC window = ...;   // the window shape
+				autoVEC windowR = ...;   // the autocorrelation of the window shape
+
+				autoMelderProgress progress (U"Sound to Pitch...");
+
+				MelderThread_DEFINE_PER_THREAD (ithread)
+					autoMAT frame = zero_MAT (my ny, ...);
+					autoNUMFourierTable fftTable = NUMFourierTable_create (...);
+					autoVEC ac = zero_VEC (...);
+					autoVEC rbuffer = zero_VEC (...);
+					double *r = & rbuffer [...];
+					autoINTVEC imax = zero_INTVEC (maxnCandidates);
+					autoVEC localMean = zero_VEC (my ny);
+				MelderThread_DEFINE_PER_ELEMENT (iframe)
+					Pitch_Frame pitchFrame = & thy frames [iframe];
+					Sound_into_PitchFrame (me, pitchFrame, maxnCandidates,
+						window.get(), windowR.get(),
+						frame.get(), fftTable.get(), ac.get(),
+						r, imax.get(), localMean.get()
+					);
+					if (ithread == 0) {
+						const double estimatedFractionAnalysed = MelderThread_GET_ESTIMATED_FRACTION_ANALYSED (iframe);
+						Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
+							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+							U" out of ", numberOfFrames, U" frames"
+						);
+					}
+				MelderThread_RUN (numberOfFrames, 5, false)
+
+				Melder_progress (0.95, U"Sound to Pitch: path finder");
+				return thee;
+			} catch (MelderError) {
+				Melder_throw (me, U": pitch analysis not performed.");
+			}
+		}
+*/
 
 /* End of file MelderThread.h */
 #endif

@@ -436,75 +436,40 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		std::atomic <bool> errorFlag = false;   // exceptions in a thread are converted to this flag
-		/*
-			We hand all local variables over to the thread lambda by reference,
-			because many variables (namely those that have to change, such as `errorFlag`,
-			and those whose copy constructor has been deleted,
-			such as our autoPitch `thee` and our autoVECs `window` and `windowR`)
-			cannot be copied into the lambda.
-
-			We could also have said [=, & errorFlag, & thee, & window, & windowR],
-			whereby most variables would have been handed over to the lambda by value.
-		*/
-		auto Sound_to_Pitch_threadFunction = [&] (integer threadNumber, integer firstFrame, integer lastFrame) {
-			/*
-				This thread function can throw, so we need a try-catch pair.
-				This try-catch pair differs in a couple of respects from the normal pair of
-					try {
-				and
-					} catch (MelderError) {
-						Melder_throw (U"Some error message that is to be appended.");
-					}
-				The differences are:
-					1. The `catch` has to convert the MelderError into an error flag,
-					   because exceptions cannot pass from non-main threads to the main thread.
-					2. The `try` has to establish a unique ID for this thread,
-					   because only the first throwing threads is allowed to show its error messages in the UI.
-				So we handle try-catch pairs that are inside a MelderThread in a special way.
-			*/
-			try {
-				autoMAT frame;
-				autoNUMFourierTable fftTable;
-				autoVEC ac;
-				if (method >= FCC_NORMAL) {   // cross-correlation
-					frame = zero_MAT (my ny, nsamp_window);
-				} else {   // autocorrelation
-					fftTable = NUMFourierTable_create (nsampFFT);
-					frame = zero_MAT (my ny, nsampFFT);
-					ac = zero_VEC (nsampFFT);
-				}
-				autoVEC rbuffer = zero_VEC (2 * nsamp_window + 1);
-				double *r = & rbuffer [1 + nsamp_window];
-				autoINTVEC imax = zero_INTVEC (maxnCandidates);
-				autoVEC localMean = zero_VEC (my ny);
-				for (integer iframe = firstFrame; iframe <= lastFrame; iframe ++) {
-					if (errorFlag)
-						return;   // abort this thread
-					Pitch_Frame pitchFrame = & thy frames [iframe];
-					const double t = Sampled_indexToX (thee.get(), iframe);
-					if (threadNumber == 0) {   // are we in the master thread, which can do GUI?
-						const double estimatedFractionAnalysed = (iframe - firstFrame + 0.5) / (lastFrame - firstFrame + 1.0);
-						Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
-							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
-							U" out of ", numberOfFrames, U" frames"
-						);
-					}
-					Sound_into_PitchFrame (me, pitchFrame, t,
-						pitchFloor, maxnCandidates, method, voicingThreshold, octaveCost,
-						fftTable.get(), dt_window, nsamp_window, halfnsamp_window,
-						maximumLag, nsampFFT, nsamp_period, halfnsamp_period,
-						brent_ixmax, brent_depth, globalPeak,
-						frame.get(), ac.get(), window.get(), windowR.get(),
-						r, imax.get(), localMean.get()
-					);
-				}
-			} catch (MelderError) {
-				errorFlag = true;
-				return;
+		MelderThread_DEFINE_PER_THREAD (ithread)
+			autoMAT frame;
+			autoNUMFourierTable fftTable;
+			autoVEC ac;
+			if (method >= FCC_NORMAL) {   // cross-correlation
+				frame = zero_MAT (my ny, nsamp_window);
+			} else {   // autocorrelation
+				fftTable = NUMFourierTable_create (nsampFFT);
+				frame = zero_MAT (my ny, nsampFFT);
+				ac = zero_VEC (nsampFFT);
 			}
-		};
-		MelderThread_run (& errorFlag, numberOfFrames, 5, false, Sound_to_Pitch_threadFunction);
+			autoVEC rbuffer = zero_VEC (2 * nsamp_window + 1);
+			double *r = & rbuffer [1 + nsamp_window];
+			autoINTVEC imax = zero_INTVEC (maxnCandidates);
+			autoVEC localMean = zero_VEC (my ny);
+		MelderThread_DEFINE_PER_ELEMENT (iframe)
+			Pitch_Frame pitchFrame = & thy frames [iframe];
+			const double t = Sampled_indexToX (thee.get(), iframe);
+			if (ithread == 0) {
+				const double estimatedFractionAnalysed = MelderThread_GET_ESTIMATED_FRACTION_ANALYSED (iframe);
+				Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
+					U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+					U" out of ", numberOfFrames, U" frames"
+				);
+			}
+			Sound_into_PitchFrame (me, pitchFrame, t,
+				pitchFloor, maxnCandidates, method, voicingThreshold, octaveCost,
+				fftTable.get(), dt_window, nsamp_window, halfnsamp_window,
+				maximumLag, nsampFFT, nsamp_period, halfnsamp_period,
+				brent_ixmax, brent_depth, globalPeak,
+				frame.get(), ac.get(), window.get(), windowR.get(),
+				r, imax.get(), localMean.get()
+			);
+		MelderThread_RUN (numberOfFrames, 5, false)
 
 		Melder_progress (0.95, U"Sound to Pitch: path finder");
 		Pitch_pathFinder (thee.get(), silenceThreshold, voicingThreshold,
