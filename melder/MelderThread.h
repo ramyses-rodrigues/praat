@@ -165,13 +165,13 @@ void MelderThread_run (
 	We surround the code by an extra pair of braces in order to allow multiple use within a function:
 */
 
-#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread, useRandom, _ithread)  \
+#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread, useRandom, ithread)  \
 	{/* start of scope of `_errorFlag_` and `_threadFunction_` */  \
 		const integer _numberOfElements_ = numberOfElements;  \
 		const integer _thresholdNumberOfElementsPerThread_ = thresholdNumberOfElementsPerThread;  \
 		const bool _useRandom_ = useRandom;  \
 		std::atomic <bool> _errorFlag_ = false;  \
-		auto _threadFunction_ = [&] (integer _ithread, integer _firstElement_, integer _lastElement_) {  \
+		auto _threadFunction_ = [&] (integer ithread, integer _firstElement_, integer _lastElement_) {  \
 			try {
 
 #define MelderThread_FOR(ielement)  \
@@ -189,7 +189,7 @@ void MelderThread_run (
 		MelderThread_run (& _errorFlag_, _numberOfElements_, _thresholdNumberOfElementsPerThread_, _useRandom_, _threadFunction_);  \
 	}/* end of scope of `_errorFlag_` and `_threadFunction_` */
 
-#define MelderThread_GET_ESTIMATED_FRACTION_ANALYSED(ielement)  \
+#define MelderThread_ESTIMATE_PROGRESS(ielement)  \
 	((ielement) - _firstElement_ + 0.5) / (_lastElement_ - _firstElement_ + 1.0)
 
 /*
@@ -224,9 +224,9 @@ void MelderThread_run (
 					);
 
 					if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
-						const double estimatedFractionAnalysed = MelderThread_GET_ESTIMATED_FRACTION_ANALYSED (iframe);
+						const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
 						Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
-							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 							U" out of ", numberOfFrames, U" frames"
 						);
 					}

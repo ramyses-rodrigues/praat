@@ -458,9 +458,9 @@ autoPitch Sound_to_Pitch_any (Sound me,
 			Pitch_Frame pitchFrame = & thy frames [iframe];
 			const double time = Sampled_indexToX (thee.get(), iframe);
 			if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
-				const double estimatedFractionAnalysed = MelderThread_GET_ESTIMATED_FRACTION_ANALYSED (iframe);
-				Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
-					U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+				const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
+				Melder_progress (0.1 + 0.8 * estimatedProgress,
+					U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 					U" out of ", numberOfFrames, U" frames"
 				);
 			}
