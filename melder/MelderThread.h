@@ -165,28 +165,31 @@ void MelderThread_run (
 	We surround the code by an extra pair of braces in order to allow multiple use within a function:
 */
 
-#define MelderThread_DEFINE_PER_THREAD(_ithread_)  \
+#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread, useRandom, ithread)  \
 	{/* start of scope of `_errorFlag_` and `_threadFunction_` */  \
+		const integer _numberOfElements_ = numberOfElements;  \
+		const integer _thresholdNumberOfElementsPerThread_ = thresholdNumberOfElementsPerThread;  \
+		const bool _useRandom_ = useRandom;  \
 		std::atomic <bool> _errorFlag_ = false;  \
-		auto _threadFunction_ = [&] (integer _ithread_, integer _firstElement_, integer _lastElement_) {  \
+		auto _threadFunction_ = [&] (integer ithread, integer _firstElement_, integer _lastElement_) {  \
 			try {
 
-#define MelderThread_DEFINE_PER_ELEMENT(_ielement_)  \
-				for (integer _ielement_ = _firstElement_; _ielement_ <= _lastElement_; _ielement_ ++) {  \
+#define MelderThread_FOR(ielement)  \
+				for (integer ielement = _firstElement_; ielement <= _lastElement_; ielement ++) {  \
 					if (_errorFlag_)  \
 						return;
 
-#define MelderThread_RUN(numberOfElements, thresholdNumberOfElementsPerThread, useRandom)  \
+#define MelderThread_ENDFOR  \
 				}  \
 			} catch (MelderError) {  \
 				_errorFlag_ = true;  \
 				return;  \
 			}  \
 		};  \
-		MelderThread_run (& _errorFlag_, numberOfElements, thresholdNumberOfElementsPerThread, useRandom, _threadFunction_);  \
+		MelderThread_run (& _errorFlag_, _numberOfElements_, _thresholdNumberOfElementsPerThread_, _useRandom_, _threadFunction_);  \
 	}/* end of scope of `_errorFlag_` and `_threadFunction_` */
 
-#define MelderThread_GET_ESTIMATED_FRACTION_ANALYSED(ielement)  \
+#define MelderThread_ESTIMATE_PROGRESS(ielement)  \
 	((ielement) - _firstElement_ + 0.5) / (_lastElement_ - _firstElement_ + 1.0)
 
 /*
@@ -201,29 +204,34 @@ void MelderThread_run (
 
 				autoMelderProgress progress (U"Sound to Pitch...");
 
-				MelderThread_DEFINE_PER_THREAD (ithread)
-					autoMAT frame = zero_MAT (my ny, ...);
-					autoNUMFourierTable fftTable = NUMFourierTable_create (...);
-					autoVEC ac = zero_VEC (...);
-					autoVEC rbuffer = zero_VEC (...);
-					double *r = & rbuffer [...];
-					autoINTVEC imax = zero_INTVEC (maxnCandidates);
-					autoVEC localMean = zero_VEC (my ny);
-				MelderThread_DEFINE_PER_ELEMENT (iframe)
+				MelderThread_PARALLELIZE (numberOfFrames, 5, false, threadNumber)
+
+				autoMAT frame = zero_MAT (my ny, ...);
+				autoNUMFourierTable fftTable = NUMFourierTable_create (...);
+				autoVEC ac = zero_VEC (...);
+				autoVEC rbuffer = zero_VEC (...);
+				double *r = & rbuffer [...];
+				autoINTVEC imax = zero_INTVEC (maxnCandidates);
+				autoVEC localMean = zero_VEC (my ny);
+
+				MelderThread_FOR (iframe) {
+
 					Pitch_Frame pitchFrame = & thy frames [iframe];
 					Sound_into_PitchFrame (me, pitchFrame, maxnCandidates,
 						window.get(), windowR.get(),
 						frame.get(), fftTable.get(), ac.get(),
 						r, imax.get(), localMean.get()
 					);
-					if (ithread == 0) {
-						const double estimatedFractionAnalysed = MelderThread_GET_ESTIMATED_FRACTION_ANALYSED (iframe);
+
+					if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
+						const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
 						Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
-							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedFractionAnalysed),
+							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 							U" out of ", numberOfFrames, U" frames"
 						);
 					}
-				MelderThread_RUN (numberOfFrames, 5, false)
+
+				} MelderThread_ENDFOR
 
 				Melder_progress (0.95, U"Sound to Pitch: path finder");
 				return thee;
@@ -231,6 +239,87 @@ void MelderThread_run (
 				Melder_throw (me, U": pitch analysis not performed.");
 			}
 		}
+*/
+
+/*
+	How to parallelize an existing analysis function
+	================================================
+
+	Suppose you have something like
+
+	autoPitch Sound_to_Pitch (Sound me) {
+		try {
+			autoPitch thee = ...;
+			autoVEC window = ...;   // the window shape
+			autoMAT frame = zero_MAT (my ny, ...);
+			autoNUMFourierTable fftTable = NUMFourierTable_create (...);
+			autoVEC ac = zero_VEC (...);
+			autoVEC rbuffer = zero_VEC (...);
+			double *r = & rbuffer [...];
+			autoVEC windowR = ...;   // the autocorrelation of the window shape
+			autoINTVEC imax = zero_INTVEC (maxnCandidates);
+			autoVEC localMean = zero_VEC (my ny);
+			autoMelderProgress progress (U"Sound to Pitch...");
+			for (integer iframe = 1; iframe <= thy nx; iframe ++) {
+				Pitch_Frame pitchFrame = & thy frames [iframe];
+				const double fractionAnalysed = (double) iframe / thy nx;
+				Melder_progress (0.1 + 0.8 * fractionAnalysed,
+					U"Sound to Pitch: analysed ", iframe,
+					U" out of ", thy nx, U" frames"
+				);
+				Sound_into_PitchFrame (me, pitchFrame, maxnCandidates,
+					window.get(), windowR.get(),
+					frame.get(), fftTable.get(), ac.get(),
+					r, imax.get(), localMean.get()
+				);
+			}
+			Melder_progress (0.95, U"Sound to Pitch: path finder");
+			return thee;
+		} catch (MelderError) {
+			Melder_throw (me, U": pitch analysis not performed.");
+		}
+	}
+
+	The first step is to divide all those initializations into two sets:
+	1. the ones that all threads can use at the same time;
+	   these are:
+	   1a. the target Pitch object, because each threads will write a separate part of it:
+			autoPitch thee = ...;
+	   1b. the "constant" things that are computed only once, before the loop over the frames:
+			autoVEC window = ...;   // the window shape
+			autoVEC windowR = ...;   // the autocorrelation of the window shape
+	   1c. the initialization of the progress bar:
+			autoMelderProgress progress (U"Sound to Pitch...");
+	2. the ones of which each thread need its own copy, like buffers:
+			autoMAT frame = zero_MAT (my ny, ...);
+			autoNUMFourierTable fftTable = NUMFourierTable_create (...);
+			autoVEC ac = zero_VEC (...);
+			autoVEC rbuffer = zero_VEC (...);
+			double *r = & rbuffer [...];
+			autoINTVEC imax = zero_INTVEC (maxnCandidates);
+			autoVEC localMean = zero_VEC (my ny);
+
+	This reordering is the preparation. You then make the following simple changes:
+	3. between 1abc and 2 above you insert:
+			MelderThread_PARALLELIZE (thy nx, 5, false, threadNumber)
+	4. instead of
+			for (integer iframe = 1; iframe <= thy nx; iframe ++) {
+	   you write
+			MelderThread_FOR (iframe) {
+	5. instead of the frame-loop-closing "}" you write
+			} MelderThread_ENDFOR
+	6. you update the progress bar only in the master thread, by inserting
+			if (threadNumber == 0) {
+	   and
+			}
+	7. instead of computing the progress as
+				const double fractionAnalysed = (double) iframe / thy nx;
+	   you write
+				const double fractionAnalysed = MelderThread_ESTIMATE_PROGRESS (iframe);
+	   and you may reword the variable name and the text to acknowledge that this progress
+	   is just an estimate;
+	8. you tune the "thresholdNumberOfElementsPerThread" to what turns out to be fastest
+	   for low numbers of threads; see `manually/Sound_to_Pitch.praat` for an example.
 */
 
 /* End of file MelderThread.h */
