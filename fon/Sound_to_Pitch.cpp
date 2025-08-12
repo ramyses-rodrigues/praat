@@ -436,7 +436,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		MelderThread_PARALLELIZE(numberOfFrames, 5, false, threadNumber)
+		MelderThread_PARALLELIZE (numberOfFrames, 5, false, threadNumber)
 
 		autoMAT frame;
 		autoNUMFourierTable fftTable;
@@ -453,7 +453,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 		autoINTVEC imax = zero_INTVEC (maxnCandidates);
 		autoVEC localMean = zero_VEC (my ny);
 
-		MelderThread_FOR (iframe)
+		MelderThread_FOR (iframe) {
 
 			Pitch_Frame pitchFrame = & thy frames [iframe];
 			const double time = Sampled_indexToX (thee.get(), iframe);
@@ -473,7 +473,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 				r, imax.get(), localMean.get()
 			);
 
-		MelderThread_ENDFOR
+		} MelderThread_ENDFOR
 
 		Melder_progress (0.95, U"Sound to Pitch: path finder");
 		Pitch_pathFinder (thee.get(), silenceThreshold, voicingThreshold,
