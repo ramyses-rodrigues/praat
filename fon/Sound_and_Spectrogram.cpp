@@ -160,7 +160,7 @@ autoSpectrogram Sound_to_Spectrogram_e (
 
 				if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
 					const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
-					Melder_progress (0.1 + 0.8 * estimatedProgress,
+					Melder_progress (estimatedProgress,
 						U"Sound to Spectrogram: analysed approximately ", Melder_iround (numberOfTimes * estimatedProgress),
 						U" out of ", numberOfTimes, U" frames"
 					);

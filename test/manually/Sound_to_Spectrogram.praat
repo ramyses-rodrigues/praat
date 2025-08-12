@@ -37,11 +37,11 @@ for timing to numberOfTimings
 	durationOfSound = durationOfFrames + margin
 	sound = Create Sound from formula: "sineWithNoise", 1, 0, durationOfSound, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,1)"
 	stopwatch
-	pitch = noprogress To Spectrogram: 0.005, 5000.0, timeStep, 20.0, "Gaussian"
+	spectrogram = noprogress To Spectrogram: 0.005, 5000.0, timeStep, 20.0, "Gaussian"
 	time# [desiredNumberOfFrames] += stopwatch
 	resultingNumberOfFrames = Get number of frames
 	assert resultingNumberOfFrames = desiredNumberOfFrames   ; 'desiredNumberOfFrames' 'resultingNumberOfFrames'
-	removeObject: sound, pitch
+	removeObject: sound, spectrogram
 endfor
 
 for numberOfFrames from 1 to maximumNumberOfFrames
