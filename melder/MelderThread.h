@@ -165,13 +165,13 @@ void MelderThread_run (
 	We surround the code by an extra pair of braces in order to allow multiple use within a function:
 */
 
-#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread, useRandom, ithread)  \
+#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread, useRandom)  \
 	{/* start of scope of `_errorFlag_` and `_threadFunction_` */  \
 		const integer _numberOfElements_ = numberOfElements;  \
 		const integer _thresholdNumberOfElementsPerThread_ = thresholdNumberOfElementsPerThread;  \
 		const bool _useRandom_ = useRandom;  \
 		std::atomic <bool> _errorFlag_ = false;  \
-		auto _threadFunction_ = [&] (integer ithread, integer _firstElement_, integer _lastElement_) {  \
+		auto _threadFunction_ = [&] (integer _threadNumber_, integer _firstElement_, integer _lastElement_) {  \
 			try {
 
 #define MelderThread_FOR(ielement)  \
@@ -189,6 +189,9 @@ void MelderThread_run (
 		MelderThread_run (& _errorFlag_, _numberOfElements_, _thresholdNumberOfElementsPerThread_, _useRandom_, _threadFunction_);  \
 	}/* end of scope of `_errorFlag_` and `_threadFunction_` */
 
+#define MelderThread_IS_MASTER  \
+	(_threadNumber_ == 0)
+
 #define MelderThread_ESTIMATE_PROGRESS(ielement)  \
 	((ielement) - _firstElement_ + 0.5) / (_lastElement_ - _firstElement_ + 1.0)
 
@@ -204,7 +207,7 @@ void MelderThread_run (
 
 				autoMelderProgress progress (U"Sound to Pitch...");
 
-				MelderThread_PARALLELIZE (numberOfFrames, 5, false, threadNumber)
+				MelderThread_PARALLELIZE (numberOfFrames, 5, false)
 
 				autoMAT frame = zero_MAT (my ny, ...);
 				autoNUMFourierTable fftTable = NUMFourierTable_create (...);
@@ -223,7 +226,7 @@ void MelderThread_run (
 						r, imax.get(), localMean.get()
 					);
 
-					if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
+					if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
 						const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
 						Melder_progress (0.1 + 0.8 * estimatedProgress,
 							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
@@ -301,7 +304,7 @@ void MelderThread_run (
 
 	This reordering is the preparation. You then make the following simple changes:
 	3. between 1abc and 2 above you insert:
-			MelderThread_PARALLELIZE (thy nx, 5, false, threadNumber)
+			MelderThread_PARALLELIZE (thy nx, 5, false)
 	4. instead of
 			for (integer iframe = 1; iframe <= thy nx; iframe ++) {
 	   you write
@@ -309,7 +312,7 @@ void MelderThread_run (
 	5. instead of the frame-loop-closing "}" you write
 			} MelderThread_ENDFOR
 	6. you update the progress bar only in the master thread, by inserting
-			if (threadNumber == 0) {
+			if (MelderThread_IS_MASTER) {
 	   and
 			}
 	7. instead of computing the progress as
