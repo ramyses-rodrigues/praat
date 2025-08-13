@@ -225,7 +225,7 @@ void MelderThread_run (
 
 					if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
 						const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
-						Melder_progress (0.1 + 0.8 * estimatedFractionAnalysed,
+						Melder_progress (0.1 + 0.8 * estimatedProgress,
 							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 							U" out of ", numberOfFrames, U" frames"
 						);
@@ -283,7 +283,7 @@ void MelderThread_run (
 	The first step is to divide all those initializations into two sets:
 	1. the ones that all threads can use at the same time;
 	   these are:
-	   1a. the target Pitch object, because each threads will write a separate part of it:
+	   1a. the target Pitch object, because each thread will write a separate part of it:
 			autoPitch thee = ...;
 	   1b. the "constant" things that are computed only once, before the loop over the frames:
 			autoVEC window = ...;   // the window shape
@@ -319,7 +319,7 @@ void MelderThread_run (
 	   and you may reword the variable name and the text to acknowledge that this progress
 	   is just an estimate;
 	8. you tune the "thresholdNumberOfElementsPerThread" to what turns out to be fastest
-	   for low numbers of threads; see `manually/Sound_to_Pitch.praat` for an example.
+	   for low numbers of threads; see `test/manually/Sound_to_Pitch.praat` for an example.
 */
 
 /* End of file MelderThread.h */

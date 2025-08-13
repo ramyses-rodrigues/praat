@@ -127,13 +127,15 @@ autoSpectrogram Sound_to_Spectrogram_e (
 		}
 		const double oneByBinWidth = 1.0 / double (windowssq) / binWidth_samples;
 
+		autoMelderProgress progress (U"Sound to Spectrogram...");
+
+		MelderThread_PARALLELIZE (numberOfTimes, 15, false, threadNumber)
+
 		autoVEC data = zero_VEC (nsampFFT);
 		autoVEC spectrum = zero_VEC (half_nsampFFT + 1);
 		autoNUMFourierTable fftTable = NUMFourierTable_create (nsampFFT);
 
-		autoMelderProgress progress (U"Sound to Spectrogram...");
-
-		for (integer iframe = 1; iframe <= numberOfTimes; iframe ++) {
+		MelderThread_FOR (iframe) {
 			const double t = Sampled_indexToX (thee.get(), iframe);
 			const integer leftSample = Sampled_xToLowIndex (me, t), rightSample = leftSample + 1;
 			const integer startSample = rightSample - halfnsamp_window;
@@ -156,8 +158,13 @@ autoSpectrogram Sound_to_Spectrogram_e (
 				for (integer j = nsamp_window + 1; j <= nsampFFT; j ++)
 					data [j] = 0.0f;
 
-				Melder_progress (iframe / (numberOfTimes + 1.0),
-					U"Sound to Spectrogram: analysis of frame ", iframe, U" out of ", numberOfTimes);
+				if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
+					const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
+					Melder_progress (estimatedProgress,
+						U"Sound to Spectrogram: analysed approximately ", Melder_iround (numberOfTimes * estimatedProgress),
+						U" out of ", numberOfTimes, U" frames"
+					);
+				}
 
 				/*
 					Compute the Fast Fourier Transform of the frame.
@@ -188,7 +195,7 @@ autoSpectrogram Sound_to_Spectrogram_e (
 				const double power = NUMsum (spectrum.part (lowerSample, higherSample - 1));
 				thy z [iband] [iframe] = power * oneByBinWidth;
 			}
-		}
+		} MelderThread_ENDFOR
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": spectrogram analysis not performed.");
