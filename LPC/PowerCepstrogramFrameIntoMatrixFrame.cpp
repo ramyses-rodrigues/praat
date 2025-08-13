@@ -45,7 +45,7 @@ void structPowerCepstrogramFrameIntoMatrixFrame :: getInputFrame () {
 }
 
 bool structPowerCepstrogramFrameIntoMatrixFrame :: inputFrameToOutputFrame () {
-	PowerCepstrogramIntoMatrixStatus myStatus = reinterpret_cast<PowerCepstrogramIntoMatrixStatus> (status);
+	PowerCepstrogramIntoMatrixStatus myStatus = static_cast <PowerCepstrogramIntoMatrixStatus> (status);
 	if (getSlopeAndIntercept) {
 		powerCepstrumWs -> getSlopeAndIntercept ();
 		powerCepstrumWs -> slopeKnown = true;

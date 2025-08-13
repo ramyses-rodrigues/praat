@@ -390,13 +390,13 @@ DIRECT (CONVERT_TWO_TO_ONE__Categories_join) {
 
 DIRECT (CONVERT_EACH_TO_ONE__Categories_permuteItems) {
 	CONVERT_EACH_TO_ONE (Categories)
-		autoCollection result = Collection_permuteItems (reinterpret_cast<Collection> (me));
+		autoCollection result = Collection_permuteItems (reinterpret_cast <Collection> (me));
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_perm")
 }
 
 DIRECT (MODIFY_EACH__Categories_permuteItems_inplace) {
 	MODIFY_EACH (Categories)
-		Collection_permuteItems_inplace (reinterpret_cast<Collection> (me));
+		Collection_permuteItems_inplace (reinterpret_cast <Collection> (me));
 	MODIFY_EACH_END
 }
 
