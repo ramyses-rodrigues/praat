@@ -129,7 +129,7 @@ autoSpectrogram Sound_to_Spectrogram_e (
 
 		autoMelderProgress progress (U"Sound to Spectrogram...");
 
-		MelderThread_PARALLELIZE (numberOfTimes, 15, false, threadNumber)
+		MelderThread_PARALLELIZE (numberOfTimes, 15, false)
 
 		autoVEC data = zero_VEC (nsampFFT);
 		autoVEC spectrum = zero_VEC (half_nsampFFT + 1);
@@ -156,9 +156,9 @@ autoSpectrogram Sound_to_Spectrogram_e (
 				for (integer j = 1, i = startSample; j <= nsamp_window; j ++)
 					data [j] = my z [channel] [i ++] * window [j];
 				for (integer j = nsamp_window + 1; j <= nsampFFT; j ++)
-					data [j] = 0.0f;
+					data [j] = 0.0;
 
-				if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
+				if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
 					const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
 					Melder_progress (estimatedProgress,
 						U"Sound to Spectrogram: analysed approximately ", Melder_iround (numberOfTimes * estimatedProgress),
