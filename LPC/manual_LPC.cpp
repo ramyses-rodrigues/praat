@@ -1163,11 +1163,11 @@ NORMAL (U"J. Jacquelin (2009): \"Régressions et équations intégrales\", https
 MAN_END
 
 MAN_BEGIN (U"Lee (1988)", U"djmw", 20111027)
-NORMAL (U"C.-H. Lee (1988): \"On Robust Linear Prediction of Speech.\", %%IEEE Trans. on ASSP% #36: 642\\--649.")
+NORMAL (U"C.-H. Lee (1988): \"On robust linear prediction of speech.\", %%IEEE Trans. on ASSP% #36: 642\\--649.")
 MAN_END
 
 MAN_BEGIN (U"Markel & Gray (1976)", U"djmw", 19980114)
-NORMAL (U"J.D. Markel & A.H. Gray, Jr. (1976): %%Linear Prediction of Speech.% "
+NORMAL (U"J.D. Markel & A.H. Gray, Jr. (1976): %%Linear prediction of speech.% "
 	"Springer Verlag, Berlin.")
 MAN_END
 
@@ -1177,7 +1177,7 @@ NORMAL (U"L. Marple (1980): \"A new autoregressive spectrum analysis algorithm.\
 MAN_END
 
 MAN_BEGIN (U"Rothweiler (1999)", U"djmw", 20160507)
-NORMAL (U"J. Rothweiler (1999): \"On Polynomial Reduction in the Computation of LSP Frequencies.\" "
+NORMAL (U"J. Rothweiler (1999): \"On polynomial reduction in the computation of LSP frequencies.\" "
 	"%%IEEE Trans. on ASSP% #7, 592\\--594.")
 MAN_END
 
