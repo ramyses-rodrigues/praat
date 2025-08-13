@@ -90,7 +90,7 @@ double structFormantPath :: v_getValueAtSample (integer iframe, integer which, i
 	const double time = x1 + (iframe - 1) * dx;
 	IntervalTier intervalTier = static_cast <IntervalTier> (path -> tiers -> at [1]);
 	const integer index = IntervalTier_timeToIndex (intervalTier, time);
-	const Formant formant = reinterpret_cast<Formant> (our formantCandidates.at [index]);
+	const Formant formant = static_cast <Formant> (our formantCandidates.at [index]);
 	return formant -> v_getValueAtSample (iframe, which, units);
 }
 
@@ -276,7 +276,7 @@ autoFormant FormantPath_extractFormant (FormantPath me) {
 	autoFormant thee = Formant_create (my xmin, my xmax, my nx, my dx, my x1, formant -> maxnFormants);
 	for (integer iframe = 1; iframe <= my nx; iframe ++) {
 		const integer candidate = FormantPath_getCandidateInFrame (me, iframe);
-		Formant source = reinterpret_cast <Formant> (my formantCandidates.at [candidate]);
+		Formant source = static_cast <Formant> (my formantCandidates.at [candidate]);
 		Formant_Frame targetFrame = & thy frames [iframe];
 		Formant_Frame sourceFrame = & source -> frames [iframe];
 		sourceFrame -> copy (targetFrame);

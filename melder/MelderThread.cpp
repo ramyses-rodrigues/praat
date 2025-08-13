@@ -17,6 +17,7 @@
  */
 
 #include "melder.h"
+#include <vector>
 #include <thread>
 
 integer MelderThread_getNumberOfProcessors () {
