@@ -436,7 +436,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		MelderThread_PARALLELIZE (numberOfFrames, 5, false, threadNumber)
+		MelderThread_PARALLELIZE (numberOfFrames, 5, false)
 
 		autoMAT frame;
 		autoNUMFourierTable fftTable;
@@ -457,7 +457,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 			Pitch_Frame pitchFrame = & thy frames [iframe];
 			const double time = Sampled_indexToX (thee.get(), iframe);
-			if (threadNumber == 0) {   // are we in the master thread? then we can interact with the GUI
+			if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
 				const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
 				Melder_progress (0.1 + 0.8 * estimatedProgress,
 					U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
