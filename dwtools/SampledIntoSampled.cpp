@@ -103,6 +103,8 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			integer numberOfThreadsInRun;
 			try {
 				const integer numberOfThreadRuns = Melder_iroundUp ((double) numberOfThreadsNeeded / numberOfThreads);
+				//TRACE
+				trace (numberOfThreadRuns, U" ", numberOfFrames, U" ", numberOfThreadsNeeded, U" ", numberOfThreads);
 				const integer numberOfFramesInRun = numberOfThreads * numberOfFramesPerThread;
 				const integer remainingThreads = numberOfThreadsNeeded % numberOfThreads;
 				const integer numberOfThreadsInLastRun = ( remainingThreads == 0 ? numberOfThreads : remainingThreads );
@@ -170,8 +172,8 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 		Save current multi-threading situation
 	*/
 	try {
-		autoVEC framesPerThread { 10, 20, 30, 40, 50, 70, 100, 200, 400, 800, 1600, 3200 };
-		const integer maximumNumberOfThreads = 2 * std::thread::hardware_concurrency ();
+		autoVEC framesPerThread { 1, 10, 20, 30, 40, 50, 70, 100, 200, 400, 800, 1600, 3200 };
+		const integer maximumNumberOfThreads = MelderThread_getNumberOfProcessors ();
 		autoSound me = Sound_createSimple (1_integer, soundDuration, 5500.0);
 		for (integer i = 1; i <= my nx; i++) {
 			const double time = my x1 + (i - 1) * my dx;
@@ -184,6 +186,7 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 		Melder_clearInfo ();
 		MelderInfo_writeLine (U"duration(s) nThread nFrames/thread toLPC(s)");
 		integer numberOfThreads = maximumNumberOfThreads;
+		double totalTime = 0.0;
 		for (integer nThread = 1; nThread <= maximumNumberOfThreads; nThread ++) {
 			const integer numberOfConcurrentThreadsToUse = nThread;
 			for (integer index = 1; index <= framesPerThread.size; index ++) {
@@ -194,6 +197,7 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 				autoLPC lpc = Sound_to_LPC_burg (me.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
 				double t = Melder_stopwatch ();
 				MelderInfo_writeLine (soundDuration, U" ", nThread, U" ", numberOfFramesPerThread, U" ", t);
+				totalTime += t;
 			}
 			MelderInfo_drain ();
 			try {
@@ -204,6 +208,7 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 				break;
 			}
 		}
+		MelderInfo_writeLine (U"Total time ", totalTime, U" seconds");
 		MelderInfo_close ();
 	} catch (MelderError) {
 		Melder_throw (U"Could not perform timing.");
