@@ -35,31 +35,6 @@ integer Melder_thisThread_getUniqueID () {
 	return thisThread_uniqueID;
 }
 
-integer MelderThread_computeNumberOfThreads (
-	const integer numberOfElements,
-	const integer thresholdNumberOfElementsPerThread,
-	const bool useRandom)
-{
-	/* mutable clip */ integer numberOfThreads =
-		#if defined (macintosh)
-			Melder_iroundDown ((double) numberOfElements / thresholdNumberOfElementsPerThread);
-				// round down, assuming that the first spawned thread is the costliest
-		#elif defined (_WIN32)
-			Melder_iroundDown ((double) numberOfElements / 2.0 / thresholdNumberOfElementsPerThread);
-				// round down, assuming that the first spawned thread is the costliest
-		#elif defined (linux)
-			Melder_iround ((double) numberOfElements / 1.5 / thresholdNumberOfElementsPerThread);
-				// round to nearest, assuming that all spawned threads are equally costly
-		#else
-			#error Undefined platform for MelderThread_computeNumberOfThreads().
-		#endif
-	Melder_clipRight (& numberOfThreads, MelderThread_getNumberOfProcessors ());
-	if (useRandom)
-		Melder_clipRight (& numberOfThreads, NUMrandom_maximumNumberOfParallelThreads);
-	Melder_clipLeft (1_integer, & numberOfThreads);
-	return numberOfThreads;
-}
-
 void MelderThread_run (
 	std::atomic <bool> *p_errorFlag,
 	const integer numberOfElements,
@@ -103,6 +78,61 @@ void MelderThread_run (
 		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 		throw MelderError();   // turn the error flag back into a MelderError
 	}
+}
+
+integer MelderThread_computeNumberOfThreads (
+	const integer numberOfElements,
+	const integer thresholdNumberOfElementsPerThread,
+	const bool useRandom)
+{
+	if (! MelderThread_getUseMultithreading ())
+		return 1;
+	integer minimumNumberOfElementsPerThread = MelderThread_getMinimumNumberOfElementsPerThread ();
+	if (minimumNumberOfElementsPerThread <= 0)
+		minimumNumberOfElementsPerThread = thresholdNumberOfElementsPerThread;
+	/* mutable clip */ integer numberOfThreads =
+		#if defined (macintosh)
+			Melder_iroundDown ((double) numberOfElements / minimumNumberOfElementsPerThread);
+				// round down, assuming that the first spawned thread is the costliest
+		#elif defined (_WIN32)
+			Melder_iroundDown ((double) numberOfElements / 2.0 / minimumNumberOfElementsPerThread);
+				// round down, assuming that the first spawned thread is the costliest
+		#elif defined (linux)
+			Melder_iround ((double) numberOfElements / 1.5 / minimumNumberOfElementsPerThread);
+				// round to nearest, assuming that all spawned threads are equally costly
+		#else
+			#error Undefined platform for MelderThread_computeNumberOfThreads().
+		#endif
+	Melder_clipRight (& numberOfThreads, MelderThread_getMaximumNumberOfConcurrentThreads ());
+	if (useRandom)
+		Melder_clipRight (& numberOfThreads, NUMrandom_maximumNumberOfParallelThreads);
+	Melder_clipLeft (1_integer, & numberOfThreads);
+	return numberOfThreads;
+}
+
+void MelderThread_getInfo (integer numberOfElements, integer *p_numberOfThreads, integer *p_numberOfElementsPerThread) {
+	const integer maximumNumberOfConcurrentThreads = MelderThread_getMaximumNumberOfConcurrentThreads ();
+	integer minimumNumberOfElementsPerThread = MelderThread_getMinimumNumberOfElementsPerThread ();
+	if (minimumNumberOfElementsPerThread <= 0)
+		minimumNumberOfElementsPerThread = 40;   // BUG: hard-coded here, but should be factory-tuned
+	const integer maximumNumberOfElementsPerThread =
+			Melder_clippedLeft (minimumNumberOfElementsPerThread, MelderThread_getMaximumNumberOfElementsPerThread ());
+	Melder_assert (maximumNumberOfConcurrentThreads > 0);
+	Melder_assert (minimumNumberOfElementsPerThread > 0);
+	Melder_assert (maximumNumberOfElementsPerThread >= minimumNumberOfElementsPerThread);
+	if (MelderThread_getUseMultithreading ()) {
+		*p_numberOfElementsPerThread = Melder_iroundUp ((double) numberOfElements / maximumNumberOfConcurrentThreads);
+		Melder_clip (minimumNumberOfElementsPerThread, p_numberOfElementsPerThread, maximumNumberOfElementsPerThread);
+		*p_numberOfThreads = Melder_iroundUp ((double) numberOfElements / *p_numberOfElementsPerThread);
+		Melder_clipLeft (1_integer, p_numberOfThreads);
+		//TRACE
+		trace (numberOfElements, U" ", maximumNumberOfConcurrentThreads, U" ", *p_numberOfElementsPerThread, U" ", *p_numberOfThreads);
+	} else {
+		*p_numberOfThreads = 1;
+		*p_numberOfElementsPerThread = numberOfElements;
+	}
+	Melder_assert (*p_numberOfThreads > 0);
+	Melder_assert (*p_numberOfElementsPerThread > 0 || numberOfElements == 0);   // note edge case
 }
 
 /*
@@ -157,29 +187,6 @@ integer MelderThread_getMaximumNumberOfElementsPerThread () {
 
 bool MelderThread_getTraceThreads () {
 	return preferences. traceThreads;
-}
-
-void MelderThread_getInfo (integer numberOfElements, integer *p_numberOfThreads, integer *p_numberOfElementsPerThread) {
-	const integer numberOfConcurrentThreadsToUse = MelderThread_getMaximumNumberOfConcurrentThreads ();
-	integer minimumNumberOfElementsPerThread = MelderThread_getMinimumNumberOfElementsPerThread ();
-	if (minimumNumberOfElementsPerThread <= 0)
-		minimumNumberOfElementsPerThread = 40;   // BUG: hard-coded here, but should be factory-tuned
-	const integer maximumNumberOfElementsPerThread =
-			Melder_clippedLeft (minimumNumberOfElementsPerThread, MelderThread_getMaximumNumberOfElementsPerThread ());
-	Melder_assert (numberOfConcurrentThreadsToUse > 0);
-	Melder_assert (minimumNumberOfElementsPerThread > 0);
-	Melder_assert (maximumNumberOfElementsPerThread >= minimumNumberOfElementsPerThread);
-	if (MelderThread_getUseMultithreading ()) {
-		*p_numberOfElementsPerThread = Melder_iroundUp ((double) numberOfElements / numberOfConcurrentThreadsToUse);
-		Melder_clip (minimumNumberOfElementsPerThread, p_numberOfElementsPerThread, maximumNumberOfElementsPerThread);
-		*p_numberOfThreads = Melder_iroundUp ((double) numberOfElements / *p_numberOfElementsPerThread);
-		Melder_clipLeft (1_integer, p_numberOfThreads);
-	} else {
-		*p_numberOfThreads = 1;
-		*p_numberOfElementsPerThread = numberOfElements;
-	}
-	Melder_assert (*p_numberOfThreads > 0);
-	Melder_assert (*p_numberOfElementsPerThread > 0 || numberOfElements == 0);   // note edge case
 }
 
 /* End of file MelderThread.cpp */
