@@ -390,13 +390,13 @@ DIRECT (CONVERT_TWO_TO_ONE__Categories_join) {
 
 DIRECT (CONVERT_EACH_TO_ONE__Categories_permuteItems) {
 	CONVERT_EACH_TO_ONE (Categories)
-		autoCollection result = Collection_permuteItems (reinterpret_cast<Collection> (me));
+		autoCollection result = Collection_permuteItems (reinterpret_cast <Collection> (me));
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_perm")
 }
 
 DIRECT (MODIFY_EACH__Categories_permuteItems_inplace) {
 	MODIFY_EACH (Categories)
-		Collection_permuteItems_inplace (reinterpret_cast<Collection> (me));
+		Collection_permuteItems_inplace (reinterpret_cast <Collection> (me));
 	MODIFY_EACH_END
 }
 
@@ -5373,59 +5373,6 @@ DIRECT (MODIFY_FIRST_OF_ONE_AND_ONE__Roots_Polynomial_polish) {
 }
 
 /*****************************************************************************/
-	
-
-
-FORM (SETTINGS__SampledDataAnalysisSettings, U"Sampled data analysis settings", U"Sampled data analysis settings...") {
-	COMMENT (U"These settings determine how fast your analyses")
-	COMMENT (U"will be performed on your computer.")
-	BOOLEAN (useMultithreading, U"Use multi-threading", true)
-	COMMENT (SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo ())
-	NATURAL (numberOfConcurrentThreadsToUse, U"Number of threads to use",
-			Melder_integer (MelderThread_getNumberOfProcessors ()))
-	COMMENT (U"The minimum number of frames to be analysed in a thread:")
-	INTEGER (minimumNumberOfFramesPerThread, U"Min. number of frames per thread",
-			Melder_integer (SampledIntoSampled_getMinimumNumberOfFramesPerThread ()))
-	COMMENT (U"The maximum number of frames to be analysed in a thread,")
-	COMMENT (U"where a value of 0 means no upper limit:")
-	INTEGER (maximumNumberOfFramesPerThread, U"Max. number of frames per thread",
-			Melder_integer (SampledIntoSampled_getMaximumNumberOfFramesPerThread ()))
-	BOOLEAN (extraAnalysisInfo, U"Extra analysis info", false)
-	OK
-DO
-	PREFS
-	Melder_require (!useMultithreading || maximumNumberOfFramesPerThread == 0 ||
-		maximumNumberOfFramesPerThread >= minimumNumberOfFramesPerThread,
-		U"The minimum number of frames per thread should not exceed the maximum number of frames per thread.");
-	SampledIntoSampled_dataAnalysisSettings (useMultithreading, numberOfConcurrentThreadsToUse, 
-			minimumNumberOfFramesPerThread, maximumNumberOfFramesPerThread, extraAnalysisInfo);
-	PREFS_END
-}
-
-
-DIRECT (INFO_NONE__Praat_ReportFloatingPointProperties) {
-	INFO_NONE
-		if (! NUMfpp)
-			NUMmachar ();
-
-		MelderInfo_open ();
-		MelderInfo_writeLine (U"Double precision floating point properties of this machine,");
-		MelderInfo_writeLine (U"as calculated by algorithms from the Binary Linear Algebra System (BLAS)");
-		MelderInfo_writeLine (U"\nRadix: ", NUMfpp -> base);
-		MelderInfo_writeLine (U"Number of digits in mantissa: ", NUMfpp -> t);
-		MelderInfo_writeLine (U"Smallest exponent before (gradual) underflow (expmin): ", NUMfpp -> emin);
-		MelderInfo_writeLine (U"Largest exponent before overflow (expmax): ", NUMfpp -> emax);
-		MelderInfo_writeLine (U"Does rounding occur in addition: ", (NUMfpp -> rnd == 1 ? U"yes" : U"no"));
-		MelderInfo_writeLine (U"Quantization step (d): ", NUMfpp -> prec);
-		MelderInfo_writeLine (U"Quantization error (eps = d/2): ", NUMfpp -> eps);
-		MelderInfo_writeLine (U"Underflow threshold (= radix ^ (expmin - 1)): ", NUMfpp -> rmin);
-		MelderInfo_writeLine (U"Safe minimum (such that its inverse does not overflow): ", NUMfpp -> sfmin);
-		MelderInfo_writeLine (U"Overflow threshold (= (1 - eps) * radix ^ expmax): ", NUMfpp -> rmax);
-		MelderInfo_writeLine (U"\nA long double is ", sizeof (long double), U" bytes");
-		MelderInfo_writeLine (U"A longdouble is ", sizeof (longdouble), U" bytes");
-		MelderInfo_close ();
-	INFO_NONE_END
-}
 
 FORM (QUERY_NONE_FOR_REAL__Praat_getTukeyQ, U"Get TukeyQ", nullptr) {
 	POSITIVE (criticalValue, U"Critical value", U"2.0")
@@ -9052,11 +8999,6 @@ void praat_David_init () {
 		trace (U"initializing eSpeak data took ", Melder_fixed (1000 * (Melder_clock () - t), 3), U" milliseconds");
 	}
 	
-	praat_addMenuCommand (U"Objects", U"Settings", U"Sampled data analysis settings...", nullptr, 0,
-			SETTINGS__SampledDataAnalysisSettings);
-
-	praat_addMenuCommand (U"Objects", U"Technical", U"Report floating point properties", U"Report integer properties", 0,
-			INFO_NONE__Praat_ReportFloatingPointProperties);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Get TukeyQ...", 0, GuiMenu_HIDDEN,
 			QUERY_NONE_FOR_REAL__Praat_getTukeyQ);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Get invTukeyQ...", 0, GuiMenu_HIDDEN,

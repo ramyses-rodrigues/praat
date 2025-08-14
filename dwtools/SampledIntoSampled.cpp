@@ -1,6 +1,6 @@
 /* SampledIntoSampled.cpp
  *
- * Copyright (C) 2024,2025 David Weenink
+ * Copyright (C) 2024,2025 David Weenink, 2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <vector>
 #include <thread>
 
-#include "Preferences.h"
 #include "SampledIntoSampled.h"
 #include "Sound_and_LPC.h"
 #include "Sound_extensions.h"
@@ -45,100 +45,6 @@
 
 Thing_implement (SampledIntoSampled, Daata, 0);
 
-static struct ThreadingPreferences {
-	bool useMultiThreading = true;
-	integer numberOfConcurrentThreadsToUse = 20;
-	integer maximumNumberOfFramesPerThread = 0; // 0: signals no limit
-	integer minimumNumberOfFramesPerThread = 40;
-	bool extraAnalysisInfo = false;
-} preferences;
-
-void SampledIntoSampled_preferences () {
-	Preferences_addBool    (U"SampledIntoSampled.useMultiThreading", & preferences.useMultiThreading, true);
-	Preferences_addInteger (U"SampledIntoSampled.numberOfConcurrentThreadsToUse", & preferences.numberOfConcurrentThreadsToUse, 20);
-	Preferences_addInteger (U"SampledIntoSampled.maximumNumberOfFramesPerThread", & preferences.maximumNumberOfFramesPerThread, 40);
-	Preferences_addInteger (U"SampledIntoSampled.minimumNumberOfFramesPerThread", & preferences.minimumNumberOfFramesPerThread, 40);
-	Preferences_addBool    (U"SampledIntoSampled.extraAnalysisInfo", & preferences.extraAnalysisInfo, false);
-}
-
-void SampledIntoSampled_dataAnalysisSettings (bool useMultithreading, integer numberOfConcurrentThreadsToUse,
-	integer minimumNumberOfFramesPerThread, integer maximumNumberOfFramesPerThread, bool extraAnalysisInfo)
-{
-	SampledIntoSampled_setMultiThreading (useMultithreading);
-	SampledIntoSampled_setNumberOfConcurrentThreadsToUse (numberOfConcurrentThreadsToUse);
-	SampledIntoSampled_setMinimumNumberOfFramesPerThread (minimumNumberOfFramesPerThread);
-	SampledIntoSampled_setMaximumNumberOfFramesPerThread (maximumNumberOfFramesPerThread);
-	SampledIntoSampled_setExtraAnalysisInfo (extraAnalysisInfo);
-}
-
-bool SampledIntoSampled_useMultiThreading () {
-	return preferences.useMultiThreading;
-}
-
-void SampledIntoSampled_setMultiThreading (bool useMultiThreading) {
-	preferences.useMultiThreading = useMultiThreading;
-}
-
-conststring32 SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo () {
-	static char32 threadingInfoString [80];
-	MelderString info;
-	MelderString_append (& info, U"The maximum number of concurrent threads available on your machine is ",
-			MelderThread_getNumberOfProcessors (), U".");
-	str32cpy (threadingInfoString, info.string);
-	MelderString_free (& info);
-	return threadingInfoString;
-}
-
-integer SampledIntoSampled_getNumberOfConcurrentThreadsToUse () {
-	return preferences.numberOfConcurrentThreadsToUse;
-}
-
-void SampledIntoSampled_setNumberOfConcurrentThreadsToUse (integer numberOfConcurrentThreadsToUse) {
-	preferences.numberOfConcurrentThreadsToUse = numberOfConcurrentThreadsToUse;
-}
-
-integer SampledIntoSampled_getMaximumNumberOfFramesPerThread () {
-	return preferences.maximumNumberOfFramesPerThread;
-}
-
-void SampledIntoSampled_setMaximumNumberOfFramesPerThread (integer maximumNumberOfFramesPerThread) {
-	preferences.maximumNumberOfFramesPerThread = maximumNumberOfFramesPerThread;
-}
-
-integer SampledIntoSampled_getMinimumNumberOfFramesPerThread () {
-	return preferences.minimumNumberOfFramesPerThread;
-}
-
-void SampledIntoSampled_setMinimumNumberOfFramesPerThread (integer minimumNumberOfFramesPerThread) {
-	preferences.minimumNumberOfFramesPerThread = minimumNumberOfFramesPerThread;
-}
-
-void SampledIntoSampled_setExtraAnalysisInfo (bool extraAnalysisInfo) {
-	preferences.extraAnalysisInfo = extraAnalysisInfo;
-}
-bool SampledIntoSampled_getExtraAnalysisInfo () {
-	return preferences.extraAnalysisInfo;
-}
-
-void SampledIntoSampled_getThreadingInfo (constSampledIntoSampled me, integer& numberOfThreads, integer& numberOfFramesPerThread) {
-	const integer numberOfConcurrentThreadsAvailable = MelderThread_getNumberOfProcessors ();
-	const integer numberOfConcurrentThreadsToUse = SampledIntoSampled_getNumberOfConcurrentThreadsToUse ();
-	const integer minimumNumberOfFramesPerThread = SampledIntoSampled_getMinimumNumberOfFramesPerThread ();
-	const integer maximumNumberOfFramesPerThread = SampledIntoSampled_getMaximumNumberOfFramesPerThread ();
-	const integer numberOfFrames = my output -> nx;
-	numberOfThreads = 0;
-	numberOfFramesPerThread = numberOfFrames;
-	if (SampledIntoSampled_useMultiThreading () && numberOfConcurrentThreadsToUse > 0) {
-		numberOfFramesPerThread = Melder_iroundUp ((double) numberOfFrames / numberOfConcurrentThreadsToUse);
-		if (maximumNumberOfFramesPerThread > 0)
-			numberOfFramesPerThread = std::min (numberOfFramesPerThread, maximumNumberOfFramesPerThread);
-		if (minimumNumberOfFramesPerThread > 0)
-			numberOfFramesPerThread = std::max (numberOfFramesPerThread, minimumNumberOfFramesPerThread);
-		numberOfThreads = Melder_iroundUp ((double) numberOfFrames / numberOfFramesPerThread);
-		numberOfThreads = std::max (1_integer, numberOfThreads);
-	}
-}
-
 void SampledIntoSampled_init (mutableSampledIntoSampled me, constSampled input, mutableSampled output) {
 	SampledIntoSampled_assertEqualDomains (input, output);
 	my input = input;
@@ -154,7 +60,7 @@ autoSampledIntoSampled SampledIntoSampled_create (constSampled input, mutableSam
 		my frameIntoFrame = ws.move();
 		my frameIntoFrame -> allocateOutputFrames ();
 		my status = status.move();
-		const bool updateStatus = SampledIntoSampled_getExtraAnalysisInfo ();
+		const bool updateStatus = MelderThread_getTraceThreads ();
 		SampledFrameIntoSampledFrame_initForStatusUpdates (my frameIntoFrame.get(), my status.get(), updateStatus);
 		return me;
 	} catch (MelderError) {
@@ -171,14 +77,14 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 		
 		std::atomic<integer> globalFrameErrorCount (0);
 		
-		if (SampledIntoSampled_useMultiThreading ()) {
+		if (MelderThread_getUseMultithreading ()) {
 			integer numberOfThreadsNeeded, numberOfFramesPerThread;
-			SampledIntoSampled_getThreadingInfo (me, numberOfThreadsNeeded, numberOfFramesPerThread);
+			MelderThread_getInfo (numberOfFrames, & numberOfThreadsNeeded, & numberOfFramesPerThread);
 
 			/*
 				We need to reserve all the working memory for each thread beforehand.
 			*/
-			const integer numberOfThreadsToUse = SampledIntoSampled_getNumberOfConcurrentThreadsToUse ();
+			const integer numberOfThreadsToUse = MelderThread_getMaximumNumberOfConcurrentThreads ();
 			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
 			frameIntoFrame -> maximumNumberOfFrames = numberOfFramesPerThread;
 			frameIntoFrame -> allocateMemoryAfterThreadsAreKnown();
@@ -199,7 +105,7 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				const integer numberOfThreadRuns = Melder_iroundUp ((double) numberOfThreadsNeeded / numberOfThreads);
 				const integer numberOfFramesInRun = numberOfThreads * numberOfFramesPerThread;
 				const integer remainingThreads = numberOfThreadsNeeded % numberOfThreads;
-				const integer numberOfThreadsInLastRun = ( remainingThreads == 0 ? numberOfThreads : remainingThreads);
+				const integer numberOfThreadsInLastRun = ( remainingThreads == 0 ? numberOfThreads : remainingThreads );
 				for (integer irun = 1; irun <= numberOfThreadRuns; irun ++) {
 					numberOfThreadsInRun = ( irun < numberOfThreadRuns ? numberOfThreads : numberOfThreadsInLastRun );
 					const integer lastFrameInRun = ( irun < numberOfThreadRuns ? numberOfFramesInRun * irun : numberOfFrames);
@@ -263,7 +169,6 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 	/*
 		Save current multi-threading situation
 	*/
-	struct ThreadingPreferences savedPreferences = preferences;
 	try {
 		autoVEC framesPerThread { 10, 20, 30, 40, 50, 70, 100, 200, 400, 800, 1600, 3200 };
 		const integer maximumNumberOfThreads = 2 * std::thread::hardware_concurrency ();
@@ -283,7 +188,7 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 			const integer numberOfConcurrentThreadsToUse = nThread;
 			for (integer index = 1; index <= framesPerThread.size; index ++) {
 				const integer numberOfFramesPerThread = framesPerThread [index];
-				SampledIntoSampled_dataAnalysisSettings (useMultiThreading, nThread,
+				MelderThread_debugMultithreading (useMultiThreading, nThread,
 						numberOfFramesPerThread, numberOfFramesPerThread, extraAnalysisInfo);
 				Melder_stopwatch ();
 				autoLPC lpc = Sound_to_LPC_burg (me.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
@@ -300,9 +205,7 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 			}
 		}
 		MelderInfo_close ();
-		preferences = savedPreferences;
 	} catch (MelderError) {
-		preferences = savedPreferences;
 		Melder_throw (U"Could not perform timing.");
 	}
 }

@@ -1,6 +1,6 @@
 /* praat_statistics.cpp
  *
- * Copyright (C) 1992-2012,2014-2022,2024 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2022,2024,2025 Paul Boersma & David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #endif
 #include "praatP.h"
 #include "GraphicsP.h"
+#include "NUMmachar.h"
 
 static struct {
 	integer batchSessions, interactiveSessions;
@@ -76,6 +77,27 @@ void praat_reportIntegerProperties () {
 	MelderInfo_writeLine (U"A pointer is ",                sizeof (void *)      * 8, U" bits.");
 	MelderInfo_writeLine (U"A memory object size is ",     sizeof (size_t)      * 8, U" bits.");
 	MelderInfo_writeLine (U"A file offset is ",            sizeof (off_t)       * 8, U" bits.");
+	MelderInfo_close ();
+}
+
+void praat_reportFloatingPointProperties () {
+	if (! NUMfpp)
+		NUMmachar ();
+	MelderInfo_open ();
+	MelderInfo_writeLine (U"Double precision floating point properties of this machine,");
+	MelderInfo_writeLine (U"as calculated by algorithms from the Binary Linear Algebra System (BLAS)");
+	MelderInfo_writeLine (U"\nRadix: ", NUMfpp -> base);
+	MelderInfo_writeLine (U"Number of digits in mantissa: ", NUMfpp -> t);
+	MelderInfo_writeLine (U"Smallest exponent before (gradual) underflow (expmin): ", NUMfpp -> emin);
+	MelderInfo_writeLine (U"Largest exponent before overflow (expmax): ", NUMfpp -> emax);
+	MelderInfo_writeLine (U"Does rounding occur in addition: ", (NUMfpp -> rnd == 1 ? U"yes" : U"no"));
+	MelderInfo_writeLine (U"Quantization step (d): ", NUMfpp -> prec);
+	MelderInfo_writeLine (U"Quantization error (eps = d/2): ", NUMfpp -> eps);
+	MelderInfo_writeLine (U"Underflow threshold (= radix ^ (expmin - 1)): ", NUMfpp -> rmin);
+	MelderInfo_writeLine (U"Safe minimum (such that its inverse does not overflow): ", NUMfpp -> sfmin);
+	MelderInfo_writeLine (U"Overflow threshold (= (1 - eps) * radix ^ expmax): ", NUMfpp -> rmax);
+	MelderInfo_writeLine (U"\nA long double is ", sizeof (long double), U" bytes");
+	MelderInfo_writeLine (U"A longdouble is ", sizeof (longdouble), U" bytes");
 	MelderInfo_close ();
 }
 

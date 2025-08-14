@@ -58,7 +58,7 @@ void structSoundFrameIntoSampledFrame :: getInputFrame () {
 	const double midTime = Sampled_indexToX (output, currentFrame);
 	integer soundFrameBegin = Sampled_xToNearestIndex (sound, midTime - 0.5 * physicalAnalysisWidth); // approximation
 	if (updateStatus) {
-		SoundIntoSampledStatus soundIntoSampledStatus = reinterpret_cast<SoundIntoSampledStatus> (status);
+		SoundIntoSampledStatus soundIntoSampledStatus = static_cast <SoundIntoSampledStatus> (status);
 		soundIntoSampledStatus -> soundFrameBegins [currentFrame] = soundFrameBegin;
 	}
 	for (integer isample = 1; isample <= soundFrame.size; isample ++, soundFrameBegin ++) {
