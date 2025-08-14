@@ -30,8 +30,6 @@ autoSampledIntoSampled SampledIntoSampled_create (constSampled input, mutableSam
 
 integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me);
 
-void SampledIntoSampled_preferences ();
-
 inline void Sampled_requireEqualSampling (constSampled me,  constSampled thee) {
 	Melder_assert (me && thee);
 	Melder_require (my x1 == thy x1 && my nx == thy nx && my dx == thy dx,
@@ -65,30 +63,6 @@ inline void SampledIntoSampled_assertEqualDomainsAndSampling (constSampled me,  
 	SampledIntoSampled_assertEqualDomains (me, thee);
 	SampledIntoSampled_assertEqualSampling (me, thee);
 }
-
-void SampledIntoSampled_dataAnalysisSettings (bool useMultithreading, integer numberOfConcurrentThreadsToUse,
-	integer minimumNumberOfFramesPerThread, integer maximumNumberOfFramesPerThread, bool extraAnalysisInfo);
-
-bool SampledIntoSampled_useMultiThreading ();
-
-void SampledIntoSampled_setMultiThreading (bool useMultiThreading);
-
-conststring32 SampledIntoSampled_getNumberOfConcurrentThreadsAvailableInfo (); // 
-
-integer SampledIntoSampled_getNumberOfConcurrentThreadsToUse ();
-void SampledIntoSampled_setNumberOfConcurrentThreadsToUse (integer numberOfConcurrentThreadsToUse);
-
-integer SampledIntoSampled_getMaximumNumberOfFramesPerThread ();
-void SampledIntoSampled_setMaximumNumberOfFramesPerThread (integer maximumNumberOfFramesPerThread);
-
-integer SampledIntoSampled_getMinimumNumberOfFramesPerThread ();
-
-void SampledIntoSampled_setMinimumNumberOfFramesPerThread (integer minimumNumberOfFramesPerThread);
-
-void SampledIntoSampled_setExtraAnalysisInfo (bool extraAnalysisInfo);
-bool SampledIntoSampled_getExtraAnalysisInfo ();
-
-void SampledIntoSampled_getThreadingInfo (constSampledIntoSampled me, integer& numberOfThreadsNeeded, integer & numberOfFramesPerThread);
 
 /*********** timing only *********/
 

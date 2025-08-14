@@ -325,5 +325,20 @@ void MelderThread_run (
 	   for low numbers of threads; see `test/manually/Sound_to_Pitch.praat` for an example.
 */
 
+void MelderThread_debugMultithreading (bool useMultithreading, integer numberOfConcurrentThreadsToUse,
+	integer minimumNumberOfFramesPerThread, integer maximumNumberOfFramesPerThread, bool extraAnalysisInfo);
+
+bool MelderThread_getUseMultithreading ();
+
+integer MelderThread_getMaximumNumberOfConcurrentThreads ();
+
+integer MelderThread_getMaximumNumberOfElementsPerThread ();
+
+integer MelderThread_getMinimumNumberOfElementsPerThread ();
+
+bool MelderThread_getTraceThreads ();
+
+void MelderThread_getInfo (integer numberOfElements, integer *numberOfThreadsNeeded, integer *numberOfFramesPerThread);
+
 /* End of file MelderThread.h */
 #endif

@@ -105,4 +105,81 @@ void MelderThread_run (
 	}
 }
 
+/*
+	Preferences.
+*/
+
+static struct {
+	bool useMultithreading = true;
+	integer maximumNumberOfConcurrentThreads = 0;   // "0" signals automatic
+	integer minimumNumberOfElementsPerThread = 0;   // "0" signals the factory-tuned value
+	integer maximumNumberOfElementsPerThread = 0;   // "0" signals no limit
+	bool traceThreads = false;
+} preferences;
+
+void MelderThread_debugMultithreading (bool useMultithreading, integer maximumNumberOfConcurrentThreads,
+	integer minimumNumberOfElementsPerThread, integer maximumNumberOfElementsPerThread, bool traceThreads)
+{
+	preferences. useMultithreading = useMultithreading;
+	preferences. maximumNumberOfConcurrentThreads = maximumNumberOfConcurrentThreads;
+	preferences. minimumNumberOfElementsPerThread = minimumNumberOfElementsPerThread;
+	preferences. maximumNumberOfElementsPerThread = maximumNumberOfElementsPerThread;
+	preferences. traceThreads = traceThreads;
+}
+
+bool MelderThread_getUseMultithreading () {
+	return preferences. useMultithreading;
+}
+
+integer MelderThread_getMaximumNumberOfConcurrentThreads () {
+	if (! preferences. useMultithreading)
+		return 1;
+	if (preferences. maximumNumberOfConcurrentThreads <= 0)
+		return MelderThread_getNumberOfProcessors ();
+	return preferences. maximumNumberOfConcurrentThreads;
+}
+
+integer MelderThread_getMinimumNumberOfElementsPerThread () {
+	if (! preferences. useMultithreading)
+		return 1;
+	if (preferences. minimumNumberOfElementsPerThread <= 0)
+		return 0;   // signals factory tuning
+	return preferences. minimumNumberOfElementsPerThread;
+}
+
+integer MelderThread_getMaximumNumberOfElementsPerThread () {
+	if (! preferences. useMultithreading)
+		return INTEGER_MAX;
+	if (preferences. maximumNumberOfElementsPerThread <= 0)
+		return INTEGER_MAX;   // signals no limit
+	return preferences. maximumNumberOfElementsPerThread;
+}
+
+bool MelderThread_getTraceThreads () {
+	return preferences. traceThreads;
+}
+
+void MelderThread_getInfo (integer numberOfElements, integer *p_numberOfThreads, integer *p_numberOfElementsPerThread) {
+	const integer numberOfConcurrentThreadsToUse = MelderThread_getMaximumNumberOfConcurrentThreads ();
+	integer minimumNumberOfElementsPerThread = MelderThread_getMinimumNumberOfElementsPerThread ();
+	if (minimumNumberOfElementsPerThread <= 0)
+		minimumNumberOfElementsPerThread = 40;   // BUG: hard-coded here, but should be factory-tuned
+	const integer maximumNumberOfElementsPerThread =
+			Melder_clippedLeft (minimumNumberOfElementsPerThread, MelderThread_getMaximumNumberOfElementsPerThread ());
+	Melder_assert (numberOfConcurrentThreadsToUse > 0);
+	Melder_assert (minimumNumberOfElementsPerThread > 0);
+	Melder_assert (maximumNumberOfElementsPerThread >= minimumNumberOfElementsPerThread);
+	if (MelderThread_getUseMultithreading ()) {
+		*p_numberOfElementsPerThread = Melder_iroundUp ((double) numberOfElements / numberOfConcurrentThreadsToUse);
+		Melder_clip (minimumNumberOfElementsPerThread, p_numberOfElementsPerThread, maximumNumberOfElementsPerThread);
+		*p_numberOfThreads = Melder_iroundUp ((double) numberOfElements / *p_numberOfElementsPerThread);
+		Melder_clipLeft (1_integer, p_numberOfThreads);
+	} else {
+		*p_numberOfThreads = 1;
+		*p_numberOfElementsPerThread = numberOfElements;
+	}
+	Melder_assert (*p_numberOfThreads > 0);
+	Melder_assert (*p_numberOfElementsPerThread > 0 || numberOfElements == 0);   // note edge case
+}
+
 /* End of file MelderThread.cpp */

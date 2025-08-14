@@ -3703,35 +3703,38 @@ LIST_ITEM (U"\\bu ##Get real part of root...#")
 LIST_ITEM (U"\\bu ##Get imaginary part of root...#")
 MAN_END
 
-MAN_BEGIN (U"Sampled data analysis settings...", U"djmw", 20250715)
-INTRO (U"This setting determines how fast your data analyses will be performed on your computer. ")
+MAN_BEGIN (U"Debug multi-threading...", U"David Weenink & Paul Boersma", 20250715) // 20250813
+INTRO (U"These settings determine how fast parallelized procedures, such as analyses of sound, will be performed on your computer. "
+	"You can use these settings for tuning e.g. a specific analysis procedure. "
+	"These settings are \"debug settings\" that are not remembered across Praat sessions.")
 ENTRY (U"Settings")
 TERM (U"##Use multi-threading#")
-DEFINITION (U"Only if you choose %on, the computing load will be equally divided among a number of different processors"
-	" on your computer. ")
+DEFINITION (U"Only if you choose %on, the computing load will be equally divided among a number of different processors "
+	"on your computer. If it’s off, you will get single-threading.")
 TERM (U"##Number of threads to use#")
 DEFINITION (U"determines the number of threads that you would like to use. Most modern computers have multiple "
-	"processors and each processor can process two threads. For each thread all memory and data structures "
-	"that are needed to perform its analysis have to be allocated beforehand. In this way each thread has its "
-	"own memory and does not interfere with other threads.")
-TERM (U"##Min. frames / thread#")
-DEFINITION (U"the minimum number of frames in a thread. This number should not be too low otherwise no speed gain can be achieved.")
-TERM (U"##Max. frames / thread#")
-DEFINITION (U"the maximum number of frames in a thread. If you have chosen this number equal to the ##Min. frames / thread# "
-	"then exactly this number of frames per thread will be used. ")
+	"processors. One some computers (e.g. AMD64/Intel64) each processor can process two threads; "
+	"on some other computers (e.g. ARM64) each processor can process one thread.")
+TERM (U"##Minimum number of frames per thread#")
+DEFINITION (U"as starting up a new thread costs time, it is rarely worthwhile to distribute "
+	"small numbers of frames over lots of threads. To achieve an optimal speed gain, "
+	"this number should be tuned via a script, for each type of analysis separately, "
+	"and perhaps for different sets of analysis settings separately.")
+TERM (U"##Maximum number of frames per thread#")
+DEFINITION (U"an extra parameter that can influence the behaviour of some (but not all) parallel procedures. "
+	"You will normally keep this at the special value of 0, which signals that there is no maximum.")
 TERM (U"##Extra analysis info#")
-DEFINITION (U"returns extra information for each analysed frame in the info window.")
+DEFINITION (U"returns extra information for each analysed frame in the Info window.")
 ENTRY (U"Example")
 NORMAL (U"Suppose we have 10 threads available for an analysis that needs 500 frames to be processed. "
- "Lets suppose that 50 frames per thread has been selected. This means that 10 threads will be used and each "
- "thread analyses 50 frames. The first thread will analyse frames 1 to 50, the second thread will analyse "
- "frames 51 till 100, the third thread will analyse frames 101 till 150, etc. The tenth thread will analyse "
- "frames 451 till 500. All these threads will be executed, in parallel, almost at the same time, which guarantees "
- "a significant decrease in analysis time.\n"
- "How much it will speed up depends on a number of factors, the most important one being whether the data to be analyzed "
- "in the thread and the memory needed for the analysis fit into the cache memory of each processor. "
- "In general this means that you should not process too many frames per thread because swapping data in and out of cache "
- "memory will cost extra time. "
+	"Let’s suppose that 50 frames per thread has been selected. This means that 10 threads will be used, with each "
+	"thread analysing 50 frames. The first thread will analyse frames 1 to 50, the second thread will analyse "
+	"frames 51 till 100, the third thread will analyse frames 101 till 150, etc. The tenth thread will analyse "
+	"frames 451 till 500. All these threads will be executed, in parallel, almost at the same time, which guarantees "
+	"a significant decrease in analysis time as compared to single threading.\n"
+	"How much it will speed up depends on a number of factors: starting up a thread costs time, "
+	"and allocating per-thread analysis buffers costs time; this is why it isn’t usually advantageous for e.g. "
+	"50 frames to be analysed by 16 threads (2 to 10 threads is more common, for 50 frames)."
 )
 MAN_END
 
