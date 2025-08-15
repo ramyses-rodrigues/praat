@@ -129,7 +129,7 @@ autoSpectrogram Sound_to_Spectrogram_e (
 
 		autoMelderProgress progress (U"Sound to Spectrogram...");
 
-		MelderThread_PARALLELIZE (numberOfTimes, 15, false)
+		MelderThread_PARALLELIZE (numberOfTimes, 15)
 
 		autoVEC data = zero_VEC (nsampFFT);
 		autoVEC spectrum = zero_VEC (half_nsampFFT + 1);
