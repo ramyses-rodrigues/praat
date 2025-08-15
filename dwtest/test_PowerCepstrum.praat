@@ -465,6 +465,7 @@ endproc
 
 ;@timingComparison
 procedure timingComparison
+	random_initializeWithSeedUnsafelyButPredictably (7456238)
 	.sound = Create Sound as tone complex: "toneComplex", 0, 1, 44100, "cosine", 100, 0, 0, 0
 	.pc = To PowerCepstrogram: 60, 0.002, 5000, 50
 	# version time CPPS
@@ -474,12 +475,22 @@ procedure timingComparison
 	# 6.4.23 15.200 29.0719
 	# 6.4.27 15.180 29.0582
 
+	# on the Mac:
+	# 6.4.01  4.196 29.0773
+	# 6.4.23  4.285 29.0773
+	# 6.4.27  4.310 29.0774
+	# 6.4.39  0.070 28.4723
+	# 6.4.39  0.078 28.5216
+	# 6.4.40  0.068 28.4176
+	# 6.4.40  0.062 28.5099
+
 	stopwatch
 	for i to 1
 		.cpps = Get CPPS: "yes", 0.02, 0.0005, 60, 330, 0.05, "parabolic", 0.001, 0.05,
 		... "Exponential decay", "Robust slow"
 	endfor
 	writeInfoLine: fixed$ (stopwatch, 3), " ", .cpps
+	random_initializeSafelyAndUnpredictably ()
 endproc
 	
 

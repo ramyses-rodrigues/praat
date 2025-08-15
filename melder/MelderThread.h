@@ -94,6 +94,11 @@ void MelderThread_run (
 	The thread function can throw, so you need a `try`-`catch` pair:
 					try {
 
+	In case the thread function can call NUMrandom functions,
+	they should be thread-aware (for Sound_to_Pitch, this is not the case though):
+
+						NUMrandom_setChannel (threadNumber);   // watch out! the maximum value of this is limited
+
 	Inside the thread function you first create the objects that are different for each thread, such as buffers:
 
 						autoMAT frame = zero_MAT (my ny, ...);
@@ -172,7 +177,9 @@ void MelderThread_run (
 		const bool _useRandom_ = useRandom;  \
 		std::atomic <bool> _errorFlag_ = false;  \
 		auto _threadFunction_ = [&] (integer _threadNumber_, integer _firstElement_, integer _lastElement_) {  \
-			try {
+			try {  \
+				if (useRandom)   /* crucial test, because of limiting (or not) in MelderThread_run */  \
+					NUMrandom_setChannel (_threadNumber_);
 
 #define MelderThread_FOR(ielement)  \
 				for (integer ielement = _firstElement_; ielement <= _lastElement_; ielement ++) {  \

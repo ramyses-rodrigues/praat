@@ -84,8 +84,6 @@
 #define UM  UINT64_C (0xFFFFFFFF80000000) /* Most significant 33 bits */
 #define LM  UINT64_C (0x7FFFFFFF) /* Least significant 31 bits */
 
-constexpr integer theNumberOfRandomGenerators = NUMrandom_maximumNumberOfParallelThreads + 3;
-
 class NUMrandom_State { public:
 
 	/** The state vector.
@@ -125,7 +123,7 @@ class NUMrandom_State { public:
 	/* key_length is its length */
 	void init_by_array64 (uint64 init_key[], unsigned int key_length);
 
-} states [theNumberOfRandomGenerators];
+} states [NUMrandom_numberOfChannels];
 
 /* initialize the array with a number of seeds */
 void NUMrandom_State :: init_by_array64 (uint64 init_key [], unsigned int key_length)
@@ -172,12 +170,12 @@ static bool theInited = false;
 void NUMrandom_initializeSafelyAndUnpredictably () {
 	const uint64 ticksSince1969 = getTicksSince1969 ();   // possibly microseconds
 	const uint64 ticksSinceBoot = getTicksSinceBoot ();   // possibly nanoseconds
-	for (int threadNumber = 0; threadNumber < theNumberOfRandomGenerators; threadNumber ++) {
+	for (integer ichan = 0; ichan < NUMrandom_numberOfChannels; ichan ++) {
 		constexpr integer numberOfKeys = 7;
 		uint64 keys [numberOfKeys];
 		keys [0] = ticksSince1969;   // unique between boots of the same computer
-		keys [1] = UINT64_C (7320321686725470078) + uint64 (threadNumber);   // unique between threads in the same process
-		switch (threadNumber) {
+		keys [1] = UINT64_C (7320321686725470078) + uint64 (ichan);   // unique between threads in the same process
+		switch (ichan) {
 			case  0: keys [2] = UINT64_C  (4492812493098689432); keys [3] = UINT64_C  (8902321878452586268); break;
 			case  1: keys [2] = UINT64_C  (1875086582568685862); keys [3] = UINT64_C (12243257483652989599); break;
 			case  2: keys [2] = UINT64_C  (9040925727554857487); keys [3] = UINT64_C  (8037578605604605534); break;
@@ -227,13 +225,13 @@ void NUMrandom_initializeSafelyAndUnpredictably () {
 		keys [5] = ticksSinceBoot;   // some extra randomness
 		static uint64 callInstance = 0;
 		keys [6] = UINT64_C (3642334578453) + (++ callInstance);
-		states [threadNumber]. init_by_array64 (keys, numberOfKeys);
+		states [ichan]. init_by_array64 (keys, numberOfKeys);
 	}
 	theInited = true;
 }
 void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed) {
-	for (int threadNumber = 0; threadNumber < theNumberOfRandomGenerators; threadNumber ++)
-		seed = states [threadNumber]. init_genrand64 (seed + (uint64) threadNumber);
+	for (integer ichan = 0; ichan < NUMrandom_numberOfChannels; ichan ++)
+		seed = states [ichan]. init_genrand64 (seed + (uint64) ichan);
 	theInited = true;
 }
 
@@ -250,46 +248,25 @@ void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed) {
 	#define ZERO_OR_MAGIC  mag01 [(int) (x & UINT64_C (1))]
 #endif
 
+static thread_local integer theRandomChannel { 0 };
+
+void NUMrandom_setChannel (integer channelNumber) {
+	Melder_assert (channelNumber >= 0 && channelNumber < NUMrandom_numberOfChannels);
+	theRandomChannel = channelNumber;
+}
+
+// To be set by each parallel thread to a value between 0 and NUMrandom_maximumNumberOfParallelThreads - 1.
+integer NUMrandom_getChannel () {
+	return theRandomChannel;
+}
+
 double NUMrandomFraction () {
-	NUMrandom_State *me = & states [0];
+	NUMrandom_State *me = & states [theRandomChannel];
 	uint64 x;
 
 	if (my index >= NN) {   // generate NN words at a time
 
 		Melder_assert (theInited);   // if NUMrandom_initXXX() hasn't been called, we'll detect that here, probably in the first call
-
-		int i;
-		for (i = 0; i < NN - MM; i ++) {
-			x = (my array [i] & UM) | (my array [i + 1] & LM);
-			my array [i] = my array [i + MM] ^ (x >> 1) ^ ZERO_OR_MAGIC;
-		}
-		for (; i < NN - 1; i ++) {
-			x = (my array [i] & UM) | (my array [i + 1] & LM);
-			my array [i] = my array [i + (MM - NN)] ^ (x >> 1) ^ ZERO_OR_MAGIC;
-		}
-		x = (my array [NN - 1] & UM) | (my array [0] & LM);
-		my array [NN - 1] = my array [MM - 1] ^ (x >> 1) ^ ZERO_OR_MAGIC;
-
-		my index = 0;
-	}
-
-	x = my array [my index ++];
-
-	x ^= (x >> 29) & UINT64_C (0x5555555555555555);
-	x ^= (x << 17) & UINT64_C (0x71D67FFFEDA60000);
-	x ^= (x << 37) & UINT64_C (0xFFF7EEE000000000);
-	x ^= (x >> 43);
-
-	return (x >> 11) * (1.0/9007199254740992.0);
-}
-
-double NUMrandomFraction_mt (int threadNumber) {
-	NUMrandom_State *me = & states [threadNumber];
-	uint64 x;
-
-	if (my index >= NN) {   // generate NN words at a time
-
-		Melder_assert (theInited);
 
 		int i;
 		for (i = 0; i < NN - MM; i ++) {
@@ -335,7 +312,7 @@ double NUMrandomBernoulli_real (double probability) {
 #define repeat  do
 #define until(cond)  while (! (cond))
 double NUMrandomGauss (double mean, double standardDeviation) {
-	NUMrandom_State *me = & states [0];
+	NUMrandom_State *me = & states [theRandomChannel];
 	/*
 		Knuth, p. 122.
 	*/
@@ -347,33 +324,6 @@ double NUMrandomGauss (double mean, double standardDeviation) {
 		repeat {
 			x = 2.0 * NUMrandomFraction () - 1.0;   // inside the square [-1; 1] x [-1; 1]
 			my y = 2.0 * NUMrandomFraction () - 1.0;
-			s = x * x + my y * my y;
-		} until (s < 1.0);   // inside the unit circle
-		if (s == 0.0) {
-			x = my y = 0.0;
-		} else {
-			const double factor = sqrt (-2.0 * log (s) / s);
-			x *= factor;
-			my y *= factor;
-		}
-		my secondAvailable = true;
-		return mean + standardDeviation * x;
-	}
-}
-
-double NUMrandomGauss_mt (int threadNumber, double mean, double standardDeviation) {
-	NUMrandom_State *me = & states [threadNumber];
-	/*
-		Knuth, p. 122.
-	*/
-	if (my secondAvailable) {
-		my secondAvailable = false;
-		return mean + standardDeviation * my y;
-	} else {
-		double s, x;
-		repeat {
-			x = 2.0 * NUMrandomFraction_mt (threadNumber) - 1.0;   // inside the square [-1; 1] x [-1; 1]
-			my y = 2.0 * NUMrandomFraction_mt (threadNumber) - 1.0;
 			s = x * x + my y * my y;
 		} until (s < 1.0);   // inside the unit circle
 		if (s == 0.0) {
