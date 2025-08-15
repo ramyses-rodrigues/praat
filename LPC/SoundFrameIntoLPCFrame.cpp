@@ -17,6 +17,7 @@
  */
 
 #include "SoundFrameIntoLPCFrame.h"
+#include "Spectrum.h"
 
 #include "oo_DESTROY.h"
 #include "SoundFrameIntoLPCFrame_def.h"
@@ -561,7 +562,7 @@ autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input
 		my equalLoudnessPreemphasis = raw_VEC (my numberOfFrequencies);
 		const double nyquistFrequency = 0.5 / my frameAsSound -> dx;
 		const double fmax_bark = hertzToBark (nyquistFrequency);
-		my numberOfCriticalBandSamples = Melder_ifloor (fmax_bark) + 2;
+		my numberOfCriticalBandFilters = Melder_ifloor (fmax_bark) + 2;
 		equalLoudnessPreemphasis (my equalLoudnessPreemphasis.get(), 0.0, df);
 		return me;
 	} catch (MelderError) {
@@ -574,31 +575,29 @@ void Sound_into_Spectrum (Sound me, Spectrum thee, NUMFourierTable fourierTable,
 	const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
 	Melder_assert (thy nx == numberOfFourierSamples);
 	Melder_assert (fourierTable -> n == numberOfFourierSamples);
-	Melder_assert (thy xmax == );
+	//Melder_assert (thy xmax == );
 }
 
 void structSoundFrameIntoLPCFramePLP :: getFilterCharacteristics () {
-	struct filter {
+	struct structCriticalBandFilter {
 		double fb, fm, fe;
 		integer i1, i2;
 		integer iv1, iv2;
-	}
-	autoVEC coeffs;
-	const double nyquistFrequency = 0.5 / my frameAsSound -> dx;
-	const double df = 1.0 / (my frameAsSound -> dx * my numberOfFourierSamples);
+	};
+	const double nyquistFrequency = 0.5 / frameAsSound -> dx;
+	const double df = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
 	const double fmax_bark = hertzToBark (nyquistFrequency);
-	numberOfCriticalBandSamples = Melder_ifloor (fmax_bark) + 2;
-	const double df_bark = fmax_bark / (numberOfCriticalBandSamples - 1);
-	autoVEC coeffs;
-	autoSTRUCTVEC (struct filter, filters, nfilters);
-	for (integer ifilter = 1; ifilter <= nfilters; ifilter ++) {
-		struct filter *fstruct = & filters [ifilter];
+	numberOfCriticalBandFilters = Melder_ifloor (fmax_bark) + 2;
+	const double df_bark = fmax_bark / (numberOfCriticalBandFilters - 1);
+	autovector<struct structCriticalBandFilter> filters = newvectorzero<struct structCriticalBandFilter> (numberOfCriticalBandFilters);
+	for (integer ifilter = 1; ifilter <= numberOfCriticalBandFilters; ifilter ++) {
+		struct structCriticalBandFilter *fstruct = & filters [ifilter];
 		const double fm_bark = ifilter * df_bark;
-		const double fb_bark = Melder_clipLeft (0.0, f_bark - 2.5);
-		const double fe_bark = Melder_clipRight (f_bark + 1.3, fmax_bark);
-		const double fstruct -> fb = barkToHertz (fb_bark);
-		const double fstruct -> fe = barkToHertz (fe_bark);
-		const double fstruct -> fm = barkToHertz (fm_bark);
+		const double fb_bark = Melder_clippedLeft (0.0, fm_bark - 2.5);
+		const double fe_bark = Melder_clippedRight (fm_bark + 1.3, fmax_bark);
+		fstruct -> fb = barkToHertz (fb_bark);
+		fstruct -> fe = barkToHertz (fe_bark);
+		fstruct -> fm = barkToHertz (fm_bark);
 
 	}
 

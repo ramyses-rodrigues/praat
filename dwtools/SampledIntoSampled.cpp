@@ -84,7 +84,8 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			/*
 				We need to reserve all the working memory for each thread beforehand.
 			*/
-			const integer numberOfThreadsToUse = Melder_clippedRight (MelderThread_getMaximumNumberOfConcurrentThreads (), NUMrandom_maximumNumberOfParallelThreads);
+			const integer numberOfThreadsToUse = Melder_clippedRight (MelderThread_getMaximumNumberOfConcurrentThreads (),
+				NUMrandom_maximumNumberOfParallelThreads);
 			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
 			frameIntoFrame -> maximumNumberOfFrames = numberOfFramesPerThread;
 			frameIntoFrame -> allocateMemoryAfterThreadsAreKnown ();
