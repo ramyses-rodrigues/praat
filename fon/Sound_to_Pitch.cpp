@@ -436,7 +436,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 
 		autoMelderProgress progress (U"Sound to Pitch...");
 
-		MelderThread_PARALLELIZE (numberOfFrames, 5, false)
+		MelderThread_PARALLELIZE (numberOfFrames, 5)
 
 		autoMAT frame;
 		autoNUMFourierTable fftTable;

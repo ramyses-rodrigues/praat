@@ -22,8 +22,7 @@ integer MelderThread_getNumberOfProcessors ();
 
 integer MelderThread_computeNumberOfThreads (
 	integer numberOfElements,
-	integer thresholdNumberOfElementsPerThread,
-	bool useRandom
+	integer thresholdNumberOfElementsPerThread
 );
 
 /*
@@ -40,7 +39,6 @@ void MelderThread_run (
 	std::atomic <bool> *p_errorFlag,
 	integer numberOfElements,
 	integer thresholdNumberOfElementsPerThread,
-	bool useRandom,
 	std::function <void (integer threadNumber, integer firstElement, integer lastElement)> const& threadFunction
 );
 
@@ -93,6 +91,11 @@ void MelderThread_run (
 
 	The thread function can throw, so you need a `try`-`catch` pair:
 					try {
+
+	In case the thread function can call NUMrandom functions,
+	they should be thread-aware (for Sound_to_Pitch, this is not the case though):
+
+						NUMrandom_setChannel (threadNumber);
 
 	Inside the thread function you first create the objects that are different for each thread, such as buffers:
 
@@ -165,14 +168,14 @@ void MelderThread_run (
 	We surround the code by an extra pair of braces in order to allow multiple use within a function:
 */
 
-#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread, useRandom)  \
+#define MelderThread_PARALLELIZE(numberOfElements, thresholdNumberOfElementsPerThread)  \
 	{/* start of scope of `_errorFlag_` and `_threadFunction_` */  \
 		const integer _numberOfElements_ = numberOfElements;  \
 		const integer _thresholdNumberOfElementsPerThread_ = thresholdNumberOfElementsPerThread;  \
-		const bool _useRandom_ = useRandom;  \
 		std::atomic <bool> _errorFlag_ = false;  \
 		auto _threadFunction_ = [&] (integer _threadNumber_, integer _firstElement_, integer _lastElement_) {  \
-			try {
+			try {  \
+				NUMrandom_setChannel (_threadNumber_);
 
 #define MelderThread_FOR(ielement)  \
 				for (integer ielement = _firstElement_; ielement <= _lastElement_; ielement ++) {  \
@@ -186,7 +189,7 @@ void MelderThread_run (
 				return;  \
 			}  \
 		};  \
-		MelderThread_run (& _errorFlag_, _numberOfElements_, _thresholdNumberOfElementsPerThread_, _useRandom_, _threadFunction_);  \
+		MelderThread_run (& _errorFlag_, _numberOfElements_, _thresholdNumberOfElementsPerThread_, _threadFunction_);  \
 	}/* end of scope of `_errorFlag_` and `_threadFunction_` */
 
 #define MelderThread_IS_MASTER  \
