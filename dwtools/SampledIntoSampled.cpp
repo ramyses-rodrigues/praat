@@ -84,10 +84,12 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			/*
 				We need to reserve all the working memory for each thread beforehand.
 			*/
-			const integer numberOfThreadsToUse = MelderThread_getMaximumNumberOfConcurrentThreads ();
+			integer numberOfThreadsToUse = MelderThread_getMaximumNumberOfConcurrentThreads ();
+			if (1)   // TODO: should be `if (useRandom) in order to allow 1000-thread machines`
+				Melder_clipRight (& numberOfThreadsToUse, NUMrandom_numberOfChannels);
 			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
 			frameIntoFrame -> maximumNumberOfFrames = numberOfFramesPerThread;
-			frameIntoFrame -> allocateMemoryAfterThreadsAreKnown();
+			frameIntoFrame -> allocateMemoryAfterThreadsAreKnown ();
 			OrderedOf<structSampledFrameIntoSampledFrame> workThreads;
 			for (integer ithread = 1; ithread <= numberOfThreads; ithread ++) {
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);
@@ -118,12 +120,13 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 						frameIntoFrameCopy -> startFrame = startFrame;
 						frameIntoFrameCopy -> currentNumberOfFrames = endFrame - startFrame + 1;
 						
-						auto analyseFrames = [&globalFrameErrorCount] (SampledFrameIntoSampledFrame fifthread, integer fromFrame, integer toFrame) {
+						auto analyseFrames = [&globalFrameErrorCount] (int threadNumber, SampledFrameIntoSampledFrame fifthread, integer fromFrame, integer toFrame) {
+							NUMrandom_setChannel (threadNumber);
 							fifthread -> inputFramesToOutputFrames (fromFrame, toFrame);
 							globalFrameErrorCount += fifthread -> framesErrorCount;
 						};
 
-						threads [ithread] = std::thread (analyseFrames, frameIntoFrameCopy, startFrame, endFrame);
+						threads [ithread] = std::thread (analyseFrames, ithread - 1, frameIntoFrameCopy, startFrame, endFrame);
 					}
 					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++) {
 						threads [ithread]. join ();

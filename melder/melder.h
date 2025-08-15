@@ -33,6 +33,7 @@
 #include <new>   // placement new
 #include <algorithm>   // std::min
 #include <limits>   // std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()
+#include <mutex>
 #include <atomic>   // std::atomic<integer>
 
 /*
