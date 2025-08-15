@@ -39,10 +39,9 @@ void MelderThread_run (
 	std::atomic <bool> *p_errorFlag,
 	const integer numberOfElements,
 	const integer thresholdNumberOfElementsPerThread,
-	const bool useRandom,
 	std::function <void (integer threadNumber, integer firstElement, integer lastElement)> const& threadFunction
 ) {
-	const integer numberOfThreads = MelderThread_computeNumberOfThreads (numberOfElements, thresholdNumberOfElementsPerThread, useRandom);
+	const integer numberOfThreads = MelderThread_computeNumberOfThreads (numberOfElements, thresholdNumberOfElementsPerThread);
 	if (numberOfThreads == 1) {
 		threadFunction (0, 1, numberOfElements);
 	} else {
@@ -82,8 +81,7 @@ void MelderThread_run (
 
 integer MelderThread_computeNumberOfThreads (
 	const integer numberOfElements,
-	const integer thresholdNumberOfElementsPerThread,
-	const bool useRandom)
+	const integer thresholdNumberOfElementsPerThread)
 {
 	if (! MelderThread_getUseMultithreading ())
 		return 1;
@@ -104,8 +102,7 @@ integer MelderThread_computeNumberOfThreads (
 			#error Undefined platform for MelderThread_computeNumberOfThreads().
 		#endif
 	Melder_clipRight (& numberOfThreads, MelderThread_getMaximumNumberOfConcurrentThreads ());
-	if (useRandom)
-		Melder_clipRight (& numberOfThreads, NUMrandom_maximumNumberOfParallelThreads);
+	Melder_clipRight (& numberOfThreads, NUMrandom_maximumNumberOfParallelThreads);
 	Melder_clipLeft (1_integer, & numberOfThreads);
 	return numberOfThreads;
 }

@@ -23,7 +23,7 @@
 void NUMrandom_initializeSafelyAndUnpredictably ();
 void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed);
 
-constexpr integer NUMrandom_maximumNumberOfParallelThreads = 40;
+constexpr integer NUMrandom_maximumNumberOfParallelThreads = 400;
 // The number of random channels will be three more than this:
 //    thread 0: the thread in which Praat commands and Praat scripts run
 //    threads 1 through 40: extra threads for parallellization in analyses (the master thread stays 0)
