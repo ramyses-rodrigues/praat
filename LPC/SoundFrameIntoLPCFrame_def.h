@@ -85,7 +85,7 @@ oo_END_CLASS (SoundFrameIntoLPCFrameBurg)
 oo_DEFINE_CLASS (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame)
 	oo_INTEGER (numberOfFourierSamples)
 	oo_INTEGER (numberOfFrequencies) // Convenience: numberOfFourierSamples/ 2 + 1
-	oo_INTEGER (numberOfCriticalBandSamples)
+	oo_INTEGER (numberOfCriticalBandFilters)
 	oo_VEC (fftData, numberOfFourierSamples)
 	oo_VEC (equalLoudnessPreemphasis, numberOfFrequencies)
 	oo_OBJECT (NUMFourierTable, 0, fourierTable) // data for forward & back have equal dimensions!!
