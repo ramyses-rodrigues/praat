@@ -29,6 +29,10 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.40# (16 August 2025)
+• Faster computation of spectrograms and formants (because of multithreading).
+• Full awareness of processors with up to 400 physical threads (i.e. 200 or 400 cores).
+
 ##6.4.39# (13 July 2025)
 • Calibrated cepstral peak prominence (@@PowerCepstrogram: Get CPPS...@).
 • Windows: restored “\@ ”, “~” and “\bs” on Latin-American Spanish keyboards.

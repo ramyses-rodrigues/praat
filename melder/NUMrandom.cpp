@@ -605,7 +605,7 @@ void NUMrandom_initializeSafelyAndUnpredictably () {
 		states [ichan]. init_by_array64 (keys, numberOfKeys);
 	}
 	theInited = true;
-	fprintf (stderr, "%f", Melder_clock() - startingTime);
+	//fprintf (stderr, "%f", Melder_clock() - startingTime);   // in case we want to optimize start-up, but it's only 1 ms
 }
 void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed) {
 	for (integer ichan = 0; ichan < NUMrandom_numberOfChannels; ichan ++)

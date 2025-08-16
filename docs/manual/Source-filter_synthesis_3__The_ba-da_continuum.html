@@ -32,17 +32,20 @@ Source-filter synthesis 3. The ba-da continuum
 <code>   Rename: “source”<br></code>
 <p>The ten sounds are generated in a loop:</p>
 <code>   for i from 1 to 10<br></code>
-<code>      f2_locus = 500 + (2500/9) * (i - 1) ; variable names start with lower case!<br></code>
-<code>      Create FormantGrid: “filter”, 0.0, 0.5, 9, 800, 1000, 60, 80<br></code>
-<code>      Remove formant points between: 1, 0.0, 0.5<br></code>
-<code>      Add formant point: 1, 0.05, 100<br></code>
-<code>      Add bandwidth point: 1, 0.05, 50<br></code>
-<code>      Add formant point: 2, 0.05, f2_locus<br></code>
-<code>      Add bandwidth point: 2, 0.05, 100<br></code>
-<code>      plusObject: “Sound source”<br></code>
-<code>      Filter (no scale)<br></code>
-<code>      Rename: “bada” + string$ (i)<br></code>
-<code>      removeObject: “FormantGrid filter”<br></code>
+<code>       f2_locus = 500 + (2500/9) * (i - 1) ; variable names start with lower case!<br></code>
+<code>       Create FormantGrid: “filter”, 0.0, 0.5, 9, 800, 1000, 60, 80<br></code>
+<code>       Add formant point: 1, 0.05, 100<br></code>
+<code>       Add bandwidth point: 1, 0.05, 50<br></code>
+<code>       Add formant point: 1, 0.10, 800<br></code>
+<code>       Add bandwidth point: 1, 0.10, 60<br></code>
+<code>       Add formant point: 2, 0.05, f2_locus<br></code>
+<code>       Add bandwidth point: 2, 0.05, 100<br></code>
+<code>       Add formant point: 2, 0.05, 1800<br></code>
+<code>       Add bandwidth point: 2, 0.05, 140<br></code>
+<code>       plusObject: “Sound source”<br></code>
+<code>       Filter (no scale)<br></code>
+<code>       Rename: “bada” + string$ (i)<br></code>
+<code>       removeObject: “FormantGrid filter”<br></code>
 <code>   endfor<br></code>
 <p>Clean up:</p>
 <code>   removeObject: “Sound source”, “Sound f0”, “IntensityTier intens”,<br></code>
@@ -54,7 +57,7 @@ Source-filter synthesis 3. The ba-da continuum
 </ul>
 <hr>
 <address>
-	<p>© ppgb 20140421</p>
+	<p>© Paul Boersma 2014-04-21,2025</p>
 </address>
 </body>
 </html>
