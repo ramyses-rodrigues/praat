@@ -17,6 +17,7 @@
  */
 
 #include "SoundFrameIntoLPCFrame.h"
+#include "Spectrum.h"
 
 #include "oo_DESTROY.h"
 #include "SoundFrameIntoLPCFrame_def.h"
@@ -155,8 +156,6 @@ autoSoundFrameIntoLPCFrameCovar SoundFrameIntoLPCFrameCovar_create (constSound i
 		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameCovar.");
 	}
 }
-
-
 
 /*
 	Markel & Gray, Linear Prediction of Speech, page 221
@@ -514,6 +513,125 @@ end:
 	return frameAnalysisInfo == 0 || frameAnalysisInfo == 4 || frameAnalysisInfo == 5;
 }
 
+/****************************** PLP (Hermansky) method *********************************************************/
+
+Thing_implement (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame, 0);
+
+static void hzIntoBarks (double f1, double df, VEC const& barks) {
+	for (integer i = 1; i <= barks.size; i ++) {
+		const double f600 = (f1 + (i - 1) * df) / 600.0;
+		barks [i] = 6.0 * log (f600 + sqrt (1 + f600 * f600));
+	}
+}
+
+static void barkIntoHz (double b1, double db, VEC const& hertz) {
+	for (integer i = 1; i <= hertz.size; i ++) {
+		const double bark6 = (b1 + (i - 1) * db) / 6.0;
+		hertz [i] = 600.0 * sinh (bark6);
+	}
+}
+
+static void equalLoudnessPreemphasis (VEC const& elp, double f1, double df) {
+	for (integer i = 1; i <= elp.size; i ++) {
+		const double w = NUM2pi * (f1 + (i - 1) * df);
+		const double w2 = w * w, w2p = (w2 + 6.3e6);
+		elp [i] = (w2 + 56.8e6) * w2 * w2 / (w2p * w2p * (w2 + 0.38e9));
+	}
+	const double emax = NUMmax_e (elp);
+	elp /= emax; // now between 0 and 1
+}
+
+static inline double hertzToBark (double f_hz) {
+	double f = f_hz / 600.0;
+	return 6.0 * log (f + sqrt (f * f + 1.0));
+}
+
+static inline double barkToHertz (double f_bark) {
+	return 600.0 * sinh (f_bark / 6.0);
+}
+
+autoSoundFrameIntoLPCFramePLP SoundFrameIntoLPCFramePLP_create (constSound input, mutableLPC output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
+	try {
+		autoSoundFrameIntoLPCFramePLP me = Thing_new (SoundFrameIntoLPCFramePLP);
+		SoundFrameIntoLPCFrame_init (me.get(), input, output, effectiveAnalysisWidth, windowShape);             // use 'a' instead of defining 'c'
+		my numberOfFourierSamples = Melder_iroundUpToPowerOfTwo (my frameAsSound -> nx);
+		my fourierTable = NUMFourierTable_create (my numberOfFourierSamples);
+		my fftData = raw_VEC (my numberOfFourierSamples);
+		my numberOfFrequencies = my numberOfFourierSamples / 2 + 1;
+		const double df = 1.0 / (my frameAsSound -> dx * my numberOfFourierSamples);
+		my equalLoudnessPreemphasis = raw_VEC (my numberOfFrequencies);
+		const double nyquistFrequency = 0.5 / my frameAsSound -> dx;
+		const double fmax_bark = hertzToBark (nyquistFrequency);
+		my numberOfCriticalBandFilters = Melder_ifloor (fmax_bark) + 2;
+		equalLoudnessPreemphasis (my equalLoudnessPreemphasis.get(), 0.0, df);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameMarple.");
+	}
+}
+
+void Sound_into_Spectrum (Sound me, Spectrum thee, NUMFourierTable fourierTable, bool fast) {
+	const integer numberOfFourierSamples = ( fast ? Melder_iroundUpToPowerOfTwo (my nx) : my nx );
+	const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
+	Melder_assert (thy nx == numberOfFourierSamples);
+	Melder_assert (fourierTable -> n == numberOfFourierSamples);
+	//Melder_assert (thy xmax == );
+}
+
+void structSoundFrameIntoLPCFramePLP :: getFilterCharacteristics () {
+	struct structCriticalBandFilter {
+		double fb, fm, fe;
+		integer i1, i2;
+		integer iv1, iv2;
+	};
+	const double nyquistFrequency = 0.5 / frameAsSound -> dx;
+	const double df = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
+	const double fmax_bark = hertzToBark (nyquistFrequency);
+	numberOfCriticalBandFilters = Melder_ifloor (fmax_bark) + 2;
+	const double df_bark = fmax_bark / (numberOfCriticalBandFilters - 1);
+	autovector<struct structCriticalBandFilter> filters = newvectorzero<struct structCriticalBandFilter> (numberOfCriticalBandFilters);
+	for (integer ifilter = 1; ifilter <= numberOfCriticalBandFilters; ifilter ++) {
+		struct structCriticalBandFilter *fstruct = & filters [ifilter];
+		const double fm_bark = ifilter * df_bark;
+		const double fb_bark = Melder_clippedLeft (0.0, fm_bark - 2.5);
+		const double fe_bark = Melder_clippedRight (fm_bark + 1.3, fmax_bark);
+		fstruct -> fb = barkToHertz (fb_bark);
+		fstruct -> fe = barkToHertz (fe_bark);
+		fstruct -> fm = barkToHertz (fm_bark);
+
+	}
+
+}
+
+bool structSoundFrameIntoLPCFramePLP :: inputFrameToOutputFrame () {
+	/*
+		Step 1: power spectral analysis
+	 */
+	fftData.part (1, soundFrameSize)  <<=  soundFrame;
+	if (numberOfFourierSamples > soundFrameSize)
+		fftData.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
+	NUMfft_forward (fourierTable.get(), fftData.get());
+	for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
+		fftData [i] *= sound -> dx;
+	VEC power = fftData.part (1, numberOfFrequencies);
+	power [1] = fftData [1] * fftData [1];
+	for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
+		const double re = fftData [2 * i], im = fftData [2 * i + 1];
+		power [i + 1] = re * re + im * im;
+	}
+	power [numberOfFrequencies] = fftData [numberOfFourierSamples] * fftData [numberOfFourierSamples];
+	/*
+		Step 2: Equal loudness pre-emphasis
+	 */
+	power  *=  equalLoudnessPreemphasis.get();
+	/*
+		Step 3: Critical band resolution
+	*/
+
+	return true;
+}
+
+
 /*********************** robust method ******************************/
 
 Thing_implement (LPCAndSoundFramesIntoLPCFrameRobust, SoundFrameIntoLPCFrame, 0);
@@ -659,6 +777,7 @@ bool structSoundFrameIntoLPCFrameRobust :: inputFrameToOutputFrame () {
 void structSoundFrameIntoLPCFrameRobust :: saveOutputFrame () {
 	lpcAndSoundIntoLPC -> saveOutputFrame ();
 }
+
 autoSoundFrameIntoLPCFrameRobust SoundFrameIntoLPCFrameRobust_create (autoSoundFrameIntoLPCFrame soundIntoLPC, autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC)
 {
 	try {

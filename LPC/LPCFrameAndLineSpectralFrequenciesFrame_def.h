@@ -21,7 +21,6 @@
 oo_DEFINE_CLASS (LPCFrameIntoLineSpectralFrequenciesFrame, LPCFrameIntoSampledFrame)
 
 	oo_UNSAFE_BORROWED_TRANSIENT_MUTABLE_OBJECT_REFERENCE (LineSpectralFrequencies, outputLSF)
-	oo_DOUBLE (maximumFrequency)
 	oo_INTEGER (maximumNumberOfFrequencies)
 	oo_OBJECT (Polynomial, 0, gsum)
 	oo_OBJECT (Polynomial, 0, gdif)

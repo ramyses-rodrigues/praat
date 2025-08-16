@@ -81,6 +81,23 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameBurg, SoundFrameIntoLPCFrame)
 oo_END_CLASS (SoundFrameIntoLPCFrameBurg)
 #undef ooSTRUCT
 
+#define ooSTRUCT SoundFrameIntoLPCFramePLP
+oo_DEFINE_CLASS (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame)
+	oo_INTEGER (numberOfFourierSamples)
+	oo_INTEGER (numberOfFrequencies) // Convenience: numberOfFourierSamples/ 2 + 1
+	oo_INTEGER (numberOfCriticalBandFilters)
+	oo_VEC (fftData, numberOfFourierSamples)
+	oo_VEC (equalLoudnessPreemphasis, numberOfFrequencies)
+	oo_OBJECT (NUMFourierTable, 0, fourierTable) // data for forward & back have equal dimensions!!
+
+	#if oo_DECLARING
+		bool inputFrameToOutputFrame (void) override;
+		void getFilterCharacteristics ();
+	#endif
+		
+oo_END_CLASS (SoundFrameIntoLPCFramePLP)
+#undef ooSTRUCT
+
 #define ooSTRUCT SoundFrameIntoLPCFrameMarple
 oo_DEFINE_CLASS (SoundFrameIntoLPCFrameMarple, SoundFrameIntoLPCFrame)
 	oo_DOUBLE (tol2)
