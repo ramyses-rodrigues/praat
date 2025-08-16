@@ -31,7 +31,6 @@ oo_DEFINE_CLASS (SampledFrameIntoSampledFrame, Daata)
 		if (updateStatus): we need the reference to the status object.
 	*/
 	oo_UNSAFE_BORROWED_TRANSIENT_MUTABLE_OBJECT_REFERENCE (SampledIntoSampledStatus, status)
-	oo_INTEGER (threadNumber)
 	oo_INTEGER (startFrame)
 	oo_INTEGER (maximumNumberOfFrames)		// for allocating thread specific memory
 	oo_INTEGER (currentNumberOfFrames)
