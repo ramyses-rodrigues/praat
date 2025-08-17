@@ -24,7 +24,7 @@ oo_DEFINE_CLASS (SoundFrameIntoMatrixFrame, SoundFrameIntoSampledFrame)
 	
 	#if oo_DECLARING
 		void allocateOutputFrames ()
-			override;  // allocates the localOutput matrix
+			override;
 		void saveLocalOutputFrames ()
 			override;
 		void allocateMemoryAfterThreadsAreKnown ()
