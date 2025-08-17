@@ -37,7 +37,7 @@
 #include "oo_DESCRIPTION.h"
 #include "PowerCepstrogramFrameIntoMatrixFrame_def.h"
 
-Thing_implement (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoSampledFrame, 0);
+Thing_implement (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoMatrixFrame, 0);
 
 void structPowerCepstrogramFrameIntoMatrixFrame :: getInputFrame () {
 	powerCepstrum -> z.row (1)  <<=  powercepstrogram -> z.column (currentFrame);
@@ -94,8 +94,9 @@ void structPowerCepstrogramFrameIntoMatrixFrame :: saveLocalOutputFrames () {
 			matrix -> z [irow] [outputcol] = localOutput [irow] [icol];
 }
 
-void PowerCepstrogramFrameIntoMatrixFrame_init (PowerCepstrogramFrameIntoMatrixFrame me, constPowerCepstrogram thee, mutableMatrix him,
-	double qminFit, double qmaxFit,	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod) {
+static void PowerCepstrogramFrameIntoMatrixFrame_init (PowerCepstrogramFrameIntoMatrixFrame me, constPowerCepstrogram thee, mutableMatrix him,
+	double qminFit, double qmaxFit,	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod)
+{
 	SampledFrameIntoMatrixFrame_init (me, him);
 	my powercepstrogram = thee;
 	my powerCepstrum = PowerCepstrum_create (thy ymax, thy ny);
