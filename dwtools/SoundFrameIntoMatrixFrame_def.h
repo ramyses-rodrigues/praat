@@ -20,14 +20,9 @@
 oo_DEFINE_CLASS (SoundFrameIntoMatrixFrame, SoundFrameIntoSampledFrame)
 
 	oo_UNSAFE_BORROWED_TRANSIENT_MUTABLE_OBJECT_REFERENCE (Matrix, matrix)
-	oo_MAT (localOutput, matrix -> ny, maximumNumberOfFrames)
-	
+
 	#if oo_DECLARING
 		void allocateOutputFrames ()
-			override;  // allocates the localOutput matrix
-		void saveLocalOutputFrames ()
-			override;
-		void allocateMemoryAfterThreadsAreKnown ()
 			override;
 	#endif
 		

@@ -32,8 +32,6 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame)
 			override;
 		void saveOutputFrame ()
 			override;
-		void saveLocalOutputFrames ()
-			override { };
 	#endif
 
 oo_END_CLASS (SoundFrameIntoLPCFrame)

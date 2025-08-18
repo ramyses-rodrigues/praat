@@ -67,31 +67,23 @@ bool structPowerCepstrogramFrameIntoMatrixFrame :: inputFrameToOutputFrame () {
 
 void structPowerCepstrogramFrameIntoMatrixFrame :: saveOutputFrame () {
 	/* time, slope, intercept, peakdB, peakQuefrency, cpp, */
-	const integer localFrame = currentFrame - startFrame + 1;
-	if (subtractTrend) {
-		Melder_assert (Thing_isa (matrix, classPowerCepstrogram));
-		localOutput.column (localFrame)  <<=  powerCepstrum -> z.row (1);
+	if (our subtractTrend) {
+		Melder_assert (Thing_isa (our matrix, classPowerCepstrogram));
+		our matrix -> z.column (our currentFrame)  <<=  our powerCepstrum -> z.row (1);
 	} else {
-		localOutput [1] [localFrame] = Sampled_indexToX (matrix, currentFrame);
+		//our matrix -> z.column (our currentFrame)  <<=  0.0;   // make all rows after the first six zero
+		our matrix -> z [1] [our currentFrame] = Sampled_indexToX (our matrix, our currentFrame);
 		if (getSlopeAndIntercept) {
-			localOutput [2] [localFrame] = powerCepstrumWs -> slope;
-			localOutput [3] [localFrame] = powerCepstrumWs -> intercept;
+			our matrix -> z [2] [our currentFrame] = our powerCepstrumWs -> slope;
+			our matrix -> z [3] [our currentFrame] = our powerCepstrumWs -> intercept;
 		}
 		if (getPeakAndPosition) {
-			localOutput [4] [localFrame] = powerCepstrumWs -> peakdB;
-			localOutput [5] [localFrame] = powerCepstrumWs -> peakQuefrency;
-			powerCepstrumWs -> getCPP ();
-			localOutput [6] [localFrame] = powerCepstrumWs -> cpp;
+			our matrix -> z [4] [our currentFrame] = our powerCepstrumWs -> peakdB;
+			our matrix -> z [5] [our currentFrame] = our powerCepstrumWs -> peakQuefrency;
+			our powerCepstrumWs -> getCPP ();
+			our matrix -> z [6] [our currentFrame] = our powerCepstrumWs -> cpp;
 		}
 	}
-}
-
-void structPowerCepstrogramFrameIntoMatrixFrame :: saveLocalOutputFrames () {
-	Melder_assert (localOutput.ncol == maximumNumberOfFrames);
-	Melder_assert (localOutput.nrow == matrix -> ny);
-	for (integer irow = 1; irow <= localOutput.nrow; irow ++)
-		for (integer outputcol = startFrame, icol = 1; icol <=currentNumberOfFrames; icol ++, outputcol ++)
-			matrix -> z [irow] [outputcol] = localOutput [irow] [icol];
 }
 
 static void PowerCepstrogramFrameIntoMatrixFrame_init (PowerCepstrogramFrameIntoMatrixFrame me, constPowerCepstrogram thee, mutableMatrix him,

@@ -36,8 +36,6 @@ oo_DEFINE_CLASS (LPCFrameIntoFormantFrame, LPCFrameIntoSampledFrame)
 			override;
 		void saveOutputFrame ()
 			override;
-		void saveLocalOutputFrames ()
-			override { };
 	#endif
 
 oo_END_CLASS (LPCFrameIntoFormantFrame)

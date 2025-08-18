@@ -59,10 +59,6 @@ void structSampledFrameIntoSampledFrame :: allocateOutputFrames () {
 	return;
 }
 
-void structSampledFrameIntoSampledFrame :: allocateMemoryAfterThreadsAreKnown () {
-	return;
-}
-
 void structSampledFrameIntoSampledFrame :: inputFramesToOutputFrames (integer fromFrame, integer toFrame) {
 	for (integer iframe = fromFrame; iframe <= toFrame; iframe ++) {
 		currentFrame = iframe;
@@ -85,10 +81,6 @@ void SampledFrameIntoSampledFrame_init (SampledFrameIntoSampledFrame me, mutable
 void SampledFrameIntoSampledFrame_initForStatusUpdates (SampledFrameIntoSampledFrame me, mutableSampledIntoSampledStatus status, bool updateStatus) {
 	my status = status;
 	my updateStatus = updateStatus;
-}
-
-void SampledFrameIntoSampledFrame_saveLocalOutputFrames (SampledFrameIntoSampledFrame me) {
-	my saveLocalOutputFrames ();
 }
 
 /* End of file SampledFrameIntoSampledFrame.cpp */

@@ -51,19 +51,4 @@ void SoundFrameIntoMatrixFrame_init (mutableSoundFrameIntoMatrixFrame me, constS
 void structSoundFrameIntoMatrixFrame :: allocateOutputFrames () {
 }
 
-void structSoundFrameIntoMatrixFrame :: allocateMemoryAfterThreadsAreKnown () {
-	Melder_assert (maximumNumberOfFrames > 0);
-	localOutput = zero_MAT (matrix -> ny, maximumNumberOfFrames);
-}
-
-void structSoundFrameIntoMatrixFrame :: saveLocalOutputFrames () {
-	Melder_assert (localOutput.ncol == maximumNumberOfFrames);
-	Melder_assert (localOutput.nrow == matrix -> ny);
-	integer outputcol = startFrame;
-	for (integer icol = 1; icol <= currentNumberOfFrames; icol ++, outputcol ++) {
-		for (integer irow = 1; irow <= localOutput.nrow; irow ++)
-			matrix -> z [irow] [outputcol] = localOutput [irow] [icol];
-	}
-}
-
 /* End of file SoundFrameIntoMatrixFrame.cpp */
