@@ -632,6 +632,12 @@ void NUMrandom_setChannel (integer channelNumber) {
 	Melder_assert (channelNumber >= 0 && channelNumber < NUMrandom_numberOfChannels);
 	theRandomChannel = channelNumber;
 }
+void NUMrandom_useUserInterfaceChannel () {
+	theRandomChannel = 401;
+}
+void NUMrandom_useSpareChannel () {
+	theRandomChannel = 402;
+}
 
 // To be set by each parallel thread to a value between 0 and NUMrandom_maximumNumberOfParallelThreads - 1,
 // or by special processes to a value between 0 and NUMrandom_numberOfChannels - 1

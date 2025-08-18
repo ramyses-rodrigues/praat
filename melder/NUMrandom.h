@@ -26,15 +26,20 @@ void NUMrandom_initializeWithSeedUnsafelyButPredictably (uint64 seed);
 constexpr integer NUMrandom_maximumNumberOfParallelThreads = 400;
 // The number of random channels will be three more than this:
 //    thread 0: the thread in which Praat commands and Praat scripts run
-//    threads 1 through 40: extra threads for parallellization in analyses (the master thread stays 0)
-//    thread 41: user-interface randomization (not really a thread)
-//    thread 42: spare "thread"
+//    threads 1 through 399 or 400: extra threads for parallellization in analyses (the master thread stays 0)
+//    thread 401: user-interface randomization (not really a thread)
+//    thread 402: spare "thread"
 constexpr integer NUMrandom_numberOfChannels = NUMrandom_maximumNumberOfParallelThreads + 3;
 
 void NUMrandom_setChannel (integer channelNumber);
-// To be set by each parallel thread to a value between 0 and NUMrandom_numberOfChannels - 1.
+	// To be set by each parallel thread to a value between 0 and NUMrandom_numberOfChannels - 1.
+void NUMrandom_useUserInterfaceChannel ();
+	// Sets the channel number in the current thread to 401
+void NUMrandom_useSpareChannel ();
+	// Sets the channel number in the current thread to 402
 integer NUMrandom_getChannel ();
-// Rarely useful, but who knows. Only to be called after NUMrandom_setChannel() has been called.
+	// Returns the random channel associated with the current thread (rarely useful, but who knows);
+	// only to be called after one of the three channel-settings functions has been called.
 
 double NUMrandomFraction ();
 
