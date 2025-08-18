@@ -75,8 +75,7 @@ bool structSoundFrameIntoPowerCepstrogramFrame :: inputFrameToOutputFrame () {
 }
 
 void structSoundFrameIntoPowerCepstrogramFrame :: saveOutputFrame () {
-	const integer localFrame = currentFrame - startFrame + 1;
-	localOutput.column (localFrame)  <<=  powercepstrum -> z.row (1);	
+	our matrix -> z.column (our currentFrame)  <<=  our powercepstrum -> z.row (1);
 }
 
 autoSoundFrameIntoPowerCepstrogramFrame SoundFrameIntoPowerCepstrogramFrame_create (constSound input, mutablePowerCepstrogram output,

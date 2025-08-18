@@ -31,8 +31,6 @@ oo_DEFINE_CLASS (SoundFrameIntoFormantFrame, SoundFrameIntoSampledFrame)
 			override;
 		void saveOutputFrame ()
 			override;
-		void saveLocalOutputFrames ()
-			override { };
 	#endif
 
 oo_END_CLASS (SoundFrameIntoFormantFrame)

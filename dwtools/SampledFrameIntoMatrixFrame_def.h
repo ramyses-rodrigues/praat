@@ -23,18 +23,7 @@
 #define ooSTRUCT SampledFrameIntoMatrixFrame
 oo_DEFINE_CLASS (SampledFrameIntoMatrixFrame, SampledFrameIntoSampledFrame)
 
-	/*
-		Because each frame of the output Matrix is in a column, the memory access is spread.
-		For each thread we might need local memory.
-	*/
 	oo_UNSAFE_BORROWED_TRANSIENT_MUTABLE_OBJECT_REFERENCE (Matrix, matrix)
-	oo_MAT (localOutput, matrix -> ny, maximumNumberOfFrames)
-
-	#if oo_DECLARING
-
-		void allocateMemoryAfterThreadsAreKnown () override;
-
-	#endif
 
 oo_END_CLASS (SampledFrameIntoMatrixFrame)
 #undef ooSTRUCT

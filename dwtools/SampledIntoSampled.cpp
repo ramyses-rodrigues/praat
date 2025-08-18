@@ -88,7 +88,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				NUMrandom_maximumNumberOfParallelThreads);
 			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
 			frameIntoFrame -> maximumNumberOfFrames = numberOfFramesPerThread;
-			frameIntoFrame -> allocateMemoryAfterThreadsAreKnown ();
 			OrderedOf<structSampledFrameIntoSampledFrame> workThreads;
 			for (integer ithread = 1; ithread <= numberOfThreads; ithread ++) {
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);
@@ -130,7 +129,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++) {
 						threads [ithread]. join ();
 						SampledFrameIntoSampledFrame frameIntoFrameCopy = workThreads.at [ithread];
-						frameIntoFrameCopy -> saveLocalOutputFrames();
 					}
 				}
 			} catch (MelderError) {
@@ -142,9 +140,7 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			}
 			my globalFrameErrorCount = globalFrameErrorCount;
 		} else {
-			frameIntoFrame -> allocateMemoryAfterThreadsAreKnown ();
 			frameIntoFrame -> inputFramesToOutputFrames (1, numberOfFrames); // no threading
-			frameIntoFrame -> saveLocalOutputFrames ();
 			globalFrameErrorCount = frameIntoFrame -> framesErrorCount;
 		}
 		if (frameIntoFrame -> updateStatus)

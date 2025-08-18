@@ -35,8 +35,6 @@ oo_DEFINE_CLASS (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoMatrixFra
 			override;
 		void saveOutputFrame ()
 			override;
-		void saveLocalOutputFrames ()
-			override;
 	#endif
 oo_END_CLASS (PowerCepstrogramFrameIntoMatrixFrame)
 #undef ooSTRUCT

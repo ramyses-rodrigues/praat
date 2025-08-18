@@ -40,11 +40,6 @@
 
 Thing_implement (SampledFrameIntoMatrixFrame, SampledFrameIntoSampledFrame, 0);
 
-void structSampledFrameIntoMatrixFrame :: allocateMemoryAfterThreadsAreKnown () {
-	Melder_assert (maximumNumberOfFrames > 0);
-	localOutput = zero_MAT (matrix -> ny, maximumNumberOfFrames);
-}
-
 void SampledFrameIntoMatrixFrame_init (SampledFrameIntoMatrixFrame me, mutableMatrix output) {
 	SampledFrameIntoSampledFrame_init (me, output);
 	my matrix = output;

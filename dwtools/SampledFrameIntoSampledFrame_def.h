@@ -47,8 +47,6 @@ oo_DEFINE_CLASS (SampledFrameIntoSampledFrame, Daata)
 		virtual void saveOutputFrame ();
 		virtual void inputFramesToOutputFrames (integer fromFrame, integer toFrame); // sets 'currentFrame'
 		virtual void allocateOutputFrames ();
-		virtual void allocateMemoryAfterThreadsAreKnown ();
-		virtual void saveLocalOutputFrames () { };
 	#endif
 
 oo_END_CLASS (SampledFrameIntoSampledFrame)
