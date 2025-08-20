@@ -1254,7 +1254,7 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_Formant_robust, U"Sound: To Formant (robust)
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Sound)
-		autoFormant result = Sound_to_Formant_robust_mt (me, timeStep, maximumNumberOfFormants, formantCeiling, windowLength, 
+		autoFormant result = Sound_to_Formant_robust (me, timeStep, maximumNumberOfFormants, formantCeiling, windowLength, 
 				preEmphasisFrequency, 50.0, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, 0.0, true);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }

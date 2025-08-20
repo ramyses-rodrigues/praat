@@ -18,10 +18,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- djmw 20030815 GPL header
-*/
-
 #include "LPC.h"
 #include "Formant.h"
 #include "Sound_and_LPC.h"
@@ -30,8 +26,15 @@ void Sound_into_Formant_robust_mt (constSound me, Formant out,	double windowLeng
 	integer numberOfPoles, double safetyMargin, double k, integer itermax, double tol, double location, bool wantlocation
 );
 
+autoFormant Sound_to_Formant_robust (Sound me, double dt_in, double numberOfFormants, double maximumFrequency,
+	double effectiveAnalysisWidth, double preEmphasisFrequency, double safetyMargin,
+	double numberOfStandardDeviations, integer maximumNumberOfIterations, double tolerance,
+	double location, bool wantlocation
+);
+
 autoFormant Sound_to_Formant_robust_mt (constSound me, double dt, double numberOfFormants, double maximumFrequency,
-	double windowLength, double preemphasisFrequency, double safetyMargin, double k, integer itermax, double tol,
+	double windowLength, double preemphasisFrequency, double safetyMargin,
+	double numberOfStandardDeviations, integer maximumNumberOfIterations, double tolerance,
 	double location, bool wantlocation
 );
 
