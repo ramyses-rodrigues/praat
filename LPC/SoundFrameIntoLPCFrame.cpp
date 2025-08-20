@@ -41,6 +41,7 @@
 Thing_implement (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame, 0);
 
 void structSoundFrameIntoLPCFrame :: allocateOutputFrames () {
+	Melder_assert (our outputlpc);
 	for (integer iframe = 1; iframe <= outputlpc -> nx; iframe ++)
 		LPC_Frame_init (& outputlpc -> d_frames [iframe], outputlpc -> maxnCoefficients);
 }
@@ -88,7 +89,7 @@ bool structSoundFrameIntoLPCFrameAuto :: inputFrameToOutputFrame ()  {
 	frameAnalysisInfo = 0;
 	Melder_assert (lpcf -> nCoefficients > 0);
 
-	VEC  x = soundFrame;
+	VEC x = soundFrame;
 	
 	/*
 		Compute the autocorrelations

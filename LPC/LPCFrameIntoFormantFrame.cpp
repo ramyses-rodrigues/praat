@@ -110,7 +110,7 @@ void LPCFrameIntoFormantFrame_init(LPCFrameIntoFormantFrame me, constLPC input, 
 autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC input, mutableFormant output, double margin) {
 	try {
 		autoLPCFrameIntoFormantFrame me = Thing_new (LPCFrameIntoFormantFrame);
-		LPCFrameIntoFormantFrame_init(me.get(), input, output, margin);
+		LPCFrameIntoFormantFrame_init (me.get(), input, output, margin);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"LPCFrameIntoFormantFrame not created.");

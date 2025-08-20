@@ -1,6 +1,6 @@
 /* Sound_to_Formant.cpp
  *
- * Copyright (C) 1992-2008,2010-2012,2014-2021 Paul Boersma
+ * Copyright (C) 1992-2008,2010-2012,2014-2021,2024,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -397,7 +397,7 @@ autoFormant Sound_to_Formant_willems (Sound me, double dt, double nFormants, dou
 	try {
 		return Sound_to_Formant_any (me, dt, Melder_iround (2.0 * nFormants), maximumFrequency, halfdt_window, 2, preemphasisFrequency, 50.0);
 	} catch (MelderError) {
-		Melder_throw (me, U": formant analysis (Burg) not performed.");
+		Melder_throw (me, U": formant analysis (Willems) not performed.");
 	}
 }
 

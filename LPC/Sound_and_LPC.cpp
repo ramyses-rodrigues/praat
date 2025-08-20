@@ -34,7 +34,7 @@ void checkLPCAnalysisParameters_e (double sound_dx, integer sound_nx, double phy
 		"Either your sound is too short or your window is too long.");
 	// we round the minimum duration to be able to use asserterror in testing scripts.
 	conststring32 minimumDurationRounded = Melder_fixed (predictionOrder * sound_dx , 5);
-	const integer approximateNumberOfSamplesPerWindow = Melder_roundDown (physicalAnalysisWidth / sound_dx);
+	const integer approximateNumberOfSamplesPerWindow = Melder_iroundDown (physicalAnalysisWidth / sound_dx);
 	Melder_require (approximateNumberOfSamplesPerWindow > predictionOrder,
 		U"Analysis window duration too short. For a prediction order of ", predictionOrder,
 		U", the analysis window duration should be greater than ", minimumDurationRounded,
@@ -197,7 +197,8 @@ void Sound_into_LPCrobust_common (constSound me, mutableLPC outputlpc, autoSound
 }
 
 autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency,
-	double k_stdev,	integer itermax, double tol, bool wantlocation) {
+	double k_stdev, integer itermax, double tol, bool wantlocation)
+{
 	try {
 		const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
 		autoSound emphasized = Sound_resampleAndOrPreemphasize (me, 0.0, 0, preEmphasisFrequency);

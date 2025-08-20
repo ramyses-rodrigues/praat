@@ -1228,7 +1228,7 @@ autoSound Sound_filter_oneFormant (constSound me, double frequency, double bandw
 
 void Sound_filterWithOneFormantInplace (mutableSound me, double frequency, double bandwidth) {
 	for (integer ichan = 1; ichan <= my ny; ichan ++) {
-		VEC channel = my z.row (ichan);
+		const VEC channel = my z.row (ichan);
 		VECfilterSecondOrderSection_fb_inplace (channel, my dx, frequency, bandwidth);
 	}
 	Matrix_scaleAbsoluteExtremum (me, 0.99);
@@ -1242,7 +1242,7 @@ void Sound_preEmphasize_inplace (mutableSound me, double cutoffFrequency) {
 	const double emphasisFactor = Sound_computeEmphasisFactor (me, cutoffFrequency);
 	if (emphasisFactor != 0.0)   // OPTIMIZE; will happen for cut-off frequencies above 119 times the sampling frequency
 		for (integer channel = 1; channel <= my ny; channel ++) {
-			VEC s = my z.row (channel);
+			const VEC s = my z.row (channel);
 			for (integer i = my nx; i >= 2; i --)
 				s [i] -= emphasisFactor * s [i - 1];
 		}
@@ -1252,7 +1252,7 @@ void Sound_deEmphasize_inplace (Sound me, double cutoffFrequency) {
 	const double emphasisFactor = Sound_computeEmphasisFactor (me, cutoffFrequency);
 	if (emphasisFactor != 0.0)   // OPTIMIZE; will happen for cut-off frequencies above 119 times the sampling frequency
 		for (integer channel = 1; channel <= my ny; channel ++) {
-			VEC s = my z.row (channel);
+			const VEC s = my z.row (channel);
 			for (integer i = 2; i <= my nx; i ++)
 				s [i] += emphasisFactor * s [i - 1];
 		}
@@ -1285,7 +1285,7 @@ void Sound_reverse (mutableSound me, double tmin, double tmax) {
 	integer itmin, itmax;
 	const integer n = Sampled_getWindowSamples (me, tmin, tmax, & itmin, & itmax) / 2;
 	for (integer channel = 1; channel <= my ny; channel ++) {
-		double *amp = & my z [channel] [0];
+		double * const amp = & my z [channel] [0];
 		for (integer i = 0; i < n; i ++)
 			std::swap (amp [itmin + i], amp [itmax - i]);
 	}
@@ -1331,7 +1331,7 @@ autoSound Sounds_crossCorrelate_short (constSound me, constSound thee, double tm
 				}
 			}
 			if (mypower != 0.0 && thypower != 0.0) {
-				double factor = 1.0 / (sqrt (double (mypower)) * sqrt (double (thypower)));
+				const double factor = 1.0 / (sqrt (double (mypower)) * sqrt (double (thypower)));
 				for (integer i = 1; i <= nt; i ++) {
 					his z [1] [i] *= factor;
 				}

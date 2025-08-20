@@ -20,6 +20,7 @@
 #include "Sound_to_Formant_mt.h"
 #include "SoundFrameIntoFormantFrame.h"
 #include "Sound_extensions.h"
+#include "LPC_and_Formant.h"
 /*
 	Precondition:
 		Sound already has the 'right' sampling frequency and has been pre-emphasized
@@ -95,6 +96,7 @@ autoFormant Sound_to_Formant_robust_mt (constSound me, double dt_in, double numb
 		autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC = LPCAndSoundFramesIntoLPCFrameRobust_create (lpc.get(), me, outputLPC.get(),
 			effectiveAnalysisWidth, windowShape, k_stdev, itermax, tol, location, wantlocation);
 		autoSoundFrameIntoLPCFrame soundIntoLPC2 = SoundFrameIntoLPCFrameRobust_create (soundIntoLPC1.move(), lpcAndSoundIntoLPC.move());
+		Melder_assert (soundIntoLPC2 -> outputlpc);
 		autoLPCFrameIntoFormantFrame lpcFrameIntoFormant = LPCFrameIntoFormantFrame_create (outputLPC.get(), formant.get(), safetyMargin);
 		autoSoundFrameIntoFormantFrame sif = SoundFrameIntoFormantFrame_create (soundIntoLPC2.move(), lpcFrameIntoFormant.move());
 		autoSoundIntoFormantRobustStatus status = SoundIntoFormantRobustStatus_create (formant -> nx);
@@ -105,6 +107,33 @@ autoFormant Sound_to_Formant_robust_mt (constSound me, double dt_in, double numb
 		Melder_throw (me, U": no robust Formant created.");
 	}
 }
+
+autoFormant Sound_to_Formant_robust (Sound me, double dt_in, double numberOfFormants, double maximumFrequency,
+	double effectiveAnalysisWidth, double preEmphasisFrequency, double safetyMargin,
+	double numberOfStandardDeviations, integer maximumNumberOfIterations, double tolerance,
+	double location, bool wantlocation)
+{
+	const double dt = dt_in > 0.0 ? dt_in : effectiveAnalysisWidth / 4.0;
+	const double nyquist = 0.5 / my dx;
+	const integer predictionOrder = Melder_ifloor (2 * numberOfFormants);
+	try {
+		autoSound sound;
+		if (maximumFrequency <= 0.0 || fabs (maximumFrequency / nyquist - 1.0) < 1.0e-12)
+			sound = Data_copy (me);   // will be modified
+		else
+			sound = Sound_resample (me, maximumFrequency * 2.0, 50);
+
+		autoLPC lpc = Sound_to_LPC_auto (sound.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
+		autoLPC lpcRobust = LPC_and_Sound_to_LPC_robust (lpc.get(), sound.get(), effectiveAnalysisWidth, preEmphasisFrequency,
+				numberOfStandardDeviations, maximumNumberOfIterations, tolerance, wantlocation);
+		autoFormant thee = LPC_to_Formant (lpcRobust.get(), safetyMargin);
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": no robust Formant created.");
+	}
+}
+
+
 /*
 void Sound_into_Formant_robust_mt (constSound me, mutableFormant thee, double effectiveAnalysisWidth, integer numberOfPoles, double safetyMargin,
 	double k_stdev, integer itermax, double tol, double location, bool wantlocation)
