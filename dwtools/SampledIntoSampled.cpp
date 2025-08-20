@@ -88,11 +88,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				NUMrandom_maximumNumberOfParallelThreads);
 			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
 			frameIntoFrame -> maximumNumberOfFrames = numberOfFramesPerThread;
-			OrderedOf<structSampledFrameIntoSampledFrame> workThreads;
-			for (integer ithread = 1; ithread <= numberOfThreads; ithread ++) {
-				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);
-				workThreads. addItem_move (frameIntoFrameCopy.move());
-			}
 
 			/*
 				The following cannot be an `autovector`, because autovectors don't destroy their elements.
@@ -103,32 +98,29 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			integer numberOfThreadsInRun;
 			try {
 				const integer numberOfThreadRuns = Melder_iroundUp ((double) numberOfThreadsNeeded / numberOfThreads);
-				//TRACE
-				trace (numberOfThreadRuns, U" ", numberOfFrames, U" ", numberOfThreadsNeeded, U" ", numberOfThreads);
 				const integer numberOfFramesInRun = numberOfThreads * numberOfFramesPerThread;
 				const integer remainingThreads = numberOfThreadsNeeded % numberOfThreads;
 				const integer numberOfThreadsInLastRun = ( remainingThreads == 0 ? numberOfThreads : remainingThreads );
 				for (integer irun = 1; irun <= numberOfThreadRuns; irun ++) {
 					numberOfThreadsInRun = ( irun < numberOfThreadRuns ? numberOfThreads : numberOfThreadsInLastRun );
-					const integer lastFrameInRun = ( irun < numberOfThreadRuns ? numberOfFramesInRun * irun : numberOfFrames);
+					const integer lastFrameInRun = ( irun < numberOfThreadRuns ? numberOfFramesInRun * irun : numberOfFrames );
 					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++) {
-						SampledFrameIntoSampledFrame frameIntoFrameCopy = workThreads.at [ithread];
 						const integer startFrame = numberOfFramesInRun * (irun - 1) + 1 + (ithread - 1) * numberOfFramesPerThread;
 						const integer endFrame = ( ithread == numberOfThreadsInRun ? lastFrameInRun : startFrame + numberOfFramesPerThread - 1 );
-						frameIntoFrameCopy -> startFrame = startFrame;
-						frameIntoFrameCopy -> currentNumberOfFrames = endFrame - startFrame + 1;
-						
-						auto analyseFrames = [&globalFrameErrorCount] (int threadNumber, SampledFrameIntoSampledFrame fifthread, integer fromFrame, integer toFrame) {
+
+						auto analyseFrames = [&] (int threadNumber, integer fromFrame, integer toFrame) {
 							NUMrandom_setChannel (threadNumber);
-							fifthread -> inputFramesToOutputFrames (fromFrame, toFrame);
-							globalFrameErrorCount += fifthread -> framesErrorCount;
+							autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);
+							frameIntoFrameCopy -> startFrame = fromFrame;
+							frameIntoFrameCopy -> currentNumberOfFrames = toFrame - fromFrame + 1;
+							frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
+							globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;
 						};
 
-						threads [ithread] = std::thread (analyseFrames, ithread - 1, frameIntoFrameCopy, startFrame, endFrame);
+						threads [ithread] = std::thread (analyseFrames, ithread, startFrame, endFrame);
 					}
 					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++) {
 						threads [ithread]. join ();
-						SampledFrameIntoSampledFrame frameIntoFrameCopy = workThreads.at [ithread];
 					}
 				}
 			} catch (MelderError) {
