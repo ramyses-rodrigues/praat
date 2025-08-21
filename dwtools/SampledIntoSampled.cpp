@@ -73,10 +73,24 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 	try {
 		SampledFrameIntoSampledFrame frameIntoFrame = my frameIntoFrame.get();
 
-		const integer numberOfFrames = my output -> nx;
-
 		std::atomic<integer> globalFrameErrorCount (0);   // TODO: remove, because errors are notified, not counted
 		std::atomic <bool> errorFlag = false;
+
+		auto analyseFrames = [&] (int threadNumber, integer fromFrame, integer toFrame) {
+			try {
+				NUMrandom_setChannel (threadNumber);
+				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
+				frameIntoFrameCopy -> startFrame = fromFrame;
+				frameIntoFrameCopy -> currentNumberOfFrames = toFrame - fromFrame + 1;
+				frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
+				globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;   // TODO: remove
+			} catch (MelderError) {
+				errorFlag = true;   // convert the MelderError to an error flag temporarily (after building up notification)
+				return;   // leave the thread
+			}
+		};
+
+		const integer numberOfFrames = my output -> nx;
 
 		if (MelderThread_getUseMultithreading ()) {
 			integer numberOfThreadsNeeded, numberOfFramesPerThread;
@@ -108,19 +122,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 						const integer startFrame = numberOfFramesInRun * (irun - 1) + 1 + (ithread - 1) * numberOfFramesPerThread;
 						const integer endFrame = ( ithread == numberOfThreadsInRun ? lastFrameInRun : startFrame + numberOfFramesPerThread - 1 );
 
-						auto analyseFrames = [&] (int threadNumber, integer fromFrame, integer toFrame) {
-							try {
-								NUMrandom_setChannel (threadNumber);
-								autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
-								frameIntoFrameCopy -> startFrame = fromFrame;
-								frameIntoFrameCopy -> currentNumberOfFrames = toFrame - fromFrame + 1;
-								frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
-								globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;   // TODO: remove
-							} catch (MelderError) {
-								errorFlag = true;   // convert the MelderError to an error flag temporarily (after building up notification)
-								return;   // leave the thread
-							}
-						};
 
 						threads [ithread] = std::thread (analyseFrames, ithread, startFrame, endFrame);
 					}
