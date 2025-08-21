@@ -57,11 +57,11 @@ procedure runFilesInFolder: .folderPath$
 		# for the other two "runAlltests" scripts.
 		#
 		random_initializeWithSeedUnsafelyButPredictably (5489)
-		Debug multi-threading: "yes", 8, 0, 0, "no"   ; eight threads for everybody
+		Debug multi-threading: "yes", 8, 0, "no"   ; eight threads for everybody
 		runScript: .filePath$
 	endfor
 	random_initializeSafelyAndUnpredictably()
-	Debug multi-threading: "yes", 0, 0, 0, "no"
+	Debug multi-threading: "yes", 0, 0, "no"
 endproc
 
 writeInfoLine: "                 ALL PRAAT TESTS WENT OK"

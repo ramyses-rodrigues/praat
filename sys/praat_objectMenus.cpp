@@ -426,13 +426,12 @@ FORM (SETTINGS__DebugMultithreading, U"Debug multi-threading", U"Debug multi-thr
 	BOOLEAN (useMultithreading, U"Use multi-threading", true)
 	INTEGER (maximumNumberOfConcurrentThreads, U"Maximum number of threads", U"0 (= automatic)")
 	INTEGER (minimumNumberOfElementsPerThread, U"Minimum number of frames per thread", U"0 (= automatic)")
-	INTEGER (maximumNumberOfElementsPerThread, U"Maximum number of frames per thread", U"0 (= no limit)")
 	BOOLEAN (traceThreads, U"Trace threads", false)
 	OK
 DO
 	PREFS
 		MelderThread_debugMultithreading (useMultithreading, maximumNumberOfConcurrentThreads,
-				minimumNumberOfElementsPerThread, maximumNumberOfElementsPerThread, traceThreads);
+				minimumNumberOfElementsPerThread, traceThreads);
 	PREFS_END
 }
 

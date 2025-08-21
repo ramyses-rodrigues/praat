@@ -123,17 +123,15 @@ static struct {
 	bool useMultithreading = true;
 	integer maximumNumberOfConcurrentThreads = 0;   // "0" signals automatic
 	integer minimumNumberOfElementsPerThread = 0;   // "0" signals the factory-tuned value
-	integer maximumNumberOfElementsPerThread = 0;   // "0" signals no limit
 	bool traceThreads = false;
 } preferences;
 
 void MelderThread_debugMultithreading (bool useMultithreading, integer maximumNumberOfConcurrentThreads,
-	integer minimumNumberOfElementsPerThread, integer maximumNumberOfElementsPerThread, bool traceThreads)
+	integer minimumNumberOfElementsPerThread, bool traceThreads)
 {
 	preferences. useMultithreading = useMultithreading;
 	preferences. maximumNumberOfConcurrentThreads = maximumNumberOfConcurrentThreads;
 	preferences. minimumNumberOfElementsPerThread = minimumNumberOfElementsPerThread;
-	preferences. maximumNumberOfElementsPerThread = maximumNumberOfElementsPerThread;
 	preferences. traceThreads = traceThreads;
 }
 
@@ -155,14 +153,6 @@ integer MelderThread_getMinimumNumberOfElementsPerThread () {
 	if (preferences. minimumNumberOfElementsPerThread <= 0)
 		return 0;   // signals factory tuning
 	return preferences. minimumNumberOfElementsPerThread;
-}
-
-integer MelderThread_getMaximumNumberOfElementsPerThread () {
-	if (! preferences. useMultithreading)
-		return INTEGER_MAX;
-	if (preferences. maximumNumberOfElementsPerThread <= 0)
-		return INTEGER_MAX;   // signals no limit
-	return preferences. maximumNumberOfElementsPerThread;
 }
 
 bool MelderThread_getTraceThreads () {
