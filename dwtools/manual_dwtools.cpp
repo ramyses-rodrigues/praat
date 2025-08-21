@@ -3703,7 +3703,7 @@ LIST_ITEM (U"\\bu ##Get real part of root...#")
 LIST_ITEM (U"\\bu ##Get imaginary part of root...#")
 MAN_END
 
-MAN_BEGIN (U"Debug multi-threading...", U"David Weenink & Paul Boersma", 20250715) // 20250813
+MAN_BEGIN (U"Debug multi-threading...", U"David Weenink & Paul Boersma", 20250721) // 20250813
 INTRO (U"These settings determine how fast parallelized procedures, such as analyses of sound, will be performed on your computer. "
 	"You can use these settings for tuning e.g. a specific analysis procedure. "
 	"These settings are \"debug settings\" that are not remembered across Praat sessions.")
@@ -3711,31 +3711,30 @@ ENTRY (U"Settings")
 TERM (U"##Use multi-threading#")
 DEFINITION (U"Only if you choose %on, the computing load will be equally divided among a number of different processors "
 	"on your computer. If it’s off, you will get single-threading.")
-TERM (U"##Number of threads to use#")
+TERM (U"##Maximum number of threads#")
 DEFINITION (U"determines the number of threads that you would like to use. Most modern computers have multiple "
 	"processors. One some computers (e.g. AMD64/Intel64) each processor can process two threads; "
-	"on some other computers (e.g. ARM64) each processor can process one thread.")
+	"on some other computers (e.g. ARM64) each processor can process one thread. "
+    "If you supply 0 for this setting, then Praat will use all physical threads once.")
 TERM (U"##Minimum number of frames per thread#")
 DEFINITION (U"as starting up a new thread costs time, it is rarely worthwhile to distribute "
 	"small numbers of frames over lots of threads. To achieve an optimal speed gain, "
 	"this number should be tuned via a script, for each type of analysis separately, "
 	"and perhaps for different sets of analysis settings separately.")
-TERM (U"##Maximum number of frames per thread#")
-DEFINITION (U"an extra parameter that can influence the behaviour of some (but not all) parallel procedures. "
-	"You will normally keep this at the special value of 0, which signals that there is no maximum.")
-TERM (U"##Extra analysis info#")
+TERM (U"##Trace multi-threading#")
 DEFINITION (U"returns extra information for each analysed frame in the Info window.")
 ENTRY (U"Example")
-NORMAL (U"Suppose we have 10 threads available for an analysis that needs 500 frames to be processed. "
-	"Let’s suppose that 50 frames per thread has been selected. This means that 10 threads will be used, with each "
-	"thread analysing 50 frames. The first thread will analyse frames 1 to 50, the second thread will analyse "
-	"frames 51 till 100, the third thread will analyse frames 101 till 150, etc. The tenth thread will analyse "
-	"frames 451 till 500. All these threads will be executed, in parallel, almost at the same time, which guarantees "
-	"a significant decrease in analysis time as compared to single threading.\n"
-	"How much it will speed up depends on a number of factors: starting up a thread costs time, "
-	"and allocating per-thread analysis buffers costs time; this is why it isn’t usually advantageous for e.g. "
-	"50 frames to be analysed by 16 threads (2 to 10 threads is more common, for 50 frames)."
-)
+NORMAL (U"Suppose the \"maximum number of threads\" is 10, and you want to analyse 500 frames. "
+	"If the \"minimum number of frames per thread\" is 20, "
+    "Praat will divide up those 500 frames over 10 threads of 50 frames each. "
+    "The first thread will analyse frames 1 to 50, the second thread will analyse "
+    "frames 51 till 100, the third thread will analyse frames 101 till 150, etc. The tenth thread will analyse "
+    "frames 451 till 500. All these threads will be executed, in parallel, almost at the same time, which guarantees "
+    "a significant decrease in analysis time as compared to single-threading.")
+NORMAL (U"If the \"minimum number of frames per thread\" is 100 instead, "
+    "Praat will divide up the 500 frames over 5 threads of 100 frames each.")
+NORMAL (U"The amount of speed-up depends on a number of factors: starting up a thread costs time, "
+	"and allocating per-thread analysis buffers costs time.")
 MAN_END
 
 MAN_BEGIN (U"Scree plot", U"djmw", 20040331)
