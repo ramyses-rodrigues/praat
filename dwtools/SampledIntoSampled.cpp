@@ -74,9 +74,10 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 		SampledFrameIntoSampledFrame frameIntoFrame = my frameIntoFrame.get();
 
 		const integer numberOfFrames = my output -> nx;
-		
-		std::atomic<integer> globalFrameErrorCount (0);
-		
+
+		std::atomic<integer> globalFrameErrorCount (0);   // TODO: remove, because errors are notified, not counted
+		std::atomic <bool> errorFlag = false;
+
 		if (MelderThread_getUseMultithreading ()) {
 			integer numberOfThreadsNeeded, numberOfFramesPerThread;
 			MelderThread_getInfo (numberOfFrames, & numberOfThreadsNeeded, & numberOfFramesPerThread);
@@ -109,35 +110,42 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 						const integer endFrame = ( ithread == numberOfThreadsInRun ? lastFrameInRun : startFrame + numberOfFramesPerThread - 1 );
 
 						auto analyseFrames = [&] (int threadNumber, integer fromFrame, integer toFrame) {
-							NUMrandom_setChannel (threadNumber);
-							autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);
-							frameIntoFrameCopy -> startFrame = fromFrame;
-							frameIntoFrameCopy -> currentNumberOfFrames = toFrame - fromFrame + 1;
-							frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
-							globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;
+							try {
+								NUMrandom_setChannel (threadNumber);
+								autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
+								frameIntoFrameCopy -> startFrame = fromFrame;
+								frameIntoFrameCopy -> currentNumberOfFrames = toFrame - fromFrame + 1;
+								frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
+								globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;   // TODO: remove
+							} catch (MelderError) {
+								errorFlag = true;   // convert the MelderError to an error flag temporarily (after building up notification)
+								return;   // leave the thread
+							}
 						};
 
 						threads [ithread] = std::thread (analyseFrames, ithread, startFrame, endFrame);
 					}
-					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++) {
+					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++)
 						threads [ithread]. join ();
-					}
 				}
-			} catch (MelderError) {
+			} catch (...) {   // this cannot be a MelderError!
 				for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++)
 					if (threads [ithread]. joinable ())
 						threads [ithread]. join ();
-				Melder_clearError ();
-				throw;
+				Melder_throw (U"Cannot start a thread.");   // turn the system exception into a MelderError
 			}
-			my globalFrameErrorCount = globalFrameErrorCount;
+			my globalFrameErrorCount = globalFrameErrorCount;   // TODO: remove
 		} else {
-			frameIntoFrame -> inputFramesToOutputFrames (1, numberOfFrames); // no threading
-			globalFrameErrorCount = frameIntoFrame -> framesErrorCount;
+			frameIntoFrame -> inputFramesToOutputFrames (1, numberOfFrames);   // no threading; TODO: this should be just one of the threads
+			globalFrameErrorCount = frameIntoFrame -> framesErrorCount;   // TODO: remove
 		}
-		if (frameIntoFrame -> updateStatus)
-			my status -> showStatus ();
-		return globalFrameErrorCount;
+		if (frameIntoFrame -> updateStatus)   // TODO: remove
+			my status -> showStatus ();   // TODO: remove
+		if (errorFlag) {
+			theMelder_error_threadId = Melder_thisThread_getUniqueID ();
+			throw MelderError();   // turn the error flag back into a MelderError
+		}
+		return globalFrameErrorCount;   // TODO: remove
 	} catch (MelderError) {
 		Melder_throw (me, U"The Sampled analysis could not be done.");
 	}
