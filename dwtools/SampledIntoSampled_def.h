@@ -42,7 +42,6 @@ oo_DEFINE_CLASS (SampledIntoSampled, Daata)
 	*/
 	oo_OBJECT (SampledFrameIntoSampledFrame, 0, frameIntoFrame)
 	oo_OBJECT (SampledIntoSampledStatus, 0, status)
-	oo_INTEGER (globalFrameErrorCount)			// the number of frames where some error occurred
 
 oo_END_CLASS (SampledIntoSampled)
 #undef ooSTRUCT

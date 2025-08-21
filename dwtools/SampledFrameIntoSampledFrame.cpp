@@ -59,18 +59,6 @@ void structSampledFrameIntoSampledFrame :: allocateOutputFrames () {
 	return;
 }
 
-void structSampledFrameIntoSampledFrame :: inputFramesToOutputFrames (integer fromFrame, integer toFrame) {
-	for (integer iframe = fromFrame; iframe <= toFrame; iframe ++) {
-		currentFrame = iframe;
-		getInputFrame ();
-		if (! inputFrameToOutputFrame ())
-			framesErrorCount ++;
-		saveOutputFrame ();
-		if (updateStatus)
-			status -> frameIntoFrameInfo [currentFrame] = frameAnalysisInfo;
-	}
-}
-
 void SampledFrameIntoSampledFrame_init (SampledFrameIntoSampledFrame me, mutableSampled output) {
 	my output = output;
 	my startFrame = 1;

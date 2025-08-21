@@ -81,23 +81,22 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				NUMrandom_setChannel (threadNumber);
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
 				frameIntoFrameCopy -> startFrame = fromFrame;   // TODO: remove
-				frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
 				for (integer iframe = fromFrame; iframe <= toFrame; iframe ++) {
 					if (errorFlag)
 						return;   // abort this thread
 					frameIntoFrameCopy -> currentFrame = iframe;
 					frameIntoFrameCopy -> getInputFrame ();
 					if (! frameIntoFrameCopy -> inputFrameToOutputFrame ())
-						frameIntoFrameCopy -> framesErrorCount ++;
+						frameIntoFrameCopy -> framesErrorCount ++;   // TODO: remove
 					frameIntoFrameCopy -> saveOutputFrame ();
 					if (frameIntoFrameCopy -> updateStatus)
 						frameIntoFrameCopy -> status -> frameIntoFrameInfo [frameIntoFrameCopy -> currentFrame] =
-								frameIntoFrameCopy -> frameAnalysisInfo;
+								frameIntoFrameCopy -> frameAnalysisInfo;   // TODO: remove
 				}
 				globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;   // TODO: remove
 			} catch (MelderError) {
 				errorFlag = true;   // convert the MelderError to an error flag temporarily (after building up notification)
-				return;   // leave the thread
+				return;   // abort the thread
 			}
 		};
 
@@ -105,7 +104,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 		const integer numberOfThreads = MelderThread_computeNumberOfThreads (numberOfFrames, 40);
 		if (numberOfThreads == 1) {
 			analyseFrames (0, 1, numberOfFrames);
-			globalFrameErrorCount = frameIntoFrame -> framesErrorCount;   // TODO: remove
 		} else {
 			const integer numberOfExtraThreads = numberOfThreads - 1;   // at least 1 (the master thread will also do work, plus progress bar)
 			/*
@@ -142,7 +140,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			analyseFrames (0, firstFrame, numberOfFrames);
 			for (size_t ithread = 0; ithread < extraThreads.size(); ithread ++)
 				extraThreads [ithread]. join ();
-			my globalFrameErrorCount = globalFrameErrorCount;   // TODO: remove
 		}
 		if (frameIntoFrame -> updateStatus)   // TODO: remove
 			my status -> showStatus ();   // TODO: remove
