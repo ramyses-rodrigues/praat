@@ -46,10 +46,18 @@ void MelderThread_run (
 		threadFunction (0, 1, numberOfElements);
 	} else {
 		const integer numberOfExtraThreads = numberOfThreads - 1;   // at least 1
+		/*
+			The following cannot be an `autovector`, because autovectors don't destroy their elements.
+			So it has to be std::vector.
+			Also, the default initialization of a std::thread may not be guaranteed to be all zeroes.
+		*/
 		std::vector <std::thread> spawns;
 		try {
 			spawns. resize (uinteger (numberOfExtraThreads));   // default-construct a number of empty (non-joinable) threads
 		} catch (...) {
+			/*
+				Turn the system error into a MelderError.
+			*/
 			Melder_throw (U"Out of memory creating a thread vector. Contact the author if this happens more often.");
 		}
 		const integer base = numberOfElements / numberOfThreads;
