@@ -80,8 +80,20 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			try {
 				NUMrandom_setChannel (threadNumber);
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
-				frameIntoFrameCopy -> startFrame = fromFrame;
+				frameIntoFrameCopy -> startFrame = fromFrame;   // TODO: remove
 				frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
+				for (integer iframe = fromFrame; iframe <= toFrame; iframe ++) {
+					if (errorFlag)
+						return;   // abort this thread
+					frameIntoFrameCopy -> currentFrame = iframe;
+					frameIntoFrameCopy -> getInputFrame ();
+					if (! frameIntoFrameCopy -> inputFrameToOutputFrame ())
+						frameIntoFrameCopy -> framesErrorCount ++;
+					frameIntoFrameCopy -> saveOutputFrame ();
+					if (frameIntoFrameCopy -> updateStatus)
+						frameIntoFrameCopy -> status -> frameIntoFrameInfo [frameIntoFrameCopy -> currentFrame] =
+								frameIntoFrameCopy -> frameAnalysisInfo;
+				}
 				globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;   // TODO: remove
 			} catch (MelderError) {
 				errorFlag = true;   // convert the MelderError to an error flag temporarily (after building up notification)
