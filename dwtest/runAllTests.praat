@@ -39,12 +39,12 @@ for itest to ntests
 	# for the other two "runAlltests" scripts.
 	#
 	random_initializeWithSeedUnsafelyButPredictably (5489)
-	Debug multi-threading: "yes", 8, 0, 0, "no"
+	Debug multi-threading: "yes", 8, 0, "no"
 	runScript: test$
 	@check_memory: report_before$, "   "
 endfor
 random_initializeSafelyAndUnpredictably()
-Debug multi-threading: "yes", 8, 0, 0, "no"
+Debug multi-threading: "yes", 0, 0, "no"
 
 procedure check_memory: .report_before$, .preprint$
 	.m$[1] = "Strings: "

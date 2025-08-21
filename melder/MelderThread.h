@@ -329,7 +329,7 @@ void MelderThread_run (
 */
 
 void MelderThread_debugMultithreading (bool useMultithreading, integer numberOfConcurrentThreadsToUse,
-	integer minimumNumberOfFramesPerThread, integer maximumNumberOfFramesPerThread, bool extraAnalysisInfo);
+	integer minimumNumberOfElementsPerThread, bool extraAnalysisInfo);
 
 bool MelderThread_getUseMultithreading ();
 

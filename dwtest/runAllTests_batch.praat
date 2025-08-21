@@ -47,14 +47,14 @@ for file to numberOfFiles
 			# for the other two "runAlltests" scripts.
 			#
 			random_initializeWithSeedUnsafelyButPredictably (5489)
-			Debug multi-threading: "yes", 8, 0, 0, "no"
+			Debug multi-threading: "yes", 8, 0, "no"
 			runScript: file$
 		endif
 	endfor
 	removeObject: files
 endif
 random_initializeSafelyAndUnpredictably()
-Debug multi-threading: "yes", 8, 0, 0, "no"
+Debug multi-threading: "yes", 0, 0, "no"
 
 writeInfoLine: "                 ALL PRAAT TESTS WENT OK"
 appendInfoLine: ""

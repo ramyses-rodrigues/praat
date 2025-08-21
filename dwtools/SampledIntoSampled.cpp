@@ -150,7 +150,7 @@ void SampledIntoSampled_timeMultiThreading (double soundDuration) {
 			for (integer index = 1; index <= framesPerThread.size; index ++) {
 				const integer numberOfFramesPerThread = framesPerThread [index];
 				MelderThread_debugMultithreading (useMultiThreading, nThread,
-						numberOfFramesPerThread, numberOfFramesPerThread, extraAnalysisInfo);
+						numberOfFramesPerThread, extraAnalysisInfo);
 				Melder_stopwatch ();
 				autoLPC lpc = Sound_to_LPC_burg (me.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
 				double t = Melder_stopwatch ();
