@@ -32,7 +32,6 @@ oo_DEFINE_CLASS (SampledFrameIntoSampledFrame, Daata)
 	*/
 	oo_UNSAFE_BORROWED_TRANSIENT_MUTABLE_OBJECT_REFERENCE (SampledIntoSampledStatus, status)
 	oo_INTEGER (startFrame)
-	oo_INTEGER (maximumNumberOfFrames)		// for allocating thread specific memory
 	oo_INTEGER (currentNumberOfFrames)
 	oo_INTEGER (currentFrame)				// the frame we are working on
 	oo_INTEGER (frameAnalysisInfo)			// signals different "error" conditions etc in a frame analysis

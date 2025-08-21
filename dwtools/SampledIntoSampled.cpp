@@ -88,12 +88,11 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 			const integer numberOfThreadsToUse = Melder_clippedRight (MelderThread_getMaximumNumberOfConcurrentThreads (),
 				NUMrandom_maximumNumberOfParallelThreads);
 			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
-			frameIntoFrame -> maximumNumberOfFrames = numberOfFramesPerThread;
 
 			/*
 				The following cannot be an `autovector`, because autovectors don't destroy their elements.
 				So it has to be std::vector.
-				Also, the default initialization of a std::thread my not be guaranteed to be all zeroes.
+				Also, the default initialization of a std::thread may not be guaranteed to be all zeroes.
 			*/
 			std::vector<std::thread> threads (1+numberOfThreads);
 			integer numberOfThreadsInRun;
