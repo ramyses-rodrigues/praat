@@ -81,7 +81,6 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				NUMrandom_setChannel (threadNumber);
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
 				frameIntoFrameCopy -> startFrame = fromFrame;
-				frameIntoFrameCopy -> currentNumberOfFrames = toFrame - fromFrame + 1;
 				frameIntoFrameCopy -> inputFramesToOutputFrames (fromFrame, toFrame);
 				globalFrameErrorCount += frameIntoFrameCopy -> framesErrorCount;   // TODO: remove
 			} catch (MelderError) {
