@@ -91,53 +91,47 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 		};
 
 		const integer numberOfFrames = my output -> nx;
-
-		if (MelderThread_getUseMultithreading ()) {
-			integer numberOfThreadsNeeded, numberOfFramesPerThread;
-			MelderThread_getInfo (numberOfFrames, & numberOfThreadsNeeded, & numberOfFramesPerThread);
-
-			/*
-				We need to reserve all the working memory for each thread beforehand.
-			*/
-			const integer numberOfThreadsToUse = Melder_clippedRight (MelderThread_getMaximumNumberOfConcurrentThreads (),
-				NUMrandom_maximumNumberOfParallelThreads);
-			const integer numberOfThreads = std::min (numberOfThreadsToUse, numberOfThreadsNeeded);
-
+		const integer numberOfThreads = MelderThread_computeNumberOfThreads (numberOfFrames, 40);
+		if (numberOfThreads == 1) {
+			analyseFrames (0, 1, numberOfFrames);
+			globalFrameErrorCount = frameIntoFrame -> framesErrorCount;   // TODO: remove
+		} else {
+			const integer numberOfExtraThreads = numberOfThreads - 1;   // at least 1 (the master thread will also do work, plus progress bar)
 			/*
 				The following cannot be an `autovector`, because autovectors don't destroy their elements.
 				So it has to be std::vector.
 				Also, the default initialization of a std::thread may not be guaranteed to be all zeroes.
 			*/
-			std::vector<std::thread> threads (1+numberOfThreads);
-			integer numberOfThreadsInRun;
+			std::vector<std::thread> extraThreads;
 			try {
-				const integer numberOfThreadRuns = Melder_iroundUp ((double) numberOfThreadsNeeded / numberOfThreads);
-				const integer numberOfFramesInRun = numberOfThreads * numberOfFramesPerThread;
-				const integer remainingThreads = numberOfThreadsNeeded % numberOfThreads;
-				const integer numberOfThreadsInLastRun = ( remainingThreads == 0 ? numberOfThreads : remainingThreads );
-				for (integer irun = 1; irun <= numberOfThreadRuns; irun ++) {
-					numberOfThreadsInRun = ( irun < numberOfThreadRuns ? numberOfThreads : numberOfThreadsInLastRun );
-					const integer lastFrameInRun = ( irun < numberOfThreadRuns ? numberOfFramesInRun * irun : numberOfFrames );
-					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++) {
-						const integer startFrame = numberOfFramesInRun * (irun - 1) + 1 + (ithread - 1) * numberOfFramesPerThread;
-						const integer endFrame = ( ithread == numberOfThreadsInRun ? lastFrameInRun : startFrame + numberOfFramesPerThread - 1 );
-
-
-						threads [ithread] = std::thread (analyseFrames, ithread, startFrame, endFrame);
-					}
-					for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++)
-						threads [ithread]. join ();
-				}
-			} catch (...) {   // this cannot be a MelderError!
-				for (integer ithread = 1; ithread <= numberOfThreadsInRun; ithread ++)
-					if (threads [ithread]. joinable ())
-						threads [ithread]. join ();
-				Melder_throw (U"Cannot start a thread.");   // turn the system exception into a MelderError
+				extraThreads. resize (uinteger (numberOfExtraThreads));   // can throw a system error
+			} catch (...) {
+				/*
+					Turn the system error into a MelderError.
+				*/
+				Melder_throw (U"Out of memory creating a thread vector. Contact the author if this happens more often.");
 			}
+			const integer base = numberOfFrames / numberOfThreads;
+			const integer remainder = numberOfFrames % numberOfThreads;
+			integer firstFrame = 1;
+			try {
+				for (integer iextraThread = 1; iextraThread <= numberOfExtraThreads; iextraThread ++) {
+					const integer lastFrame = firstFrame + base - 1 + ( iextraThread <= remainder );
+					extraThreads [uinteger (iextraThread - 1)] = std::thread (analyseFrames, iextraThread, firstFrame, lastFrame);
+					firstFrame = lastFrame + 1;
+				}
+			} catch (...) {
+				errorFlag = true;
+				for (size_t ithread = 0; ithread < extraThreads.size(); ithread ++)
+					if (extraThreads [ithread]. joinable ())
+						extraThreads [ithread]. join ();
+				Melder_throw (U"Couldn't start a thread. Contact the author.");
+			}
+			Melder_assert (firstFrame + base - 1 == numberOfFrames);
+			analyseFrames (0, firstFrame, numberOfFrames);
+			for (size_t ithread = 0; ithread < extraThreads.size(); ithread ++)
+				extraThreads [ithread]. join ();
 			my globalFrameErrorCount = globalFrameErrorCount;   // TODO: remove
-		} else {
-			frameIntoFrame -> inputFramesToOutputFrames (1, numberOfFrames);   // no threading; TODO: this should be just one of the threads
-			globalFrameErrorCount = frameIntoFrame -> framesErrorCount;   // TODO: remove
 		}
 		if (frameIntoFrame -> updateStatus)   // TODO: remove
 			my status -> showStatus ();   // TODO: remove

@@ -341,7 +341,5 @@ integer MelderThread_getMinimumNumberOfElementsPerThread ();
 
 bool MelderThread_getTraceThreads ();
 
-void MelderThread_getInfo (integer numberOfElements, integer *numberOfThreadsNeeded, integer *numberOfFramesPerThread);
-
 /* End of file MelderThread.h */
 #endif

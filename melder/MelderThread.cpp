@@ -107,31 +107,6 @@ integer MelderThread_computeNumberOfThreads (
 	return numberOfThreads;
 }
 
-void MelderThread_getInfo (integer numberOfElements, integer *p_numberOfThreads, integer *p_numberOfElementsPerThread) {
-	const integer maximumNumberOfConcurrentThreads = MelderThread_getMaximumNumberOfConcurrentThreads ();
-	integer minimumNumberOfElementsPerThread = MelderThread_getMinimumNumberOfElementsPerThread ();
-	if (minimumNumberOfElementsPerThread <= 0)
-		minimumNumberOfElementsPerThread = 40;   // BUG: hard-coded here, but should be factory-tuned
-	const integer maximumNumberOfElementsPerThread =
-			Melder_clippedLeft (minimumNumberOfElementsPerThread, MelderThread_getMaximumNumberOfElementsPerThread ());
-	Melder_assert (maximumNumberOfConcurrentThreads > 0);
-	Melder_assert (minimumNumberOfElementsPerThread > 0);
-	Melder_assert (maximumNumberOfElementsPerThread >= minimumNumberOfElementsPerThread);
-	if (MelderThread_getUseMultithreading ()) {
-		*p_numberOfElementsPerThread = Melder_iroundUp ((double) numberOfElements / maximumNumberOfConcurrentThreads);
-		Melder_clip (minimumNumberOfElementsPerThread, p_numberOfElementsPerThread, maximumNumberOfElementsPerThread);
-		*p_numberOfThreads = Melder_iroundUp ((double) numberOfElements / *p_numberOfElementsPerThread);
-		Melder_clipLeft (1_integer, p_numberOfThreads);
-		//TRACE
-		trace (numberOfElements, U" ", maximumNumberOfConcurrentThreads, U" ", *p_numberOfElementsPerThread, U" ", *p_numberOfThreads);
-	} else {
-		*p_numberOfThreads = 1;
-		*p_numberOfElementsPerThread = numberOfElements;
-	}
-	Melder_assert (*p_numberOfThreads > 0);
-	Melder_assert (*p_numberOfElementsPerThread > 0 || numberOfElements == 0);   // note edge case
-}
-
 /*
 	Preferences.
 */
