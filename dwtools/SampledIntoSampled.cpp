@@ -68,14 +68,11 @@ autoSampledIntoSampled SampledIntoSampled_create (constSampled input, mutableSam
 	}
 }
 
-integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
-{
+integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me) {
+	SampledFrameIntoSampledFrame frameIntoFrame = my frameIntoFrame.get();
+	std::atomic<integer> globalFrameErrorCount (0);   // TODO: remove, because errors are notified, not counted
 	try {
-		SampledFrameIntoSampledFrame frameIntoFrame = my frameIntoFrame.get();
-
-		std::atomic<integer> globalFrameErrorCount (0);   // TODO: remove, because errors are notified, not counted
 		std::atomic <bool> errorFlag = false;
-
 		auto analyseFrames = [&] (int threadNumber, integer fromFrame, integer toFrame) {
 			try {
 				NUMrandom_setChannel (threadNumber);
@@ -89,7 +86,7 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 					if (! frameIntoFrameCopy -> inputFrameToOutputFrame ())
 						frameIntoFrameCopy -> framesErrorCount ++;   // TODO: remove
 					frameIntoFrameCopy -> saveOutputFrame ();
-					if (frameIntoFrameCopy -> updateStatus)
+					if (frameIntoFrameCopy -> updateStatus)   // TODO: remove
 						frameIntoFrameCopy -> status -> frameIntoFrameInfo [frameIntoFrameCopy -> currentFrame] =
 								frameIntoFrameCopy -> frameAnalysisInfo;   // TODO: remove
 				}
@@ -99,58 +96,19 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me)
 				return;   // abort the thread
 			}
 		};
-
-		const integer numberOfFrames = my output -> nx;
-		const integer numberOfThreads = MelderThread_computeNumberOfThreads (numberOfFrames, 40);
-		if (numberOfThreads == 1) {
-			analyseFrames (0, 1, numberOfFrames);
-		} else {
-			const integer numberOfExtraThreads = numberOfThreads - 1;   // at least 1 (the master thread will also do work, plus progress bar)
-			/*
-				The following cannot be an `autovector`, because autovectors don't destroy their elements.
-				So it has to be std::vector.
-				Also, the default initialization of a std::thread may not be guaranteed to be all zeroes.
-			*/
-			std::vector<std::thread> extraThreads;
-			try {
-				extraThreads. resize (uinteger (numberOfExtraThreads));   // can throw a system error
-			} catch (...) {
-				/*
-					Turn the system error into a MelderError.
-				*/
-				Melder_throw (U"Out of memory creating a thread vector. Contact the author if this happens more often.");
-			}
-			const integer base = numberOfFrames / numberOfThreads;
-			const integer remainder = numberOfFrames % numberOfThreads;
-			integer firstFrame = 1;
-			try {
-				for (integer iextraThread = 1; iextraThread <= numberOfExtraThreads; iextraThread ++) {
-					const integer lastFrame = firstFrame + base - 1 + ( iextraThread <= remainder );
-					extraThreads [uinteger (iextraThread - 1)] = std::thread (analyseFrames, iextraThread, firstFrame, lastFrame);
-					firstFrame = lastFrame + 1;
-				}
-			} catch (...) {
-				errorFlag = true;
-				for (size_t ithread = 0; ithread < extraThreads.size(); ithread ++)
-					if (extraThreads [ithread]. joinable ())
-						extraThreads [ithread]. join ();
-				Melder_throw (U"Couldn't start a thread. Contact the author.");
-			}
-			Melder_assert (firstFrame + base - 1 == numberOfFrames);
-			analyseFrames (0, firstFrame, numberOfFrames);
-			for (size_t ithread = 0; ithread < extraThreads.size(); ithread ++)
-				extraThreads [ithread]. join ();
-		}
+		MelderThread_run (& errorFlag, my output -> nx, 40, analyseFrames);
+	} catch (MelderError) {
 		if (frameIntoFrame -> updateStatus)   // TODO: remove
 			my status -> showStatus ();   // TODO: remove
-		if (errorFlag) {
-			theMelder_error_threadId = Melder_thisThread_getUniqueID ();
-			throw MelderError();   // turn the error flag back into a MelderError
-		}
-		return globalFrameErrorCount;   // TODO: remove
-	} catch (MelderError) {
 		Melder_throw (me, U"The Sampled analysis could not be done.");
 	}
+	if (frameIntoFrame -> updateStatus)   // TODO: remove
+		my status -> showStatus ();   // TODO: remove
+	return globalFrameErrorCount;   // TODO: remove
+
+	/*
+		TODO: once globalFrameErrorCount has gone, we will be able to use the MelderThread macros
+	*/
 }
 
 /*
