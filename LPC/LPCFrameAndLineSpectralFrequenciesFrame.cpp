@@ -1,10 +1,10 @@
 /* LPCFrameIntoLineSpectralFrequenciesFrame.cpp
  *
- * Copyright (C) 2024-2025 David Weenink
+ * Copyright (C) 2024,2025 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -185,7 +185,6 @@ bool structLPCFrameIntoLineSpectralFrequenciesFrame :: inputFrameToOutputFrame (
 			outputFrame -> numberOfFrequencies --;
 	}
 	outputFrame -> frequencies.resize (outputFrame -> numberOfFrequencies); // maintain invariant
-	frameAnalysisIsOK = true;
 	return true;
 }
 
@@ -347,7 +346,6 @@ bool structLineSpectralFrequenciesFrameIntoLPCFrame :: inputFrameToOutputFrame (
 	for (integer i = 1; i <= fs -> numberOfCoefficients - 2; i ++)
 		a [lsfFrame -> numberOfFrequencies - i + 1] = 0.5 * (fs -> coefficients [i + 1] + fa -> coefficients [i + 1]);
 	frameAnalysisInfo = 0;
-	frameAnalysisIsOK = true;
 	return true;
 }
 
