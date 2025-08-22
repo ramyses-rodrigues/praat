@@ -341,5 +341,19 @@ integer MelderThread_getMinimumNumberOfElementsPerThread ();
 
 bool MelderThread_getTraceThreads ();
 
+/*
+	The following two macros can be used in tracing.
+	
+	Example:
+		if (MelderThread_TRACING)
+			Melder_casual (MelderThread_CHANNEL, U" ", iframe, U" ", result);
+*/
+
+#define MelderThread_TRACING  \
+	MelderThread_getTraceThreads ()
+
+#define MelderThread_CHANNEL  \
+	NUMrandom_getChannel ()
+
 /* End of file MelderThread.h */
 #endif

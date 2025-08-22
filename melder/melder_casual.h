@@ -25,18 +25,12 @@
 		Writes to stderr on Unix, otherwise to a special window.
 */
 
-inline void _recursiveTemplate_Melder_casual (const MelderArg& arg) {
-	MelderConsole::write (arg._arg, true);
-}
-template <typename... Args>
-void _recursiveTemplate_Melder_casual (const MelderArg& first, Args... rest) {
-	_recursiveTemplate_Melder_casual (first);
-	_recursiveTemplate_Melder_casual (rest...);
-}
+extern std::mutex theMelder_casual_mutex;
 
 template <typename... Args>
-void Melder_casual (const MelderArg& first, Args... rest) {
-	_recursiveTemplate_Melder_casual (first, rest...);
+void Melder_casual (const Args&... args) {
+	std::lock_guard lock (theMelder_casual_mutex);
+	(  MelderConsole::write (MelderArg{args}._arg, true), ...  );   // "folding over a parameter pack"
 	MelderConsole::write (U"\n", true);
 }
 

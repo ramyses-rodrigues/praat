@@ -435,6 +435,8 @@ autoPitch Sound_to_Pitch_any (Sound me,
 		}
 
 		autoMelderProgress progress (U"Sound to Pitch...");
+		if (MelderThread_TRACING)
+			Melder_casual (U"channel frame time pitch");
 
 		MelderThread_PARALLELIZE (numberOfFrames, 5)
 
@@ -472,6 +474,8 @@ autoPitch Sound_to_Pitch_any (Sound me,
 				frame.get(), ac.get(), window.get(), windowR.get(),
 				r, imax.get(), localMean.get()
 			);
+			if (MelderThread_TRACING)
+				Melder_casual (MelderThread_CHANNEL, U" ", iframe, U" ", time, U" ", pitchFrame -> candidates [1]. frequency);
 
 		} MelderThread_ENDFOR
 
