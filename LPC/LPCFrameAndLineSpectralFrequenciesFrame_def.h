@@ -29,7 +29,7 @@ oo_DEFINE_CLASS (LPCFrameIntoLineSpectralFrequenciesFrame, LPCFrameIntoSampledFr
 
 	#if oo_DECLARING
 		bool inputFrameToOutputFrame ()
-			override ; // the analysis, also sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
+			override;   // the analysis, also sets 'frameAnalysisInfo'
 		void allocateOutputFrames ()
 			override;
 	#endif
@@ -47,7 +47,7 @@ oo_DEFINE_CLASS (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampl
 
 	#if oo_DECLARING
 		bool inputFrameToOutputFrame ()
-			override;   // the analysis, sets 'frameAnalysisInfo' and 'frameAnalysisIsOK'
+			override;   // the analysis, sets 'frameAnalysisInfo'
 		void allocateOutputFrames ()
 			override;
 	#endif
