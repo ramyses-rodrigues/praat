@@ -159,7 +159,7 @@ autoSpectrogram Sound_to_Spectrogram_e (
 					data [j] = 0.0;
 
 				if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
-					const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
+					const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
 					Melder_progress (estimatedProgress,
 						U"Sound to Spectrogram: analysed approximately ", Melder_iround (numberOfTimes * estimatedProgress),
 						U" out of ", numberOfTimes, U" frames"

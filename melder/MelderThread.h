@@ -175,12 +175,14 @@ void MelderThread_run (
 		std::atomic <bool> _errorFlag_ = false;  \
 		auto _threadFunction_ = [&] (integer _threadNumber_, integer _firstElement_, integer _lastElement_) {  \
 			try {  \
-				NUMrandom_setChannel (_threadNumber_);
+				NUMrandom_setChannel (_threadNumber_);  \
+				Melder_thisThread_setRange (_firstElement_, _lastElement_);
 
 #define MelderThread_FOR(ielement)  \
 				for (integer ielement = _firstElement_; ielement <= _lastElement_; ielement ++) {  \
 					if (_errorFlag_)  \
-						return;
+						return;  \
+					Melder_thisThread_setCurrentElement (ielement);
 
 #define MelderThread_ENDFOR  \
 				}  \
@@ -193,10 +195,10 @@ void MelderThread_run (
 	}/* end of scope of `_errorFlag_` and `_threadFunction_` */
 
 #define MelderThread_IS_MASTER  \
-	(_threadNumber_ == 0)
+	(NUMrandom_getChannel () == 0)
 
-#define MelderThread_ESTIMATE_PROGRESS(ielement)  \
-	((ielement) - _firstElement_ + 0.5) / (_lastElement_ - _firstElement_ + 1.0)
+#define MelderThread_ESTIMATED_PROGRESS  \
+	Melder_thisThread_estimateProgress ()
 
 /*
 	The whole Sound_to_Pitch then becomes:
@@ -230,7 +232,7 @@ void MelderThread_run (
 					);
 
 					if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
-						const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
+						const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
 						Melder_progress (0.1 + 0.8 * estimatedProgress,
 							U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 							U" out of ", numberOfFrames, U" frames"
@@ -321,7 +323,7 @@ void MelderThread_run (
 	7. instead of computing the progress as
 				const double fractionAnalysed = (double) iframe / thy nx;
 	   you write
-				const double fractionAnalysed = MelderThread_ESTIMATE_PROGRESS (iframe);
+				const double fractionAnalysed = MelderThread_ESTIMATED_PROGRESS;
 	   and you may reword the variable name and the text to acknowledge that this progress
 	   is just an estimate;
 	8. you tune the "thresholdNumberOfElementsPerThread" to what turns out to be fastest
@@ -354,6 +356,16 @@ bool MelderThread_getTraceThreads ();
 
 #define MelderThread_CHANNEL  \
 	NUMrandom_getChannel ()
+
+/*
+	The following three functions are mainly on behalf of progress bars.
+*/
+
+void Melder_thisThread_setRange (integer firstElement, integer lastElement);
+
+void Melder_thisThread_setCurrentElement (integer currentElement);
+
+double Melder_thisThread_estimateProgress ();
 
 /* End of file MelderThread.h */
 #endif
