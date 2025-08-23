@@ -460,7 +460,7 @@ autoPitch Sound_to_Pitch_any (Sound me,
 			Pitch_Frame pitchFrame = & thy frames [iframe];
 			const double time = Sampled_indexToX (thee.get(), iframe);
 			if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
-				const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
+				const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
 				Melder_progress (0.1 + 0.8 * estimatedProgress,
 					U"Sound to Pitch: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 					U" out of ", numberOfFrames, U" frames"

@@ -58,17 +58,8 @@ void Melder_appendError_noLine (const MelderArg& arg1);
 	which is wrong.
 */
 
-inline void _recursiveTemplate_Melder_appendError (const MelderArg& arg) {
-	MelderError::_append (arg._arg);
-}
 template <typename... Args>
-void _recursiveTemplate_Melder_appendError (const MelderArg& first, Args... rest) {
-	_recursiveTemplate_Melder_appendError (first);
-	_recursiveTemplate_Melder_appendError (rest...);
-}
-
-template <typename... Args>
-void Melder_appendError (const MelderArg& first, Args... rest) {
+void Melder_appendError (const Args&... args) {
 	std::lock_guard lock (theMelder_error_mutex);
 	if (Melder_hasError ()) {
 		if (Melder_thisThread_getUniqueID () != theMelder_error_threadId)
@@ -76,7 +67,7 @@ void Melder_appendError (const MelderArg& first, Args... rest) {
 	} else {
 		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 	}
-	_recursiveTemplate_Melder_appendError (first, rest...);
+	(  MelderError::_append (MelderArg {args}. _arg), ...  );   // fold the comma over the parameter pack
 	MelderError::_append (U"\n");
 }
 

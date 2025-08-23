@@ -340,7 +340,7 @@ static double VECburg_buffered (VEC const& a, constVEC const& x, SoundFrameIntoL
 }
 
 bool structSoundFrameIntoLPCFrameBurg :: inputFrameToOutputFrame () {
-	LPC_Frame lpcf = & outputlpc -> d_frames[currentFrame];
+	LPC_Frame lpcf = & outputlpc -> d_frames [currentFrame];
 
 	lpcf -> gain = VECburg_buffered (lpcf -> a.get(), soundFrame, this);
 	if (lpcf -> gain <= 0.0) {

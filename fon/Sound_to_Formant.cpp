@@ -364,7 +364,7 @@ static autoFormant Sound_to_Formant_any_inplace (Sound me, double dt_in, integer
 			}
 		}
 		if (MelderThread_IS_MASTER) {   // then we can interact with the GUI
-			const double estimatedProgress = MelderThread_ESTIMATE_PROGRESS (iframe);
+			const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
 			Melder_progress (0.1 + 0.8 * estimatedProgress,
 				U"Sound to Formant: analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
 				U" out of ", numberOfFrames, U" frames"

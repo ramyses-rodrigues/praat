@@ -159,4 +159,19 @@ bool MelderThread_getTraceThreads () {
 	return preferences. traceThreads;
 }
 
+static thread_local integer thisThread_firstElement { 0 }, thisThread_lastElement { 0 }, thisThread_currentElement { 0 };
+
+void Melder_thisThread_setRange (integer firstElement, integer lastElement) {
+	thisThread_firstElement = firstElement;
+	thisThread_lastElement = lastElement;
+}
+
+void Melder_thisThread_setCurrentElement (integer currentElement) {
+	thisThread_currentElement = currentElement;
+}
+
+double Melder_thisThread_estimateProgress () {
+	return (thisThread_currentElement - thisThread_firstElement + 0.5) / (thisThread_lastElement - thisThread_firstElement + 1.0);
+}
+
 /* End of file MelderThread.cpp */

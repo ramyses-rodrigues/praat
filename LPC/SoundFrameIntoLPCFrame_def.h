@@ -43,7 +43,8 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFrameAuto, SoundFrameIntoLPCFrame)
 	oo_VEC (rc, order)
 	
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
 	#endif
 		
 oo_END_CLASS (SoundFrameIntoLPCFrameAuto)
@@ -89,7 +90,8 @@ oo_DEFINE_CLASS (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame)
 	oo_OBJECT (NUMFourierTable, 0, fourierTable) // data for forward & back have equal dimensions!!
 
 	#if oo_DECLARING
-		bool inputFrameToOutputFrame (void) override;
+		bool inputFrameToOutputFrame ()
+			override;
 		void getFilterCharacteristics ();
 	#endif
 		

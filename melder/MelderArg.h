@@ -62,14 +62,11 @@ struct MelderArg {
 	*/
 };
 
-inline integer MelderArg__length (const MelderArg& arg) {
-	return Melder_length (arg._arg);
-}
 template <typename... Args>
-integer MelderArg__length (const MelderArg& first, Args... rest) {
-	integer length = MelderArg__length (first);
-	length += MelderArg__length (rest...);
-	return length;
+integer MelderArg__length (const Args&... args) {
+	static_assert ((  std::is_convertible_v<Args, MelderArg> && ...  ),
+			"All arguments to MelderArg__length must be convertible to MelderArg");
+	return (  0 + ... + Melder_length (MelderArg {args}. _arg)  );
 }
 
 /* End of file MelderArg.h */
