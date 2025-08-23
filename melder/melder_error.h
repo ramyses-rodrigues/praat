@@ -19,10 +19,8 @@
  */
 #include <mutex>
 
-class MelderError {
-public:
-	static void _append (conststring32 message);
-};
+class MelderError { };   // empty exception class
+
 extern std::mutex theMelder_error_mutex;
 extern std::atomic <integer> theMelder_error_threadId;
 
@@ -58,8 +56,12 @@ void Melder_appendError_noLine (const MelderArg& arg1);
 	which is wrong.
 */
 
+void MelderError__appendOneString (conststring32 message);
+
 template <typename... Args>
 void Melder_appendError (const Args&... args) {
+	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+			"All arguments to Melder_appendError must be convertible to MelderArg");
 	std::lock_guard lock (theMelder_error_mutex);
 	if (Melder_hasError ()) {
 		if (Melder_thisThread_getUniqueID () != theMelder_error_threadId)
@@ -67,8 +69,8 @@ void Melder_appendError (const Args&... args) {
 	} else {
 		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 	}
-	(  MelderError::_append (MelderArg {args}. _arg), ...  );   // fold the comma over the parameter pack
-	MelderError::_append (U"\n");
+	(  MelderError__appendOneString (MelderArg {args}. _arg), ...  );   // fold the comma over the parameter pack
+	MelderError__appendOneString (U"\n");
 }
 
 #define Melder_throw(...)  do { Melder_appendError (__VA_ARGS__); throw MelderError (); } while (false)
@@ -76,8 +78,10 @@ void Melder_appendError (const Args&... args) {
 void Melder_flushError ();
 
 template <typename... Args>
-void Melder_flushError (const MelderArg& first, Args... rest) {
-	Melder_appendError (first, rest...);
+void Melder_flushError (const Args&... args) {
+	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+			"All arguments to Melder_flushError must be convertible to MelderArg");
+	Melder_appendError (args...);
 	Melder_flushError ();
 }
 	/* Send all deferred error messages to stderr (batch) or to an "Error" dialog, */
