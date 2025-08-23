@@ -76,11 +76,13 @@ integer SampledIntoSampled_analyseThreaded (mutableSampledIntoSampled me) {
 		auto analyseFrames = [&] (int threadNumber, integer fromFrame, integer toFrame) {
 			try {
 				NUMrandom_setChannel (threadNumber);
+				Melder_thisThread_setRange (fromFrame, toFrame);   // for progress bars in inner functions; otherwise not needed
 				autoSampledFrameIntoSampledFrame frameIntoFrameCopy = Data_copy (frameIntoFrame);   // can throw MelderError
 				frameIntoFrameCopy -> startFrame = fromFrame;   // TODO: remove
 				for (integer iframe = fromFrame; iframe <= toFrame; iframe ++) {
 					if (errorFlag)
 						return;   // abort this thread
+					Melder_thisThread_setCurrentElement (iframe);   // for progress bars in inner functions; otherwise not needed
 					frameIntoFrameCopy -> currentFrame = iframe;
 					frameIntoFrameCopy -> getInputFrame ();
 					if (! frameIntoFrameCopy -> inputFrameToOutputFrame ())

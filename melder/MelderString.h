@@ -53,7 +53,7 @@ void _private_MelderString_expand (MelderString *me, int64 sizeNeeded);   // inc
 void MelderString_ncopy (MelderString *me, conststring32 sourceOrNull, int64 n);
 void MelderString_nappend (MelderString *me, conststring32 sourceOrNull, integer n);
 
-inline void _recursiveTemplate_MelderString_append (MelderString *me, const MelderArg& arg) {
+inline void MelderString_append_ (MelderString *me, const MelderArg& arg) {
 	if (arg._arg) {
 		const char32 *newEndOfStringLocation = stp32cpy (& my string [my length], arg._arg);   // this will append a null character
 		my length = newEndOfStringLocation - & my string [0];
@@ -65,36 +65,35 @@ inline void _recursiveTemplate_MelderString_append (MelderString *me, const Meld
 		*/
 	}
 }
-template <typename... Args>
-void _recursiveTemplate_MelderString_append (MelderString *me, const MelderArg& first, Args... rest) {
-	_recursiveTemplate_MelderString_append (me, first);
-	_recursiveTemplate_MelderString_append (me, rest...);
-}
 
 template <typename... Args>
-void MelderString_append (MelderString *me, const MelderArg& first, Args... rest) {
-	const integer extraLength = MelderArg__length (first, rest...);
+void MelderString_append (MelderString *me, const Args&... args) {
+	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),   // fold "&&"" over the parameter pack
+			"All arguments to MelderString_append must be convertible to MelderArg");
+	const integer extraLength = MelderArg__length (args...);
 	const integer sizeNeeded = my length + extraLength + 1;
 	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
 	if (sizeNeeded > my bufferSize)
 		_private_MelderString_expand (me, sizeNeeded);
-	_recursiveTemplate_MelderString_append (me, first, rest...);
+	(  MelderString_append_ (me, MelderArg {args}), ...  );   // fold the comma operator over the parameter pack
 }
 
 constexpr int64 MelderString_FREE_THRESHOLD_BYTES = 10'000LL;
 
 template <typename... Args>
-void MelderString_copy (MelderString *me, const MelderArg& first, Args... rest) {
+void MelderString_copy (MelderString *me, const Args... args) {
+	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+			"All arguments to MelderString_copy must be convertible to MelderArg");
 	if (my bufferSize * (int64) sizeof (char32) >= MelderString_FREE_THRESHOLD_BYTES)
 		MelderString_free (me);
-	const integer length = MelderArg__length (first, rest...);
+	const integer length = MelderArg__length (args...);
 	const integer sizeNeeded = length + 1;
 	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
 	if (sizeNeeded > my bufferSize)
 		_private_MelderString_expand (me, sizeNeeded);
 	my length = 0;
 	my string [0] = U'\0';   // maintain invariant
-	_recursiveTemplate_MelderString_append (me, first, rest...);
+	(  MelderString_append_ (me, MelderArg {args}), ...  );   // fold comma operator over parameter pack
 }
 
 void MelderString16_appendCharacter (MelderString16 *me, char32 character);

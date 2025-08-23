@@ -30,7 +30,7 @@ extern std::mutex theMelder_casual_mutex;
 template <typename... Args>
 void Melder_casual (const Args&... args) {
 	std::lock_guard lock (theMelder_casual_mutex);
-	(  MelderConsole::write (MelderArg{args}._arg, true), ...  );   // "folding over a parameter pack"
+	(  MelderConsole::write (MelderArg {args}. _arg, true), ...  );   // fold the comma over the parameter pack
 	MelderConsole::write (U"\n", true);
 }
 
