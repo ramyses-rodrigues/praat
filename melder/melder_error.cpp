@@ -44,7 +44,7 @@ void Melder_setCrashProc (void (*p_crashProc) (conststring32)) {
 constexpr integer BUFFER_LENGTH = 2000;
 static char32 theErrorBuffer [BUFFER_LENGTH];   // safe in low-memory situations
 
-void MelderError::_append (conststring32 message) {
+void MelderError__appendOneString (conststring32 message) {
 	if (! message)
 		return;
 	const integer length = Melder_length (theErrorBuffer), messageLength = Melder_length (message);
@@ -100,7 +100,7 @@ void Melder_appendError_noLine (const MelderArg& arg) {
 	} else {
 		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 	}
-	MelderError::_append (arg._arg);
+	MelderError__appendOneString (arg._arg);
 }
 
 void Melder_flushError () {
@@ -131,21 +131,21 @@ void Melder_fatal_ (const MelderArg& arg1,
 	const MelderArg& arg11, const MelderArg& arg12, const MelderArg& arg13)
 {
 	std::lock_guard <std::mutex> lock (theMelder_crash_mutex);
-	MelderError::_append (crashMessage ());
-	MelderError::_append (arg1. _arg ? arg1. _arg : U"");
-	MelderError::_append (arg2. _arg ? arg2. _arg : U"");
-	MelderError::_append (arg3. _arg ? arg3. _arg : U"");
-	MelderError::_append (arg4. _arg ? arg4. _arg : U"");
-	MelderError::_append (arg5. _arg ? arg5. _arg : U"");
-	MelderError::_append (arg6. _arg ? arg6. _arg : U"");
-	MelderError::_append (arg7. _arg ? arg7. _arg : U"");
-	MelderError::_append (arg8. _arg ? arg8. _arg : U"");
-	MelderError::_append (arg9. _arg ? arg9. _arg : U"");
-	MelderError::_append (arg10._arg ? arg10._arg : U"");
-	MelderError::_append (arg11._arg ? arg11._arg : U"");
-	MelderError::_append (arg12._arg ? arg12._arg : U"");
-	MelderError::_append (arg13._arg ? arg13._arg : U"");
-	MelderError::_append (U"\n");
+	MelderError__appendOneString (crashMessage ());
+	MelderError__appendOneString (arg1. _arg ? arg1. _arg : U"");
+	MelderError__appendOneString (arg2. _arg ? arg2. _arg : U"");
+	MelderError__appendOneString (arg3. _arg ? arg3. _arg : U"");
+	MelderError__appendOneString (arg4. _arg ? arg4. _arg : U"");
+	MelderError__appendOneString (arg5. _arg ? arg5. _arg : U"");
+	MelderError__appendOneString (arg6. _arg ? arg6. _arg : U"");
+	MelderError__appendOneString (arg7. _arg ? arg7. _arg : U"");
+	MelderError__appendOneString (arg8. _arg ? arg8. _arg : U"");
+	MelderError__appendOneString (arg9. _arg ? arg9. _arg : U"");
+	MelderError__appendOneString (arg10._arg ? arg10._arg : U"");
+	MelderError__appendOneString (arg11._arg ? arg11._arg : U"");
+	MelderError__appendOneString (arg12._arg ? arg12._arg : U"");
+	MelderError__appendOneString (arg13._arg ? arg13._arg : U"");
+	MelderError__appendOneString (U"\n");
 	trace (U"CRASH: ", theErrorBuffer);
 	throw MelderError ();
 }
@@ -167,16 +167,16 @@ void Melder_assert_ (const char *pathName, int lineNumber, const char *condition
 	static char lineNumberBuffer8 [40];
 	snprintf (lineNumberBuffer8,40, "%d", lineNumber);
 	Melder_8to32_inplace (lineNumberBuffer8, lineNumberBuffer, kMelder_textInputEncoding::UTF8);
-	MelderError::_append (crashMessage ());
-	MelderError::_append (U"Assertion failed in Praat ");
-	MelderError::_append (Melder_appVersionSTR());
-	MelderError::_append (U" in file \"");
-	MelderError::_append (fileName);
-	MelderError::_append (U"\" at line ");
-	MelderError::_append (lineNumberBuffer);
-	MelderError::_append (U":\n   ");
-	MelderError::_append (conditionBuffer);
-	MelderError::_append (U"\n\n");
+	MelderError__appendOneString (crashMessage ());
+	MelderError__appendOneString (U"Assertion failed in Praat ");
+	MelderError__appendOneString (Melder_appVersionSTR());
+	MelderError__appendOneString (U" in file \"");
+	MelderError__appendOneString (fileName);
+	MelderError__appendOneString (U"\" at line ");
+	MelderError__appendOneString (lineNumberBuffer);
+	MelderError__appendOneString (U":\n   ");
+	MelderError__appendOneString (conditionBuffer);
+	MelderError__appendOneString (U"\n\n");
 	trace (U"CRASH: ", theErrorBuffer);
 	throw MelderError ();
 }

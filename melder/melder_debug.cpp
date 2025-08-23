@@ -1,10 +1,10 @@
 /* melder_debug.cpp
  *
- * Copyright (C) 2000-2024 Paul Boersma
+ * Copyright (C) 2000-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -25,6 +25,8 @@
 	#include "../kar/UnicodeData.h"
 	#include <windows.h>
 #endif
+
+/* global */ std::mutex theMelder_trace_mutex;
 
 /*
 Melder_debug will always be set to 0 when Praat starts up.
@@ -75,10 +77,10 @@ the behaviour of Praat will temporarily change in the following ways:
 46: trace GTK parent sizes in _GuiObject_position ()
 47: force resampling in OTGrammar RIP
 48: compute sum, mean, stdev with naive implementation in double (64 bits)
-49: compute sum, mean, stdev with naive implementation in longdouble (80 bits)
-50: compute sum, mean, stdev with first-element offset (80 bits)
-51: compute sum, mean, stdev with two cycles, as in R (80 bits)
-(other numbers than 48-51: compute sum, mean, stdev with simple pairwise algorithm, base case 64 [80 bits])
+49: compute sum, mean, stdev with naive implementation in longdouble (80 bits on Intel64)
+50: compute sum, mean, stdev with first-element offset (80 bits on Intel64)
+51: compute sum, mean, stdev with two cycles, as in R (80 bits on Intel64)
+(other numbers than 48-51: compute sum, mean, stdev with simple pairwise algorithm, base case 64 [80 bits on Intel64])
 52: debug Discriminant_TableOfReal_to_ClassificationTable
 53: trace running cursor
 54: ignore gdk_cairo_reset_clip
