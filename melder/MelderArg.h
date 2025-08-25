@@ -62,11 +62,15 @@ struct MelderArg {
 	*/
 };
 
-template <typename... Args>
-integer MelderArg__length (const Args&... args) {
-	static_assert ((  std::is_convertible_v<Args, MelderArg> && ...  ),
+template <typename... Arg>
+integer MelderArg__length (const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
 			"All arguments to MelderArg__length must be convertible to MelderArg");
-	return (  0 + ... + Melder_length (MelderArg {args}. _arg)  );
+	return
+		(// fold
+			Melder_length (MelderArg { arg }. _arg)
+					+ ...
+		);
 }
 
 /* End of file MelderArg.h */

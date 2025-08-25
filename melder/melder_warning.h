@@ -35,13 +35,13 @@ namespace MelderWarning {
 	extern Proc _p_currentProc;
 }
 
-template <typename... Args>
-void Melder_warning (const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+template <typename... Arg>
+void Melder_warning (const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
 			"All arguments to Melder_warning must be convertible to MelderArg");
 	if (MelderWarning::_depth < 0)
 		return;
-	MelderString_copy (& MelderWarning::_buffer, args...);
+	MelderString_copy (& MelderWarning::_buffer, arg...);
 	(*MelderWarning::_p_currentProc) (MelderWarning::_buffer.string);
 }
 

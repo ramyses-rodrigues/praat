@@ -25,11 +25,11 @@ inline void Melder_sprint__addOneStringElement (char32 **inout_pointer, conststr
 	}
 }
 
-template <typename... Args>
-void Melder_sprint (mutablestring32 buffer, int64 bufferSize, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+template <typename... Arg>
+void Melder_sprint (mutablestring32 buffer, int64 bufferSize, const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
 			"All arguments to Melder_sprint must be convertible to MelderArg");
-	const integer length = MelderArg__length (args...);
+	const integer length = MelderArg__length (arg...);
 	if (length >= bufferSize) {
 		for (int64 i = 0; i < bufferSize; i ++)
 			buffer [i] = U'?';
@@ -38,7 +38,7 @@ void Melder_sprint (mutablestring32 buffer, int64 bufferSize, const Args&... arg
 		return;
 	}
 	char32 *p = & buffer [0];
-	(  Melder_sprint__addOneStringElement (& p, MelderArg {args}. _arg), ...);
+	(  Melder_sprint__addOneStringElement (& p, MelderArg { arg }. _arg), ...);
 }
 
 /* End of file melder_sprint.h */

@@ -58,9 +58,9 @@ void Melder_appendError_noLine (const MelderArg& arg1);
 
 void MelderError__appendOneString (conststring32 message);
 
-template <typename... Args>
-void Melder_appendError (const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+template <typename... Arg>
+void Melder_appendError (const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
 			"All arguments to Melder_appendError must be convertible to MelderArg");
 	std::lock_guard lock (theMelder_error_mutex);
 	if (Melder_hasError ()) {
@@ -69,7 +69,10 @@ void Melder_appendError (const Args&... args) {
 	} else {
 		theMelder_error_threadId = Melder_thisThread_getUniqueID ();
 	}
-	(  MelderError__appendOneString (MelderArg {args}. _arg), ...  );   // fold the comma over the parameter pack
+	(// fold
+		MelderError__appendOneString (MelderArg { arg }. _arg)
+				, ...
+	);
 	MelderError__appendOneString (U"\n");
 }
 
@@ -77,11 +80,11 @@ void Melder_appendError (const Args&... args) {
 
 void Melder_flushError ();
 
-template <typename... Args>
-void Melder_flushError (const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+template <typename... Arg>
+void Melder_flushError (const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
 			"All arguments to Melder_flushError must be convertible to MelderArg");
-	Melder_appendError (args...);
+	Melder_appendError (arg...);
 	Melder_flushError ();
 }
 	/* Send all deferred error messages to stderr (batch) or to an "Error" dialog, */

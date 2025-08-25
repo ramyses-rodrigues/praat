@@ -175,11 +175,11 @@ void Graphics_polyline (Graphics me, integer numberOfPoints, const double *x, co
 void Graphics_polyline_closed (Graphics me, integer numberOfPoints, const double *x, const double *y);
 
 void Graphics_text (Graphics me, double xWC, double yWC, conststring32 txt);
-template <typename... Args>
-void Graphics_text (Graphics me, double xWC, double yWC, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),   // fold "&&" over the parameter pack
+template <typename... Arg>
+void Graphics_text (Graphics me, double xWC, double yWC, const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),   // fold "&&" over the parameter pack
 			"All text arguments to Graphics_text must be convertible to MelderArg");
-	Graphics_text (me, xWC, yWC, Melder_cat (args...));
+	Graphics_text (me, xWC, yWC, Melder_cat (arg...));
 }
 
 void Graphics_rectangleText_maximalFit (

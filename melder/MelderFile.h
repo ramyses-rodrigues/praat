@@ -27,11 +27,11 @@ void MelderFile_writeCharacter (MelderFile file, char32 kar);
 
 void MelderFile__writeOneStringPart (MelderFile file, conststring32 string);
 
-template <typename... Args>
-void MelderFile_write (MelderFile file, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),   // fold "&&" over the parameter pack
+template <typename... Arg>
+void MelderFile_write (MelderFile file, const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),   // fold "&&" over the parameter pack
 			"All arguments to MelderFile_write must be convertible to MelderArg");
-	(  MelderFile__writeOneStringPart (file, MelderArg {args}. _arg), ...  );
+	(  MelderFile__writeOneStringPart (file, MelderArg { arg }. _arg), ...  );
 }
 
 void MelderFile_rewind (MelderFile file);

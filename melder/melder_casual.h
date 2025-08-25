@@ -27,12 +27,12 @@
 
 extern std::mutex theMelder_casual_mutex;
 
-template <typename... Args>
-void Melder_casual (const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),   // fold "&&" over the parameter pack
+template <typename... Arg>
+void Melder_casual (const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),   // fold "&&" over the parameter pack
 			"All arguments to Melder_casual must be convertible to MelderArg");
 	std::lock_guard lock (theMelder_casual_mutex);
-	(  MelderConsole::write (MelderArg {args}. _arg, true), ...  );   // fold the comma over the parameter pack
+	(  MelderConsole::write (MelderArg { arg }. _arg, true), ...  );   // fold the comma over the parameter pack
 	MelderConsole::write (U"\n", true);
 }
 

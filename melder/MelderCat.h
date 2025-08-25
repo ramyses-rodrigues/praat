@@ -24,13 +24,13 @@ namespace MelderCat {
 	extern int _bufferNumber;
 }
 
-template <typename... Args>
-conststring32 Melder_cat (const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
+template <typename... Arg>
+conststring32 Melder_cat (const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
 			"All arguments to Melder_cat must be convertible to MelderArg");
 	if (++ MelderCat::_bufferNumber == MelderCat::_k_NUMBER_OF_BUFFERS)
 		MelderCat::_bufferNumber = 0;
-	MelderString_copy (& MelderCat::_buffers [MelderCat::_bufferNumber], args...);
+	MelderString_copy (& MelderCat::_buffers [MelderCat::_bufferNumber], arg...);
 	return MelderCat::_buffers [MelderCat::_bufferNumber].string;
 }
 

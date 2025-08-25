@@ -41,15 +41,15 @@ namespace MelderTrace {
 
 extern std::mutex theMelder_trace_mutex;
 
-template <typename... Args>
-void Melder_trace (conststring8 sourceCodeFileName, int lineNumber, conststring8 functionName, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),   // fold "&&" over the parameter pack
+template <typename... Arg>
+void Melder_trace (conststring8 sourceCodeFileName, int lineNumber, conststring8 functionName, const Arg... arg) {
+	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),   // fold "&&" over the parameter pack
 			"All arguments to Melder_trace must be convertible to MelderArg");
 	std::lock_guard lock (theMelder_trace_mutex);
 	if (MelderFile_isNull (& MelderTrace::_file))
 		return;
 	FILE *f = MelderTrace::_open (sourceCodeFileName, lineNumber, functionName);
-	(  MelderTrace::_appendOneMessageElement (f, MelderArg {args}. _arg), ...  );
+	(  MelderTrace::_appendOneMessageElement (f, MelderArg { arg }. _arg), ...  );
 	MelderTrace::_close (f);
 }
 
