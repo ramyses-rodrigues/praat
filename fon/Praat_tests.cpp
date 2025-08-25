@@ -667,7 +667,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 			test_FileInMemory_io ();
 		} break;
 		case kPraatTests::TIME_MULTI_THREADING: {
-			const double durationOfSound = ( n < 0 ? 5.0 : 100.0 );
+			const double durationOfSound = ( n < 0 ? 100.0 : 1000.0 );
 			SampledIntoSampled_timeMultiThreading (durationOfSound);
 			//  Gflops is --undefined--
 		} break;

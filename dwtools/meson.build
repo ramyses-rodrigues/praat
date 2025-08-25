@@ -1,5 +1,5 @@
 # meson.build of the library "dwtools"
-# David Weenink, 25 April 2024
+# David Weenink, 25 August 2025
 
 sources = '''
 	ActivationList.cpp AffineTransform.cpp AnalyticSound.cpp
@@ -40,6 +40,8 @@ sources = '''
 	SampledIntoSampled.cpp SampledFrameIntoSampledFrame.cpp SampledIntoSampledStatus.cpp
 	SoundFrameIntoSampledFrame.cpp SoundFrameIntoMatrixFrame.cpp SampledFrameIntoMatrixFrame.cpp
 	Sound_and_MultiSampledSpectrogram.cpp Sound_and_MixingMatrix.cpp
+	
+	SampledIntoSampled2.cpp SampledFrameIntoSampledFrame2.cpp
 	Sound_and_Spectrum_dft.cpp
 	Sound_and_Spectrogram_extensions.cpp Sound_and_PCA.cpp
 	Sound_and_TextGrid_extensions.cpp Sound_extensions.cpp

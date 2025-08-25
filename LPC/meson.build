@@ -1,5 +1,5 @@
 # meson.build of the library "LPC"
-# David Weenink, 21 July 2025
+# David Weenink, 22 August 2025
 
 sources = '''
 	Cepstrum.cpp Cepstrumc.cpp Cepstrum_and_Spectrum.cpp
@@ -19,7 +19,9 @@ sources = '''
 	PowerCepstrogramFrameIntoMatrixFrame.cpp
 	Roots_and_Formant.cpp
 	SoundFrameIntoLPCFrame.cpp SoundFrameIntoPowerCepstrogramFrame.cpp SoundFrameIntoFormantFrame.cpp
-	Sound_and_LPC.cpp Sound_to_Formant_mt.cpp
+	Sound_and_LPC.cpp
+	Sound_and_LPC2.cpp
+	Sound_to_Formant_mt.cpp
 	Sound_and_Cepstrum.cpp Tube.cpp
 	VocalTractTier.cpp
 	praat_LPC_init.cpp manual_LPC.cpp'''.split()

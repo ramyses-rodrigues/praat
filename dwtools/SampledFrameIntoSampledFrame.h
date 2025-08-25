@@ -20,7 +20,6 @@
 
 #include "Sampled.h"
 #include "SampledIntoSampledStatus.h"
-
 #include "SampledFrameIntoSampledFrame_def.h"
 
 void SampledFrameIntoSampledFrame_init (SampledFrameIntoSampledFrame me, mutableSampled output);

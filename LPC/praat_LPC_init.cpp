@@ -39,6 +39,7 @@
 #include "PowerCepstrum.h"
 #include "PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
+#include "Sound_and_LPC2.h"
 #include "Sound_to_Formant_mt.h"
 #include "Sound_and_Cepstrum.h"
 #include "Sound_to_MFCC.h"
@@ -1347,7 +1348,7 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_LPC_autocorrelation, U"Sound: To LPC (autoco
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH_TO_ONE (Sound)
-		autoLPC result = Sound_to_LPC_auto (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
+		autoLPC result = Sound_to_LPC_auto2 (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
