@@ -27,8 +27,6 @@ inline void Melder_sprint__addOneStringElement (char32 **inout_pointer, conststr
 
 template <typename... Arg>
 void Melder_sprint (mutablestring32 buffer, int64 bufferSize, const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_sprint must be convertible to MelderArg");
 	const integer length = MelderArg__length (arg...);
 	if (length >= bufferSize) {
 		for (int64 i = 0; i < bufferSize; i ++)

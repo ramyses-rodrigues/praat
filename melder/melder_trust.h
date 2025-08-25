@@ -33,8 +33,6 @@ namespace MelderTrust {
 
 template <typename... Arg>
 void Melder_checkTrust (void *void_interpreter, const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_checkTrust must be convertible to MelderArg");
 	MelderString_copy (& MelderTrust::_buffer, arg...);
 	(*MelderTrust::_p_currentProc) (void_interpreter, MelderTrust::_buffer.string);
 }

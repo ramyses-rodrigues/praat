@@ -37,8 +37,6 @@ namespace MelderWarning {
 
 template <typename... Arg>
 void Melder_warning (const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_warning must be convertible to MelderArg");
 	if (MelderWarning::_depth < 0)
 		return;
 	MelderString_copy (& MelderWarning::_buffer, arg...);

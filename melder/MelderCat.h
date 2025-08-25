@@ -26,8 +26,6 @@ namespace MelderCat {
 
 template <typename... Arg>
 conststring32 Melder_cat (const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_cat must be convertible to MelderArg");
 	if (++ MelderCat::_bufferNumber == MelderCat::_k_NUMBER_OF_BUFFERS)
 		MelderCat::_bufferNumber = 0;
 	MelderString_copy (& MelderCat::_buffers [MelderCat::_bufferNumber], arg...);

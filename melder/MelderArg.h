@@ -64,8 +64,6 @@ struct MelderArg {
 
 template <typename... Arg>
 integer MelderArg__length (const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to MelderArg__length must be convertible to MelderArg");
 	return
 		(// fold
 			Melder_length (MelderArg { arg }. _arg)

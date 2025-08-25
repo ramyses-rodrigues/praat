@@ -68,8 +68,6 @@ inline void MelderString__appendOneStringElement (MelderString *me, conststring3
 
 template <typename... Arg>
 void MelderString_append (MelderString *me, const Arg... arg) {
-	//static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),   // fold "&&" over the parameter pack
-	//		"All arguments to MelderString_append must be convertible to MelderArg");
 	const integer extraLength = MelderArg__length (arg...);
 	const integer sizeNeeded = my length + extraLength + 1;
 	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
@@ -85,8 +83,6 @@ constexpr int64 MelderString_FREE_THRESHOLD_BYTES = 10'000LL;
 
 template <typename... Arg>
 void MelderString_copy (MelderString *me, const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to MelderString_copy must be convertible to MelderArg");
 	if (my bufferSize * (int64) sizeof (char32) >= MelderString_FREE_THRESHOLD_BYTES)
 		MelderString_free (me);
 	const integer length = MelderArg__length (arg...);

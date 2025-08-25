@@ -118,8 +118,6 @@ inline void Melder_progress (double progress) {
 }
 template <typename... Arg>
 void Melder_progress (double progress, const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_progress must be convertible to MelderArg");
 	MelderString_copy (& MelderProgress::_buffer, arg...);
 	MelderProgress::_doProgress (progress, MelderProgress::_buffer.string);
 }
@@ -138,8 +136,6 @@ inline void * Melder_monitor (double progress) {
 }
 template <typename... Arg>
 void * Melder_monitor (double progress, const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_monitor must be convertible to MelderArg");
 	MelderString_copy (& MelderProgress::_buffer, arg...);
 	return MelderProgress::_doMonitor (progress, MelderProgress::_buffer.string);
 }

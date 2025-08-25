@@ -177,8 +177,6 @@ void Graphics_polyline_closed (Graphics me, integer numberOfPoints, const double
 void Graphics_text (Graphics me, double xWC, double yWC, conststring32 txt);
 template <typename... Arg>
 void Graphics_text (Graphics me, double xWC, double yWC, const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),   // fold "&&" over the parameter pack
-			"All text arguments to Graphics_text must be convertible to MelderArg");
 	Graphics_text (me, xWC, yWC, Melder_cat (arg...));
 }
 

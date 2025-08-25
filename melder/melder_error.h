@@ -60,8 +60,6 @@ void MelderError__appendOneString (conststring32 message);
 
 template <typename... Arg>
 void Melder_appendError (const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_appendError must be convertible to MelderArg");
 	std::lock_guard lock (theMelder_error_mutex);
 	if (Melder_hasError ()) {
 		if (Melder_thisThread_getUniqueID () != theMelder_error_threadId)
@@ -82,8 +80,6 @@ void Melder_flushError ();
 
 template <typename... Arg>
 void Melder_flushError (const Arg... arg) {
-	static_assert ((  std::is_convertible_v <Arg, MelderArg> && ...  ),
-			"All arguments to Melder_flushError must be convertible to MelderArg");
 	Melder_appendError (arg...);
 	Melder_flushError ();
 }
