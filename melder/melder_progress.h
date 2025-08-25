@@ -116,11 +116,9 @@ void Melder_progressOn ();
 inline void Melder_progress (double progress) {
 	MelderProgress::_doProgress (progress, U"");
 }
-template <typename... Args>
-void Melder_progress (double progress, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
-			"All arguments to Melder_progress must be convertible to MelderArg");
-	MelderString_copy (& MelderProgress::_buffer, args...);
+template <typename... Arg>
+void Melder_progress (double progress, const Arg... arg) {
+	MelderString_copy (& MelderProgress::_buffer, arg...);
 	MelderProgress::_doProgress (progress, MelderProgress::_buffer.string);
 }
 class autoMelderProgress {
@@ -136,11 +134,9 @@ public:
 inline void * Melder_monitor (double progress) {
 	return MelderProgress::_doMonitor (progress, U"");
 }
-template <typename... Args>
-void * Melder_monitor (double progress, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
-			"All arguments to Melder_monitor must be convertible to MelderArg");
-	MelderString_copy (& MelderProgress::_buffer, args...);
+template <typename... Arg>
+void * Melder_monitor (double progress, const Arg... arg) {
+	MelderString_copy (& MelderProgress::_buffer, arg...);
 	return MelderProgress::_doMonitor (progress, MelderProgress::_buffer.string);
 }
 
