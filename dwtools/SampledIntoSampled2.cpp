@@ -24,6 +24,7 @@
 /* still only a skeleton implementation */
 void SampledIntoSampled_mt (SampledFrameIntoSampledFrame2 frameIntoFrame, integer thresholdNumberOfFramesPerThread) {
 	const integer numberOfFrames = frameIntoFrame -> output -> nx;
+	autoMelderProgress progress (U"Analysis...");// TODO make it specific!
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
 		ClassInfo classInfo = frameIntoFrame -> classInfo;
 		autoSampledFrameIntoSampledFrame2 current =
@@ -31,6 +32,13 @@ void SampledIntoSampled_mt (SampledFrameIntoSampledFrame2 frameIntoFrame, intege
 		memcpy (current.get(), frameIntoFrame, classInfo -> size);
 		current -> initHeap ();
 	MelderThread_FOR (iframe) {
+		if (MelderThread_IS_MASTER) {
+			const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
+			Melder_progress (0.98 * estimatedProgress,
+				U"Analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
+				U" out of ", numberOfFrames, U" frames"
+			);
+		}
 		current -> getInputFrame (iframe);
 		current -> inputFrameIntoOutputFrame (iframe);
 	} MelderThread_ENDFOR
