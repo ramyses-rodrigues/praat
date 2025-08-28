@@ -33,10 +33,14 @@ then you may have to install one or more standard (system or audio) libraries on
 On Ubuntu this may be:</p>
 
 <code style="white-space:pre-wrap">   sudo apt install libc++1      # the C++ standard library
-   sudo apt install libgtk-3-0   # the graphics toolkit
-   sudo apt install libpulse0    # the Pulse audio server
-   sudo apt install libasound2   # the ALSA audio library
-   sudo apt install libjack0     # the Jack audio library
+   sudo apt install libgtk-3-0      # the graphics toolkit
+   sudo apt install libpulse0       # the Pulse audio server
+   sudo apt install pipewire        # sometimes needed to make the Pulse audio server work
+   # either:
+       sudo apt install libasound2t64   # the ALSA audio library on Ubuntu 24.4
+   # or:
+       sudo apt install libasound2      # the ALSA audio library on older Ubuntu versions
+   sudo apt install libjack0        # the Jack audio library
    sudo apt install libcanberra-gtk-module     # needed only if your system complains about missing this
 </code>
 

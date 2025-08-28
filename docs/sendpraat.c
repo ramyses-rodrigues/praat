@@ -1,6 +1,7 @@
 /* sendpraat.c */
 /* by Paul Boersma */
 /* 13 November 2021 */
+/* 26 August 2025: changed WM_USER to WM_APP (needed since February 2025) */
 
 /*
  * The sendpraat subroutine (macOS; Windows; Linux) sends a message
@@ -11,7 +12,7 @@
  * Newer versions of sendpraat may be found at https://praat.org/sendpraat.html or https://www.fon.hum.uva.nl/praat/sendpraat.html
  *
  * On macOS X (and 11 and 12), this version works with all Praat versions.
- * On Windows, this version works only with Praat version 4.3.28 (November 2005) or newer.
+ * On Windows, this version works only with Praat version 6.4.26 (February 2025) or newer.
  * On Linux, this version works only with Praat version 6.1.31 (November 2020) or newer.
  * Newer versions of Praat may respond faster or more reliably.
  */
@@ -227,9 +228,9 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 		AEDisposeDesc (& reply);
 	#elif win
 		/*
-		 * Notify the running program by sending a WM_USER message to its main window.
+		 * Notify the running program by sending a WM_APP message to its main window.
 		 */
-		if (SendMessage (window, WM_USER, 0, 0)) {
+		if (SendMessage (window, WM_APP, 0, 0)) {
 			sprintf (errorMessage, "Program %s returns error.", programName);   // BUG?
 			return errorMessage;
 		}
