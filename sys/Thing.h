@@ -261,7 +261,7 @@ void _Thing_forget_nozero (Thing me);
 
 /* For debugging. */
 
-extern integer theTotalNumberOfThings;
+extern std::atomic <integer> theTotalNumberOfThings;
 /* This number is 0 initially, increments at every successful `new', and decrements at every `forget'. */
 
 template <class T>

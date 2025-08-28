@@ -19,7 +19,7 @@
 #include "melder.h"
 #include <assert.h>
 
-static int64 totalNumberOfAllocations = 0, totalNumberOfDeallocations = 0, totalAllocationSize = 0,
+static std::atomic <int64> totalNumberOfAllocations = 0, totalNumberOfDeallocations = 0, totalAllocationSize = 0,
 	totalNumberOfMovingReallocs = 0, totalNumberOfReallocsInSitu = 0;
 
 /*
@@ -297,8 +297,8 @@ int64 Melder_movingReallocationsCount () {
 #pragma mark - Generic memory functions for vectors and matrices
 
 namespace MelderArray { // reopen
-	int64 allocationCount = 0, deallocationCount = 0;
-	int64 cellAllocationCount = 0, cellDeallocationCount = 0;
+	std::atomic <int64> allocationCount = 0, deallocationCount = 0;
+	std::atomic <int64> cellAllocationCount = 0, cellDeallocationCount = 0;
 }
 
 int64 MelderArray_allocationCount () { return MelderArray :: allocationCount; }
