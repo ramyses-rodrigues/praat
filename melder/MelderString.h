@@ -66,34 +66,36 @@ inline void MelderString__appendOneStringElement (MelderString *me, conststring3
 	}
 }
 
-template <typename... Args>
-void MelderString_append (MelderString *me, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),   // fold "&&" over the parameter pack
-			"All arguments to MelderString_append must be convertible to MelderArg");
-	const integer extraLength = MelderArg__length (args...);
+template <typename... Arg>
+void MelderString_append (MelderString *me, const Arg... arg) {
+	const integer extraLength = MelderArg__length (arg...);
 	const integer sizeNeeded = my length + extraLength + 1;
 	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
 	if (sizeNeeded > my bufferSize)
 		_private_MelderString_expand (me, sizeNeeded);
-	(  MelderString__appendOneStringElement (me, MelderArg {args}. _arg), ...  );   // fold the comma operator over the parameter pack
+	(// fold
+		MelderString__appendOneStringElement (me, MelderArg { arg }. _arg)
+				, ...
+	);
 }
 
 constexpr int64 MelderString_FREE_THRESHOLD_BYTES = 10'000LL;
 
-template <typename... Args>
-void MelderString_copy (MelderString *me, const Args&... args) {
-	static_assert ((  std::is_convertible_v <Args, MelderArg> && ...  ),
-			"All arguments to MelderString_copy must be convertible to MelderArg");
+template <typename... Arg>
+void MelderString_copy (MelderString *me, const Arg... arg) {
 	if (my bufferSize * (int64) sizeof (char32) >= MelderString_FREE_THRESHOLD_BYTES)
 		MelderString_free (me);
-	const integer length = MelderArg__length (args...);
+	const integer length = MelderArg__length (arg...);
 	const integer sizeNeeded = length + 1;
 	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
 	if (sizeNeeded > my bufferSize)
 		_private_MelderString_expand (me, sizeNeeded);
 	my length = 0;
 	my string [0] = U'\0';   // maintain invariant
-	(  MelderString__appendOneStringElement (me, MelderArg {args}. _arg), ...  );   // fold comma operator over parameter pack
+	(// fold
+		MelderString__appendOneStringElement (me, MelderArg { arg }. _arg)
+				, ...
+	);
 }
 
 void MelderString16_appendCharacter (MelderString16 *me, char32 character);
