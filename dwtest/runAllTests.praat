@@ -61,7 +61,7 @@ procedure check_memory: .report_before$, .preprint$
 endproc
 removeObject: tests
 
-writeInfoLine: "                 ALL PRAAT TESTS WENT OK"
+appendInfoLine: "                 ALL PRAAT TESTS WENT OK"
 appendInfoLine: ""
 line$ [5] = "        #####          #####        #####   #####"
 line$ [8] = "        #####          #####        #######"

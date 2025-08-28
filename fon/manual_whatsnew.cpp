@@ -29,6 +29,10 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.42# (28 August 2025)
+• Recognize more OGG sound files.
+• Recognize the pre-2025 `sendpraat` message on Windows again (compatibility with Elan 7.0).
+
 ##6.4.41# (21 August 2025)
 • Faster computation of some formants (because of multithreading).
 • Removed a bug that caused Praat to crash on @@Sound: To Formant (robust)...@.
