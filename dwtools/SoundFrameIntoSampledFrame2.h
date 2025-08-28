@@ -74,6 +74,10 @@ Thing_define (SoundFrameIntoSampledFrame2, SampledFrameIntoSampledFrame2) {
 		soundFrame  *=  windowFunction.get();
 	}
 	
+	void copySoundFrameAccess (SoundFrameIntoSampledFrame2 other) {
+		soundFrame = other -> soundFrame;
+	}
+	
 	void initHeap () override {
 		//SoundFrameIntoSampledFrame2_Parent :: initHeap ();
 		windowFunction = raw_VEC (soundFrameSize);

@@ -2,7 +2,7 @@
 #define  _LPC_and_Formant_h_
 /* LPC_and_Formant.h
  *
- * Copyright (C) 1994-2024 David Weenink
+ * Copyright (C) 1994-2025 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,40 @@
 #include "LPC.h"
 #include "Roots.h"
 #include "Formant.h"
+#include "SampledFrameIntoSampledFrame2.h"
+
+Thing_define (LPCFrameIntoFormantFrame2, SampledFrameIntoSampledFrame2) {
+
+	constLPC inputLPC;
+	mutableFormant outputFormant;
+	double margin;
+	integer order;			// convenience
+	integer bufferSize;
+	autoVEC buffer;
+	autoPolynomial p;		// for the coefficients
+	autoRoots roots;		// the roots of the polynomial
+
+	void initBasicLPCFrameAndFormant (constLPC inputLPC, mutableFormant outputFormant, double margin);
+
+	bool inputFrameIntoOutputFrame (integer iframe)
+		override;
+
+	void initHeap ()
+		override;
+
+};
+
+inline integer numberOfFormantsFromNumberOfCoefficients2 (integer maxnCoefficients, double margin) {
+	return ( margin == 0.0 ? maxnCoefficients : (maxnCoefficients + 1) / 2 );
+}
+
+inline integer numberOfPolesFromNumberOfFormants2 (double numberOfFormants) {
+	return 2.0 * numberOfFormants;
+}
+
+void Formant_Frame_init (Formant_Frame me, integer numberOfFormants);
+
+autoLPCFrameIntoFormantFrame2 LPCFrameIntoFormantFrame2_create (constLPC inputLPC, mutableFormant outputFormant, double margin);
 
 autoFormant LPC_to_Formant (constLPC me, double margin);
 

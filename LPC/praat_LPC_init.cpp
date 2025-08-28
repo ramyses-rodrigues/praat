@@ -1410,7 +1410,7 @@ DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH_TO_ONE (Sound)
 		autoLPC result = Sound_to_LPC_robust (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency, 
-			numberOfStandardDeviations, maximumNumberOfIterations, tolerance, true);
+			 numberOfStandardDeviations, maximumNumberOfIterations, tolerance, true);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
