@@ -18,13 +18,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-inline void Melder_sprint__addOneStringElement (char32 **inout_pointer, conststring32 string) {
-	if (string) {
-		char32 *newEndOfStringLocation = stp32cpy (*inout_pointer, string);
-		*inout_pointer = newEndOfStringLocation;
-	}
-}
-
 template <typename... Arg>
 void Melder_sprint (mutablestring32 buffer, int64 bufferSize, const Arg... arg) {
 	const integer length = MelderArg__length (arg...);
@@ -36,7 +29,16 @@ void Melder_sprint (mutablestring32 buffer, int64 bufferSize, const Arg... arg) 
 		return;
 	}
 	char32 *p = & buffer [0];
-	(  Melder_sprint__addOneStringElement (& p, MelderArg { arg }. _arg), ...);
+	auto addOneStringElement = [& p] (conststring32 string) {
+		if (string) {
+			char32 *newEndOfStringLocation = stp32cpy (p, string);
+			p = newEndOfStringLocation;
+		}
+	};
+	(// fold
+		addOneStringElement (MelderArg { arg }. _arg)
+				, ...
+	);
 }
 
 /* End of file melder_sprint.h */

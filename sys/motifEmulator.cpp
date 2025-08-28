@@ -2862,11 +2862,13 @@ static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LP
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
-		case WM_APP: {
+		case WM_USER:   // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
+		case WM_APP:
+		{
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
 			SetForegroundWindow (window);*/
 			//TRACE
-			trace (U"app message ", WM_APP);
+			trace (U"app message ", message);
 			return theUserMessageCallback ? theUserMessageCallback () : 1;
 		}
 		default: return DefWindowProc (window, message, wParam, lParam);
