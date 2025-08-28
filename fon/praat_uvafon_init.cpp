@@ -2953,17 +2953,19 @@ DIRECT (HELP_SearchManual_Fon) { Melder_search (); END_NO_NEW_DATA }
 // MARK: - file recognizers
 
 static autoDaata cgnSyntaxFileRecognizer (integer nread, const char *header, MelderFile file) {
-	if (nread < 57) return autoDaata ();
+	if (nread < 57)
+		return autoDaata ();
 	if (! strnequ (& header [0], "<?xml version=\"1.0\"?>", 21) ||
 	    (! strnequ (& header [22], "<!DOCTYPE ttext SYSTEM \"ttext.dtd\">", 35) &&
 	     ! strnequ (& header [23], "<!DOCTYPE ttext SYSTEM \"ttext.dtd\">", 35))
 	)
-	     return autoDaata ();
+		return autoDaata ();
 	return TextGrid_readFromCgnSyntaxFile (file);
 }
 
 static autoDaata chronologicalTextGridTextFileRecognizer (integer nread, const char *header, MelderFile file) {
-	if (nread < 100) return autoDaata ();
+	if (nread < 100)
+		return autoDaata ();
 	if (strnequ (& header [0], "\"Praat chronological TextGrid text file\"", 40))
 		return TextGrid_readFromChronologicalTextFile (file);
 	char headerCopy [101];
@@ -2981,6 +2983,55 @@ static autoDaata chronologicalTextGridTextFileRecognizer (integer nread, const c
 	}
 	return autoDaata ();
 }
+
+// MARK: - extension to praat_stat_init
+
+static bool isTabSeparated_8bit (integer nread, const char *header) {
+	for (integer i = 0; i < nread; i ++) {
+		if (header [i] == '\t')
+			return true;
+		if (header [i] == '\n' || header [i] == '\r')
+			return false;
+	}
+	return false;
+}
+
+static bool isTabSeparated_utf16be (integer nread, const char *header) {
+	for (integer i = 2; i < nread; i += 2) {
+		if (header [i] == '\0' && header [i + 1] == '\t')
+			return true;
+		if (header [i] == '\0' && (header [i + 1] == '\n' || header [i + 1] == '\r'))
+			return false;
+	}
+	return false;
+}
+
+static bool isTabSeparated_utf16le (integer nread, const char *header) {
+	for (integer i = 2; i < nread; i += 2) {
+		if (header [i + 1] == '\0' && header [i] == '\t')
+			return true;
+		if (header [i + 1] == '\0' && (header [i] == '\n' || header [i] == '\r'))
+			return false;
+	}
+	return false;
+}
+
+static autoDaata tabSeparatedFileRecognizer (integer nread, const char *header, MelderFile file) {
+	/*
+		A table is recognized if it has at least one tab symbol,
+		which must be before the first newline symbol (if any).
+	*/
+	unsigned char *uheader = (unsigned char *) header;
+	const bool isTabSeparated =
+		uheader [0] == 0xef && uheader [1] == 0xff ? isTabSeparated_utf16be (nread, header) :
+		uheader [0] == 0xff && uheader [1] == 0xef ? isTabSeparated_utf16le (nread, header) :
+		isTabSeparated_8bit (nread, header)
+	;
+	if (! isTabSeparated)
+		return autoDaata ();
+	return Table_readFromCharacterSeparatedTextFile (file, U'\t', false);
+}
+
 
 // MARK: - buttons
 
@@ -3849,6 +3900,8 @@ praat_addAction2 (classIntensity, 1, classPitch, 1, U"Query", nullptr, 0, nullpt
 	INCLUDE_LIBRARY (praat_uvafon_FFNet_init)
 	INCLUDE_LIBRARY (praat_uvafon_LPC_init)
 	praat_ExperimentMFC_init ();
+
+	Data_recognizeFileType (tabSeparatedFileRecognizer);   // at end, as a sort of last resort
 }
 
 /* End of file praat_uvafon_init.cpp */
