@@ -67,7 +67,7 @@ integer MelderArg__length (const Arg... arg) {
 	return
 		(// fold
 			Melder_length (MelderArg { arg }. _arg)
-					+ ...
+					+ ... + 0
 		);
 }
 
