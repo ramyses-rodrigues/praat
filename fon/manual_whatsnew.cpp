@@ -29,6 +29,12 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.43beta# (xx September 2025)
+• Calling Praat from the command line: the new switch `--send-or-form` sends a script
+  to a different already running GUI instance of Praat, like `--send` does,
+  but takes no arguments (except for the name of the script file)
+  and presents a form on the screen if the script has a `form` in it.
+
 ##6.4.42# (28 August 2025)
 • Recognize more OGG sound files.
 • Recognize the pre-2025 `sendpraat` message on Windows again (compatibility with Elan 7.0).

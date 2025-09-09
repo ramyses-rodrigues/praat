@@ -1116,6 +1116,9 @@ static void printHelp () {
 	MelderInfo_writeLine (U"   To run a Praat script in a new GUI instance of Praat:");
 	MelderInfo_writeLine (U"      praat --new-send [OPTION]... SCRIPT-FILE-NAME [SCRIPT-ARGUMENT]...");
 	MelderInfo_writeLine (U"");
+	MelderInfo_writeLine (U"   As --send, but potentially presenting a form to query for arguments:");
+	MelderInfo_writeLine (U"      praat --send-or-form [OPTION]... SCRIPT-FILE-NAME");
+	MelderInfo_writeLine (U"");
 	MelderInfo_writeLine (U"   To start up Praat in an interactive command line session:");
 	MelderInfo_writeLine (U"      praat [OPTION]... -");
 	MelderInfo_writeLine (U"");
@@ -1141,7 +1144,7 @@ static void printHelp () {
 	static void *theWinApplicationWindow;
 #endif
 
-static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSendOption) {
+static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSendOption, bool foundTheSendOrFormOption) {
 	/*
 		This function returns true only if we can be certain that we have sent
 		the command line to an already running invocation of Praat that is not identical to ourselves
@@ -1251,7 +1254,7 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 			TODO: bring Praat to the foreground on GTK.
 		*/
 	#endif
-	if (! foundTheOpenOption && ! foundTheSendOption)
+	if (! foundTheOpenOption && ! foundTheSendOption && ! foundTheSendOrFormOption)
 		return true;
 	/*
 		Send something to the running Praat, and bail out.
@@ -1281,8 +1284,27 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 		Melder_relativePathToFile (theCurrentPraatApplication -> batchName.string, & scriptFile);
 		conststring32 absolutePath = MelderFile_peekPath (& scriptFile);
 		MelderString_append (& text32, quote_doubleSTR (absolutePath).get());
+		//TRACE
+		trace (U"--send ", absolutePath);
 		for (integer iarg = praatP.argumentNumber; iarg < praatP.argc; iarg ++)   // do not change praatP.argumentNumber itself (we might return false)
 			MelderString_append (& text32, U", ", quote_doubleSTR (Melder_peek8to32 (praatP.argv [iarg])).get());
+	} else if (foundTheSendOrFormOption) {
+		/*
+			praat --send-or-form [OPTION]... SCRIPT-FILE-NAME
+		*/
+		MelderString_append (& text32, U"setWorkingDirectory: ");
+		structMelderFolder currentFolder { };
+		Melder_getCurrentFolder (& currentFolder);
+		MelderString_append (& text32, quote_doubleSTR (MelderFolder_peekPath (& currentFolder)).get());
+		MelderString_append (& text32, U"\nrunScriptWithForm: ");
+		structMelderFile scriptFile { };
+		Melder_relativePathToFile (theCurrentPraatApplication -> batchName.string, & scriptFile);
+		conststring32 absolutePath = MelderFile_peekPath (& scriptFile);
+		MelderString_append (& text32, quote_doubleSTR (absolutePath).get());
+		//TRACE
+		trace (U"--send-or-form ", absolutePath);
+		Melder_require (praatP.argc - praatP.argumentNumber == 0,
+				U"The --send-or-form switch should be followed by precisely one argument, namely the name of the script file.");
 	}
 	autostring8 text8 = Melder_32to8 (text32.string);
 	#if defined (macintosh)
@@ -1443,6 +1465,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 			praatP.foundTheNewSwitch = true;
 			praatP.foundTheSendSwitch = true;
 			praatP.argumentNumber += 1;
+		} else if (strequ (argv [praatP.argumentNumber], "--send-or-form")) {
+			praatP.foundTheSendOrFormSwitch = true;
+			praatP.argumentNumber += 1;
+		} else if (strequ (argv [praatP.argumentNumber], "--new-send-or-form")) {
+			praatP.foundTheNewSwitch = true;
+			praatP.foundTheSendOrFormSwitch = true;
+			praatP.argumentNumber += 1;
 		} else if (strequ (argv [praatP.argumentNumber], "--no-pref-files")) {
 			praatP.ignorePreferenceFiles = true;
 			praatP.argumentNumber += 1;
@@ -1507,9 +1536,9 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		}
 	}
 	const bool thereIsAFileNameInTheArgumentList = ( praatP.argumentNumber < argc );
-	trace (U"Start-up flags: cornsf = ",
+	trace (U"Start-up flags: cornsff = ",
 		weWereStartedFromTheCommandLine, praatP.foundTheOpenSwitch, praatP.foundTheRunSwitch,
-		praatP.foundTheNewSwitch, praatP.foundTheSendSwitch, thereIsAFileNameInTheArgumentList
+		praatP.foundTheNewSwitch, praatP.foundTheSendSwitch, praatP.foundTheSendOrFormSwitch, thereIsAFileNameInTheArgumentList
 	);
 	if (praatP.foundTheRunSwitch && praatP.foundTheOpenSwitch) {
 		MelderInfo_open ();
@@ -1525,9 +1554,30 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		MelderInfo_close ();
 		exit (-1);
 	}
+	if (praatP.foundTheRunSwitch && praatP.foundTheSendOrFormSwitch) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"Conflicting command line switches --run and --send-or-form (or --new-send-or-form).", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
 	if (praatP.foundTheOpenSwitch && praatP.foundTheSendSwitch) {
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"Conflicting command line switches --open (or --new-open) and --send (or --new-send).", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
+	if (praatP.foundTheOpenSwitch && praatP.foundTheSendOrFormSwitch) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"Conflicting command line switches --open (or --new-open) and --send-or-form (or --new-send-or-form).", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
+	if (praatP.foundTheSendSwitch && praatP.foundTheSendOrFormSwitch) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"Conflicting command line switches --send (or --new-send) and --send-or-form (or --new-send-or-form).", U"\n");
 		printHelp ();
 		MelderInfo_close ();
 		exit (-1);
@@ -1546,6 +1596,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		MelderInfo_close ();
 		exit (-1);
 	}
+	if (praatP.foundTheSendOrFormSwitch && ! thereIsAFileNameInTheArgumentList) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"The switch --send-or-form requires a script file name.", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
 	if (praatP.foundTheOpenSwitch && ! thereIsAFileNameInTheArgumentList) {
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"The switch --open requires at least one file name.", U"\n");
@@ -1556,12 +1613,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 	Melder_batch =
 		! praatP.foundTheOpenSwitch &&
 		! praatP.foundTheSendSwitch &&
+		! praatP.foundTheSendOrFormSwitch &&
 		(praatP.foundTheRunSwitch || thereIsAFileNameInTheArgumentList && weWereStartedFromTheCommandLine)   // this line to be removed
 	;
 	bool userWantsGui = ! Melder_batch;
 	praatP.fileNamesCameInByDropping =
 		userWantsGui &&
-		! praatP.foundTheRunSwitch && ! praatP.foundTheOpenSwitch && ! praatP.foundTheSendSwitch &&
+		! praatP.foundTheRunSwitch && ! praatP.foundTheOpenSwitch && ! praatP.foundTheSendSwitch && ! praatP.foundTheSendOrFormSwitch &&
 		thereIsAFileNameInTheArgumentList
 	;   // doesn't happen on the Mac
 	trace (U"Did file names come in by dropping? ", praatP.fileNamesCameInByDropping);
@@ -1569,11 +1627,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 	trace (U"User wants to open: ", praatP.userWantsToOpen);
 	praatP.userWantsToSend = userWantsGui && praatP.foundTheSendSwitch;
 	trace (U"User wants to send: ", praatP.userWantsToSend);
-	praatP.userWantsExistingInstance = (praatP.userWantsToOpen || praatP.userWantsToSend) && ! praatP.foundTheNewSwitch
+	praatP.userWantsToSendOrForm = userWantsGui && praatP.foundTheSendOrFormSwitch;
+	trace (U"User wants to send-or-form: ", praatP.userWantsToSendOrForm);
+	praatP.userWantsExistingInstance = (praatP.userWantsToOpen || praatP.userWantsToSend || praatP.userWantsToSendOrForm) && ! praatP.foundTheNewSwitch
 		|| (userWantsGui && ! weWereStartedFromTheCommandLine);
 	trace (U"User wants existing instance: ", praatP.userWantsExistingInstance);
 
-	if (Melder_batch || praatP.userWantsToSend) {
+	if (Melder_batch || praatP.userWantsToSend || praatP.userWantsToSendOrForm) {
 		Melder_assert (praatP.argumentNumber < argc);
 		/*
 			We now get the script file name. It is next on the command line
@@ -1607,6 +1667,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		if (praatP.foundTheSendSwitch) {
 			MelderInfo_open ();
 			MelderInfo_writeLine (U"The switch --send (or --new-send) is not compatible with running a stand-alone script.", U"\n");
+			printHelp ();
+			MelderInfo_close ();
+			exit (-1);
+		}
+		if (praatP.foundTheSendOrFormSwitch) {
+			MelderInfo_open ();
+			MelderInfo_writeLine (U"The switch --send-or-form (or --new-send-or-form) is not compatible with running a stand-alone script.", U"\n");
 			printHelp ();
 			MelderInfo_close ();
 			exit (-1);
@@ -1646,6 +1713,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		if (praatP.foundTheSendSwitch) {
 			MelderInfo_open ();
 			MelderInfo_writeLine (U"The switch --send (or --new-send) is not compatible with running Praat interactively from the command line.", U"\n");
+			printHelp ();
+			MelderInfo_close ();
+			exit (-1);
+		}
+		if (praatP.foundTheSendOrFormSwitch) {
+			MelderInfo_open ();
+			MelderInfo_writeLine (U"The switch --send-form (or --new-send-form) is not compatible with running Praat interactively from the command line.", U"\n");
 			printHelp ();
 			MelderInfo_close ();
 			exit (-1);
@@ -1803,7 +1877,7 @@ void praat_init (conststring32 title,
 		theWinApplicationWindow = GuiWin_initialize1 (Melder_upperCaseAppName());
 	#endif
 	if (praatP.userWantsExistingInstance)
-		if (tryToSwitchToRunningPraat (praatP.userWantsToOpen, praatP.userWantsToSend))
+		if (tryToSwitchToRunningPraat (praatP.userWantsToOpen, praatP.userWantsToSend, praatP.userWantsToSendOrForm))
 			exit (0);
 
 	#ifdef UNIX
@@ -2515,6 +2589,16 @@ void praat_run () {
 			try {
 				praat_executeScriptFromCommandLine (theCurrentPraatApplication -> batchName.string,
 						praatP.argc - praatP.argumentNumber, & praatP.argv [praatP.argumentNumber]);
+			} catch (MelderError) {
+				Melder_flushError ();
+			}
+		} else if (praatP.userWantsToSendOrForm) {
+			/*
+				praat --new-send-or-form [OPTION]... SCRIPT-FILE-NAME
+			*/
+			autoPraatBackground background;   // to e.g. make audio synchronous
+			try {
+				Melder_throw (U"--new-send-or-form: not yet implemented");
 			} catch (MelderError) {
 				Melder_flushError ();
 			}
