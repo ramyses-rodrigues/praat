@@ -2592,7 +2592,7 @@ CODE (U"nocheck Remove")
 NORMAL (U"This would cause the script to continue even if there is nothing to remove.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6.9. Calling from the command line", U"ppgb", 20220122)   // 2023
+MAN_BEGIN (U"Scripting 6.9. Calling from the command line", U"ppgb", 20220122)   // 2023 2025
 INTRO (U"Previous sections of this tutorial have shown you how to run a Praat script from the Script window. "
 	"However, you can also call a Praat script from the command line (text console) instead. "
 	"Information that would normally show up in the Info window, then goes to %stdout, "
@@ -2719,6 +2719,13 @@ NORMAL (U"This works the same way as `--run`, except that `--send` runs in Praat
 	"If Praat is already running, then that instance of Praat will execute your script. "
 	"If Praat is not running yet, then a new GUI instance of Praat will start up and execute your script. "
 	"To always start up a new instance of Praat, use `--new-send` instead of `--send`.")
+NORMAL (U"If you use")
+CODE (U"\"C:\\Program Files\\Praat.exe\" --send-or-form testCommandLineCalls.praat")
+CODE (U"/Applications/Praat.app/Contents/MacOS/Praat --send-or-form testCommandLineCalls.praat")
+CODE (U"/usr/bin/praat --send-or-form testCommandLineCalls.praat")
+NORMAL (U"then Praat will present the above form that asks for the three arguments "
+	"(if you use `--send-or-form` with a script that has no `form` in it, it will work the same as `--send`). "
+	"This switch is useful if you want to implement a Praat connection for interfacing with an IDE such as Microsoft\\re Visual Studio Code\\tm.")
 NORMAL (U"See also %sendpraat (see @@Scripting 8. Controlling Praat from another program@).")
 
 ENTRY (U"7. Calling Praat from other programs such as Python")
