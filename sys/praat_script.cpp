@@ -713,12 +713,34 @@ static void secondPassThroughScript (UiForm sendingForm, integer /* narg */, Sta
 static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterOwningEditor, EditorCommand optionalCommand) {
 	try {
 		autostring32 text = MelderFile_readText (file);
+		/*
+			We switch between default directories no fewer than four times:
+			1. runScript() tends to be called from a script that we call the "caller";
+			   when we enter runScript(), the default directory is the caller's folder,
+			   as was appropriate for the use of file names in the caller before runScript(),
+			   which had to be interpreted relative to the caller's folder.
+			2. runScript() will call a script that we call the "callee";
+			   include files have to be included from the callee's folder.
+			3. For expanding any infile/outfile/folder arguments to runScript(),
+			   we have to be back in the caller's folder.
+			4. Inside the callee, file names will have to be interpreted relative to the callee's folder.
+			5. After runScript() finishes, we will have to be back in the caller's folder,
+			   so that the use of file names in the caller after runScript()
+			   will be interpreted relative to the caller's folder again.
+		*/
 		{// scope
-			autoMelderFileSetCurrentFolder folder (file);
+			autoMelderFileSetCurrentFolder folder (file);   // so that callee-relative file names can be used for including include files
 			Melder_includeIncludeFiles (& text);
-		}
+		}   // back to the default directory of the caller
+
 		autoInterpreter interpreter = Interpreter_createFromEnvironment (optionalInterpreterOwningEditor);
-		if (Interpreter_readParameters (interpreter.get(), text.get()) > 0) {
+
+		autoScript script = Script_createFromFile (file);
+		Script_rememberDuringThisAppSession_move (script.move());
+		interpreter -> scriptReference = Script_find (MelderFile_peekPath (file));
+
+		const integer numberOfParameters = Interpreter_readParameters (interpreter.get(), text.get());
+		if (numberOfParameters > 0) {
 			const GuiWindow parentShell = ( optionalInterpreterOwningEditor ? optionalInterpreterOwningEditor -> windowForm : theCurrentPraatApplication -> topShell );
 			autoUiForm form = Interpreter_createForm (interpreter.get(), parentShell, optionalInterpreterOwningEditor,
 					MelderFile_peekPath (file), secondPassThroughScript, nullptr, false);
@@ -731,7 +753,11 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 			}
 		} else {
 			autoPraatBackground background;
-			praat_executeScriptFromFile (file, nullptr, optionalInterpreterOwningEditor);
+			//praat_executeScriptFromFile (file, nullptr, optionalInterpreterOwningEditor);
+			{// scope
+				autoMelderFileSetCurrentFolder folder (file);   // so that callee-relative file names can be used inside the script
+				Interpreter_run (interpreter.get(), text.get(), false);
+			}
 		}
 	} catch (MelderError) {
 		Melder_throw (U"Script ", file, U" not completed.");
@@ -750,51 +776,8 @@ void DO_RunTheScriptFromAnyAddedMenuCommand (UiForm /* sendingForm_dummy */, int
 void praat_runScriptWithForm (conststring32 fileName) {
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName, & file);
-	try {
-		autostring32 text = MelderFile_readText (& file);
-		/*
-			We switch between default directories no fewer than four times:
-			1. runScript() tends to be called from a script that we call the "caller";
-			   when we enter runScript(), the default directory is the caller's folder,
-			   as was appropriate for the use of file names in the caller before runScript(),
-			   which had to be interpreted relative to the caller's folder.
-			2. runScript() will call a script that we call the "callee";
-			   include files have to be included from the callee's folder.
-			3. For expanding any infile/outfile/folder arguments to runScript(),
-			   we have to be back in the caller's folder.
-			4. Inside the callee, file names will have to be interpreted relative to the callee's folder.
-			5. After runScript() finishes, we will have to be back in the caller's folder,
-			   so that the use of file names in the caller after runScript()
-			   will be interpreted relative to the caller's folder again.
-		*/
-		{// scope
-			autoMelderFileSetCurrentFolder folder (& file);   // so that callee-relative file names can be used for including include files
-			Melder_includeIncludeFiles (& text);
-		}   // back to the default directory of the caller
-		autoInterpreter interpreter = Interpreter_create ();
-
-		autoScript script = Script_createFromFile (& file);
-		Script_rememberDuringThisAppSession_move (script.move());
-		interpreter -> scriptReference = Script_find (MelderFile_peekPath (& file));
-
-		const integer numberOfParameters = Interpreter_readParameters (interpreter.get(), text.get());
-		if (numberOfParameters > 0) {
-			autoUiForm form = Interpreter_createForm (interpreter.get(), theCurrentPraatApplication -> topShell, nullptr,
-					MelderFile_peekPath (& file), secondPassThroughScript, nullptr, false);
-			UiForm_do (form.get(), false);
-			UiForm_destroyWhenUnmanaged (form.get());
-			form. releaseToUser();
-		} else {
-			{// scope
-				autoMelderFileSetCurrentFolder folder (& file);   // so that callee-relative file names can be used inside the script
-				Interpreter_run (interpreter.get(), text.get(), false);
-			}   // back to the default directory of the caller
-		}
-	} catch (MelderError) {
-		Melder_throw (U"Script ", & file, U" not completed.");   // don't refer to 'fileName', because its contents may have changed
-	}
+	firstPassThroughScript (& file, nullptr, nullptr);
 }
-
 
 void praat_executeScriptFromEditorCommand (Editor interpreterOwningEditor, EditorCommand command, conststring32 scriptPath) {
 	Melder_assert (interpreterOwningEditor);

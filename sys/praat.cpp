@@ -1131,7 +1131,7 @@ static void printHelp () {
 	MelderInfo_writeLine (U"Options:");
 	MelderInfo_writeLine (U"  --no-pref-files  don't read or write the preferences file and the buttons file");
 	MelderInfo_writeLine (U"  --no-plugins     don't activate the plugins");
-	MelderInfo_writeLine (U"  --pref-dir=DIR   set the preferences directory to DIR");
+	MelderInfo_writeLine (U"  --pref-dir=DIR   set the preferences folder to DIR");
 	MelderInfo_writeLine (U"  -u, --utf16      use UTF-16LE output encoding, no BOM (the default on Windows)");
 	MelderInfo_writeLine (U"  -8, --utf8       use UTF-8 output encoding (the default on MacOS and Linux)");
 	MelderInfo_writeLine (U"  -a, --ansi       use ISO Latin-1 output encoding (lossy, hence not recommended)");
@@ -2570,6 +2570,7 @@ void praat_run () {
 		if (praatP.userWantsToOpen) {
 			/*
 				praat --new-open [OPTION]... FILE-NAME...
+				praat --open [OPTION]... FILE-NAME...   (if not yet running)
 			*/
 			for (; praatP.argumentNumber < praatP.argc; praatP.argumentNumber ++) {
 				autostring32 text = Melder_dup (Melder_cat (U"Read from file... ",   // TODO: ~
@@ -2584,6 +2585,7 @@ void praat_run () {
 		} else if (praatP.userWantsToSend) {
 			/*
 				praat --new-send [OPTION]... SCRIPT-FILE-NAME [SCRIPT-ARGUMENT]...
+				praat --send [OPTION]... SCRIPT-FILE-NAME [SCRIPT-ARGUMENT]...   (if not yet running)
 			*/
 			autoPraatBackground background;   // to e.g. make audio synchronous
 			try {
@@ -2595,10 +2597,11 @@ void praat_run () {
 		} else if (praatP.userWantsToSendOrForm) {
 			/*
 				praat --new-send-or-form [OPTION]... SCRIPT-FILE-NAME
+				praat --send-or-form [OPTION]... SCRIPT-FILE-NAME   (if not yet running)
 			*/
 			autoPraatBackground background;   // to e.g. make audio synchronous
 			try {
-				Melder_throw (U"--new-send-or-form: not yet implemented");
+				praat_runScriptWithForm (theCurrentPraatApplication -> batchName.string);
 			} catch (MelderError) {
 				Melder_flushError ();
 			}
