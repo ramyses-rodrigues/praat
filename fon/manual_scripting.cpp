@@ -2725,7 +2725,8 @@ CODE (U"/Applications/Praat.app/Contents/MacOS/Praat --send-or-form testCommandL
 CODE (U"/usr/bin/praat --send-or-form testCommandLineCalls.praat")
 NORMAL (U"then Praat will present the above form that asks for the three arguments "
 	"(if you use `--send-or-form` with a script that has no `form` in it, it will work the same as `--send`). "
-	"This switch is useful if you want to implement a Praat connection for interfacing with an IDE such as Microsoft\\re Visual Studio Code\\tm.")
+	"This switch is useful if you want to implement a Praat connection for interfacing with an IDE such as Microsoft\\re Visual Studio Code\\tm. "
+	"To always start up a new instance of Praat, use `--new-send-or-form` instead of `--send-or-form`.")
 NORMAL (U"See also %sendpraat (see @@Scripting 8. Controlling Praat from another program@).")
 
 ENTRY (U"7. Calling Praat from other programs such as Python")
@@ -2805,7 +2806,7 @@ TERM (U"##--help")
 DEFINITION (U"Print this list of command line options.")
 NORMAL (U"Options:")
 TERM (U"##--no-pref-files#")
-DEFINITION (U"Ignore the settings file and the buttons file at start-up, and don't write them when quitting (see above).")
+DEFINITION (U"Ignore the preferences file and the buttons file at start-up, and don't write them when quitting (see above).")
 TERM (U"##--no-plugins#")
 DEFINITION (U"Don't activate the plugins at start-up.")
 TERM (U"##--pref-dir=#`/var/www/praat_plugins`")
