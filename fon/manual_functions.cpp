@@ -2127,7 +2127,7 @@ Syntax and semantics
 
 ################################################################################
 "`fileNames$#`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2025
 
 A function that can be used in @@Formulas@, especially in @Scripting.
 
@@ -2136,6 +2136,65 @@ Syntax and semantics
 #`fileNames$#` (%`folderNameOrPattern$`)
 : return the names (not the whole paths) of the files in a folder
 	or that match a file-name pattern with up to two asterisks.
+
+Behaviour
+=========
+The resulting string array will contain an alphabetical list of file names (by naïve Unicode-sorting),
+without the preceding path through the folder structures. If there are no files that match the file path,
+the string array will contain 0 strings.
+
+Usage
+=====
+There are two ways to specify the file path.
+
+One way is to specify a folder name only. On Unix, the file path could be
+`/usr/people/miep/sounds` or `/usr/people/miep/sounds/`, for instance. On Windows,
+`C:\Users\Miep\Sounds` or `C:\Users\Miep\Sounds\`.
+On Macintosh, `/Users/miep/Sounds` or `/Users/miep/Sounds/`. Any of these produce
+a list of all the files in the specified folder.
+
+The other way is to specify a wildcard (a single asterisk) for the file names.
+To get a list of all the files whose names start with “`hal`” and end in “`.wav`”,
+use `/usr/people/miep/sounds/hal*.wav`, `C:\Users\Miep\Sounds\hal*.wav`,
+or `/Users/miep/Sounds/hal*.wav`.
+
+You can even use %two wildcards: #`fileNames$#` (“/usr/people/miep/sounds/*al*.wav”)
+gives you a list of all files whose names contain “al” and end in “wav`.
+
+Usage
+=====
+In a script, you can use this command to cycle through the files in a folder.
+For instance, to read in all the sound files in a specified folder,
+you could use the following script:
+{;
+	folder$ = “/usr/people/miep/sounds”
+	list$# = \#`{fileNames$#}: folder$ + “/*.wav”
+	for ifile to \`{size} (list$#)
+		\@{Read from file:} folder$ + “/” + list$# [ifile]
+	endfor
+}
+If the script has been saved to a script file, you can use file paths that are relative to the folder
+where you saved the script. Thus, with
+{;
+	list$# = \#`{fileNames$#}: “*.wav”
+}
+you get a list of all the `.wav` files that are in the same folder as the script that contains this line.
+And to get a list of all the `.wav` files in the folder `Sounds` that resides in the same folder as your script,
+you can do
+{;
+	list$# = \#`{fileNames$#}: “Sounds/*.wav”
+}
+As is usual in Praat scripting, the forward slash (“/”) in this example can be used on all platforms, including Windows.
+This makes your script portable across platforms.
+
+Note that the above functionality can also be written four lines shorter, using built-in functions:
+{;
+	folder$ = “/usr/people/miep/sounds”
+	list$# = \#`{fileNames$#}: folder$ + “/*.wav”
+	for ifile to \`{size} (list$#)
+		\@{Read from file:} folder$ + “/” + list$# [ifile]
+	endfor
+}
 
 See also
 ========
