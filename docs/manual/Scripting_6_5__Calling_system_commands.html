@@ -12,41 +12,42 @@
 Scripting 6.5. Calling system commands
 </b></font></table></table>
 <p>From a Praat script you can call system commands. These are the same commands that you would normally type into a terminal window or into the Windows command line prompt. The syntax is the same as that of the <a href="_writeInfo_.html"><b><code><font size=+1>writeInfo</font></code></b></a> command.</p>
-<p>Most system commands are different on different platforms. For instance, to throw away all WAV files in the folder whose path (relative to the script&#8217;s folder) is in the variable <code><font size=+1>folder$</font></code>, you would write</p>
-<code>   <a href="_runSystem_.html">runSystem</a>: "del ", folder$, "\*.wav"<br></code>
+<p>Most system commands are different on different platforms. For instance, to throw away all WAV files in the folder whose path (relative to the script&#8217;s folder) is in the variable <code><font size=+1>folder$</font></code> (and you are VERY SURE that this name contains NO SPACES OR SPECIAL CHARACTERS), you could write</p>
+<code>   <b><a href="_runSystem_.html">runSystem</a></b>: "del ", folder$, "\*.wav"   ; DANGEROUS<br></code>
 <p>on Windows, but</p>
-<code>   <a href="_runSystem_.html">runSystem</a>: "rm ", folder$, "/*.wav"<br></code>
+<code>   <b><a href="_runSystem_.html">runSystem</a></b>: "rm ", folder$, "/*.wav"   ; DANGEROUS<br></code>
 <p>on Macintosh and Linux.</p>
 <p>The script will stop running if a system command returns an error. For instance,</p>
-<code>   <a href="_runSystem_.html">runSystem</a>: "rm ", folder$, "/*.wav"<br></code>
+<code>   <b><a href="_runSystem_.html">runSystem</a></b>: "rm ", folder$, "/*.wav"   ; DANGEROUS<br></code>
 <p>will stop the script if there are no WAV files in the folder, with a message like &#8220;No such file or directory&#8221;.</p>
 <p>In order to prevent this, you can tell Praat to ignore the return value of  runSystem}.</p>
 <p>Thus, to make sure that the folder contains no WAV files, you would write</p>
-<code>   <b>runSystem_nocheck</b>: "rm ", folder$, "/*.wav"<br></code>
+<code>   <b>runSystem_nocheck</b>: "rm ", folder$, "/*.wav"   ; DANGEROUS<br></code>
+<p>Typically, howver, the use of <a href="_runSystem_.html"><b><code><font size=+1>runSystem</font></code></b></a> or <b><code><font size=+1>runSystem_nocheck</font></code></b> is DANGEROUS: if the string <code><font size=+1>folder$</font></code> contains spaces and semicolons and slashes, for instance, you may lose all files on your computer or install malware without noticing it; you really have to have full control over your files and know exactly what you are doing before you use <a href="_runSystem_.html"><b><code><font size=+1>runSystem</font></code></b></a> or <b><code><font size=+1>runSystem_nocheck</font></code></b>.</p>
 <h2>Getting the values of system variables</h2>
 <dl>
 <dt><b><code><font size=+1>environment$</font></code></b> (<i><code><font size=+1>symbol-string</font></code></i>)
 <dd>returns the value of an environment variable, e.g.</dd>
 </dl>
-<code>       homeFolder$ = <a href="_environment-S_.html">environment$</a> ("HOME")<br></code>
+<code>       homeFolder$ = <b><a href="_environment-S_.html">environment$</a></b> ("HOME")<br></code>
 <h2>Getting system duration</h2>
 <dl>
 <dt><b><code><font size=+1>stopwatch</font></code></b>
 <dd>returns the time that has elapsed since the previous <b>stopwatch</b>.</dd>
 </dl>
 <p>Here is a Praat script that measures how long it takes to do a hundred thousand assignments on your computer (if you are reading this in Praat&#8217;s own Help, not on the web):</p>
-<code>   stopwatch<br></code>
+<code>   <b><a href="_stopwatch_.html">stopwatch</a></b><br></code>
 <code>   for i to 100000<br></code>
 <code>       a = 1.23456789e123<br></code>
 <code>   endfor<br></code>
-<code>   time = stopwatch<br></code>
-<code>   writeInfoLine: a, " ", fixed$ (time, 3)<br></code>
+<code>   time = <b><a href="_stopwatch_.html">stopwatch</a></b><br></code>
+<code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: a, " ", fixed$ (time, 3)<br></code>
 <code style="color:red">=&gt;</code><br>
-<code>   1.23456789e+123 0.027<br></code>
+<code>   1.23456789e+123 0.031<br></code>
 <p>How many nanoseconds is that per assignment?</p>
-<code>   writeInfoLine: round (time / 100000 * 1e9)<br></code>
+<code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: round (time / 100000 * 1e9)<br></code>
 <code style="color:red">=&gt;</code><br>
-<code>   270<br></code>
+<code>   306<br></code>
 <h3>Links to this page</h3>
 <ul>
 <li><a href="_runSubprocess-S_.html"><code><font size=+1>runSubprocess$</font></code></a>
@@ -58,7 +59,7 @@ Scripting 6.5. Calling system commands
 </ul>
 <hr>
 <address>
-	<p>© Paul Boersma 2020,2023</p>
+	<p>© Paul Boersma 2020,2023,2025</p>
 </address>
 </body>
 </html>

@@ -12,8 +12,10 @@
 FAQ: Scripts
 </b></font></table></table>
 <p><b>Question</b>: how do I do something to all the files in a directory?</p>
-<p>Answer: look at <code><font size=+1>fileNames$#</font></code> () or <a href="Create_Strings_as_file_list___.html">Create Strings as file list...</a>.</p>
-<p></p>
+<p>Answer: look at <a href="_fileNames-S-H_.html"><b><code><font size=+1>fileNames$#</font></code></b></a> () or <a href="Create_Strings_as_file_list___.html">Create Strings as file list...</a>.</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;</dd>
+</dl>
 <p><b>Question</b>: why doesn't the editor window react to my commands?</p>
 <p>Your commands are probably something like:</p>
 <code>   Read from file: “hello.wav”<br></code>
@@ -24,13 +26,19 @@ FAQ: Scripts
 <code>   View &amp; Edit<br></code>
 <code>   editor: “Sound hello”<br></code>
 <code>   Zoom: 0.3, 0.5<br></code>
-<p></p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;</dd>
+</dl>
 <p><b>Problem</b>: a line like &#8220;<i><code><font size=+1>Number = 1</font></code></i>&#8221; does not work.</p>
 <p>Solution: names of variables should start with a lower-case letter.</p>
-<p></p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;</dd>
+</dl>
 <p><b>Question</b>: why do names of variables have to start with a lower-case letter? I would like to do things like &#8220;<code><font size=+1>F0 = Get mean pitch</font></code>&#8221;.</p>
 <p>Answer: Praat scripts combine button commands with things that only occur in scripts. Button commands always start with a capital letter, e.g. <code><font size=+1>Play</font></code> (there is a button <b>Play</b>). Script commands always start with lower case, e.g. <code><font size=+1>writeInfoLine: “Hello”</font></code> (<code><font size=+1>writeInfoLine</font></code> is a built-in function). A minimal pair is &#8220;<code><font size=+1>select</font></code>&#8221;, which simulates a mouse click in the object list, versus &#8220;<code><font size=+1>Select...</font></code>&#8221;, which sets the selection in editor windows. If we allowed initial capitals, variable names would become rather ambiguous in assignments, as in &#8220;<code><font size=+1>x = Get</font></code>&#8221;, where &#8220;<i><code><font size=+1>Get</font></code></i>&#8221; would be a variable, versus &#8220;<code><font size=+1>x = Get mean</font></code>&#8221;, where <b>Get mean</b> is a button command. To prevent this confusion, Praat enforces a rigorous lower-case/upper-case distinction.</p>
-<p></p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;</dd>
+</dl>
 <p><b>Question</b>: how do I convert a number into a string?</p>
 <p>Answer: <code><font size=+1>a$ = string$ (a)</font></code></p>
 <p><b>Question</b>: how do I convert a string into a number?</p>
@@ -41,7 +49,7 @@ FAQ: Scripts
 </ul>
 <hr>
 <address>
-	<p>© ppgb 20230201</p>
+	<p>© Paul Boersma 2001,2004,2011,2013,2014,2023</p>
 </address>
 </body>
 </html>
