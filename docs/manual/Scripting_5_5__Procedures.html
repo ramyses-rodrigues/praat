@@ -169,10 +169,13 @@ Scripting 5.5. Procedures
 <h2>A list of numeric and string arguments</h2>
 <p>You can use multiple arguments, separated by commas, and string arguments (with a dollar sign in the variable name):</p>
 <code>   @listSpeaker: “Bart”, 38<br></code>
-<code>   @listSpeaker: “Katja“, 24<br></code>
+<code>   @listSpeaker: “Katja”, 24<br></code>
 <code>   <b>procedure</b> listSpeaker: .name$, .age<br></code>
 <code>       appendInfoLine: “Speaker ”, .name$, “ is ”, .age, “ years old.”<br></code>
 <code>   <b>endproc</b><br></code>
+<code style="color:red">=&gt;</code><br>
+<code>   Speaker Bart is 38 years old.<br></code>
+<code>   Speaker Katja is 24 years old.<br></code>
 <p>or</p>
 <code>   @conjugateVerb: “be”, “I am”, “you are”, “she is”<br></code>
 <code>   <b>procedure</b> conjugateVerb: .verb$, .first$, .second$, .third$<br></code>
@@ -181,13 +184,18 @@ Scripting 5.5. Procedures
 <code>       appendInfoLine: “2sg ”, .second$<br></code>
 <code>       appendInfoLine: “3sg ”, .third$<br></code>
 <code>   <b>endproc</b><br></code>
+<code style="color:red">=&gt;</code><br>
+<code>   Conjugation of 'to be':<br></code>
+<code>   1sg I am<br></code>
+<code>   2sg you are<br></code>
+<code>   3sg she is<br></code>
 <p>For the arguments you can use expressions:</p>
 <code>   @playOctave: 400 + 100<br></code>
 <p>As with all string literals, the double quotes in literal string arguments should be doubled:</p>
 <code>   <b>procedure</b> texts: .top$, .bottom$<br></code>
 <code>       Text top: “yes”, .top$<br></code>
 <code>       Text bottom: “yes”, .bottom$<br></code>
-<code>   <b>endproc")</b><br></code>
+<code>   <b>endproc</b><br></code>
 <code>   @texts: """ hello"" at the top", """goodbye"" at the bottom"<br></code>
 <p>unless you use curly quotes:</p>
 <code>   @texts: “" hello" at the top”, “"goodbye" at the bottom”<br></code>
@@ -196,16 +204,20 @@ Scripting 5.5. Procedures
 <h2>Functions</h2>
 <p>The Praat scripting language does not have the concept of a &#8220;function&#8221; like some other scripting languages do. A function is a procedure that returns a number, a string, a vector, a matrix, or a string array. For instance, you can imagine the function <code><font size=+1>squareNumber</font></code> (), which takes a number (e.g. 5) as an argument and returns the square of that number (e.g. 25). Here is an example of how you can do that, using the global availability of local variables:</p>
 <code>   @squareNumber: 5<br></code>
-<code>   writeInfoLine: “The square of 5 is ”, squareNumber.result, “.”<br></code>
+<code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: “The square of 5 is ”, squareNumber.result, “.”<br></code>
 <code>   <b>procedure</b> squareNumber: .number<br></code>
 <code>       .result = .number ^ 2<br></code>
 <code>   <b>endproc</b><br></code>
+<code style="color:red">=&gt;</code><br>
+<code>   The square of 5 is 25.<br></code>
 <p>Another way to emulate functions is to use a variable name as an argument:</p>
-<code>   @squareNumber: 5, “square5”<br></code>
-<code>   writeInfoLine: “The square of 5 is ”, square5, “.”<br></code>
-<code>   <b>procedure</b> squareNumber: .number, .squareVariableName$<br></code>
+<code>   @squareNumber2: 5, “square5”<br></code>
+<code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: “The square of 5 is ”, square5, “.”<br></code>
+<code>   <b>procedure</b> squareNumber2: .number, .squareVariableName$<br></code>
 <code>       '.squareVariableName$' = .number ^ 2<br></code>
 <code>   <b>endproc</b><br></code>
+<code style="color:red">=&gt;</code><br>
+<code>   The square of 5 is 25.<br></code>
 <p>However, this uses variable substitution, a trick better avoided.</p>
 <h3>Links to this page</h3>
 <ul>
@@ -216,7 +228,7 @@ Scripting 5.5. Procedures
 </ul>
 <hr>
 <address>
-	<p>© Paul Boersma 2017-09-04</p>
+	<p>© Paul Boersma 2017-09-04,2025</p>
 </address>
 </body>
 </html>
