@@ -320,7 +320,7 @@ void praat_reportMemoryUse () {
 	MelderInfo_writeLine (
 			U"   Arrays: ", MelderArray_allocationCount () - MelderArray_deallocationCount (),
 			U" (", Melder_bigInteger (MelderArray_cellAllocationCount () - MelderArray_cellDeallocationCount ()), U" cells)");
-	MelderInfo_writeLine (U"   Things: ", theTotalNumberOfThings,
+	MelderInfo_writeLine (U"   Things: ", theTotalNumberOfThings + 0,
 		U" (objects in list: ", Melder_bigInteger (theCurrentPraatObjects -> n), U")");
 	integer numberOfMotifWidgets =
 	#if motif

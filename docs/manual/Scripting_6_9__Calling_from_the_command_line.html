@@ -87,6 +87,11 @@ Scripting 6.9. Calling from the command line
 <code>   /Applications/Praat.app/Contents/MacOS/Praat --send testCommandLineCalls.praat "I love you" 0.4 "Me too"<br></code>
 <code>   /usr/bin/praat --send testCommandLineCalls.praat "I love you" 0.4 "Me too"<br></code>
 <p>This works the same way as <code><font size=+1>--run</font></code>, except that <code><font size=+1>--send</font></code> runs in Praat&#8217;s Graphical User Interface. If Praat is already running, then that instance of Praat will execute your script. If Praat is not running yet, then a new GUI instance of Praat will start up and execute your script. To always start up a new instance of Praat, use <code><font size=+1>--new-send</font></code> instead of <code><font size=+1>--send</font></code>.</p>
+<p>If you use</p>
+<code>   "C:\Program Files\Praat.exe" --send-or-form testCommandLineCalls.praat<br></code>
+<code>   /Applications/Praat.app/Contents/MacOS/Praat --send-or-form testCommandLineCalls.praat<br></code>
+<code>   /usr/bin/praat --send-or-form testCommandLineCalls.praat<br></code>
+<p>then Praat will present the above form that asks for the three arguments (if you use <code><font size=+1>--send-or-form</font></code> with a script that has no <code><font size=+1>form</font></code> in it, it will work the same as <code><font size=+1>--send</font></code>). This switch is useful if you want to implement a Praat connection for interfacing with an IDE such as Microsoft&#174; Visual Studio Code&#8482;. To always start up a new instance of Praat, use <code><font size=+1>--new-send-or-form</font></code> instead of <code><font size=+1>--send-or-form</font></code>.</p>
 <p>See also <i>sendpraat</i> (see <a href="Scripting_8__Controlling_Praat_from_another_program.html">Scripting 8. Controlling Praat from another program</a>).</p>
 <h2>7. Calling Praat from other programs such as Python</h2>
 <p>You can run the above script from several programming languages, not just from a Console or Terminal. In Python, for instance, you can do it using the same syntax as you would use in the Console or Terminal:</p>

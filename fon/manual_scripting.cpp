@@ -1454,7 +1454,7 @@ MAN_PAGES_BEGIN
 R"~~~(
 ################################################################################
 "Scripting 5.5. Procedures"
-© Paul Boersma 2017-09-04
+© Paul Boersma 2017-09-04,2025
 
 Sometimes in a Praat script, you will want to perform the same thing more than once.
 In @@Scripting 5.4. Loops|\SS5.4@ we saw how %loops can help there.
@@ -1694,15 +1694,15 @@ A list of numeric and string arguments
 ======================================
 
 You can use multiple arguments, separated by commas, and string arguments (with a dollar sign in the variable name):
-{;
+{
 	@listSpeaker: “Bart”, 38
-	@listSpeaker: “Katja“, 24
+	@listSpeaker: “Katja”, 24
 	\#{procedure} listSpeaker: .name$, .age
 		appendInfoLine: “Speaker ”, .name$, “ is ”, .age, “ years old.”
 	\#{endproc
 }
 or
-{;
+{
 	@conjugateVerb: “be”, “I am”, “you are”, “she is”
 	\#{procedure} conjugateVerb: .verb$, .first$, .second$, .third$
 		writeInfoLine: “Conjugation of 'to ”, .verb$, “':”
@@ -1720,7 +1720,7 @@ As with all string literals, the double quotes in literal string arguments shoul
 	\#{procedure} texts: .top$, .bottom$
 		Text top: “yes”, .top$
 		Text bottom: “yes”, .bottom$
-	\#{endproc")
+	\#{endproc}
 	@texts: """ hello"" at the top", """goodbye"" at the bottom"
 }
 unless you use curly quotes:
@@ -1739,601 +1739,932 @@ A function is a procedure that returns a number, a string, a vector, a matrix, o
 For instance, you can imagine the function `squareNumber` (),
 which takes a number (e.g. 5) as an argument and returns the square of that number (e.g. 25).
 Here is an example of how you can do that, using the global availability of local variables:
-{;
+{
 	@squareNumber: 5
-	writeInfoLine: “The square of 5 is ”, squareNumber.result, “.”
+	\`{writeInfoLine}: “The square of 5 is ”, squareNumber.result, “.”
 	\#{procedure} squareNumber: .number
 		.result = .number ^ 2
 	\#{endproc
 }
 Another way to emulate functions is to use a variable name as an argument:
-{;
-	@squareNumber: 5, “square5”
-	writeInfoLine: “The square of 5 is ”, square5, “.”
-	\#{procedure} squareNumber: .number, .squareVariableName$
+{
+	@squareNumber2: 5, “square5”
+	\`{writeInfoLine}: “The square of 5 is ”, square5, “.”
+	\#{procedure} squareNumber2: .number, .squareVariableName$
 		'.squareVariableName$' = .number ^ 2
 	\#{endproc
 }
 However, this uses variable substitution, a trick better avoided.
 
 ################################################################################
-)~~~"
-MAN_PAGES_END
+"Scripting 5.6. Arrays and dictionaries"
+© Paul Boersma 2017-07-18,2025
 
+You can use arrays of numeric and string variables:
+{
+	\#{for} i \#{from} 1 \#{to} 5
+		square [i] = i * i
+		text$ [i] = \`{mid$} (“hello”, i)
+	\#{endfor}
+}
+After this, the variables `square[1]`, `square[2]`, `square[3]`, `square[4]`, `square[5]`,
+`text$[1]`, `text$[2]`, `text$[3]`, `text$[4]`, and `text$[5]` contain
+the values 1, 4, 9, 16, 25, “h”, “e”, “l”, “l”, and “o”, respectively:
+{
+	\`{writeInfoLine}: “Some squares:”
+	\#{for} i \#{from} 1 \#{to} 5
+		\`{appendInfoLine}: “The square of ”, i, “ is ”, square [i]
+	\#{endfor}
+}
 
-MAN_BEGIN (U"Scripting 5.6. Arrays and dictionaries", U"ppgb", 20170718)
-NORMAL (U"You can use arrays of numeric and string variables:")
-CODE (U"\\#{for} i \\#{from} 1 \\#{to} 5")
-	CODE1 (U"square [i] = i * i")
-	CODE1 (U"text$ [i] = mid$ (\"hello\", i)")
-CODE (U"\\#{endfor}")
-NORMAL (U"After this, the variables `square[1]`, `square[2]`, `square[3]`, `square[4]`, `square[5]`, "
-	"`text$[1]`, `text$[2]`, `text$[3]`, `text$[4]`, and `text$[5]` contain "
-	"the values 1, 4, 9, 16, 25, \"h\", \"e\", \"l\", \"l\", and \"o\", respectively:")
-CODE (U"\\`{writeInfoLine}: \"Some squares:\"")
-CODE (U"\\#{for} i \\#{from} 1 \\#{to} 5")
-	CODE1 (U"\\#{appendInfoLine}: “The square of ”, i, “ is ”, square [i]")
-CODE (U"\\#{endfor}")
-NORMAL (U"In the examples above, the %index into the array was always a number. "
-	" A %hash or %dictionary is an array variable where the index is a string:")
-CODE (U"age [“John”] = 36")
-CODE (U"age [“Babs”] = 39")
-CODE (U"\\`{writeInfoLine}: “John is ”, age [“John”], “ years old.”")
-ENTRY (U"See also")
-NORMAL (U"You can use any number of array and dictionary variables in a script, "
-	"but for many applications, namely whenever it were useful to look at a numeric array as a single object, "
-	"it may be better to use vectors and matrices (see @@Scripting 5.7. Vectors and matrices@) "
-	"or to use Matrix or Sound objects.")
-MAN_END
+In the examples above, the %index into the array was always a number.
+A %hash or %dictionary is an array variable where the index is a string:
+{
+	age [“John”] = 36
+	age [“Babs”] = 39
+	\`{writeInfoLine}: “John is ”, age [“John”], “ years old.”
+}
 
-MAN_BEGIN (U"Scripting 5.7. Vectors and matrices", U"ppgb", 20230130)
-ENTRY (U"1. What is a vector?")
-NORMAL (U"A ##numeric vector# is an array of numbers, regarded as a single object. "
-	"For instance, the squares of the first five integers can be collected in the vector { 1, 4, 9, 16, 25 }. "
-	"In a Praat script, you can put a vector into a variable whose name ends in a number sign (“`#`”):")
-CODE (U"squares# = { 1, 4, 9, 16, 25 }")
-NORMAL (U"After this, the variable %`squares#` contains the value { 1, 4, 9, 16, 25 }. "
-	"We say that the vector %`squares#` has five %dimensions, i.e. it contains five numbers.")
-NORMAL (U"Whereas in @@Scripting 3.2. Numeric variables@ we talked about a numeric variable as being analogous to a house "
-	"where somebody (the numeric %value) could live, a numeric vector with five dimensions "
-	"can be seen as a %street that contains five houses, which are numbered with the indexes 1, 2, 3, 4 and 5, "
-	"each house containing a numeric value. Thus, the street %`squares#` contains the following five houses: "
-	"%`squares#` [1], %`squares#` [2], %`squares#` [3], %`squares#` [4] and %`squares#` [5]. "
-	"Their values (the numbers that currently live in these houses) are 1, 4, 9, 16 and 25, respectively.")
-NORMAL (U"To list the five values with a loop, you could do:")
-CODE (U"writeInfoLine: “Some squares:”")
-CODE (U"for i from 1 to size (squares#)")
-	CODE1 (U"appendInfoLine: “The square of ”, i, “ is ”, squares# [i]")
-CODE (U"endfor")
-NORMAL (U"Instead of the above procedure to get the vector %`squares#`, with a pre-computed list of five squares, "
-	"you could compute the five values with a formula, as in the example of @@Scripting 5.6. Arrays and dictionaries@. "
-	"However, in order to put a value into an element of the vector, you have to create the vector first "
-	"(i.e., you have to build the whole street before you can put something in a house), "
-	"so we start by creating a vector with five zeroes in it:")
-CODE (U"squares# = zero# (5)")
-NORMAL (U"After this, %`squares#` is the vector { 0, 0, 0, 0, 0 }, i.e., the value of each element is zero. "
-	"Now that the vector (street) exists, we can put values into (populate) the five elements (houses):")
-CODE (U"for i from 1 to size (squares#)")
-	CODE1 (U"squares# [i] = i * i")
-CODE (U"#endfor")
-NORMAL (U"After this, the variable %`squares#` has the value { 1, 4, 9, 16, 25 }, as before, "
-	"but now we had the computer compute the squares.")
-ENTRY (U"2. Creating a vector")
-NORMAL (U"You can create a vector in many ways. The first way we saw was with a ##vector literal#, "
-	"i.e. a series of numbers (or numeric formulas) between braces:")
-CODE (U"lengths# = { 1.83, 1.795, 1.76 }")
-NORMAL (U"The second way we saw was to create a series of #zeroes. To create a vector consisting of 10,000 zeroes, you do")
-CODE (U"zero# (10000)")
-NORMAL (U"Another important type of vector is a series of random numbers. "
-	"To create a vector consisting of 10,000 values drawn from a ##Gaussian distribution# "
-	"with true mean 0.0 and true standard deviation 1.0, you could do")
-CODE (U"noise# = randomGauss# (10000, 0.0, 1.0)")
-NORMAL (U"To create a vector consisting of 10,000 values drawn from a ##uniform distribution of real numbers# "
-	"with true minimum 0.0 and true maximum 1.0, you use")
-CODE (U"randomUniform# (10000, 0.0, 1.0)")
-NORMAL (U"To create a vector consisting of 10,000 values drawn from a ##uniform distribution of integer numbers# "
-	"with true minimum 1 and true maximum 10, you use")
-CODE (U"randomInteger# (10000, 1, 10)")
-NORMAL (U"To create a vector containing the integer numbers 1 through 64, you use")
-CODE (U"to# (64)")
-NORMAL (U"To create a vector containing the integer numbers 10 through 20, you use")
-CODE (U"from_to# (10, 20)")
-NORMAL (U"To create a vector containing linearly increasing (not necessarily integer) numbers from 10 through 20 in steps of 2, you use")
-CODE (U"from_to_by# (10, 20, 2)")
-NORMAL (U"To create five linearly increasing numbers between 0 and 10 (i.e. { 0, 2.5, 5, 7.5, 10 }), you use")
-CODE (U"from_to_count# (0, 10, 5)")
-NORMAL (U"To divide the range between 0 and 12 symmetrically with step 5 (i.e. { 1, 6, 11 }), you use")
-CODE (U"between_by# (0, 12, 5)")
-NORMAL (U"To divide the range between 0 and 10 into five equal parts and list their centres (i.e. { 1, 3, 5, 7, 9 }), you use")
-CODE (U"between_count# (0, 10, 5)")
-NORMAL (U"To sort the numbers in a vector (e.g. { 7.4, 1.3, 3.6 }), you use")
-CODE (U"sort# ({ 7.4, 1.3, 3.6 })")
-NORMAL (U"which yields { 1.3, 3.6, 7.4 }.")
-NORMAL (U"To randomly shuffle the numbers in a vector (e.g. { 7.4, 1.3, 3.6 }), you use")
-CODE (U"shuffle# ({ 7.4, 1.3, 3.6 })")
-NORMAL (U"which can yield { 1.3, 7.4, 3.6 } or any of the five other orders of the elements.")
-NORMAL (U"Vectors can also be created by some menu commands. For instance, to get vectors representing "
-	"the times and pitch frequencies of the frames in a Pitch object, you can do")
-CODE (U"selectObject: myPitch")
-CODE (U"times# = List all frame times")
-CODE (U"pitches# = List values in all frames: “Hertz”")
-ENTRY (U"3. Turning a vector into a number")
-NORMAL (U"For the vector defined above, you can compute the #sum of the five values as")
-CODE (U"sum (squares#)")
-NORMAL (U"which gives 55. You compute the #average of the five values as")
-CODE (U"mean (squares#)")
-NORMAL (U"which gives 11. You compute the ##standard deviation# of the values as ")
-CODE (U"stdev (squares#)")
-NORMAL (U"which gives 9.669539802906858 (the standard deviation is undefined for vectors with fewer than 2 elements). "
-	"The ##center of gravity# of the distribution defined by regarding "
-	"the five values as relative frequencies as a function of the index from 1 to 5 is computed by")
-CODE (U"center (squares#)")
-NORMAL (U"which gives 4.090909090909091 (for a vector with five elements, the result will always be "
-	"a number between 1.0 and 5.0). You compute the ##inner product# of two equally long vectors as follows:")
-CODE (U"other# = { 2, 1.5, 1, 0.5, 0 }")
-CODE (U"result = inner (squares#, other#)")
-NORMAL (U"which gives 1*2 + 4*1.5 + 9*1 + 16*0.5 + 25*0 = 25. "
-	"The formula for this is \\su__%i=1_^5 %squares[%i] * %other[%i], so that an alternative piece of code could be")
-CODE (U"result = sumOver (i to 5, squares# [i] * other# [i])")
-ENTRY (U"4. Converting vectors to vectors")
-CODE (U"a# = squares# + 5   ; adding a number to each element of a vector")
-NORMAL (U"causes %`a#` to become the vector { 6, 9, 14, 21, 30 }.")
-CODE (U"b# = a# + { 3.14, 2.72, 3.16, -1, 7.5 }   ; adding two vectors of the same length")
-NORMAL (U"causes %`b#` to become the vector { 9.14, 11.72, 17.16, 20, 37.5 }.")
-CODE (U"c# = b# / 2   ; dividing each element of a vector")
-NORMAL (U"causes %`c#` to become the vector { 4.57, 5.86, 8.58, 10, 18.75 }.")
-CODE (U"d# = b# * c#   ; elementwise multiplication")
-NORMAL (U"causes %`d#` to become the vector { 41.7698, 68.6792, 147.2328, 200, 703.125 }.")
-NORMAL (U"A vector can also be given to a ##menu command# that returns another vector. "
-	"For instance, to get a vector representing the pitch frequencies at 0.01-second intervals in a Pitch object, "
-	"you can do")
-CODE (U"selectObject: myPitch")
-CODE (U"tmin = Get start time")
-CODE (U"tmax = Get end time")
-CODE (U"times# = between_by# (tmin, tmax, 0.01)")
-CODE (U"pitches# = List values at times: times#, \"hertz\", \"linear\"")
-ENTRY (U"5. What is a matrix?")
-NORMAL (U"A ##numeric matrix# is a two-indexed array of numbers, regarded as a single object. "
-	"In a Praat script, you can put a matrix into a variable whose name ends in two number signs (“`##`”):")
-CODE (U"confusion## = {{ 3, 6, 2 }, { 8, 2, 1 }}")
-NORMAL (U"After this, the variable %`confusion##` contains the value {{ 3, 6, 2 }, { 8, 2, 1 }}. "
-	"We say that the matrix %`confusion##` has two %rows and three %columns, i.e. it contains six numbers.")
-NORMAL (U"Whereas a numeric vector with five dimensions could be seen (see above) as a street that contains five houses, "
-	"the matrix %`confusion##` can be seen as a city district with two avenues crossed by three streets, "
-	"where everybody lives on an intersection (the analogies start to get less realistic).")
-ENTRY (U"6. Creating a matrix")
-NORMAL (U"You can create a matrix in many ways. The first way we saw was with a ##matrix literal#, "
-	"i.e. a series of series of numbers (or numeric formulas) between nested braces.")
-NORMAL (U"The second way is as a matrix of #zeroes. To create a matrix consisting of 100 rows of 10,000 zeroes, you do")
-CODE (U"a## = zero## (100, 10000)")
-NORMAL (U"After this,")
-CODE (U"numberOfRows (a##)")
-NORMAL (U"is 100, and")
-CODE (U"numberOfColumns (a##)")
-NORMAL (U"is 10000.")
-NORMAL (U"Another important type of matrix is one filled with random numbers. "
-	"To create a matrix consisting of 100 rows of 10,000 values drawn from a ##Gaussian distribution# "
-	"with true mean 0.0 and true standard deviation 1.0, you can do")
-CODE (U"noise## = randomGauss## (100, 10000, 0.0, 1.0)")
-NORMAL (U"You can create a matrix as the outer product of two vectors:")
-CODE (U"m## = outer## (u#, v#)")
-NORMAL (U"which is the same as")
-CODE (U"m## = zeros## (size (u#), size (v#))")
-CODE (U"for irow to size (u#)")
-	CODE1 (U"for icol to size (v#)")
-		CODE2 (U"m## [irow, icol] = u# [irow] * v# [icol]")
-	CODE1 (U"endfor")
-CODE (U"endfor")
-NORMAL (U"or in mathematical notation")
-EQUATION (U"%m__%ij_ = %u__%i_ %v__%j_   (%i = 1..%M, %j = 1..%N)")
-NORMAL (U"where %M is the number of rows and %N is the number of columns.")
-ENTRY (U"7. Computations with matrices")
-NORMAL (U"You can add matrices:")
-CODE (U"c## = a## + b##")
-NORMAL (U"Elementwise multiplication:")
-CODE (U"c## = a## * b##")
-NORMAL (U"which does")
-EQUATION (U"%c__%ij_ = %a__%ij_ %b__%ij_   (%i = 1..%M, %j = 1..%N)")
-NORMAL (U"Matrix multiplication:")
-CODE (U"c## = mul## (a##, b##)")
-NORMAL (U"which does")
-EQUATION (U"%m__%ij_ = \\su__%k=1_^K  %a__%ik_ %b__%kj_   (%i = 1..%M, %j = 1..%N)")
-NORMAL (U"where %M is the number of rows of %a, %N is the number of columns of %b, "
-	"and %K is the number of columns of %a, which has to be equal to the number if rows of %b.")
-NORMAL (U"Matrix-by-vector multiplication:")
-CODE (U"v# = mul# (m##, u#)")
-NORMAL (U"which does")
-EQUATION (U"%v__%i_ = \\su__%j=1_^N  %m__%ij_ %u__%j_   (%i = 1..%M)")
-NORMAL (U"where %M is the number of rows of %m, and %N is the number of columns of %m, "
-	"which has to be equal to the dimension of %u. Also")
-CODE (U"v# = mul# (u#, m##)")
-NORMAL (U"which does")
-EQUATION (U"%v__%j_ = \\su__%i=1_^M  %u__%i_ %m__%ij_   (%j = 1..%N)")
-NORMAL (U"where %M is the number of rows of %m, which has to be equal to the dimension of %u, "
-	"and %N is the number of columns of %m.")
-ENTRY (U"8. String vectors")
-NORMAL (U"You can create string vectors in the following ways:")
-CODE (U"a$# = { \"hello\", \"goodbye\" }")
-NORMAL (U"creates a vector with two strings, which you can access as `a$# [1]`, which is “hello”, and `a$# [2]`, which is “goodbye”.")
-CODE (U"a$# = empty$# (10)")
-NORMAL (U"creates a vector with 10 empty strings, which you can access as `a$# [1]` through `a$# [10]`.")
-CODE (U"text$# = readLinesFromFile$# (\"hello.txt\")")
-NORMAL (U"creates a vector with 100 strings if the file `hello.text` contains 100 lines of text.")
-CODE (U"fileNames$# = fileNames$# (\"sound/*.wav\")")
-NORMAL (U"creates a vector containing the names of all WAV files in the folder `sound`.")
-CODE (U"folderNames$# = folderNames$# (\".\")")
-NORMAL (U"creates a vector containing the names of all folders in the folder where the script resides.")
-CODE (U"inks$# = splitByWhitespace$# (\"Hello, how are you?\")")
-NORMAL (U"creates a vector containing the strings “Hello,” (including the comma), “how”, “are”, and “you?”.")
-MAN_END
+See also
+========
 
-MAN_BEGIN (U"Scripting 5.8. Including other scripts", U"ppgb", 20170718)
-INTRO (U"You can include other scripts within your script:")
-CODE (U"a = 5")
-CODE (U"include square.praat")
-CODE (U"writeInfoLine: a")
-NORMAL (U"The Info window will show the result 25 if the file square.praat contains the following:")
-CODE (U"a = a * a")
-NORMAL (U"The inclusion is done before any other part of the script is considered, so you can use the #form statement "
-	"and all variables in it. Usually, however, you will put some procedure definitions in the include file, that is "
-	"what it seems to be most useful for. Watch out, however, for using variable names in the include file: "
-	"the example above shows that there is no such thing as a separate name space.")
-NORMAL (U"Note that you do not put quotes around the name of the include file. "
-        "This is because the name of the include file has to be given explicitly; you cannot put it into a variable, for instance.")
-NORMAL (U"You can use full or relative file names. For instance, the file square.praat is expected to be in the same "
-	"folder as the script that says %%include square.praat%. If you use the ScriptEditor, you will first have to save "
-	"the script that you are editing before any relative file names become meaningful (this is the same as with other "
-	"uses of relative file names in scripts).")
-NORMAL (U"You can “nest” include files, i.e., included scripts can include other scripts. However, relative file names "
-	"are always evaluated relative to the folder of the outermost script.")
-NORMAL (U"The #include statement can only be at the start of a line: you cannot put any spaces in front of it.")
-MAN_END
+You can use any number of array and dictionary variables in a script,
+but for many applications, namely whenever it were useful to look at a numeric array as a single object,
+it may be better to use vectors and matrices (see @@Scripting 5.7. Vectors and matrices@)
+or to use Matrix or Sound objects.
 
-MAN_BEGIN (U"Scripting 5.9. Quitting", U"ppgb", 20190713)
-NORMAL (U"Usually, the execution of your script ends when the interpreter has executed the last line "
-	"that is not within a procedure definition. However, you can also explicitly stop the script:")
-TERM (U"#exitScript ( )")
-DEFINITION (U"stops the execution of the script in the normal way, i.e. without any messages to the user. "
-	"Any settings (form) window is removed from the screen (unless Apply was clicked instead of OK).")
-TERM (U"#exitScript: %%error-message%")
-DEFINITION (U"stops the execution of the script while sending an error message to the user. "
-	"You can use the same argument list as with #writeInfoLine. "
-	"Any settings (form) window will stay on the screen.")
-NORMAL (U"For an example, see @@Scripting 6.8. Messages to the user@.")
-MAN_END
+################################################################################
+"Scripting 5.7. Vectors and matrices"
+© Paul Boersma 2023-01-30
 
-MAN_BEGIN (U"Scripting 6. Communication outside the script", U"ppgb", 20241116)
-LIST_ITEM (U"@@Scripting 6.1. Arguments to the script@ (form/endform, runScript)")
-LIST_ITEM (U"@@Scripting 6.2. Writing to the Info window@ (writeInfoLine, appendInfoLine, appendInfo, tab\\$ )")
-LIST_ITEM (U"@@Scripting 6.3. Query commands@ (Get, Count)")
-LIST_ITEM (U"@@Scripting 6.4. Files@ (fileReadable, readFile, writeFile, deleteFile, createFolder)")
-LIST_ITEM (U"@@Scripting 6.5. Calling system commands@ (runSystem, environment\\$ , stopwatch)")
-LIST_ITEM (U"@@Scripting 6.6. Controlling the user@ (pause, beginPause/endPause, chooseReadFile\\$ )")
-LIST_ITEM (U"@@Scripting 6.7. Sending a message to another program@")
-LIST_ITEM (U"@@Scripting 6.8. Messages to the user@ (exitScript, assert, nowarn, nocheck)")
-LIST_ITEM (U"@@Scripting 6.9. Calling from the command line")
-MAN_END
+1. What is a vector?
+====================
 
-MAN_BEGIN (U"Scripting 6.1. Arguments to the script", U"ppgb", 20230129) // 2024
-NORMAL (U"You can cause a Praat script to prompt for arguments. The file `playSine.praat` may contain the following:")
-CODE (U"\\#{form}: \"Play a sine wave\"")
-	CODE1 (U"\\#{positive}: \"Sine frequency (Hz)\", \"377.0\"")
-	CODE1 (U"\\#{positive}: \"Gain (0..1)\", \"0.3 (= not too loud)\"")
-CODE (U"\\#{endform}")
-CODE (U"Create Sound as pure tone: \"sine\" + string$ (sine_frequency),")
-CODE (U"... 1, 0, 1, 44100, sine_frequency, gain, 0.01, 0.01")
-CODE (U"Play")
-CODE (U"Remove")
-NORMAL (U"When running this script, the interpreter puts a settings window (%form) on your screen, "
-	"entitled “Play a sine wave”, "
-	"with two fields, titled “Sine frequency (Hz)” and “Gain”, that have been provided "
-	"with the standard values “377.0” and “0.3 (= not too loud)”, which you can change before clicking #OK.")
-NORMAL (U"Inside the script, the field names can be accessed as variables: these have underscores "
-	"instead of spaces, and the parentheses (Hz) have been chopped off. Note that the first "
-	"letter of these variables is converted to lower case, so that you can assign to them in your script.")
-NORMAL (U"Inside the script, the value “0.3 (= not too loud)” will be known as 0.3, "
-	"because this is a numeric field.")
-NORMAL (U"You can use the following field types in your forms:")
-TERM (U"#real: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for real numbers.")
-TERM (U"#positive: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for positive real numbers: the form issues an error message if the number "
-	"that you enter is negative or zero (further on in the script, "
-	"you can freely change it to any real number, including negatives ones such as -1.5, or zero).")
-TERM (U"#integer: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for whole numbers: the form reads the number as an integer "
-	"(further on in the script, you can give it any real value, e.g. 3.14).")
-TERM (U"#natural: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for positive whole numbers: the form issues an error message if the number "
-	"that you enter is negative or zero (further on in the script, you can give it any real value).")
-TERM (U"#word: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for a string without spaces: the form only reads up to the first space (\"oh yes\" becomes \"oh\"; "
-	"further on in the script, you can give the string any value, perhaps with spaces in it).")
-TERM (U"#sentence: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for any short string.")
-TERM (U"#text: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for any possibly long string (the variable name will show up above the field).")
-TERM (U"#text: %numberOfLines, %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for any possibly very long string (multiple lines), % numberOfLines can be between 1 and 33.")
-TERM (U"#boolean: %%variable\\$ %, %initialValue")
-DEFINITION (U"a check box will be shown; the initial value is 1 (on) or 0 (off).")
-TERM (U"#boolean: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"a check box will be shown; to switch it on, "
-	"set the initial value to `\"on\"`, `\"yes\"`, `\"ON\"`, `\"YES\"`, `\"On\"` or `\"Yes\"`; "
-	"to switch it off, set it to `\"off\"`, `\"no\"`, `\"OFF\"`, `\"NO\"`, `\"Off\"` or `\"No\"`.")
-TERM (U"#choice: %%variable\\$ %, %initialValue")
-DEFINITION (U"a multiple-choice box (or “radio box”) will be shown; the value is 1 or higher. This is followed by a series of:")
-TERM (U"#option: %%text\\$ %")
-DEFINITION (U"an option button in a multiple-choice box (see example below).")
-TERM (U"#optionmenu: %%variable\\$ %, %initialValue")
-DEFINITION (U"a multiple-choice menu header will be shown; the value is 1 or higher. "
-	"Just as `choice`, this is followed by:")
-TERM (U"#option: %%text\\$ %")
-DEFINITION (U"an option in a multiple-choice menu (see example below).")
-TERM (U"#comment: %%text\\$ %")
-DEFINITION (U"a line with any text.")
-TERM (U"#infile: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for a full path to an existing file, usually for reading.")
-TERM (U"#outfile: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for a full path to a new file, usually for saving.")
-TERM (U"#folder: %%variable\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for a full path to a folder.")
-TERM (U"#realvector: %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-DEFINITION (U"for a vector with real values. The format can be `\"(whitespace-separated)\"` or `\"(formula)\"`; "
-	"the initial value should then be probably be something like `\"10 -9 80\"` or `\"{ 10, -9, 80 }\"`, respectively.")
-TERM (U"#realvector: %numberOfLines, %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-DEFINITION (U"use this if you want a field with less or more than the standard 7 lines.")
-TERM (U"#positivevector: %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-TERM (U"#positivevector: %numberOfLines, %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-DEFINITION (U"use either of these if you want to check that all initial elements are positive real numbers.")
-TERM (U"#integervector: %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-TERM (U"#integervector: %numberOfLines, %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-DEFINITION (U"use either of these if you want to check that all initial elements are whole numbers.")
-TERM (U"#naturalvector: %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-TERM (U"#naturalvector: %numberOfLines, %%variable\\$ %, %%format\\$ %, %%initialValue\\$ %")
-DEFINITION (U"use either of these if you want to check that all initial elements are positive whole numbers.")
-NORMAL (U"Inside the script, strings are known as string variables, numbers as numeric variables. Consider the following form:")
-CODE (U"\\#{form}: \"Sink it\"")
-	CODE1 (U"\\#{sentence}: \"Name of the ship\", \"Titanic\"")
-	CODE1 (U"\\#{real}: \"Distance to the iceberg (m)\", \"500.0\"")
-	CODE1 (U"\\#{natural}: \"Number of people\", \"1800\"")
-	CODE1 (U"\\#{natural}: \"Number of boats\", \"10\"")
-CODE (U"\\#{endform}")
-NORMAL (U"In the script following this form, the variables will be known as `name_of_the_ship$`, `distance_to_the_iceberg`, "
-	"`number_of_people`, and `number_of_boats`.")
-NORMAL (U"The variable associated with a radio box will get a numeric as well as a string value:")
-CODE (U"\\#{form}: \"Fill attributes\"")
-	CODE1 (U"\\#{comment}: \"Choose any colour and texture for your paintings\"")
-	CODE1 (U"\\#{choice}: \"Colour\", 5")
-		CODE2 (U"\\#{option}: \"Dark red\"")
-		CODE2 (U"\\#{option}: \"Sea green\"")
-		CODE2 (U"\\#{option}: \"Navy blue\"")
-		CODE2 (U"\\#{option}: \"Canary yellow\"")
-		CODE2 (U"\\#{option}: \"Black\"")
-		CODE2 (U"\\#{option}: \"White\"")
-	CODE1 (U"\\#{choice}: \"Texture\", 1")
-		CODE2 (U"\\#{option}: \"Smooth\"")
-		CODE2 (U"\\#{option}: \"Rough\"")
-		CODE2 (U"\\#{option}: \"With holes\"")
-CODE (U"\\#{endform}")
-CODE (U"\\`{writeInfoLine}: \"You chose the colour \", colour$, \" and the texture \", texture$, \".\"")
-NORMAL (U"This shows two multiple-choice boxes. In the Colour box, the fifth button (Black) is the standard value here. "
-	"If you click “Navy blue” and then #%OK, the variable %`colour` will have the value 3, "
-	"and the variable %`colour$` will have the value “Navy blue”. "
-	"So you can test the value of the Colour box in either of the following ways:")
-CODE (U"if colour = 4")
-NORMAL (U"or")
-CODE (U"if colour$ = \"Canary yellow\"")
-NORMAL (U"The field type #`optionmenu` is completely analogous to #`choice`, "
-	"but uses up much less space on the screen:")
-CODE (U"\\#{form}: \"Fill attributes\"")
-	CODE1 (U"\\#{comment}: \"Choose any colour and texture for your paintings\"")
-	CODE1 (U"\\#{optionmenu}: \"Colour\", 5")
-		CODE2 (U"\\#{option}: \"Dark red\"")
-		CODE2 (U"\\#{option}: \"Sea green\"")
-		CODE2 (U"\\#{option}: \"Navy blue\"")
-		CODE2 (U"\\#{option}: \"Canary yellow\"")
-		CODE2 (U"\\#{option}: \"Black\"")
-		CODE2 (U"\\#{option}: \"White\"")
-	CODE1 (U"\\#{optionmenu}: \"Texture\", 1")
-		CODE2 (U"\\#{option}: \"Smooth\"")
-		CODE2 (U"\\#{option}: \"Rough\"")
-		CODE2 (U"\\#{option}: \"With holes\"")
-CODE (U"\\#{endform}")
-CODE (U"\\`{writeInfoLine}: \"You chose the colour \", colour$, \" and the texture \", texture$, \".\"")
+A ##numeric vector# is an array of numbers, regarded as a single object.
+For instance, the squares of the first five integers can be collected in the vector { 1, 4, 9, 16, 25 }.
+In a Praat script, you can put a vector into a variable whose name ends in a number sign (“`#`”):
+{
+	squares# = { 1, 4, 9, 16, 25 }
+}
+After this, the variable %`squares#` contains the value { 1, 4, 9, 16, 25 }.
+We say that the vector %`squares#` has five %dimensions, i.e. it contains five numbers.
 
-NORMAL (U"For the vector types #`realvector`, #`positivevector`, #`integervector` and #`naturalvector` "
-	"you have to specify an initial format, which will be shown to the user:")
-CODE (U"\\#{form}: \"Interesting times\"")
-	CODE1 (U"\\#{comment}: \"List the times that you are interested in\"")
-	CODE1 (U"\\#{realvector}: \"Fixed times (s)\", \"(whitespace-separated)\", \"0.5 1.7 2.8\"")
-	CODE1 (U"\\#{realvector}: \"Random times (s)\", \"(formula)\", \"randomUniform# (5, 0.0, 1.0)\"")
-CODE (U"\\#{endform}")
-CODE (U"\\`{writeInfoLine}: \"Your fixed times are \", fixed_times#, \" and your random times are \", random_times#, \".\"")
-NORMAL (U"Clicking OK without editing the two fields may print")
-CODE (U"Your fixed times are 0.5 1.7 2.8 and your random times are 0.754675 0.121393653 0.39856 0.8376572 0.387537.")
+Whereas in @@Scripting 3.2. Numeric variables@ we talked about a numeric variable as being analogous to a house
+where somebody (the numeric %value) could live, a numeric vector with five dimensions
+can be seen as a %street that contains five houses, which are numbered with the indexes 1, 2, 3, 4 and 5,
+each house containing a numeric value. Thus, the street %`squares#` contains the following five houses:
+%`squares#` [1], %`squares#` [2], %`squares#` [3], %`squares#` [4] and %`squares#` [5].
+Their values (the numbers that currently live in these houses) are 1, 4, 9, 16 and 25, respectively.
 
-NORMAL (U"The field types #infile, #outfile and #folder always yield a full path. "
-	"Consider the script `playFile.praat`, which contains the following:")
-CODE (U"\\#{form}: \"Play file\"")
-	CODE1 (U"\\#{infile}: \"File to play\", \"hello.wav\"")
-CODE (U"\\#{endform}")
-CODE (U"\\`{writeInfoLine}: \"You chose the file \", file_to_play$, \".\"")
-CODE (U"Read from file: file_to_play$")
-CODE (U"Play")
-CODE (U"Remove")
-NORMAL (U"If you just click OK and `playFile.praat` is in the folder `/Users/miep/research/usefulScripts`, "
-	"then this will print")
-CODE (U"You chose the file /Users/miep/research/usefulScripts/hello.wav.")
-NORMAL (U"into the Info window, and play the sound in that file.")
-NORMAL (U"You can combine two short fields into one by using #`left` and #`right`:")
-CODE (U"\\#{form}: \"Get duration\"")
-	CODE1 (U"\\#{natural}: \"left Year range\", \"1940\"")
-	CODE1 (U"\\#{natural}: \"right Year range\", \"1945\"")
-CODE (U"\\#{endform}")
-CODE (U"duration = right_Year_range - left_Year_range")
-CODE (U"\\`{writeInfoLine}: \"The duration is \", duration, \" years.\"")
-NORMAL (U"The interpreter will only show the single text “Year range”, followed by two small text fields.")
-ENTRY (U"Calling a script from another script")
-NORMAL (U"Scripts can be nested: the file `doremi.praat` may contain the following:")
-CODE (U"\\#{runScript}: \"playSine.praat\", 550, 0.9")
-CODE (U"\\#{runScript}: \"playSine.praat\", 615, 0.9")
-CODE (U"\\#{runScript}: \"playSine.praat\", 687, 0.9")
+To list the five values with a loop, you could do:
+{
+	\`{writeInfoLine}: “Some squares:”
+	\#{for} i \#{from} 1 \#{to} size (squares#)
+		\`{appendInfoLine}: “The square of ”, i, “ is ”, squares# [i]
+	\#{endfor}
+}
 
-NORMAL (U"With #`runScript`, Praat will not display a form window, but simply execute the script "
-	"with the two arguments that you supply on the same line (e.g. 550 and 0.9).")
-NORMAL (U"Values for #`choice` must be passed as strings:")
-CODE (U"\\#{runScript}: \"fill attributes.praat\", \"Navy blue\", \"With holes\"")
-NORMAL (U"Values for vectors can be passed either as a vector expression or as a white-space separated string, "
-	"independently of the initial format:")
-CODE (U"\\#{runScript}: \"interesting times.praat\", { 0.3, 0.5, 0.7, 2.0 }, \"18000 0.3\"")
-NORMAL (U"You can pass values for #boolean either as the quoted strings “yes” and “no” (or their variants) or as the unquoted numbers 1 and 0.")
-NORMAL (U"In #`runScript`, the path to the external script, as well as the paths to #`infile`, #`outfile` and #`folder` parameters "
-	"are taken relative to the folder of the current script. For instance, suppose that the current script is "
-	"`/Users/miep/research/project19/analyse.praat` and contains:")
-CODE (U"\\#{runScript}: \"../usefulScripts/playFile.praat\", \"sounds/sound3.wav\"")
-NORMAL (U"then running the current script will run the above-mentioned script `/Users/miep/research/usefulScripts/playFile.praat`, "
-	"which will play the file `/Users/miep/research/project19/sounds/sound3.wav`.")
-MAN_END
+Instead of the above procedure to get the vector %`squares#`, with a pre-computed list of five squares,
+you could compute the five values with a formula, as in the example of @@Scripting 5.6. Arrays and dictionaries@.
+However, in order to put a value into an element of the vector, you have to create the vector first
+(i.e., you have to build the whole street before you can put something in a house),
+so we start by creating a vector with five zeroes in it:
+{
+	squares# = zero# (5)
+}
+After this, %`squares#` is the vector { 0, 0, 0, 0, 0 }, i.e., the value of each element is zero.
+Now that the vector (street) exists, we can put values into (populate) the five elements (houses):
+{
+	\#{for} i \#{from} 1 \#{to} size (squares#)
+		squares# [i] = i * i
+	\#{endfor}
+}
+After this, the variable %`squares#` has the value { 1, 4, 9, 16, 25 }, as before,
+but now we had the computer compute the squares.
 
-MAN_BEGIN (U"Scripting 6.2. Writing to the Info window", U"ppgb", 20221202)
-NORMAL (U"With the @Info button and several commands in the @@Query submenu@ (or with query commands in menus in the editors), "
-	"you write to the @@Info window@ (if your program is run from the command line, "
-	"the text goes to the console window or to %stdout instead; see @@Scripting 6.9. Calling from the command line|\\SS6.9).")
-NORMAL (U"The commands #`writeInfo`, #`writeInfoLine`, #`appendInfo` and #`appendInfoLine` "
-	"allow you to write to the Info window from a script. Those with #`write` in their name clear the Info window "
-	"before they write to it, those with #`append` in their name do not. Those with #`Line` in their name make sure "
-	"that a following #`appendInfo` or #`appendInfoLine` will write on the next line.")
-NORMAL (U"These four functions take a variable number of numeric and/or string arguments, separated by commas. "
-	"The following script builds a table with statistics about a pitch contour:")
-CODE (U"\\`{writeInfoLine}: \"  Minimum   Maximum\"")
-CODE (U"Create Sound as pure tone: \"sine\", 1, 0, 0.1, 44100, 377, 0.2, 0.01, 0.01")
-CODE (U"To Pitch: 0.01, 75, 600")
-CODE (U"minimum = Get minimum: 0, 0, \"Hertz\", \"Parabolic\"")
-CODE (U"\\`{appendInfo}: minimum")
-CODE (U"\\`{appendInfo}: tab$")
-CODE (U"maximum = Get maximum: 0, 0, \"Hertz\", \"Parabolic\"")
-CODE (U"\\`{appendInfo}: maximum")
-CODE (U"\\`{appendInfoLine}: \"\"")
-NORMAL (U"You could combine the last four print statements into:")
-CODE (U"\\`{appendInfoLine}: minimum, tab$, maximum")
-NORMAL (U"which is the same as:")
-CODE (U"\\`{appendInfo}: minimum, tab$, maximum, newline$")
-NORMAL (U"The little string #`tab$` is a %tab character; it allows you to create "
-	"table files that can be read by some spreadsheet programs. The little string #`newline$` is a %newline character; "
-	"it moves the following text to the next line.")
-NORMAL (U"To clear the Info window, you can do")
-CODE (U"\\`{writeInfo}: \"\"")
-NORMAL (U"or")
-CODE (U"\\`{clearinfo}")
-MAN_END
+2. Creating a vector
+====================
 
-MAN_BEGIN (U"Scripting 6.3. Query commands", U"ppgb", 20140107)
-NORMAL (U"If you click the ##Get mean...# command for a Pitch object, "
-	"the Info window will contain a text like “150 Hz” as a result. In a script, you would rather "
-	"have this result in a variable instead of in the Info window. The solution is simple:")
-CODE (U"mean = Get mean: 0, 0, \"Hertz\", \"Parabolic\"")
-NORMAL (U"The numeric variable %mean now contains the number 150. When assigning to a numeric variable, "
-	"the interpreter converts the part of the text before the first space into a number.")
-NORMAL (U"You can also assign to string variables:")
-CODE (U"mean$ = Get mean: 0, 0, \"Hertz\", \"Parabolic\"")
-NORMAL (U"The string variable %`mean$` now contains the entire string “150 Hz”.")
-NORMAL (U"This works for every command that would otherwise write into the Info window.")
-MAN_END
+You can create a vector in many ways. The first way we saw was with a ##vector literal#,
+i.e. a series of numbers (or numeric formulas) between braces:
+{
+	lengths# = { 1.83, 1.795, 1.76 }
+}
 
-MAN_BEGIN (U"Scripting 6.4. Files", U"ppgb", 20201229)
-INTRO (U"You can read from and write to text files from a Praat script.")
-ENTRY (U"Reading a file")
-NORMAL (U"You can check the availability of a file for reading with the function")
-CODE (U"\\#{fileReadable} (\\%{fileName$})")
-NORMAL (U"which returns 1 (true) if the file exists and can be read, and 0 (false) otherwise. "
-	"Note that %`fileName$` is taken relatively to the folder where the script is saved; "
-	"for instance, if your script is in the folder `Paolo/project1`, then the file name "
-	"“hello.wav” refers to `Paolo/project1/hello.wav`, the file name “yesterday/hello.wav” "
-	"refers to `Paolo/project1/yesterday/hello.wav`, and the file name “../project2/hello.wav” "
-	"refers to `Paolo/project2/hello.wav` (“..” goes one folder up). "
-	"You can also use full path names such as `C:/Users/Paolo/project1/hello.wav` "
-	"on Windows and `/Users/Paolo/project1/hello.wav` on the Mac.")
-NORMAL (U"To read the contents of an existing text file into a string variable or into a numeric variable, you use")
-CODE (U"text$ = \\`{readFile$} (\"myFile.txt\")")
-NORMAL (U"or")
-CODE (U"number = \\`{readFile} (\"myFile.txt\")")
-NORMAL (U"If the file does not exist, the script terminates with an error message.")
-ENTRY (U"Example: reading a settings file")
-NORMAL (U"Suppose that the file `height.inf` may contain an appropriate value for a numeric variable "
-	"called `height`, which we need to use in our script. We would like to read it with")
-CODE (U"height = readFile (\"height.inf\")")
-NORMAL (U"However, this script will fail if the file `height.inf` does not exist. To guard "
-	"against this situation, we could check the existence of the file, and supply a default "
-	"value in case the file does not exist:")
-CODE (U"fileName$ = \"height.inf\"")
-CODE (U"if fileReadable (fileName$)")
-	CODE1 (U"height = readFile (fileName$)")
-CODE (U"else")
-	CODE1 (U"height = 180")
-CODE (U"endif")
-ENTRY (U"Writing a file")
-NORMAL (U"You write into a new text file just as you write into the Info window:")
-CODE (U"writeFileLine: \"myFile.txt\", \"The present year is \", 2000 + 13, \".\"")
-NORMAL (U"and likewise you use #`writeFile` if you don't want a newline symbol at the end of the file. "
-	"If the file cannot be created, the script terminates with an error message.")
-NORMAL (U"To append text at the end of an existing file, you use")
-CODE (U"appendFileLine: \"myFile.txt\", \"Next year it will be \", 2000 + 14, \".\"")
-NORMAL (U"With #`appendFileLine` (and #`appendFile`, which does not add the newline), "
-	"we follow the rule that if the file does not yet exist, it is created first.")
-NORMAL (U"You can create a folder (directory) with")
-CODE (U"\\#{createFolder}: \\%{folderPath$}")
-NORMAL (U"where, as with file names, %`folderPath$` can be relative to the folder of the script "
-	"(e.g. “`data`”, or “`yesterday/data`”, or “`../project2/yesterday/data`”) "
-	"or an absolute path (e.g. `C:/Users/Paolo/project1/yesterday/data` on Windows "
-	"or “/Users/Paolo/project1/yesterday/data” on the Mac). "
-	"If the folder already exists, this command does nothing.")
-NORMAL (U"You can delete an existing file with the function")
-CODE (U"\\#{deleteFile}: \\%{fileName$}")
-NORMAL (U"If the file does not exist, this command does nothing.")
-ENTRY (U"Example: writing a table of squares")
-NORMAL (U"Suppose that we want to create a file with the following text:")
-CODE (U"The square of 1 is 1")
-CODE (U"The square of 2 is 4")
-CODE (U"The square of 3 is 9")
-CODE (U"...")
-CODE (U"The square of 100 is 10000")
-NORMAL (U"We can do this by appending 100 lines:")
-CODE (U"deleteFile: \"squares.txt\"")
-CODE (U"for i to 100")
-	CODE1 (U"appendFileLine: \"squares.txt\", \"The square of \", i, \" is \", i * i")
-CODE (U"endfor")
-NORMAL (U"Note that we delete the file before appending to it, "
-	"in order that we do not append to an already existing file.")
-NORMAL (U"You can append the contents of the Info window to a file with")
-CODE (U"appendFile: \"out.txt\", info$ ( )")
-ENTRY (U"Folder listings")
-NORMAL (U"To get the names of the files if a certain type in a certain folder, use")
-CODE (U"fileNames$# = \\#{fileNames$#}: \\%{path$}")
-NORMAL (U"For instance, to read in all the sound files in a specified folder, "
-	"you could use the following script:")
-CODE (U"folder$ = \"/usr/people/miep/sounds\"")
-CODE (U"fileNames$# = fileNames$# (folder$ + \"/*.wav\")")
-CODE (U"for ifile to size (fileNames$#)")
-	CODE1 (U"Read from file: folder$ + \"/\" + fileNames$# [ifile]")
-CODE (U"endfor")
-ENTRY (U"Alternative syntax")
-NORMAL (U"If, on the basis of the syntax of commands and functions in earlier sections you expected that")
-CODE (U"text$ = readFile$ (\"myFile.txt\")")
-CODE (U"number = readFile (\"myFile.txt\")")
-NORMAL (U"could be written as")
-CODE (U"text$ = readFile$: \"myFile.txt\"")
-CODE (U"number = readFile: \"myFile.txt\"")
-NORMAL (U"then you are right. The syntax with the colon is equivalent to the syntax with the two parentheses. Conversely, instead of")
-CODE (U"\\#{deleteFile}: \\%{fileName$}")
-NORMAL (U"you can also write")
-CODE (U"\\#{deleteFile} (\\%{fileName$})")
-MAN_END
+The second way we saw was to create a series of #zeroes. To create a vector consisting of 10,000 zeroes, you do
+{
+	longEmptyArray# = \#`{zero#} (10000)
+}
 
-MAN_PAGES_BEGIN
-R"~~~(
+Another important type of vector is a series of random numbers.
+To create a vector consisting of 10,000 values drawn from a ##Gaussian distribution#
+with true mean 0.0 and true standard deviation 1.0, you could do
+{
+	noise# = \#`{randomGauss#} (10000, 0.0, 1.0)
+}
+To create a vector consisting of 10,000 values drawn from a ##uniform distribution of real numbers#
+with true minimum 0.0 and true maximum 1.0, you use
+{
+	a# = \#`{randomUniform#} (10000, 0.0, 1.0)
+}
+To create a vector consisting of 10,000 values drawn from a ##uniform distribution of integer numbers#
+with true minimum 1 and true maximum 10, you use
+{
+	a# = \#`{randomInteger#} (10000, 1, 10)
+}
+To create a vector containing the integer numbers 1 through 64, you use
+{
+	a# = \#`{to#} (64)
+}
+To create a vector containing the integer numbers 10 through 20, you use
+{
+	a# = \#`{from_to#} (10, 20)
+}
+To create a vector containing linearly increasing (not necessarily integer) numbers from 10 through 20 in steps of 2, you use
+{
+	a# = \#`{from_to_by#} (10, 20, 2)
+}
+To create five linearly increasing numbers between 0 and 10 (i.e. { 0, 2.5, 5, 7.5, 10 }), you use
+{
+	a# = \#`{from_to_count#} (0, 10, 5)
+}
+To divide the range between 0 and 12 symmetrically with step 5 (i.e. { 1, 6, 11 }), you use
+{
+	a# = \#`{between_by#} (0, 12, 5)
+}
+To divide the range between 0 and 10 into five equal parts and list their centres (i.e. { 1, 3, 5, 7, 9 }), you use
+{
+	a# = \#`{between_count#} (0, 10, 5)
+}
+To sort the numbers in a vector (e.g. { 7.4, 1.3, 3.6 }), you use
+{
+	a# = \#`{sort#} ({ 7.4, 1.3, 3.6 })
+	\`{writeInfoLine} (a#)
+}
+To randomly shuffle the numbers in a vector (e.g. { 7.4, 1.3, 3.6 }), you use
+{
+	a# = \#`{shuffle#} ({ 7.4, 1.3, 3.6 })
+}
+which can yield { 1.3, 7.4, 3.6 } or any of the five other orders of the elements.
+
+Vectors can also be created by some menu commands. For instance, to get vectors representing
+the times and pitch frequencies of the frames in a Pitch object, you can do
+{;
+	\`{selectObject}: myPitch
+	times# = List all frame times
+	pitches# = List values in all frames: “hertz”
+}
+
+3. Turning a vector into a number
+=================================
+
+For the vector defined above, you can compute the #sum of the five values as
+{
+	\#`{sum} (squares#)
+}
+which gives 55. You compute the #average of the five values as
+{
+	\#`{mean} (squares#)
+}
+which gives 11. You compute the ##standard deviation# of the values as 
+{
+	\#`{stdev} (squares#)
+}
+which gives 9.669539802906858 (the standard deviation is undefined for vectors with fewer than 2 elements).
+The ##center of gravity# of the distribution defined by regarding
+the five values as relative frequencies as a function of the index from 1 to 5 is computed by
+{
+	\#`{center} (squares#)
+}
+which gives 4.090909090909091 (for a vector with five elements, the result will always be
+a number between 1.0 and 5.0). You compute the ##inner product# of two equally long vectors as follows:
+{
+	other# = { 2, 1.5, 1, 0.5, 0 }
+	result = \#`{inner} (squares#, other#)
+}
+which gives 1*2 + 4*1.5 + 9*1 + 16*0.5 + 25*0 = 25.
+The formula for this is \su__%i=1_^5 %squares[%i] * %other[%i], so that an alternative piece of code could be
+{
+	result = \#`{sumOver} (i to 5, squares# [i] * other# [i])
+}
+
+4. Converting vectors to vectors
+================================
+{
+	a# = squares# + 5   ; adding a number to each element of a vector
+	assert a# =	{ 6, 9, 14, 21, 30 }
+}
+causes %`a#` to become the vector { 6, 9, 14, 21, 30 }.
+{
+	b# = a# + { 3.14, 2.72, 3.16, -1, 7.5 }   ; adding two vectors of the same length
+}
+causes %`b#` to become the vector { 9.14, 11.72, 17.16, 20, 37.5 }.
+{
+	c# = b# / 2   ; dividing each element of a vector
+}
+causes %`c#` to become the vector { 4.57, 5.86, 8.58, 10, 18.75 }.
+{
+	d# = b# * c#   ; elementwise multiplication
+}
+causes %`d#` to become the vector { 41.7698, 68.6792, 147.2328, 200, 703.125 }.
+
+A vector can also be given to a ##menu command# that returns another vector.
+For instance, to get a vector representing the pitch frequencies at 0.01-second intervals in a Pitch object,
+you can do
+{;
+	\`{selectObject}: myPitch
+	tmin = Get start time
+	tmax = Get end time
+	times# = \#`{between_by#} (tmin, tmax, 0.01)
+	pitches# = List values at times: times#, “hertz”, “linear”
+}
+
+5. What is a matrix?
+====================
+
+A ##numeric matrix# is a two-indexed array of numbers, regarded as a single object.
+In a Praat script, you can put a matrix into a variable whose name ends in two number signs (“`##`”):
+{
+	confusion## = {{ 3, 6, 2 }, { 8, 2, 1 }}
+}
+After this, the variable %`confusion##` contains the value {{ 3, 6, 2 }, { 8, 2, 1 }}.
+We say that the matrix %`confusion##` has two %rows and three %columns, i.e. it contains six numbers.
+
+Whereas a numeric vector with five dimensions could be seen (see above) as a street that contains five houses,
+the matrix %`confusion##` can be seen as a city district with two avenues crossed by three streets,
+where everybody lives on an intersection (the analogies start to get less realistic).
+
+6. Creating a matrix
+====================
+
+You can create a matrix in many ways. The first way we saw was with a ##matrix literal#,
+i.e. a series of series of numbers (or numeric formulas) between nested braces.
+
+The second way is as a matrix of #zeroes. To create a matrix consisting of 100 rows of 10,000 zeroes, you do
+{
+	a## = \#`{zero##} (100, 10000)
+}
+After this,
+{
+	\#`{numberOfRows} (a##)
+}
+is 100, and
+{
+	\#`{numberOfColumns} (a##)
+}
+is 10000.
+
+Another important type of matrix is one filled with random numbers.
+To create a matrix consisting of 100 rows of 10,000 values drawn from a ##Gaussian distribution#
+with true mean 0.0 and true standard deviation 1.0, you can do
+{
+	noise## = \#`{randomGauss##} (100, 10000, 0.0, 1.0)
+}
+
+You can create a matrix as the outer product of two vectors:
+{;
+	m## = \#`{outer##} (u#, v#)
+}
+which is the same as
+{;
+	m## = \#`{zero##} (\`{size} (u#), \`{size} (v#))
+	\#{for} irow \#{to} \`{size} (u#)
+		\#{for} icol \#{to} \`{size} (v#)
+			m## [irow, icol] = u# [irow] * v# [icol]
+		\#{endfor}
+	\#{endfor}
+}
+or in mathematical notation
+~	%m__%ij_ = %u_%i %v_%j   (%i = 1..%M, %j = 1..%N)
+
+where %M is the number of rows and %N is the number of columns.
+
+7. Computations with matrices
+=============================
+
+You can add matrices:
+{;
+	c## = a## + b##
+}
+
+Elementwise multiplication:
+{;
+	c## = a## * b##
+}
+which does
+~	%c__%ij_ = %a__%ij_ %b__%ij_   (%i = 1..%M, %j = 1..%N)
+
+Matrix multiplication:
+{;
+	c## = mul## (a##, b##)
+}
+which does
+~	%m__%ij_ = \\su__%k=1_^K  %a__%ik_ %b__%kj_   (%i = 1..%M, %j = 1..%N)
+
+where %M is the number of rows of %a, %N is the number of columns of %b,
+and %K is the number of columns of %a, which has to be equal to the number if rows of %b.
+
+Matrix-by-vector multiplication:
+{;
+	v# = mul# (m##, u#)
+}
+which does
+~	%v_%i = \\su__%j=1_^N  %m__%ij_ %u_%j   (%i = 1..%M)
+
+where %M is the number of rows of %m, and %N is the number of columns of %m,
+which has to be equal to the dimension of %u. Also
+{;
+	v# = mul# (u#, m##)
+}
+which does
+~	%v_%j = \\su__%i=1_^M  %u_%i %m__%ij_   (%j = 1..%N)
+
+where %M is the number of rows of %m, which has to be equal to the dimension of %u,
+and %N is the number of columns of %m.
+
+8. String vectors
+=================
+
+You can create string vectors (also called string arrays) in the following ways:
+{
+	a$# = { “hello”, “goodbye” }
+}
+creates a vector with two strings, which you can access as `a$# [1]`, which is “hello”, and `a$# [2]`, which is “goodbye”.
+
+{
+	a$# = \#`{empty$#} (10)
+}
+creates a vector with 10 empty strings, which you can access as `a$# [1]` through `a$# [10]`.
+
+{;
+	text$# = \#`{readLinesFromFile$#} (“hello.txt”)
+}
+creates a vector with 100 strings if the file `hello.text` contains 100 lines of text.
+{;
+	fileNames$# = \#`{fileNames$#} (“sound/*.wav”)
+}
+creates a vector containing the names of all WAV files in the folder `sound`.
+{;
+	folderNames$# = \#`{folderNames$#} (“.”)
+}
+creates a vector containing the names of all folders in the folder where the script resides.
+{
+	inks$# = \#`{splitByWhitespace$#} (“Hello, how are you?”)
+}
+creates a vector containing the strings “Hello,” (including the comma), “how”, “are”, and “you?”.
+
+################################################################################
+"Scripting 5.8. Including other scripts"
+© Paul Boersma 2017-07-18,2025
+
+You can include other scripts within your script:
+{;
+	a = 5
+	include square.praat
+	writeInfoLine: a
+}
+The Info window will show the result 25 if the file square.praat contains the following:
+{;
+	a = a * a
+}
+The inclusion is done before any other part of the script is considered, so you can use the #form statement
+and all variables in it. Usually, however, you will put some procedure definitions in the include file, that is
+what it seems to be most useful for. Watch out, however, for using variable names in the include file:
+the example above shows that there is no such thing as a separate name space.
+
+Note that you do not put quotes around the name of the include file.
+This is because the name of the include file has to be given explicitly; you cannot put it into a variable, for instance.
+
+You can use full or relative file names. For instance, the file `square.praat` above is expected to be in the same
+folder as the script that says `include square.praat`. If you use the ScriptEditor, you will first have to save
+the script that you are editing before any relative file names become meaningful (this is the same as with other
+uses of relative file names in scripts).
+
+You can “nest” include files, i.e., included scripts can include other scripts. However, relative file names
+are always evaluated relative to the folder of the outermost script.
+
+The #include statement can only be at the start of a line: you cannot put any spaces in front of it.
+
+################################################################################
+"Scripting 5.9. Quitting"
+© Paul Boersma 2019-07-13
+
+Usually, the execution of your script ends when the interpreter has executed the last line
+that is not within a procedure definition. However, you can also explicitly stop the script:
+
+#exitScript ( )
+:	stops the execution of the script in the normal way, i.e. without any messages to the user.
+Any settings (form) window is removed from the screen (unless Apply was clicked instead of OK).
+
+#exitScript: %%error-message%
+:	stops the execution of the script while sending an error message to the user.
+You can use the same argument list as with #writeInfoLine.
+Any settings (form) window will stay on the screen.
+
+For an example, see @@Scripting 6.8. Messages to the user@.
+
+################################################################################
+"Scripting 6. Communication outside the script"
+© Paul Boersma 2024-11-16
+
+,	@@Scripting 6.1. Arguments to the script@ (form/endform, runScript)
+,	@@Scripting 6.2. Writing to the Info window@ (writeInfoLine, appendInfoLine, appendInfo, tab\\$ )
+,	@@Scripting 6.3. Query commands@ (Get, Count)
+,	@@Scripting 6.4. Files@ (fileReadable, readFile, writeFile, deleteFile, createFolder)
+,	@@Scripting 6.5. Calling system commands@ (runSystem, environment\\$ , stopwatch)
+,	@@Scripting 6.6. Controlling the user@ (pause, beginPause/endPause, chooseReadFile\\$ )
+,	@@Scripting 6.7. Sending a message to another program@
+,	@@Scripting 6.8. Messages to the user@ (exitScript, assert, nowarn, nocheck)
+,	@@Scripting 6.9. Calling from the command line
+
+################################################################################
+"Scripting 6.1. Arguments to the script"
+© Paul Boersma xx,2023,2024
+
+You can cause a Praat script to prompt for arguments. The file `playSine.praat` may contain the following:
+{;
+	\#{form}: “Play a sine wave”
+		\#{positive}: “Sine frequency (Hz)”, “377.0”
+		\#{positive}: “Gain (0..1)\", “0.3 (= not too loud)”
+	\#{endform}
+	Create Sound as pure tone: “sine” + string$ (sine_frequency),
+	... 1, 0, 1, 44100, sine_frequency, gain, 0.01, 0.01
+	Play
+	Remove
+}
+
+When running this script, the interpreter puts a settings window (%form) on your screen,
+entitled “Play a sine wave”,
+with two fields, titled “Sine frequency (Hz)” and “Gain”, that have been provided
+with the standard values “377.0” and “0.3 (= not too loud)”, which you can change before clicking #OK.
+
+Inside the script, the field names can be accessed as variables: these have underscores
+instead of spaces, and the parentheses (Hz) have been chopped off. Note that the first
+letter of these variables is converted to lower case, so that you can assign to them in your script.
+
+Inside the script, the value “0.3 (= not too loud)” will be known as 0.3,
+because this is a numeric field.
+
+You can use the following field types in your forms:
+
+#`real`: %`variable$`, %`initialValue$`
+:	for real numbers.
+
+#`positive`: %`variable$`, %`initialValue$`
+:	for positive real numbers: the form issues an error message if the number
+that you enter is negative or zero (further on in the script,
+you can freely change it to any real number, including negatives ones such as -1.5, or zero).
+
+#`integer`: %`variable$`, %`initialValue$`
+:	for whole numbers: the form reads the number as an integer
+(further on in the script, you can give it any real value, e.g. 3.14).
+
+#`natural`: %`variable$`, %`initialValue$`
+:	for positive whole numbers: the form issues an error message if the number
+that you enter is negative or zero (further on in the script, you can give it any real value).
+
+#`word`: %`variable$`, %`initialValue$`
+:	for a string without spaces: the form only reads up to the first space (“oh yes” becomes “oh”;
+further on in the script, you can give the string any value, perhaps with spaces in it).
+
+#`sentence`: %`variable$`, %`initialValue$`
+:	for any short string.
+
+#`text`: %`variable$`, %`initialValue$`
+:	for any possibly long string (the variable name will show up above the field).
+
+#`text`: %`numberOfLines`, %`variable$`, %`initialValue$`
+:	for any possibly very long string (multiple lines), %`numberOfLines` can be between 1 and 33.
+
+#`boolean`: %`variable$`, %`initialValue`
+:	a check box will be shown; the initial value is 1 (on) or 0 (off).
+
+#`boolean`: %`variable$`, %`initialValue$`
+:	a check box will be shown; to switch it on,
+set the initial value to `“on”`, `“yes”`, `“ON”`, `“YES”`, `“On”` or `“Yes”`;
+to switch it off, set it to `“off”`, `“no”`, `“OFF”`, `“NO”`, `“Off”` or `“No”`.
+
+#`choice`: %`variable$`, %`initialValue`
+:	a multiple-choice box (or “radio box”) will be shown; the value is 1 or higher. This is followed by a series of:
+
+#`option`: %`text$`
+:	an option button in a multiple-choice box (see example below).
+
+#`optionmenu`: %`variable$`, %`initialValue`
+:	a multiple-choice menu header will be shown; the value is 1 or higher.
+Just as `choice`, this is followed by:
+
+#`option`: %`text$`
+:	an option in a multiple-choice menu (see example below).
+
+#`comment`: %`text$`
+:	a line with any text.
+
+#`infile`: %`variable$`, %`initialValue$`
+:	for a full path to an existing file, usually for reading.
+
+#`outfile`: %`variable$`, %`initialValue$`
+:	for a full path to a new file, usually for saving.
+
+#`folder`: %`variable$`, %`initialValue$`
+:	for a full path to a folder.
+
+#`realvector`: %`variable$`, %`format$`, %`initialValue$`
+:	for a vector with real values. The format can be `“(whitespace-separated)”` or `“(formula)”`;
+the initial value should then probably be something like `“10 -9 80”` or `“{ 10, -9, 80 }”`, respectively.
+
+#`realvector`: %`numberOfLines`, %`variable$`, %`format$`, %`initialValue$`
+:	use this if you want a field with less or more than the standard 7 lines.
+
+#`positivevector`: %`variable$`, %`format$`, %`initialValue$`
+
+#`positivevector`: %`numberOfLines`, %`variable$`, %`format$`, %`initialValue$`
+:	use either of these if you want to check that all initial elements are positive real numbers.
+
+#`integervector`: %`variable$`, %`format$`, %`initialValue$`
+
+#`integervector`: %`numberOfLines`, %%variable\\$ %, %%format$ %, %%initialValue$ %
+:	use either of these if you want to check that all initial elements are whole numbers.
+
+#`naturalvector`: %`variable$`, %`format$`, %`initialValue$`
+
+#`naturalvector`: %`numberOfLines`, %`variable$`, %`format$`, %`initialValue$`
+:	use either of these if you want to check that all initial elements are positive whole numbers.
+
+Inside the script, strings are known as string variables, numbers as numeric variables. Consider the following form:
+{;
+	\#{form}: “Sink it”
+		\#{sentence}: “Name of the ship”, “Titanic”
+		\#{real}: “Distance to the iceberg (m)”, “500.0”
+		\#{natural}: “Number of people”, “1800”
+		\#{natural}: “Number of boats”, “10”
+	\#{endform}
+}
+In the script following this form, the variables will be known as `name_of_the_ship$`, `distance_to_the_iceberg`,
+`number_of_people`, and `number_of_boats`.
+
+The variable associated with a radio box will get a numeric as well as a string value:
+{;
+	\#{form}: “Fill attributes”
+		\#{comment}: “Choose any colour and texture for your paintings”
+		\#{choice}: “Colour”, 5
+				\#{option}: “Dark red”
+				\#{option}: “Sea green”
+				\#{option}: “Navy blue”
+				\#{option}: “Canary yellow”
+				\#{option}: “Black”
+				\#{option}: “White”
+		\#{choice}: \"Texture”, 1
+				\#{option}: “Smooth”
+				\#{option}: “Rough”
+				\#{option}: “With holes”
+	\#{endform}
+	\`{writeInfoLine}: “You chose the colour ”, colour$, “ and the texture ”, texture$, “.”
+}
+This shows two multiple-choice boxes. In the Colour box, the fifth button (Black) is the standard value here.
+If you click “Navy blue” and then #%OK, the variable %`colour` will have the value 3,
+and the variable %`colour$` will have the value “Navy blue”.
+So you can test the value of the Colour box in either of the following ways:
+{;
+	if colour = 4
+}
+or
+{;
+	if colour$ = “Canary yellow\"
+}
+
+The field type #`optionmenu` is completely analogous to #`choice`,
+but uses up much less space on the screen:
+{;
+	\#{form}: “Fill attributes”
+		\#{comment}: “Choose any colour and texture for your paintings”
+		\#{optionmenu}: “Colour”, 5
+			\#{option}: “Dark red”
+			\#{option}: “Sea green”
+			\#{option}: “Navy blue”
+			\#{option}: “Canary yellow”
+			\#{option}: “Black”
+			\#{option}: “White”
+		\#{optionmenu}: “Texture”, 1
+			\#{option}: “Smooth”
+			\#{option}: “Rough”
+			\#{option}: “With holes”
+	\#{endform}
+	\`{writeInfoLine}: “You chose the colour ”, colour$, “ and the texture ”, texture$, “.”
+}
+
+For the vector types #`realvector`, #`positivevector`, #`integervector` and #`naturalvector`
+you have to specify an initial format, which will be shown to the user:
+{;
+	\#{form}: “Interesting times”
+		\#{comment}: “List the times that you are interested in”
+		\#{realvector}: “Fixed times (s)”, “(whitespace-separated)”, “0.5 1.7 2.8”
+		\#{realvector}: “Random times (s)”, “(formula)”, “randomUniform# (5, 0.0, 1.0)”
+	\#{endform}
+	\`{writeInfoLine}: “Your fixed times are ”, fixed_times#, “ and your random times are ”, random_times#, “.”
+}
+Clicking OK without editing the two fields may print
+`
+	Your fixed times are 0.5 1.7 2.8 and your random times are 0.754675 0.121393653 0.39856 0.8376572 0.387537.
+`
+
+The field types #infile, #outfile and #folder always yield a full path.
+Consider the script `playFile.praat`, which contains the following:
+{;
+	\#{form}: “Play file”
+		\#{infile}: “File to play”, “hello.wav”
+	\#{endform}
+	\`{writeInfoLine}: “You chose the file ”, file_to_play$, “.”
+	Read from file: file_to_play$
+	Play
+	Remove
+}
+If you just click OK and `playFile.praat` is in the folder `/Users/miep/research/usefulScripts`,
+then this will print
+`
+	You chose the file /Users/miep/research/usefulScripts/hello.wav.
+`
+into the Info window, and play the sound in that file.
+
+You can combine two short fields into one by using #`left` and #`right`:
+{;
+	\#{form}: “Get duration”
+		\#{natural}: “left Year range”, “1940”
+		\#{natural}: “right Year range”, “1945”
+	\#{endform}
+	duration = right_Year_range - left_Year_range
+	\`{writeInfoLine}: “The duration is ”, duration, “ years.”
+}
+The interpreter will only show the single text “Year range”, followed by two small text fields.
+
+Calling a script from another script
+====================================
+
+Scripts can be nested: the file `doremi.praat` may contain the following:
+{;
+	\#{runScript}: “playSine.praat”, 550, 0.9
+	\#{runScript}: “playSine.praat”, 615, 0.9
+	\#{runScript}: “playSine.praat”, 687, 0.9
+}
+
+With #`runScript`, Praat will not display a form window, but simply execute the script
+with the two arguments that you supply on the same line (e.g. 550 and 0.9).
+
+Values for #`choice` must be passed as strings:
+{;
+	\#{runScript}: “fill attributes.praat”, “Navy blue”, “With holes”
+}
+
+Values for vectors can be passed either as a vector expression or as a white-space separated string,
+independently of the initial format:
+{;
+	\#{runScript}: “interesting times.praat”, { 0.3, 0.5, 0.7, 2.0 }, “18000 0.3”
+}
+
+You can pass values for #boolean either as the quoted strings “yes” and “no” (or their variants) or as the unquoted numbers 1 and 0.
+
+In #`runScript`, the path to the external script, as well as the paths to #`infile`, #`outfile` and #`folder` parameters
+are taken relative to the folder of the current script. For instance, suppose that the current script is
+`/Users/miep/research/project19/analyse.praat` and contains:
+{;
+	\#{runScript}: “../usefulScripts/playFile.praat”, “sounds/sound3.wav”
+}
+then running the current script will run the above-mentioned script `/Users/miep/research/usefulScripts/playFile.praat`,
+which will play the file `/Users/miep/research/project19/sounds/sound3.wav`.
+
+################################################################################
+"Scripting 6.2. Writing to the Info window"
+© Paul Boersma 2022-12-02,2025
+
+With the @Info button and several commands in the @@Query submenu@ (or with query commands in menus in the editors),
+you write to the @@Info window@ (if your program is run from the command line,
+the text goes to the console window or to %stdout instead; see @@Scripting 6.9. Calling from the command line|\\SS6.9).
+
+The commands @`writeInfo`, @`writeInfoLine`, @`appendInfo` and @`appendInfoLine`
+allow you to write to the Info window from a script. Those with #`write` in their name clear the Info window
+before they write to it, those with #`append` in their name do not. Those with #`Line` in their name make sure
+that a following #`appendInfo` or #`appendInfoLine` will write on the next line.
+
+These four functions take a variable number of numeric and/or string arguments, separated by commas.
+Here is an example:
+{
+	\`{writeInfoLine}: “Pitch extrema:”
+	Create Sound as pure tone: “sine”, 1, 0, 0.1, 44100, 377, 0.2, 0.01, 0.01
+	To Pitch: 0.01, 75, 600
+	minimum = Get minimum: 0, 0, “hertz”, “parabolic”
+	\`{appendInfoLine}: "Minimum: ", minimum, " Hz"
+	maximum = Get maximum: 0, 0, “hertz”, “parabolic”
+	\`{appendInfoLine}: "Maximum: ", maximum, " Hz"
+}
+
+The following script builds a table with statistics about a pitch contour:
+{
+	\`{writeInfoLine}: “Minimum”, tab$, “Maximum”
+	\`{appendInfo}: fixed$ (minimum, 3)
+	\`{appendInfo}: tab$
+	\`{appendInfo}: fixed$ (maximum, 3)
+	\`{appendInfoLine}: “”
+}
+The little string #`tab$` is a %tab character; it allows you to create
+table files that can be read by some spreadsheet programs. The little string #`newline$` is a %newline character;
+it moves the following text to the next line.
+
+You could combine the last four print statements into:
+{
+	\`{appendInfoLine}: fixed$ (minimum, 3), tab$, fixed$ (maximum, 3)
+}
+which is the same as:
+{
+	\`{appendInfo}: fixed$ (minimum, 3), tab$, fixed$ (maximum, 3), newline$
+}
+
+To clear the Info window, you can do
+{
+	\`{writeInfo}: “”
+}
+or
+{
+	\`{clearinfo}
+}
+
+################################################################################
+"Scripting 6.3. Query commands"
+© Paul Boersma 2014-01-07
+
+If you click the ##Get mean...# command for a Pitch object,
+the Info window will contain a text like “150 Hz” as a result. In a script, you would rather
+have this result in a variable instead of in the Info window. The solution is simple:
+{;
+	mean = Get mean: 0, 0, “Hertz”, “Parabolic”
+}
+The numeric variable %mean now contains the number 150. When assigning to a numeric variable,
+the interpreter converts the part of the text before the first space into a number.
+
+You can also assign to string variables:
+{;
+	mean$ = Get mean: 0, 0, “Hertz\", “Parabolic”
+}
+The string variable %`mean$` now contains the entire string “150 Hz”.
+
+This works for every command that would otherwise write into the Info window.
+
+################################################################################
+"Scripting 6.4. Files"
+© Paul Boersma 2020-12-29
+
+You can read from and write to text files from a Praat script.
+
+Reading a file
+==============
+
+You can check the availability of a file for reading with the function
+{;
+	\#`{fileReadable} (\%{fileName$})
+}
+which returns 1 (true) if the file exists and can be read, and 0 (false) otherwise.
+Note that %`fileName$` is taken relatively to the folder where the script is saved;
+for instance, if your script is in the folder `Paolo/project1`, then the file name
+“hello.wav” refers to `Paolo/project1/hello.wav`, the file name “yesterday/hello.wav”
+refers to `Paolo/project1/yesterday/hello.wav`, and the file name “../project2/hello.wav”
+refers to `Paolo/project2/hello.wav` (“..” goes one folder up).
+You can also use full path names such as `C:/Users/Paolo/project1/hello.wav`
+on Windows and `/Users/Paolo/project1/hello.wav` on the Mac.
+
+To read the contents of an existing text file into a string variable or into a numeric variable, you use
+{;
+	text$ = \#`{readFile$} (“myFile.txt”)
+}
+or
+{;
+	number = \#`{readFile} (“myFile.txt”)
+}
+If the file does not exist, the script terminates with an error message.
+
+Example: reading a settings file
+================================
+
+Suppose that the file `height.inf` may contain an appropriate value for a numeric variable
+called `height`, which we need to use in our script. We would like to read it with
+{;
+	height = \#`{readFile} (“height.inf”)
+}
+
+However, this script will fail if the file `height.inf` does not exist. To guard
+against this situation, we could check the existence of the file, and supply a default
+value in case the file does not exist:
+{;
+	fileName$ = “height.inf”
+	\#{if} \#`{fileReadable} (fileName$)
+		height = \#`{readFile} (fileName$)
+	\#{else}
+		height = 180
+	\#{endif}
+}
+
+Writing a file
+==============
+
+You write into a new text file just as you write into the Info window:
+{;
+	\#`{writeFileLine}: “myFile.txt”, “The present year is ”, 2000 + 13, “.”
+}
+and likewise you use @`writeFile` if you don't want a newline symbol at the end of the file.
+If the file cannot be created, the script terminates with an error message.
+
+To append text at the end of an existing file, you use
+{;
+	\#`{appendFileLine}: “myFile.txt”, “Next year it will be ”, 2000 + 14, “.”
+}
+
+With @`appendFileLine` (and @`appendFile`, which does not add the newline),
+we follow the rule that if the file does not yet exist, it is created first.
+
+You can create a folder (directory) with
+{;
+	\#`{createFolder}: \%{folderPath$}
+}
+where, as with file names, %`folderPath$` can be relative to the folder of the script
+(e.g. “`data`”, or “`yesterday/data`”, or “`../project2/yesterday/data`”)
+or an absolute path (e.g. `C:/Users/Paolo/project1/yesterday/data` on Windows
+or “/Users/Paolo/project1/yesterday/data” on the Mac).
+If the folder already exists, this command does nothing.
+
+You can delete an existing file with the function
+{;
+	\#`{deleteFile}: \%{fileName$}
+}
+If the file does not exist, this command does nothing.
+
+Example: writing a table of squares
+===================================
+
+Suppose that we want to create a file with the following 100 lines of text:
+`
+	The square of 1 is 1
+	The square of 2 is 4
+	The square of 3 is 9
+	...")
+	The square of 100 is 10000
+`
+
+We can do this by appending 100 lines:
+{;
+	\#`{deleteFile}: “squares.txt”
+	\#{for} i \#{to} 100
+		\#`{appendFileLine}: “squares.txt”, “The square of ”, i, “ is ”, i * i
+	\#{endfor}
+}
+Note that we delete the file before appending to it,
+in order that we do not append to an already existing file.
+
+You can append the contents of the Info window to a file with
+{;
+	\#`{appendFile}: “out.txt”, info$ ( )")
+}
+
+Folder listings
+===============
+
+To get the names of the files if a certain type in a certain folder, use
+{;
+	fileNames$# = \#`{fileNames$#}: \%{path$}
+}
+
+For instance, to read in all the sound files in a specified folder,
+you could use the following script:
+{;
+	folder$ = “/usr/people/miep/sounds”
+	soundFileNames$# = \#`{fileNames$#} (folder$ + “/*.wav”)
+	\#{for} ifile \#{to} \`{size} (soundFileNames$#)
+		\@{Read from file:} folder$ + “/” + soundFileNames$# [ifile]
+	\#{endfor}
+}
+
+Alternative syntax
+==================
+
+If, on the basis of the syntax of commands and functions in earlier sections you expected that
+{;
+	text$ = \#`{readFile$} (“myFile.txt”)
+	number = \#`{readFile} (“myFile.txt”)
+}
+could be written as
+{;
+	text$ = \#`{readFile$}: “myFile.txt”
+	number = \#`{readFile}: “myFile.txt”
+}
+then you are right. The syntax with the colon is equivalent to the syntax with the two parentheses. Conversely, instead of
+{;
+	\#`{deleteFile}: \%{fileName$}
+}
+you can also write
+{;
+	\#`{deleteFile} (\%{fileName$})
+}
+
+################################################################################
 "Scripting 6.5. Calling system commands"
-© Paul Boersma 2020,2023
+© Paul Boersma 2020,2023,2025
 
 From a Praat script you can call system commands.
 These are the same commands that you would normally type into a terminal window or into the Windows command line prompt.
@@ -2341,19 +2672,20 @@ The syntax is the same as that of the @`writeInfo` command.
 
 Most system commands are different on different platforms.
 For instance, to throw away all WAV files in the folder whose path (relative to the script’s folder) is
-in the variable `folder$`, you would write
+in the variable `folder$` (and you are VERY SURE that this name contains NO SPACES OR SPECIAL CHARACTERS),
+you could write
 {;
-	\`{runSystem}: "del ", folder$, "\*.wav"
+	\#`{runSystem}: "del ", folder$, "\*.wav"   ; DANGEROUS
 }
 on Windows, but
 {;
-	\`{runSystem}: "rm ", folder$, "/*.wav"
+	\#`{runSystem}: "rm ", folder$, "/*.wav"   ; DANGEROUS
 }
 on Macintosh and Linux.
 
 The script will stop running if a system command returns an error. For instance,
 {;
-	\`{runSystem}: "rm ", folder$, "/*.wav"
+	\#`{runSystem}: "rm ", folder$, "/*.wav"   ; DANGEROUS
 }
 will stop the script if there are no WAV files in the folder,
 with a message like “No such file or directory”.
@@ -2362,14 +2694,21 @@ In order to prevent this, you can tell Praat to ignore the return value of \@{ru
 
 Thus, to make sure that the folder contains no WAV files, you would write
 {;
-	\#{runSystem_nocheck}: "rm ", folder$, "/*.wav"
+	\#{runSystem_nocheck}: "rm ", folder$, "/*.wav"   ; DANGEROUS
 }
+
+Typically, howver, the use of @`runSystem` or #`runSystem_nocheck` is DANGEROUS:
+if the string `folder$` contains spaces and semicolons and slashes, for instance,
+you may lose all files on your computer or install malware without noticing it;
+you really have to have full control over your files and know exactly what you are doing
+before you use @`runSystem` or #`runSystem_nocheck`.
+
 Getting the values of system variables
 ======================================
 #`environment$` (%`symbol-string`)
 : returns the value of an environment variable, e.g.
 {;
-		homeFolder$ = \`{environment$} ("HOME")
+		homeFolder$ = \#`{environment$} ("HOME")
 }
 Getting system duration
 =======================
@@ -2379,16 +2718,16 @@ Getting system duration
 Here is a Praat script that measures how long it takes to do a hundred thousand assignments on your computer
 (if you are reading this in Praat’s own Help, not on the web):
 {
-	stopwatch
+	\#`{stopwatch}
 	for i to 100000
 		a = 1.23456789e123
 	endfor
-	time = stopwatch
-	writeInfoLine: a, " ", fixed$ (time, 3)
+	time = \#`{stopwatch}
+	\`{writeInfoLine}: a, " ", fixed$ (time, 3)
 }
 How many nanoseconds is that per assignment?
 {
-	writeInfoLine: round (time / 100000 * 1e9)
+	\`{writeInfoLine}: round (time / 100000 * 1e9)
 }
 )~~~"
 MAN_PAGES_END
@@ -2592,7 +2931,7 @@ CODE (U"nocheck Remove")
 NORMAL (U"This would cause the script to continue even if there is nothing to remove.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6.9. Calling from the command line", U"ppgb", 20220122)   // 2023
+MAN_BEGIN (U"Scripting 6.9. Calling from the command line", U"ppgb", 20220122)   // 2023 2025
 INTRO (U"Previous sections of this tutorial have shown you how to run a Praat script from the Script window. "
 	"However, you can also call a Praat script from the command line (text console) instead. "
 	"Information that would normally show up in the Info window, then goes to %stdout, "
@@ -2719,6 +3058,14 @@ NORMAL (U"This works the same way as `--run`, except that `--send` runs in Praat
 	"If Praat is already running, then that instance of Praat will execute your script. "
 	"If Praat is not running yet, then a new GUI instance of Praat will start up and execute your script. "
 	"To always start up a new instance of Praat, use `--new-send` instead of `--send`.")
+NORMAL (U"If you use")
+CODE (U"\"C:\\Program Files\\Praat.exe\" --send-or-form testCommandLineCalls.praat")
+CODE (U"/Applications/Praat.app/Contents/MacOS/Praat --send-or-form testCommandLineCalls.praat")
+CODE (U"/usr/bin/praat --send-or-form testCommandLineCalls.praat")
+NORMAL (U"then Praat will present the above form that asks for the three arguments "
+	"(if you use `--send-or-form` with a script that has no `form` in it, it will work the same as `--send`). "
+	"This switch is useful if you want to implement a Praat connection for interfacing with an IDE such as Microsoft\\re Visual Studio Code\\tm. "
+	"To always start up a new instance of Praat, use `--new-send-or-form` instead of `--send-or-form`.")
 NORMAL (U"See also %sendpraat (see @@Scripting 8. Controlling Praat from another program@).")
 
 ENTRY (U"7. Calling Praat from other programs such as Python")

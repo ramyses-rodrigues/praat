@@ -13,18 +13,27 @@ Scripting 5.6. Arrays and dictionaries
 </b></font></table></table>
 <p>You can use arrays of numeric and string variables:</p>
 <code>   <b>for</b> i <b>from</b> 1 <b>to</b> 5<br></code>
-<code>      square [i] = i * i<br></code>
-<code>      text$ [i] = mid$ ("hello", i)<br></code>
+<code>       square [i] = i * i<br></code>
+<code>       text$ [i] = <a href="_mid-S_.html">mid$</a> (“hello”, i)<br></code>
 <code>   <b>endfor</b><br></code>
-<p>After this, the variables <code><font size=+1>square[1]</font></code>, <code><font size=+1>square[2]</font></code>, <code><font size=+1>square[3]</font></code>, <code><font size=+1>square[4]</font></code>, <code><font size=+1>square[5]</font></code>, <code><font size=+1>text$[1]</font></code>, <code><font size=+1>text$[2]</font></code>, <code><font size=+1>text$[3]</font></code>, <code><font size=+1>text$[4]</font></code>, and <code><font size=+1>text$[5]</font></code> contain the values 1, 4, 9, 16, 25, "h", "e", "l", "l", and "o", respectively:</p>
-<code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: "Some squares:"<br></code>
+<p>After this, the variables <code><font size=+1>square[1]</font></code>, <code><font size=+1>square[2]</font></code>, <code><font size=+1>square[3]</font></code>, <code><font size=+1>square[4]</font></code>, <code><font size=+1>square[5]</font></code>, <code><font size=+1>text$[1]</font></code>, <code><font size=+1>text$[2]</font></code>, <code><font size=+1>text$[3]</font></code>, <code><font size=+1>text$[4]</font></code>, and <code><font size=+1>text$[5]</font></code> contain the values 1, 4, 9, 16, 25, &#8220;h&#8221;, &#8220;e&#8221;, &#8220;l&#8221;, &#8220;l&#8221;, and &#8220;o&#8221;, respectively:</p>
+<code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: “Some squares:”<br></code>
 <code>   <b>for</b> i <b>from</b> 1 <b>to</b> 5<br></code>
-<code>      <b>appendInfoLine</b>: “The square of ”, i, “ is ”, square [i]<br></code>
+<code>       <a href="_appendInfoLine_.html">appendInfoLine</a>: “The square of ”, i, “ is ”, square [i]<br></code>
 <code>   <b>endfor</b><br></code>
-<p>In the examples above, the <i>index</i> into the array was always a number.  A <i>hash</i> or <i>dictionary</i> is an array variable where the index is a string:</p>
+<code style="color:red">=&gt;</code><br>
+<code>   Some squares:<br></code>
+<code>   The square of 1 is 1<br></code>
+<code>   The square of 2 is 4<br></code>
+<code>   The square of 3 is 9<br></code>
+<code>   The square of 4 is 16<br></code>
+<code>   The square of 5 is 25<br></code>
+<p>In the examples above, the <i>index</i> into the array was always a number. A <i>hash</i> or <i>dictionary</i> is an array variable where the index is a string:</p>
 <code>   age [“John”] = 36<br></code>
 <code>   age [“Babs”] = 39<br></code>
 <code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: “John is ”, age [“John”], “ years old.”<br></code>
+<code style="color:red">=&gt;</code><br>
+<code>   John is 36 years old.<br></code>
 <h2>See also</h2>
 <p>You can use any number of array and dictionary variables in a script, but for many applications, namely whenever it were useful to look at a numeric array as a single object, it may be better to use vectors and matrices (see <a href="Scripting_5_7__Vectors_and_matrices.html">Scripting 5.7. Vectors and matrices</a>) or to use Matrix or Sound objects.</p>
 <h3>Links to this page</h3>
@@ -35,7 +44,7 @@ Scripting 5.6. Arrays and dictionaries
 </ul>
 <hr>
 <address>
-	<p>© ppgb 20170718</p>
+	<p>© Paul Boersma 2017-07-18,2025</p>
 </address>
 </body>
 </html>

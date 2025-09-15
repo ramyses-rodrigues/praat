@@ -12,10 +12,10 @@
 Scripting 6.3. Query commands
 </b></font></table></table>
 <p>If you click the <b>Get mean...</b> command for a Pitch object, the Info window will contain a text like &#8220;150 Hz&#8221; as a result. In a script, you would rather have this result in a variable instead of in the Info window. The solution is simple:</p>
-<code>   mean = Get mean: 0, 0, "Hertz", "Parabolic"<br></code>
+<code>   mean = Get mean: 0, 0, “Hertz”, “Parabolic”<br></code>
 <p>The numeric variable <i>mean</i> now contains the number 150. When assigning to a numeric variable, the interpreter converts the part of the text before the first space into a number.</p>
 <p>You can also assign to string variables:</p>
-<code>   mean$ = Get mean: 0, 0, "Hertz", "Parabolic"<br></code>
+<code>   mean$ = Get mean: 0, 0, “Hertz\", “Parabolic”<br></code>
 <p>The string variable <i><code><font size=+1>mean$</font></code></i> now contains the entire string &#8220;150 Hz&#8221;.</p>
 <p>This works for every command that would otherwise write into the Info window.</p>
 <h3>Links to this page</h3>
@@ -27,7 +27,7 @@ Scripting 6.3. Query commands
 </ul>
 <hr>
 <address>
-	<p>© ppgb 20140107</p>
+	<p>© Paul Boersma 2014-01-07</p>
 </address>
 </body>
 </html>

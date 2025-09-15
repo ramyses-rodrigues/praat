@@ -29,6 +29,17 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.43# (14 September 2025)
+• Calling Praat from the command line: the new switch `--send-or-form` sends a script
+  to a different already running GUI instance of Praat, like `--send` does,
+  but takes no arguments (except for the name of the script file)
+  and presents a form on the screen if the script has a `form` in it.
+• More detailed manual page for @`fileNames$#` ().
+
+##6.4.42# (28 August 2025)
+• Recognize more OGG sound files.
+• Recognize the pre-2025 `sendpraat` message on Windows again (compatibility with Elan 7.0).
+
 ##6.4.41# (21 August 2025)
 • Faster computation of some formants (because of multithreading).
 • Removed a bug that caused Praat to crash on @@Sound: To Formant (robust)...@.

@@ -146,7 +146,7 @@ See @@Intro 3. Spectral analysis@
 ,	@@FAQ: Scripts
 
 // Hardware
-// Pitch: octave errors */
+// Pitch: octave errors
 
 ################################################################################
 "FAQ: Formant analysis"
@@ -194,215 +194,305 @@ Boersma, Paul (2001). Praat, a system for doing phonetics by computer.
 %%Glot International% ##5:9/10#, 341-345.
 
 This paper can be downloaded from Boersma’s website.
+
 ################################################################################
-)~~~"
-MAN_PAGES_END
+"FAQ: Pitch analysis"
+© Paul Boersma, 2002,2006,2022-2024
 
-MAN_BEGIN (U"FAQ: Pitch analysis", U"ppgb", 20231115)   // 20221202 2024
-NORMAL (U"Please also consult @@how to choose a pitch analysis method@.")
-NORMAL (U"#Question: what algorithm is used for pitch analysis?")
-NORMAL (U"Answer: for how the raw pitch analysis method works, "
-	"see @@Sound: To Pitch (ac)...@. The 1993 article is downloadable from "
-	"https://www.fon.hum.uva.nl/paul/")
-NORMAL (U"#Question: why does Praat consider my sound voiceless while I hear it as voiced?")
-NORMAL (U"There are at least five possibilities. Most of them can be checked by zooming in on the @waveform.")
-NORMAL (U"The first possibility is that the pitch has fallen below the @@pitch floor@. For instance, "
-	"your pitch floor could be 50 Hz but the English speaker produces creak at the end of the utterance. "
-	"Or your pitch floor could be 50 Hz but the Chinese speaker is in the middle of a third tone. "
-	"If this happens, it may help to lower the pitch floor to e.g. 30 Hz (@@Pitch settings...@), "
-	"although that may also smooth the pitch curve too much in other places.")
-NORMAL (U"The second possibility is that the pitch has moved too fast. This could happen at the end of a Chinese fourth tone, "
-	"which drops very fast. If this happens, it may help to use @@pitch analysis by raw cross-correlation@, "
-	"although Praat may then hallucinate pitches in other places that you would prefer to consider voiceless.")
-NORMAL (U"The third possibility is that the periods are very irregular, as in some pathological voices. "
-	"If you want to see a pitch in those cases, it may help to use @@pitch analysis by raw cross-correlation@. "
-	"Or it may help to lower the ##voicing threshold# setting "
-	"to 0.25 (instead of the standard 0.50) or so (@@Pitch settings...@).")
-NORMAL (U"The fourth possibility is that there is a lot of background noise, as in a recording on a busy street. "
-	"In such a case, it may help to lower the ##voicing threshold# setting "
-	"to 0.25 (instead of the standard 0.50) or so. The disadvantage of lowering this setting is that for non-noisy "
-	"recordings, Praat will become too eager to find voicing in some places that you would prefer to consider voiceless; "
-	"so make sure to set it back to 0.50 once you have finished analysing the noisy recordings.")
-NORMAL (U"The fifth possibility is that the part analysed as voiceless is much less loud than the rest of the sound, "
-	"or that the sound contains a loud noise elsewhere. This can be checked by zooming in on the part analysed as voiceless: "
-	"if Praat suddenly considers it as voiced, this is a sign that this part is much quieter than the rest. "
-	"To make Praat analyse this part as voiced, you can lower the ##silence threshold# setting to 0.01 "
-	"(instead of the standard 0.09) or so. The disadvantage of lowering this setting is that Praat may start to consider "
-	"some distant background sounds (and quiet echos, for instance) as voiced.")
-NORMAL (U"#Question: why do I get different results for the maximum pitch if...?")
-NORMAL (U"If you select a Sound and choose @@Sound: To Pitch (filtered ac)...@, the time step will usually "
-	"be 0.015 seconds. The resulting @Pitch object will have values for times that are "
-	"0.015 seconds apart. If you then click Info or choose ##Get maximum pitch# from the @@Query submenu@, "
-	"the result is based on those time points. By contrast, if you choose ##Get maximum pitch# "
-	"from the @@Pitch menu@ in the SoundEditor window, the result will be based on the visible points, "
-	"of which there tend to be a hundred in the visible window. These different time spacings will "
-	"lead to slightly different pitch contours.")
-NORMAL (U"If you choose ##Move cursor to maximum pitch#, then choose ##Get pitch# from the "
-	"@@Pitch menu@, the result will be different again. This is because ##Get maximum pitch# "
-	"can do a parabolic interpolation around the maximum, whereas ##Get pitch#, not realizing "
-	"that the cursor is at a maximum, does a stupid linear interpolation, which tends to lead to "
-	"lower values.")
-MAN_END
+Please also consult @@how to choose a pitch analysis method@.
 
-MAN_BEGIN (U"FAQ: Scripts", U"ppgb", 20230201)
-NORMAL (U"#Question: how do I do something to all the files in a directory?")
-NORMAL (U"Answer: look at `fileNames$#` () or @@Create Strings as file list...@.")
-NORMAL (U"")
-NORMAL (U"#Question: why doesn't the editor window react to my commands?")
-NORMAL (U"Your commands are probably something like:")
-CODE (U"Read from file: “hello.wav”")
-CODE (U"View & Edit")
-CODE (U"Zoom: 0.3, 0.5")
-NORMAL (U"Answer: Praat doesn’t know it has to send the #Zoom command to the editor "
-	"window called ##14. Sound hello#. There could be several Sound editor windows on your "
-	"screen. According to @@Scripting 7.1. Scripting an editor from a shell script@, "
-	"you will have to say this explicitly:")
-CODE (U"Read from file: “hello.wav”")
-CODE (U"View & Edit")
-CODE (U"editor: “Sound hello”")
-CODE (U"Zoom: 0.3, 0.5")
-NORMAL (U"")
-NORMAL (U"#Problem: a line like “%`Number = 1`” does not work.")
-NORMAL (U"Solution: names of variables should start with a lower-case letter.")
-NORMAL (U"")
-NORMAL (U"#Question: why do names of variables have to start with a lower-case letter? "
-	"I would like to do things like “`F0 = Get mean pitch`”.")
-NORMAL (U"Answer: Praat scripts combine button commands with things that only occur "
-	"in scripts. Button commands always start with a capital letter, e.g. `Play` (there is a button #Play). "
-	"Script commands always start with lower case, e.g. `writeInfoLine: “Hello”` "
-	"($writeInfoLine is a built-in function). "
-	"A minimal pair is “$select”, which simulates a mouse click in the object list, "
-	"versus “`Select...`”, which sets the selection in editor windows. If we allowed initial capitals, "
-	"variable names would become rather ambiguous in assignments, "
-	"as in “`x = Get`”, where “%`Get`” would be a variable, versus “`x = Get mean`”, "
-	"where ##Get mean# is a button command. To prevent this confusion, Praat enforces "
-	"a rigorous lower-case/upper-case distinction.")
-NORMAL (U"")
-NORMAL (U"#Question: how do I convert a number into a string?")
-NORMAL (U"Answer: `a$ = string$ (a)`")
-NORMAL (U"#Question: how do I convert a string into a number?")
-NORMAL (U"Answer: `a = number (a$)`")
-MAN_END
+#Question: what algorithm is used for pitch analysis?
 
-MAN_BEGIN (U"FAQ: Spectrograms", U"ppgb", 20030916)
-NORMAL (U"#Problem: the background is grey instead of white (too little contrast)")
-NORMAL (U"Solution: reduce the ##Dynamic range# in the spectrogram settings. The standard value is 50 dB, "
-	"which is fine for detecting small things like plosive voicing in well recorded speech. "
-	"For gross features like vowel formants, or for noisy speech, you may want to change the dynamic range "
-	"to 40 or even 30 dB.")
-MAN_END
+Answer: for how the raw pitch analysis method works,
+see @@Sound: To Pitch (ac)...@. The 1993 article is downloadable from
+https://www.fon.hum.uva.nl/paul/
 
-MAN_BEGIN (U"File menu", U"ppgb", 20021204)
-INTRO (U"One of the menus in all @editors, in the @manual, and in the @@Picture window@.")
-MAN_END
+#Question: why does Praat consider my sound voiceless while I hear it as voiced?
 
-MAN_BEGIN (U"Filtering", U"ppgb", 20100324)
-INTRO (U"This tutorial describes the use of filtering techniques in Praat. "
-	"It assumes you are familiar with the @Intro.")
-ENTRY (U"Frequency-domain filtering")
-NORMAL (U"Modern computer techniques make possible an especially simple batch filtering method: "
-	"multiplying the complex spectrum in the frequency domain by any real-valued filter function. "
-	"This leads to a zero phase shift for each frequency component. The impulse response is symmetric "
-	"in the time domain, which also means that the filter is %acausal: the filtered signal will show components "
-	"before they start in the original.")
-LIST_ITEM (U"• @@Spectrum: Filter (pass Hann band)...@")
-LIST_ITEM (U"• @@Spectrum: Filter (stop Hann band)...@")
-LIST_ITEM (U"• @@Sound: Filter (pass Hann band)...@")
-LIST_ITEM (U"• @@Sound: Filter (stop Hann band)...@")
-LIST_ITEM (U"• @@Sound: Filter (formula)...@")
-NORMAL (U"Spectro-temporal:")
-LIST_ITEM (U"• @@band filtering in the frequency domain@")
-ENTRY (U"Fast time-domain filtering")
-NORMAL (U"Some very fast Infinite Impulse Response (IIR) filters can be defined in the time domain. "
-	"These include recursive all-pole filters and pre-emphasis. These filters are causal but have non-zero phase shifts. "
-	"There are versions that create new Sound objects:")
-LIST_ITEM (U"• @@Sound: Filter (one formant)...@")
-LIST_ITEM (U"• @@Sound: Filter (pre-emphasis)...@")
-LIST_ITEM (U"• @@Sound: Filter (de-emphasis)...@")
-NORMAL (U"And there are in-place versions, which modify the existing Sound objects:")
-LIST_ITEM (U"• @@Sound: Filter with one formant (in-place)...@")
-LIST_ITEM (U"• @@Sound: Pre-emphasize (in-place)...@")
-LIST_ITEM (U"• @@Sound: De-emphasize (in-place)...@")
-ENTRY (U"Convolution")
-NORMAL (U"A Finite Impulse Response (FIR) filter can be described as a sampled sound. "
-	"Filtering with such a filter amounts to a %#convolution of the original sound and the filter:")
-LIST_ITEM (U"• @@Sounds: Convolve...@")
-ENTRY (U"Described elsewhere")
-NORMAL (U"Described in the @@Source-filter synthesis@ tutorial:")
-LIST_ITEM (U"• @@Sound & Formant: Filter@")
-LIST_ITEM (U"• @@Sound & FormantGrid: Filter@")
-LIST_ITEM (U"• @@LPC & Sound: Filter...@")
-LIST_ITEM (U"• @@LPC & Sound: Filter (inverse)@")
-MAN_END
+There are at least five possibilities. Most of them can be checked by zooming in on the @waveform.
 
-MAN_BEGIN (U"Formants menu", U"ppgb", 20221202)
-INTRO (U"A menu in the @SoundEditor or @TextGridEditor.")
-MAN_END
+The first possibility is that the pitch has fallen below the @@pitch floor@. For instance,
+your pitch floor could be 50 Hz but the English speaker produces creak at the end of the utterance.
+Or your pitch floor could be 50 Hz but the Chinese speaker is in the middle of a third tone.
+If this happens, it may help to lower the pitch floor to e.g. 30 Hz (@@Pitch settings...@),
+although that may also smooth the pitch curve too much in other places.
 
-MAN_BEGIN (U"Formants & LPC menu", U"ppgb", 20011107)
-INTRO (U"A menu that occurs in the @@Dynamic menu@ for a @Sound.")
-NORMAL (U"This menu contains commands for analysing the formant contours of the selected Sound:")
-LIST_ITEM (U"@@Sound: To Formant (burg)...")
-LIST_ITEM (U"@@Sound: To Formant (keep all)...")
-LIST_ITEM (U"@@Sound: To Formant (sl)...")
-LIST_ITEM (U"@@Sound: To LPC (autocorrelation)...")
-LIST_ITEM (U"@@Sound: To LPC (covariance)...")
-LIST_ITEM (U"@@Sound: To LPC (burg)...")
-LIST_ITEM (U"@@Sound: To LPC (marple)...")
-LIST_ITEM (U"@@Sound: To MFCC...")
-MAN_END
+The second possibility is that the pitch has moved too fast. This could happen at the end of a Chinese fourth tone,
+which drops very fast. If this happens, it may help to use @@pitch analysis by raw cross-correlation@,
+although Praat may then hallucinate pitches in other places that you would prefer to consider voiceless.
 
-MAN_BEGIN (U"Get first formant", U"ppgb", 20221202)
-INTRO (U"One of the query commands in the @@Formants menu@ of the @SoundEditor and the @TextGridEditor.")
-MAN_END
+The third possibility is that the periods are very irregular, as in some pathological voices.
+If you want to see a pitch in those cases, it may help to use @@pitch analysis by raw cross-correlation@.
+Or it may help to lower the ##voicing threshold# setting
+to 0.25 (instead of the standard 0.50) or so (@@Pitch settings...@).
 
-MAN_BEGIN (U"Get pitch", U"ppgb", 20221202)
-INTRO (U"One of the query commands in the @@Pitch menu@ of the @SoundEditor and the @TextGridEditor.")
-MAN_END
+The fourth possibility is that there is a lot of background noise, as in a recording on a busy street.
+In such a case, it may help to lower the ##voicing threshold# setting
+to 0.25 (instead of the standard 0.50) or so. The disadvantage of lowering this setting is that for non-noisy
+recordings, Praat will become too eager to find voicing in some places that you would prefer to consider voiceless;
+so make sure to set it back to 0.50 once you have finished analysing the noisy recordings.
 
-MAN_BEGIN (U"Get second formant", U"ppgb", 20221202)
-INTRO (U"One of the query commands in the @@Formants menu@ of the @SoundEditor and the @TextGridEditor.")
-MAN_END
+The fifth possibility is that the part analysed as voiceless is much less loud than the rest of the sound,
+or that the sound contains a loud noise elsewhere. This can be checked by zooming in on the part analysed as voiceless:
+if Praat suddenly considers it as voiced, this is a sign that this part is much quieter than the rest.
+To make Praat analyse this part as voiced, you can lower the ##silence threshold# setting to 0.01
+(instead of the standard 0.09) or so. The disadvantage of lowering this setting is that Praat may start to consider
+some distant background sounds (and quiet echos, for instance) as voiced.
 
-MAN_BEGIN (U"Goodies", U"ppgb", 20050822)
-INTRO (U"The title of a submenu of the @@Praat menu@.")
-MAN_END
+#Question: why do I get different results for the maximum pitch if...?
 
-MAN_BEGIN (U"Info", U"ppgb", 19980101)
-INTRO (U"One of the fixed buttons in the @@Objects window@.")
-ENTRY (U"Availability")
-NORMAL (U"You can choose this command after choosing one object.")
-ENTRY (U"Purpose")
-NORMAL (U"To get some information about the selected object.")
-ENTRY (U"Behaviour")
-NORMAL (U"The information will appear in the @@Info window@.")
-MAN_END
+If you select a Sound and choose @@Sound: To Pitch (filtered ac)...@, the time step will usually
+be 0.015 seconds. The resulting @Pitch object will have values for times that are
+0.015 seconds apart. If you then click Info or choose ##Get maximum pitch# from the @@Query submenu@,
+the result is based on those time points. By contrast, if you choose ##Get maximum pitch#
+from the @@Pitch menu@ in the SoundEditor window, the result will be based on the visible points,
+of which there tend to be a hundred in the visible window. These different time spacings will
+lead to slightly different pitch contours.
 
-MAN_BEGIN (U"Info window", U"ppgb", 20030528)   // 2023
-INTRO (U"A text window into which many query commands write their answers.")
-NORMAL (U"You can select text from this window and copy it to other places.")
-NORMAL (U"In a @@Praat script@, you can bypass the Info window by having a query command "
-	"writing directly into a script variable.")
-NORMAL (U"Apart from the @Info command, which writes general information about the selected object, "
-	"most commands in any @@Query submenu@ also write into the Info window.")
-MAN_END
+If you choose ##Move cursor to maximum pitch#, then choose ##Get pitch# from the
+@@Pitch menu@, the result will be different again. This is because ##Get maximum pitch#
+can do a parabolic interpolation around the maximum, whereas ##Get pitch#, not realizing
+that the cursor is at a maximum, does a stupid linear interpolation, which tends to lead to
+lower values.
 
-MAN_BEGIN (U"Inspect", U"ppgb", 19960904)
-INTRO (U"One of the fixed buttons in the @@Objects window@.")
-NORMAL (U"You can use this command after selecting one object in the list.")
-NORMAL (U"The contents of the selected object will become visible in a Data Editor. "
-	"You can then view and change the data in the object, "
-	"but beware: changing the data directly in this way may render them inconsistent.")
-NORMAL (U"Changes that you make to the data with another Editor (e.g., a SoundEditor), "
-	"or with the commands under #%Modify, "
-	"are immediately reflected in the top-level Data Editor; "
-	"any subeditors are destroyed, however, because they may now refer to invalid data.")
-NORMAL (U"Changes that you make to the data with a Data Editor, "
-	"are immediately reflected in any open type-specific Editors (e.g., a SoundEditor).")
-MAN_END
+################################################################################
+"FAQ: Scripts"
+© Paul Boersma 2001,2004,2011,2013,2014,2023
 
-MAN_PAGES_BEGIN
-R"~~~(
+#Question: how do I do something to all the files in a directory?
+
+Answer: look at @`fileNames$#` () or @@Create Strings as file list...@.
+,
+
+#Question: why doesn't the editor window react to my commands?
+
+Your commands are probably something like:
+{;
+	Read from file: “hello.wav”
+	View & Edit
+	Zoom: 0.3, 0.5
+}
+
+Answer: Praat doesn’t know it has to send the #Zoom command to the editor
+window called ##14. Sound hello#. There could be several Sound editor windows on your
+screen. According to @@Scripting 7.1. Scripting an editor from a shell script@,
+you will have to say this explicitly:
+{;
+	Read from file: “hello.wav”
+	View & Edit
+	editor: “Sound hello”
+	Zoom: 0.3, 0.5
+}
+,
+
+#Problem: a line like “%`Number = 1`” does not work.
+
+Solution: names of variables should start with a lower-case letter.
+,
+
+#Question: why do names of variables have to start with a lower-case letter?
+I would like to do things like “`F0 = Get mean pitch`”.
+
+Answer: Praat scripts combine button commands with things that only occur
+in scripts. Button commands always start with a capital letter, e.g. `Play` (there is a button #Play).
+Script commands always start with lower case, e.g. `writeInfoLine: “Hello”`
+($writeInfoLine is a built-in function).
+A minimal pair is “$select”, which simulates a mouse click in the object list,
+versus “`Select...`”, which sets the selection in editor windows. If we allowed initial capitals,
+variable names would become rather ambiguous in assignments,
+as in “`x = Get`”, where “%`Get`” would be a variable, versus “`x = Get mean`”,
+where ##Get mean# is a button command. To prevent this confusion, Praat enforces
+a rigorous lower-case/upper-case distinction.
+,
+
+#Question: how do I convert a number into a string?
+
+Answer: `a$ = string$ (a)`
+
+#Question: how do I convert a string into a number?
+
+Answer: `a = number (a$)`
+
+################################################################################
+"FAQ: Spectrograms"
+© Paul Boersma 2002,2003
+
+#Problem: the background is grey instead of white (too little contrast)
+
+Solution: reduce the ##Dynamic range# in the spectrogram settings. The standard value is 50 dB,
+which is fine for detecting small things like plosive voicing in well recorded speech.
+For gross features like vowel formants, or for noisy speech, you may want to change the dynamic range
+to 40 or even 30 dB.
+
+################################################################################
+"File menu"
+© Paul Boersma 2002
+
+One of the menus in all @editors, in the @manual, and in the @@Picture window@.
+
+################################################################################
+"Filtering"
+© Paul Boersma 2001,2003,2008,2010
+
+This tutorial describes the use of filtering techniques in Praat.
+It assumes you are familiar with the @Intro.
+
+Frequency-domain filtering
+==========================
+
+Modern computer techniques make possible an especially simple batch filtering method:
+multiplying the complex spectrum in the frequency domain by any real-valued filter function.
+This leads to a zero phase shift for each frequency component. The impulse response is symmetric
+in the time domain, which also means that the filter is %acausal: the filtered signal will show components
+before they start in the original.
+
+- @@Spectrum: Filter (pass Hann band)...@
+- @@Spectrum: Filter (stop Hann band)...@
+- @@Sound: Filter (pass Hann band)...@
+- @@Sound: Filter (stop Hann band)...@
+- @@Sound: Filter (formula)...@
+
+Spectro-temporal:
+
+- @@band filtering in the frequency domain@
+
+Fast time-domain filtering
+==========================
+
+Some very fast Infinite Impulse Response (IIR) filters can be defined in the time domain.
+These include recursive all-pole filters and pre-emphasis. These filters are causal but have non-zero phase shifts.
+There are versions that create new Sound objects:
+
+- @@Sound: Filter (one formant)...@
+- @@Sound: Filter (pre-emphasis)...@
+- @@Sound: Filter (de-emphasis)...@
+
+And there are in-place versions, which modify the existing Sound objects:
+
+- @@Sound: Filter with one formant (in-place)...@
+- @@Sound: Pre-emphasize (in-place)...@
+- @@Sound: De-emphasize (in-place)...@
+
+Convolution
+===========
+
+A Finite Impulse Response (FIR) filter can be described as a sampled sound.
+Filtering with such a filter amounts to a %#convolution of the original sound and the filter:
+
+- @@Sounds: Convolve...@
+
+Described elsewhere
+===================
+
+Described in the @@Source-filter synthesis@ tutorial:
+
+- @@Sound & Formant: Filter@
+- @@Sound & FormantGrid: Filter@
+- @@LPC & Sound: Filter...@
+- @@LPC & Sound: Filter (inverse)@
+
+################################################################################
+"Formants menu"
+© Paul Boersma 2022
+
+A menu in the @SoundEditor or @TextGridEditor.
+
+################################################################################
+"Formants & LPC menu"
+© Paul Boersma 2001
+
+A menu that occurs in the @@Dynamic menu@ for a @Sound.
+
+This menu contains commands for analysing the formant contours of the selected Sound:
+
+,	@@Sound: To Formant (burg)...
+,	@@Sound: To Formant (keep all)...
+,	@@Sound: To Formant (sl)...
+,	@@Sound: To LPC (autocorrelation)...
+,	@@Sound: To LPC (covariance)...
+,	@@Sound: To LPC (burg)...
+,	@@Sound: To LPC (marple)...
+,	@@Sound: To MFCC...
+
+################################################################################
+"Get first formant"
+© Paul Boersma 2001,2022
+
+One of the query commands in the @@Formants menu@ of the @SoundEditor and the @TextGridEditor.
+
+################################################################################
+"Get pitch"
+© Paul Boersma 2001,2022
+
+One of the query commands in the @@Pitch menu@ of the @SoundEditor and the @TextGridEditor.
+
+################################################################################
+"Get second formant"
+© Paul Boersma 2001,2022
+
+One of the query commands in the @@Formants menu@ of the @SoundEditor and the @TextGridEditor.
+
+################################################################################
+"Goodies"
+© Paul Boersma 2002,2005
+
+The title of a submenu of the @@Praat menu@.
+
+################################################################################
+"Info"
+© Paul Boersma 1996,1998
+
+One of the fixed buttons in the @@Objects window@.
+
+Availability
+============
+
+You can choose this command after choosing one object.
+
+Purpose
+=======
+
+To get some information about the selected object.
+
+Behaviour
+=========
+
+The information will appear in the @@Info window@.
+
+################################################################################
+"Info window"
+© Paul Boersma 1997,1998,2003,2023
+
+A text window into which many query commands write their answers.
+
+You can select text from this window and copy it to other places.
+
+In a @@Praat script@, you can bypass the Info window by having a query command
+writing directly into a script variable.
+
+Apart from the @Info command, which writes general information about the selected object,
+most commands in any @@Query submenu@ also write into the Info window.
+
+################################################################################
+"Inspect"
+© Paul Boersma 1996
+
+One of the fixed buttons in the @@Objects window@.
+
+You can use this command after selecting one object in the list.
+
+The contents of the selected object will become visible in a Data Editor.
+You can then view and change the data in the object,
+but beware: changing the data directly in this way may render them inconsistent.
+
+Changes that you make to the data with another Editor (e.g., a SoundEditor),
+or with the commands under #Modify,
+are immediately reflected in the top-level Data Editor;
+any subeditors are destroyed, however, because they may now refer to invalid data.
+
+Changes that you make to the data with a Data Editor,
+are immediately reflected in any open type-specific Editors (e.g., a SoundEditor).
+
 ################################################################################
 "Intro"
 © Paul Boersma 2003,2004,2007,2009,2011,2025
