@@ -21,7 +21,7 @@
 void manual_annotation_init (ManPages me);
 void manual_annotation_init (ManPages me) {
 
-MAN_BEGIN (U"Create TextGrid...", U"ppgb", 20101228)
+MAN_BEGIN (U"Create TextGrid...", U"ppgb", 20101228) // 2025
 INTRO (U"A command to create a @TextGrid from scratch.")
 ENTRY (U"Settings")
 TERM (U"##Start time (s)")
@@ -32,10 +32,11 @@ TERM (U"##Tier names")
 DEFINITION (U"a list of the names of the tiers that you want to create, separated by spaces.")
 TERM (U"##Point tiers")
 DEFINITION (U"a list of the names of the tiers that you want to be %%point tiers%; "
-	"the rest of the tiers will be %%interval tiers%.")
+	"the rest of the tiers will be %%interval tiers%. "
+	"If you want to create no point tiers, you can leave this setting empty.")
 MAN_END
 
-MAN_BEGIN (U"PointProcess: To TextGrid...", U"ppgb", 19980113)
+MAN_BEGIN (U"PointProcess: To TextGrid...", U"ppgb", 19980113) // 2025
 INTRO (U"A command to create an empty @TextGrid from every selected @PointProcess.")
 NORMAL (U"The only information in the PointProcess that is used, is its starting and finishing times.")
 ENTRY (U"Settings")
@@ -43,7 +44,8 @@ TERM (U"##Tier names")
 DEFINITION (U"a list of the names of the tiers that you want to create, separated by spaces.")
 TERM (U"##Point tiers")
 DEFINITION (U"a list of the names of the tiers that you want to be %%point tiers%; "
-	"the rest of the tiers will be %%interval tiers%.")
+	"the rest of the tiers will be %%interval tiers%. "
+	"If you want to create no point tiers, you can leave this setting empty.")
 ENTRY (U"Example")
 NORMAL (U"If ##Tier names# is \"a b c\", and ##Point tiers# is \"b\", "
 	"the resulting TextGrid object will contain an interval tier named \"a\", "
@@ -78,14 +80,15 @@ NORMAL (U"The times of all the points are trivially copied, and so is the time d
 	"The text information will be the same for every point.")
 MAN_END
 
-MAN_BEGIN (U"Sound: To TextGrid...", U"ppgb", 19980730)
+MAN_BEGIN (U"Sound: To TextGrid...", U"ppgb", 19980730)  // 2025
 INTRO (U"A command to create a @TextGrid without any labels, copying the time domain from the selected @Sound.")
 ENTRY (U"Settings")
 TERM (U"%%Tier names")
 DEFINITION (U"a list of the names of the tiers that you want to create, separated by spaces.")
 TERM (U"%%Point tiers")
 DEFINITION (U"a list of the names of the tiers that you want to be %%point tiers%; "
-	"the rest of the tiers will be %%interval tiers%.")
+	"the rest of the tiers will be %%interval tiers%. "
+	"If you want to create no point tiers, you can leave this setting empty.")
 ENTRY (U"Example")
 NORMAL (U"If ##Tier names# is \"a b c\", and ##Point tiers# is \"b\", "
 	"the resulting TextGrid object will contain an interval tier named \"a\", "

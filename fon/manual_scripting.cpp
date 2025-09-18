@@ -1198,7 +1198,7 @@ The way the distinction between numbers and strings is made, may remind you of t
 
 ################################################################################
 "Scripting 5.1. Variables"
-© Paul Boersma 2020-12-29,2024
+© Paul Boersma 2020-12-29,2024,2025
 
 A %variable is a location in your computer’s memory that has a name and where you can store something,
 as explained in @@Scripting 3.2. Numeric variables|\\SS3.2@ and @@Scripting 3.4. String variables|\\SS3.4@.
@@ -1309,10 +1309,12 @@ Some predefined ##numeric variables# are `macintosh`, `windows`, and `unix`, whi
 was built for the Macintosh, Windows, or Unix platform (respectively), and which are otherwise zero.
 Likewise, we have `praat_32bit` and `praat_64bit`, of which one is 1 and the other 0,
 depending on whether your edition of Praat was built for 32-bit or 64-bit computers.
-More precisely, we have `praat_intel32`, `praat_intel64` and `praat_arm64`, one of which is 1 (and the others 0)
+More precisely, we have `praat_intel32`, `praat_intel64`, `praat_arm64`, `praat_s390x`, and `praat_armv7`,
+one of which is 1 (and the others 0)
 depending on whether the type of processor chip that your edition of Praat was made for is
-32-bit Intel (= x86, i386, i686), or 64-bit Intel (= AMD64), or ARM64 (= Aarch64).
-Another predefined numeric variable is `praatVersion`, which is something like 6421.
+32-bit Intel (= x86, i386, i686), or 64-bit Intel (= AMD64), or ARM64 (= Aarch64),
+or s390x (LinuxONE), or ARMv7 (smaller Raspberry Pi).
+Another predefined numeric variable is `praatVersion`, which is something like 6443.
 
 Some ##predefined string variables# are `newline$`, `tab$`, and `shellDirectory$`.
 The last one specifies the folder that was the default folder when Praat started up;
@@ -1322,7 +1324,7 @@ Likewise, there exist the predefined string variables `homeDirectory$`,
 (which is where you log in), the Praat @@preferences folder@, and a folder for saving temporary files;
 if you want to know what they are on your computer, try to write them into a script window.
 The variable `defaultDirectory$` is available for formulas in scripts; it is the folder that contains the script file.
-Finally, we have `praatVersion$`, which is something like “6.4.21”."
+Finally, we have `praatVersion$`, which is something like “6.4.43”."
 
 A disadvantage of predefined variables is that they can be changed, in which case they take on a different meaning.
 For this reason you are advised to use functions instead (if they exist), because these always have the same meaning:
@@ -2697,7 +2699,7 @@ Thus, to make sure that the folder contains no WAV files, you would write
 	\#{runSystem_nocheck}: "rm ", folder$, "/*.wav"   ; DANGEROUS
 }
 
-Typically, howver, the use of @`runSystem` or #`runSystem_nocheck` is DANGEROUS:
+Typically, however, the use of @`runSystem` or #`runSystem_nocheck` is DANGEROUS:
 if the string `folder$` contains spaces and semicolons and slashes, for instance,
 you may lose all files on your computer or install malware without noticing it;
 you really have to have full control over your files and know exactly what you are doing
@@ -3502,7 +3504,7 @@ NORMAL (U"You can run scripts from the @ScriptEditor. If you will have to use th
 NORMAL (U"(You can also run scripts from the command line. See @@Scripting 6.9. Calling from the command line|\\SS6.9@)")
 */
 
-MAN_BEGIN (U"Scripting 9. Turning a script into a stand-alone program", U"ppgb", 20201229)
+MAN_BEGIN (U"Scripting 9. Turning a script into a stand-alone program", U"ppgb", 20201229)  // 2025
 INTRO (U"You can turn your script into a double-clickable stand-alone program by including it into Praat's #main procedure. "
 	"If you want to try this, you should already know how to compile and link the Praat program on your computer.")
 NORMAL (U"These stand-alone programs do not show the Objects window and the Picture window; "
@@ -3519,7 +3521,7 @@ CODE (U"int main (int argc, char *argv [ ]) {")
 	CODE1 (U"praat_init (U\"Hello\", argc, argv);")
 	CODE1 (U"INCLUDE_LIBRARY (praat_uvafon_init)")
 	CODE1 (U"praat_run ();")
-	CODE1 (U"return 0;")
+	CODE1 (U"return 0;   // obligatory")
 CODE (U"}")
 NORMAL (U"The script in this example raises the Demo window, writes “Hello world” in the middle of the window, "
 	"waits until the user clicks the mouse or presses a key, and then closes.")

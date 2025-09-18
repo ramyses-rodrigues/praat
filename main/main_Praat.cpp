@@ -97,7 +97,7 @@ int main (int argc, char *argv []) {
 	} catch (MelderError) {
 		Melder_flushError (U"This error message percolated all the way to the top.");   // an attempt to catch Apache errors
 	}
-	return 0;
+	return 0;   // obligatory (because on Windows `main` is just a normal function called from our WinMain)
 }
 
 /* End of file main_Praat.cpp */
