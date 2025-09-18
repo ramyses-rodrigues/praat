@@ -2164,10 +2164,26 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 				Interpreter_addNumericVariable (me, U"praat_intel32", 0);
 				Interpreter_addNumericVariable (me, U"praat_intel64", 0);
 				Interpreter_addNumericVariable (me, U"praat_arm64", 1);
+				Interpreter_addNumericVariable (me, U"praat_s390x", 0);
+				Interpreter_addNumericVariable (me, U"praat_armv7", 0);
+			#elif defined (__s390x__)
+				Interpreter_addNumericVariable (me, U"praat_intel32", 0);
+				Interpreter_addNumericVariable (me, U"praat_intel64", 0);
+				Interpreter_addNumericVariable (me, U"praat_arm64", 0);
+				Interpreter_addNumericVariable (me, U"praat_s390x", 1);
+				Interpreter_addNumericVariable (me, U"praat_armv7", 0);
+			#elif defined (raspberrypi)
+				Interpreter_addNumericVariable (me, U"praat_intel32", 0);
+				Interpreter_addNumericVariable (me, U"praat_intel64", 0);
+				Interpreter_addNumericVariable (me, U"praat_arm64", 0);
+				Interpreter_addNumericVariable (me, U"praat_s390x", 0);
+				Interpreter_addNumericVariable (me, U"praat_armv7", 1);
 			#else
 				Interpreter_addNumericVariable (me, U"praat_intel32", sizeof (void *) == 4);
 				Interpreter_addNumericVariable (me, U"praat_intel64", sizeof (void *) == 8);
 				Interpreter_addNumericVariable (me, U"praat_arm64", 0);
+				Interpreter_addNumericVariable (me, U"praat_s390x", 0);
+				Interpreter_addNumericVariable (me, U"praat_armv7", 0);
 			#endif
 			Interpreter_addNumericVariable (me, U"praat_32bit", sizeof (void *) == 4);
 			Interpreter_addNumericVariable (me, U"praat_64bit", sizeof (void *) == 8);
