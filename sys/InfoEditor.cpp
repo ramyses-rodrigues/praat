@@ -80,7 +80,7 @@ static void gui_information (conststring32 message) {
 	*/
 	#if cocoa
 		/*
-			TODO: This code is very similar to that of GuiShell_drain (editor -> windowForm);
+			TODO: This code is very similar to that of GuiShell_drain (editor -> windowForm, false);
 			perhaps it can be merged at some point.
 		*/
 		[editor -> windowForm -> d_cocoaShell   displayIfNeeded];
