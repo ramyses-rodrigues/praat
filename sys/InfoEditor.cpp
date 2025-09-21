@@ -50,7 +50,7 @@ static void gui_information (conststring32 message) {
 				2019-10-31
 			As we may be called in long sequences outside of the event loop,
 			we may need to clean up. Without the autorelease pool,
-			the retainCount of the cocaTextView will quickly rise,
+			the retainCount of the cocoaTextView will quickly rise,
 			as shown by running the following script:
 				for i to 1e6
 					writeInfoLine: i
@@ -74,34 +74,40 @@ static void gui_information (conststring32 message) {
 		for i to 100
 			appendInfoLine: i
 		endfor
-		
+
 		The Info window should scroll continuously while the lines are added,
 		not just show the end result.
 	*/
 	#if cocoa
-		[editor -> windowForm -> d_cocoaShell   displayIfNeeded];
-		[[NSRunLoop currentRunLoop]   runMode: NSDefaultRunLoopMode   beforeDate: [NSDate date]];
 		/*
-			The following is to ignore any events that came from [runMode]:
+			TODO: This code is very similar to that of GuiShell_drain (editor -> windowForm);
+			perhaps it can be merged at some point.
+		*/
+		[editor -> windowForm -> d_cocoaShell   displayIfNeeded];
+		/*
+			Just calling `displayIfNeeded` doesn't suffice for redrawing.
+			We have to poke the run loop a little, which can be achieved
+			by calling `nextEventMatchingMask` with `dequeue: YES`,
+			a combination that potentially progresses the run loop by one iteration.
+			This effect, even if not realized, forces pending redraws to be executed to the screen.
+
+			Let's use the opportunity to throw away any mouse clicks and key strokes.
 		*/
 		NSEvent *nsEvent;
 		while ((nsEvent = [NSApp
-			nextEventMatchingMask: NSAnyEventMask   // TODO: or NSEventMaskAny
+			nextEventMatchingMask: NSEventMaskAny
 			untilDate: [NSDate distantPast]
 			inMode: NSDefaultRunLoopMode
 			dequeue: YES]) != nullptr)
 		{
 			NSUInteger nsEventType = [nsEvent type];
-			if (nsEventType == NSKeyDown)   // TODO: or NSEventTypeKeyDown
+			if (nsEventType == NSEventTypeKeyDown)
 				NSBeep();
 			/*
 				Ignore all other events.
 			*/
 		}
 		[pool release];
-	#elif defined (macintosh)
-		// TODO: call [view invalidate] here?
-		GuiShell_drain (editor -> windowForm);
 	#endif
 }
 
