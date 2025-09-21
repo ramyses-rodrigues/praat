@@ -14,7 +14,7 @@ On Windows:
 -----------
 
 We must note that we cannot compile with MinGW,
-because we need the standard Windows C runtime,
+because we need the standard Windows CRT (C runtime),
 which uses GetCommandLine and CommandLineToArgv
 (and unfortunately also optional wildcard expansion,
 namely if matching files exist) before `main`.

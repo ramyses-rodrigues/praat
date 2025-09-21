@@ -38,4 +38,4 @@ void Melder_setAppContactAddress (conststring32 firstPartOfEmailAddress, constst
 conststring32 Melder_appContactAddress();
 
 /* End of file melder_app.h */
-#endif
+#endif // !_melder_app_h_

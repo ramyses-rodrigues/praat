@@ -80,20 +80,20 @@ static void logo (Graphics graphics) {
 
 int main (int argc, char *argv []) {
 	try {
-		//TRACE
+		TRACE
 		praat_setLogo (130.0, 100.0, logo);
-		Melder_stopwatch ();
+		MelderStopwatch stopwatch;
 		praat_init (U"" stringize (PRAAT_NAME),
 			U"" stringize (PRAAT_VERSION_STR), PRAAT_VERSION_NUM,
 			PRAAT_YEAR, PRAAT_MONTH, PRAAT_DAY,
 			U"paul.boersma", U"uva.nl",
 			argc, argv
 		);
-		trace (Melder_stopwatch ());
+		trace (stopwatch());
 		INCLUDE_LIBRARY (praat_uvafon_init)
-		trace (Melder_stopwatch ());
+		trace (stopwatch());
 		praat_run ();
-		trace (Melder_stopwatch ());
+		trace (stopwatch());
 	} catch (MelderError) {
 		Melder_flushError (U"This error message percolated all the way to the top.");   // an attempt to catch Apache errors
 	}

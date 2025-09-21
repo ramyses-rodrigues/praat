@@ -207,18 +207,20 @@ int Demo_show () {
 	}
 	@end
 	DemoWindowTimer *theDemoWindowTimer;
-#endif
+#endif // cocoa
 
 void Demo_timer (double duration) {
 	#if cocoa
 		if (! theDemoWindowTimer)
 			theDemoWindowTimer = [[DemoWindowTimer alloc] init];
-		[NSTimer scheduledTimerWithTimeInterval: duration
+		[NSTimer
+			scheduledTimerWithTimeInterval: duration
 			target: theDemoWindowTimer
 			selector: @selector (timerCallback)
 			userInfo: nil
-			repeats: false];
-	#endif
+			repeats: false
+		];
+	#endif // cocoa
 }
 
 void Demo_waitForInput (Interpreter interpreter) {
