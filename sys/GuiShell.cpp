@@ -146,7 +146,7 @@ void GuiShell_setTitle (GuiShell me, conststring32 title /* cattable */) {
 	#endif
 }
 
-void GuiShell_drain (GuiShell me) {
+void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 	#if gtk
 		//gdk_window_process_all_updates ();
 		while (gtk_events_pending ())
@@ -159,10 +159,9 @@ void GuiShell_drain (GuiShell me) {
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		[my d_cocoaShell   makeKeyAndOrderFront: nil];
 		[my d_cocoaShell   layoutIfNeeded];
-		[my d_cocoaShell   display];   // or just displayIfNeeded?
+		[my d_cocoaShell   displayIfNeeded];   // or just displayIfNeeded?
 		//[CATransaction flush];   // in case we ever implement layers
-		NSDate *flushUntil = [NSDate dateWithTimeIntervalSinceNow: 0.01];
-		while ([[NSDate date] compare: flushUntil] == NSOrderedAscending) {
+		if (allowOtherEvents) {
 			NSEvent *nsEvent;
 			while ((nsEvent = [NSApp
 				nextEventMatchingMask: NSEventMaskAny
@@ -170,14 +169,27 @@ void GuiShell_drain (GuiShell me) {
 				inMode: NSDefaultRunLoopMode
 				dequeue: YES]) != nullptr)
 			{
-				NSUInteger nsEventType = [nsEvent type];
-				if (nsEventType == NSEventTypeKeyDown)
-					NSBeep();
-				/*
-					Ignore all other events.
-				*/
+				[NSApp   sendEvent: nsEvent];
 			}
-			[NSThread sleepForTimeInterval: 0.001];
+		} else {
+			NSDate *flushUntil = [NSDate   dateWithTimeIntervalSinceNow: 0.03];
+			while ([[NSDate date] compare: flushUntil] == NSOrderedAscending) {
+				NSEvent *nsEvent;
+				while ((nsEvent = [NSApp
+					nextEventMatchingMask: NSEventMaskAny
+					untilDate: [NSDate distantPast]
+					inMode: NSDefaultRunLoopMode
+					dequeue: YES]) != nullptr)
+				{
+					NSUInteger nsEventType = [nsEvent type];
+					if (nsEventType == NSEventTypeKeyDown)
+						NSBeep();
+					/*
+						Ignore all other events.
+					*/
+				}
+				[NSThread   sleepForTimeInterval: 0.003];
+			}
 		}
 		[pool release];
 	#endif

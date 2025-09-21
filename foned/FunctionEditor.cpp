@@ -1604,7 +1604,7 @@ int structFunctionEditor :: v_playCallback (int phase, double /* startTime */, d
 	if (Melder_debug == 53)
 		Melder_casual (U"draining");
 	Graphics_updateWs (our graphics.get());   // note: without setting my backgroundIsUpToDate to false
-	GuiShell_drain (our windowForm);   // this may not be needed on all platforms (but on Windows it is, at least on 2020-09-21)
+	GuiShell_drain (our windowForm, true);   // this may not be needed on all platforms (but on Windows it is, at least on 2020-09-21)
 	return 1;
 }
 
