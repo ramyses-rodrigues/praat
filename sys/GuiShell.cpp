@@ -1,10 +1,10 @@
 /* GuiShell.cpp
  *
- * Copyright (C) 1993-2018,2020-2022 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2018,2020-2022,2024,2025 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -155,15 +155,30 @@ void GuiShell_drain (GuiShell me) {
 		UpdateWindow (my d_xmShell -> window);
 	#elif cocoa
 		Melder_assert (my d_cocoaShell);
-		[my d_cocoaShell   display];   // not just flushWindow
+		Melder_assert ([NSThread isMainThread]);
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		NSEvent *nsEvent = [NSApp
-			nextEventMatchingMask: NSAppKitDefinedMask // NSAnyEventMask
-			untilDate: [NSDate distantPast]
-			inMode: NSDefaultRunLoopMode
-			dequeue: YES
-		];
-		[NSApp  sendEvent: nsEvent];
+		[my d_cocoaShell   makeKeyAndOrderFront: nil];
+		[my d_cocoaShell   layoutIfNeeded];
+		[my d_cocoaShell   display];   // or just displayIfNeeded?
+		//[CATransaction flush];   // in case we ever implement layers
+		NSDate *flushUntil = [NSDate dateWithTimeIntervalSinceNow: 0.01];
+		while ([[NSDate date] compare: flushUntil] == NSOrderedAscending) {
+			NSEvent *nsEvent;
+			while ((nsEvent = [NSApp
+				nextEventMatchingMask: NSEventMaskAny
+				untilDate: [NSDate distantPast]
+				inMode: NSDefaultRunLoopMode
+				dequeue: YES]) != nullptr)
+			{
+				NSUInteger nsEventType = [nsEvent type];
+				if (nsEventType == NSEventTypeKeyDown)
+					NSBeep();
+				/*
+					Ignore all other events.
+				*/
+			}
+			[NSThread sleepForTimeInterval: 0.001];
+		}
 		[pool release];
 	#endif
 }

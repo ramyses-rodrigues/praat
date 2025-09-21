@@ -189,7 +189,7 @@ int Demo_show () {
 	autoDemoOpen demo;
 	GuiThing_show (theReferenceToTheOnlyDemoEditor -> windowForm);
 	Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());
-	#if defined (macintosh) || defined (UNIX)
+	#if defined (UNIX)
 		Melder_sleep (0.02);   // because GuiShell_drain is not guaranteed to drain if called within 16 ms from previous
 	#endif
 	GuiShell_drain (theReferenceToTheOnlyDemoEditor -> windowForm);
@@ -249,7 +249,7 @@ void Demo_waitForInput (Interpreter interpreter) {
 			#elif cocoa
 				do {
 					NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-					[theReferenceToTheOnlyDemoEditor -> windowForm -> d_cocoaShell   flushWindow];
+					[theReferenceToTheOnlyDemoEditor -> windowForm -> d_cocoaShell   displayIfNeeded];
 					Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());   // make sure that even texts will be drawn
 					NSEvent *nsEvent = [NSApp
 						nextEventMatchingMask: NSAnyEventMask
