@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -161,7 +161,7 @@ static NSString *getRealHomeDirectory () {
 	}
 	return nsUserHomeFolderPath;
 }
-#endif
+#endif // defined (macintosh)
 
 void praat_reportSystemProperties () {
 	MelderInfo_open ();
@@ -221,7 +221,7 @@ void praat_reportSystemProperties () {
 		MelderInfo_writeLine (U"Process ID: ", processID);
 		MelderInfo_writeLine (U"Localized app name: ", Melder_peek8to32 ([[currentApplication localizedName] UTF8String]));
 		MelderInfo_writeLine (U"App bundle identifier: ", Melder_peek8to32 ([[currentApplication bundleIdentifier] UTF8String]));
-	#endif
+	#endif // macintosh
 	#ifdef _WIN32
 		MelderInfo_writeLine (U"SM_CXFIXEDFRAME: ", GetSystemMetrics (SM_CXFIXEDFRAME));
 		MelderInfo_writeLine (U"SM_CYFIXEDFRAME: ", GetSystemMetrics (SM_CYFIXEDFRAME));
@@ -229,7 +229,7 @@ void praat_reportSystemProperties () {
 		MelderInfo_writeLine (U"SM_CYSIZEFRAME: ", GetSystemMetrics (SM_CYSIZEFRAME));
 		MelderInfo_writeLine (U"SM_CYCAPTION: ", GetSystemMetrics (SM_CYCAPTION));
 		MelderInfo_writeLine (U"SM_CYMENU: ", GetSystemMetrics (SM_CYMENU));
-	#endif
+	#endif // _WIN32
 	MelderInfo_close ();
 }
 
@@ -281,7 +281,7 @@ static void testFont (PangoFontMap *pangoFontMap, PangoContext *pangoContext, co
 	const char *familyName = pango_font_description_get_family (pangoFontDescription2);
 	MelderInfo_writeLine (U"Asking for font ", fontName, U" gives ", Melder_peek8to32 (familyName), U".");
 }
-#endif
+#endif // cairo
 void praat_reportFontProperties () {
 	MelderInfo_open ();
 	MelderInfo_writeLine (U"Font replacement on this computer:\n");
@@ -307,7 +307,7 @@ void praat_reportFontProperties () {
 		for (int i = 0; i < numberOfFamilies; i ++)
 			MelderInfo_writeLine (i, U" ", Melder_peek8to32 (pango_font_family_get_name (families [i])));
 		g_free (families);
-	#endif
+	#endif // cairo
 	MelderInfo_close ();
 }
 
