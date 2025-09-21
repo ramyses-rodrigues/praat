@@ -1,5 +1,6 @@
 # test/manually/cacheBlock.praat
 # Paul Boersma, 13 August 2025
+# 21 September 2025: accommodate API change
 
 timeStep = 0.001 ; seconds
 samplingFrequency = 1e8   ; 100 MHz: several 10-MB buffers
@@ -9,11 +10,11 @@ margin = 0.0399 ; seconds
 #
 # Almost equally fast:
 #
-;Debug multi-threading: "yes", 16, 0, 0, "no"
-Debug multi-threading: "yes", 6, 0, 0, "no"
-;Debug multi-threading: "yes", 4, 0, 0, "no"
+;Debug multi-threading: "yes", 16, 0, "no"
+Debug multi-threading: "yes", 6, 0, "no"
+;Debug multi-threading: "yes", 4, 0, "no"
 # slower:
-;Debug multi-threading: "yes", 1, 0, 0, "no"
+;Debug multi-threading: "yes", 1, 0, "no"
 
 ;sound100 = Create Sound from formula: "sineWithNoise", 1, 0, 100 + margin, samplingFrequency, "1/2 * sin (2*pi*377*x) + randomGauss (0, 0.1)"
 sound10 = Create Sound from formula: "sineWithNoise", 1, 0, 10 + margin, samplingFrequency, "1/2 * sin (2*pi*377*x) + randomGauss (0, 0.1)"
@@ -43,4 +44,4 @@ appendInfoLine: stopwatch
 
 removeObject: sound01, sound1, sound10, pitch01, pitch1, pitch10
 
-Debug multi-threading: "yes", 0, 0, 0, "no"
+Debug multi-threading: "yes", 0, 0, "no"

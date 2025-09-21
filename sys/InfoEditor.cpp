@@ -79,34 +79,25 @@ static void gui_information (conststring32 message) {
 		not just show the end result.
 	*/
 	#if cocoa
-		#if 1
-			NSEvent *nsEvent = [NSApp
-				nextEventMatchingMask: NSAnyEventMask
-				untilDate: [NSDate distantPast]
-				inMode: NSDefaultRunLoopMode
-				dequeue: NO
-			];
-			if (nsEvent) {
-				NSUInteger nsEventType = [nsEvent type];
-				if (nsEventType == NSKeyDown) NSBeep ();
-				//[[nsEvent window]  sendEvent: nsEvent];
-			}
-		#else
+		[editor -> windowForm -> d_cocoaShell   displayIfNeeded];
+		[[NSRunLoop currentRunLoop]   runMode: NSDefaultRunLoopMode   beforeDate: [NSDate date]];
+		/*
+			The following is to ignore any events that came from [runMode]:
+		*/
+		NSEvent *nsEvent;
+		while ((nsEvent = [NSApp
+			nextEventMatchingMask: NSAnyEventMask   // TODO: or NSEventMaskAny
+			untilDate: [NSDate distantPast]
+			inMode: NSDefaultRunLoopMode
+			dequeue: YES]) != nullptr)
+		{
+			NSUInteger nsEventType = [nsEvent type];
+			if (nsEventType == NSKeyDown)   // TODO: or NSEventTypeKeyDown
+				NSBeep();
 			/*
-				The following is an attempt to explicitly perform the actions that event waiting is supposed to perform.
-				It would be nice not to actually have to wait for events (with nextEventMatchingMask),
-				because we are not interested in the events; we're interested only in the graphics update.
+				Ignore all other events.
 			*/
-			//[editor -> windowForm -> d_cocoaShell   displayIfNeeded];   // apparently, this does not suffice
-			//[editor -> textWidget -> d_cocoaTextView   lockFocus];   // this displays the menu as well as the text
-			[editor -> windowForm -> d_cocoaShell   display];   // this displays the menu as well as the text
-			//[editor -> textWidget -> d_cocoaTextView   displayIfNeeded];   // this displays only the text
-			//[editor -> textWidget -> d_cocoaTextView   display];
-			//[editor -> textWidget -> d_cocoaTextView   unlockFocus];   // this displays the menu as well as the text
-			[editor -> windowForm -> d_cocoaShell   flushWindow];
-			[NSApp  updateWindows];   // called automatically?
-		#endif
-		//Melder_casual (U"cocoaTextView retain count after: ", [editor -> textWidget -> d_cocoaTextView  retainCount]);
+		}
 		[pool release];
 	#elif defined (macintosh)
 		// TODO: call [view invalidate] here?
