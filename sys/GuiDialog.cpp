@@ -1,10 +1,10 @@
 /* GuiDialog.cpp
  *
- * Copyright (C) 1993-2018,2020,2021,2024 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2018,2020,2021,2024,2025 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -131,6 +131,7 @@ GuiDialog GuiDialog_create (GuiWindow parent, int x, int y, int width, int heigh
 		[my d_cocoaShell   setMinSize: NSMakeSize (500.0, 500.0)];   // BUG: should not be needed
 		[my d_cocoaShell   setTitle: (NSString *) Melder_peek32toCfstring (title)];
 		//[my d_cocoaShell   makeKeyAndOrderFront: nil];
+		//[my d_cocoaShell   layoutIfNeeded];
 		my d_widget = (GuiObject) [my d_cocoaShell   contentView];
 		[my d_cocoaShell   setUserData: me.get()];
 		[my d_cocoaShell   setReleasedWhenClosed: NO];
