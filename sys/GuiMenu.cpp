@@ -426,19 +426,19 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 			[NSApp   setMainMenu: theMenuBar];
 		}
 		my d_cocoaMenu = [[GuiCocoaMenu alloc]
-			initWithTitle: (NSString *) Melder_peek32toCfstring (title)];
+				initWithTitle: (NSString *) Melder_peek32toCfstring (title)];
 		my d_widget = my d_cocoaMenu;
 		[my d_cocoaMenu   setUserData: me.get()];
 		[my d_cocoaMenu   setAutoenablesItems: NO];
 		if (! window) {
 			/*
-				Install the menu in the main OS X menu bar along the top of the screen.
+				Install the menu in the main macOS menu bar along the top of the screen.
 				This is done by creating a menu item for the main menu bar,
 				and during applicationWillFinishLaunching installing that item.
 			*/
-            NSString *itemTitle = (NSString *) Melder_peek32toCfstring (title);
+			NSString *itemTitle = (NSString *) Melder_peek32toCfstring (title);
 			my d_cocoaMenuItem = [[GuiCocoaMenuItem alloc]
-				initWithTitle: itemTitle   action: nullptr   keyEquivalent: @""];
+					initWithTitle: itemTitle   action: nullptr   keyEquivalent: @""];
 
 			[my d_cocoaMenuItem   setSubmenu: my d_cocoaMenu];   // the item will retain the menu...
 			[my d_cocoaMenu   release];   // ... so we can release the menu already (before even returning it!)
@@ -454,21 +454,21 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 				window -> d_menuBarWidth = -1;
 			const integer width = 18 + 7 * Melder_length (title), height = 35 /*25*/;
 			integer x = window -> d_menuBarWidth, y = parentHeight + 1 - height;
-            NSUInteger resizingMask = NSViewMinYMargin;
+			NSUInteger resizingMask = NSViewMinYMargin;
 			if (Melder_equ (title, U"Help")) {
 				x = parentWidth + 1 - width;
-                resizingMask |= NSViewMinXMargin;
+				resizingMask |= NSViewMinXMargin;
 			} else {
 				window -> d_menuBarWidth += width - 1;
 			}
 			NSRect rect = { { (CGFloat) x, (CGFloat) y }, { (CGFloat) width, (CGFloat) height } };
 			my d_cocoaMenuButton = [[GuiCocoaMenuButton alloc]
-				initWithFrame: rect   pullsDown: YES];
+					initWithFrame: rect   pullsDown: YES];
 			[my d_cocoaMenuButton   setAutoenablesItems: NO];
 			[my d_cocoaMenuButton   setBezelStyle: NSShadowlessSquareBezelStyle];
 			[my d_cocoaMenuButton   setImagePosition: NSImageAbove];   // this centers the text
 			//[nsPopupButton setBordered: NO];
-            [my d_cocoaMenuButton   setAutoresizingMask: resizingMask]; // stick to top
+            [my d_cocoaMenuButton   setAutoresizingMask: resizingMask];   // stick to top
 			if (flags & GuiMenu_INSENSITIVE)
 				[my d_cocoaMenuButton   setEnabled: NO];
 
@@ -538,7 +538,8 @@ GuiMenu GuiMenu_createInMenu (GuiMenu supermenu, conststring32 title, uint32 fla
 		NSMenuItem *item = [[NSMenuItem alloc]
 			initWithTitle: (NSString *) Melder_peek32toCfstring (title)
 			action: nullptr
-			keyEquivalent: @""];
+			keyEquivalent: @""
+		];
 		trace (U"adding the item to its supermenu ", Melder_pointer (supermenu));
 		[supermenu -> d_cocoaMenu   addItem: item];   // the menu will retain the item...
 		trace (U"release the item");
@@ -636,8 +637,8 @@ GuiMenu GuiMenu_createInForm (GuiForm form, int left, int right, int top, int bo
 		[my d_cocoaMenuButton   setImagePosition: NSImageAbove];   // this centers the text
 		[[my d_cocoaMenuButton cell]   setArrowPosition: NSPopUpNoArrow /*NSPopUpArrowAtBottom*/];
 
-        NSString *menuTitle = (NSString*) Melder_peek32toCfstring (neatTitle.string);
-        my d_widget = my d_cocoaMenu = [[GuiCocoaMenu alloc] initWithTitle: menuTitle];
+		NSString *menuTitle = (NSString*) Melder_peek32toCfstring (neatTitle.string);
+		my d_widget = my d_cocoaMenu = [[GuiCocoaMenu alloc] initWithTitle: menuTitle];
 		[my d_cocoaMenu   setAutoenablesItems: NO];
 		/*
 			Apparently, Cocoa swallows title setting only if there is already a menu with a dummy item.

@@ -128,117 +128,141 @@ static void args_ok_selectionOnly (UiForm sendingForm, integer /* narg */, Stack
 	Interpreter_run (my interpreter.get(), text.get(), false);
 }
 
+static void menu_cb_run_async (ScriptEditor me) {
+	try {
+		bool isObscured = false;
+		autostring32 text = GuiText_getString (my textWidget);
+		trace (U"Running the following script (1):\n", text.get());
+		if (! MelderFile_isNull (& my file))
+			MelderFile_setDefaultDir (& my file);
+		const conststring32 obscuredLabel = U"#!praatObscured";
+		if (Melder_startsWith (text.get(), obscuredLabel)) {
+			const integer obscuredLabelLength = Melder_length (obscuredLabel);
+			const double fileKey_real = Melder_atof (MelderFile_name (& my file));
+			const uint64 fileKey = ( isdefined (fileKey_real) ? uint64 (fileKey_real) : 0 );
+			char32 *restOfText = & text [obscuredLabelLength];
+			uint64 passwordHash = 0;
+			if (*restOfText == U'\n') {
+				restOfText += 1;   // skip newline
+			} else if (*restOfText == U' ') {
+				restOfText ++;
+				char32 *endOfFirstLine = str32chr (restOfText, U'\n');
+				if (! endOfFirstLine)
+					Melder_throw (U"Incomplete script.");
+				*endOfFirstLine = U'\0';
+				passwordHash = NUMhashString (restOfText);
+				restOfText = endOfFirstLine + 1;
+			} else {
+				Melder_throw (U"Unexpected nonspace after #!praatObscured.");
+			}
+			static uint64 nonsecret = UINT64_C (529857089);
+			text = unhex_STR (restOfText, fileKey + nonsecret + passwordHash);
+			isObscured = true;
+		}
+		Melder_includeIncludeFiles (& text);
+		const integer npar = Interpreter_readParameters (my interpreter.get(), text.get());
+		if (npar != 0) {
+			/*
+				Pop up a dialog box for querying the arguments.
+			*/
+			my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok, me, false);
+			UiForm_do (my argsDialog.get(), false);
+		} else {
+			autoPraatBackground background;
+			if (! MelderFile_isNull (& my file)) {
+				MelderFile_setDefaultDir (& my file);
+				autoScript script = Script_createFromFile (& my file);
+				Script_rememberDuringThisAppSession_move (script.move());
+				my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+			}
+			trace (U"Running the following script (2):\n", text.get());
+			Interpreter_run (my interpreter.get(), text.get(), false);
+		}
+	} catch (MelderError) {
+		Melder_flushError (U"The script didn’t run to its completion.");
+	}
+}
+
 static void menu_cb_run (ScriptEditor me, EDITOR_ARGS) {
-	bool isObscured = false;
 	if (my interpreter -> running)
 		Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
-	autostring32 text = GuiText_getString (my textWidget);
-	trace (U"Running the following script (1):\n", text.get());
-	if (! MelderFile_isNull (& my file))
-		MelderFile_setDefaultDir (& my file);
-	const conststring32 obscuredLabel = U"#!praatObscured";
-	if (Melder_startsWith (text.get(), obscuredLabel)) {
-		const integer obscuredLabelLength = Melder_length (obscuredLabel);
-		const double fileKey_real = Melder_atof (MelderFile_name (& my file));
-		const uint64 fileKey = ( isdefined (fileKey_real) ? uint64 (fileKey_real) : 0 );
-		char32 *restOfText = & text [obscuredLabelLength];
-		uint64 passwordHash = 0;
-		if (*restOfText == U'\n') {
-			restOfText += 1;   // skip newline
-		} else if (*restOfText == U' ') {
-			restOfText ++;
-			char32 *endOfFirstLine = str32chr (restOfText, U'\n');
-			if (! endOfFirstLine)
-				Melder_throw (U"Incomplete script.");
-			*endOfFirstLine = U'\0';
-			passwordHash = NUMhashString (restOfText);
-			restOfText = endOfFirstLine + 1;
-		} else {
-			Melder_throw (U"Unexpected nonspace after #!praatObscured.");
-		}
-		static uint64 nonsecret = UINT64_C (529857089);
-		text = unhex_STR (restOfText, fileKey + nonsecret + passwordHash);
-		isObscured = true;
-	}
-	Melder_includeIncludeFiles (& text);
-	const integer npar = Interpreter_readParameters (my interpreter.get(), text.get());
-	if (npar != 0) {
-		/*
-			Pop up a dialog box for querying the arguments.
-		*/
-		my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok, me, false);
-		UiForm_do (my argsDialog.get(), false);
-	} else {
-		autoPraatBackground background;
-		if (! MelderFile_isNull (& my file)) {
+	#ifdef macintosh
+		dispatch_async (dispatch_get_main_queue (), ^{ menu_cb_run_async (me); });
+	#else
+		menu_cb_run_async (me);
+	#endif
+}
+
+static void menu_cb_runSelection_async (ScriptEditor me) {
+	try {
+		autostring32 selectedText = GuiText_getSelection (my textWidget);
+		if (! selectedText)
+			Melder_throw (U"No text selected.");
+		if (! MelderFile_isNull (& my file))
 			MelderFile_setDefaultDir (& my file);
-			autoScript script = Script_createFromFile (& my file);
-			Script_rememberDuringThisAppSession_move (script.move());
-			my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+		Melder_includeIncludeFiles (& selectedText);
+		const integer npar = Interpreter_readParameters (my interpreter.get(), selectedText.get());
+		/*
+			TODO: check that no two procedures have the same name
+		*/
+
+		/*
+			Add all the procedures to the selected text.
+			A procedure is counted as any text that honours the following conditions:
+			- it starts with a line starting with the text "procedure"
+			  optionally preceded by whitespace and obligatorily followed by whitespace;
+			- it ends with a line starting with the text "endproc"
+			  optionally preceded by whitespace and obligatorily followed by null or whitespace.
+		*/
+		autoMelderString textPlusProcedures;
+		MelderString_copy (& textPlusProcedures, selectedText.get());
+		{// scope
+			autostring32 wholeText = GuiText_getString (my textWidget);
+			autoMelderReadText textReader = MelderReadText_createFromText (wholeText.move());
+			int procedureDepth = 0;
+			for (;;) {
+				const conststring32 line = MelderReadText_readLine (textReader.get());
+				if (! line)
+					break;
+				const conststring32 startOfCode = Melder_findEndOfHorizontalSpace (line);
+				if (Melder_startsWith (startOfCode, U"procedure") && Melder_isHorizontalSpace (startOfCode [9]))
+					procedureDepth += 1;
+				if (procedureDepth > 0)
+					MelderString_append (& textPlusProcedures, U"\n", line);
+				if (Melder_startsWith (startOfCode, U"endproc") && (startOfCode [7] == U'\0' || Melder_isHorizontalSpace (startOfCode [7])))
+					procedureDepth -= 1;
+			}
 		}
-		trace (U"Running the following script (2):\n", text.get());
-		Interpreter_run (my interpreter.get(), text.get(), false);
+
+		if (npar != 0) {
+			/*
+				Pop up a dialog box for querying the arguments.
+			*/
+			my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok_selectionOnly, me, true);
+			UiForm_do (my argsDialog.get(), false);
+		} else {
+			autoPraatBackground background;
+			if (! MelderFile_isNull (& my file)) {
+				MelderFile_setDefaultDir (& my file);
+				autoScript script = Script_createFromFile (& my file);
+				Script_rememberDuringThisAppSession_move (script.move());
+				my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+			}
+			Interpreter_run (my interpreter.get(), textPlusProcedures.string, false);
+		}
+	} catch (MelderError) {
+		Melder_flushError (U"The script selection didn’t run to its completion.");
 	}
 }
 
 static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
 	if (my interpreter -> running)
 		Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
-	autostring32 selectedText = GuiText_getSelection (my textWidget);
-	if (! selectedText)
-		Melder_throw (U"No text selected.");
-	if (! MelderFile_isNull (& my file))
-		MelderFile_setDefaultDir (& my file);
-	Melder_includeIncludeFiles (& selectedText);
-	const integer npar = Interpreter_readParameters (my interpreter.get(), selectedText.get());
-	/*
-		TODO: check that no two procedures have the same name
-	*/
-
-	/*
-		Add all the procedures to the selected text.
-		A procedure is counted as any text that honours the following conditions:
-		- it starts with a line starting with the text "procedure"
-		  optionally preceded by whitespace and obligatorily followed by whitespace;
-		- it ends with a line starting with the text "endproc"
-		  optionally preceded by whitespace and obligatorily followed by null or whitespace.
-	*/
-	autoMelderString textPlusProcedures;
-	MelderString_copy (& textPlusProcedures, selectedText.get());
-	{// scope
-		autostring32 wholeText = GuiText_getString (my textWidget);
-		autoMelderReadText textReader = MelderReadText_createFromText (wholeText.move());
-		int procedureDepth = 0;
-		for (;;) {
-			const conststring32 line = MelderReadText_readLine (textReader.get());
-			if (! line)
-				break;
-			const conststring32 startOfCode = Melder_findEndOfHorizontalSpace (line);
-			if (Melder_startsWith (startOfCode, U"procedure") && Melder_isHorizontalSpace (startOfCode [9]))
-				procedureDepth += 1;
-			if (procedureDepth > 0)
-				MelderString_append (& textPlusProcedures, U"\n", line);
-			if (Melder_startsWith (startOfCode, U"endproc") && (startOfCode [7] == U'\0' || Melder_isHorizontalSpace (startOfCode [7])))
-				procedureDepth -= 1;
-		}
-	}
-
-	if (npar != 0) {
-		/*
-			Pop up a dialog box for querying the arguments.
-		*/
-		my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok_selectionOnly, me, true);
-		UiForm_do (my argsDialog.get(), false);
-	} else {
-		autoPraatBackground background;
-		if (! MelderFile_isNull (& my file)) {
-			MelderFile_setDefaultDir (& my file);
-			autoScript script = Script_createFromFile (& my file);
-			Script_rememberDuringThisAppSession_move (script.move());
-			my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
-		}
-		Interpreter_run (my interpreter.get(), textPlusProcedures.string, false);
-	}
+	#ifdef macintosh
+		dispatch_async (dispatch_get_main_queue (), ^{ menu_cb_runSelection_async (me); });
+	#else
+		menu_cb_run_async (me);
+	#endif
 }
 
 static void menu_cb_addToMenu (ScriptEditor me, EDITOR_ARGS) {
