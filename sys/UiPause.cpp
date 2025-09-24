@@ -1,10 +1,10 @@
 /* UiPause.cpp
  *
- * Copyright (C) 2009-2020,2022-2024 Paul Boersma
+ * Copyright (C) 2009-2020,2022-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -172,6 +172,8 @@ static void Gui_waitAndHandleOneEvent_any () {
 			dequeue: YES
 		];
 		Melder_assert (nsEvent);
+		//TRACE
+		trace ([nsEvent type]);
 		[NSApp  sendEvent: nsEvent];
 		[NSApp  updateWindows];   // called automatically?
 		[pool release];
@@ -195,7 +197,8 @@ int UiPause_end (int numberOfContinueButtons, int defaultContinueButton, int can
 	UiForm_setPauseForm (thePauseForm.get(), numberOfContinueButtons, defaultContinueButton, cancelContinueButton,
 		continueText1, continueText2, continueText3, continueText4, continueText5,
 		continueText6, continueText7, continueText8, continueText9, continueText10,
-		thePauseFormCancelCallback);
+		thePauseFormCancelCallback
+	);
 	theCancelContinueButton = cancelContinueButton;
 	UiForm_finish (thePauseForm.get());
 	const bool wasBackgrounding = Melder_backgrounding;
