@@ -159,7 +159,7 @@ void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		[my d_cocoaShell   makeKeyAndOrderFront: nil];
 		[my d_cocoaShell   layoutIfNeeded];
-		[my d_cocoaShell   displayIfNeeded];   // or just displayIfNeeded?
+		[my d_cocoaShell   displayIfNeeded];
 		//[CATransaction flush];   // in case we ever implement layers
 		if (allowOtherEvents) {
 			NSEvent *nsEvent;
@@ -172,8 +172,14 @@ void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 				[NSApp   sendEvent: nsEvent];
 			}
 		} else {
-			NSDate *flushUntil = [NSDate   dateWithTimeIntervalSinceNow: 0.03];
-			while ([[NSDate date] compare: flushUntil] == NSOrderedAscending) {
+			constexpr double smallestExpectedScreenRefreshFrequency = 50.0;   // hertz
+			constexpr double greatestExpectedScreenRefreshPeriod =
+					1.0 / smallestExpectedScreenRefreshFrequency;   // e.g. 0.02 seconds
+			constexpr double safeWaitingDurationForAtLeastOneScreenRefresh =
+					1.5 * greatestExpectedScreenRefreshPeriod;   // e.g. 0.03 seconds
+			const double timeByWhichAtLeastOneScreenRefreshHasOccurred =
+					Melder_clock() + safeWaitingDurationForAtLeastOneScreenRefresh;
+			while (Melder_clock() < timeByWhichAtLeastOneScreenRefreshHasOccurred) {
 				NSEvent *nsEvent;
 				while ((nsEvent = [NSApp
 					nextEventMatchingMask: NSEventMaskAny
@@ -188,7 +194,9 @@ void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 						Ignore all other events.
 					*/
 				}
-				[NSThread   sleepForTimeInterval: 0.003];
+				constexpr double moderatePollingFrequency = 1000.0;   // hertz
+				constexpr double moderatePollingPeriod = 1.0 / moderatePollingFrequency;   // e.g. 1 ms
+				[NSThread   sleepForTimeInterval: moderatePollingPeriod];
 			}
 		}
 		[pool release];

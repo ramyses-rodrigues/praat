@@ -39,6 +39,8 @@
 #include "Praat_tests_enums.h"
 #include <string>
 
+#include "Gui.h"
+
 static void testAutoData (autoDaata data) {
 	fprintf (stderr, "testAutoData: %p %p\n", data.get(), data -> name.get());
 }
@@ -679,9 +681,30 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 			timeSlopeSelection ();
 			//  Gflops is --undefined--
 		} break;
-
+		case kPraatTests::TIME_NS_DATE: {
+			#ifdef macintosh
+				NSDate *till = [NSDate   dateWithTimeIntervalSinceNow: 1.0];
+				integer count = 0;
+				while ([[NSDate date]   compare: till] == NSOrderedAscending)
+					++ count;
+				MelderInfo_writeLine (count, U" per second");
+			#endif
+		} break;
+		case kPraatTests::TIME_MELDER_CLOCK: {
+			const double till = Melder_clock() + 1.0;
+			integer count = 0;
+			while (Melder_clock() < till)
+				++ count;
+			MelderInfo_writeLine (count, U" per second");
+		} break;
+		case kPraatTests::TIME_STOPWATCH: {
+			MelderStopwatch stopwatch;
+			for (int64 i = 1; i <= n; i ++)
+				Melder_stopwatch();
+			t = stopwatch ();
+		} break;
 	}
-	MelderInfo_writeLine (Melder_single (n / t * 1e-9), U" Gflop/s");
+	MelderInfo_writeLine (Melder_single (t * 1e9 / n), U" nanoseconds per iteration");
 	MelderInfo_close ();
 	return 1;
 }

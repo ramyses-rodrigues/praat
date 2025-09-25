@@ -25,7 +25,7 @@ Scripting 9. Turning a script into a stand-alone program
 <code>      praat_init (U"Hello", argc, argv);<br></code>
 <code>      INCLUDE_LIBRARY (praat_uvafon_init)<br></code>
 <code>      praat_run ();<br></code>
-<code>      return 0;<br></code>
+<code>      return 0;   // obligatory<br></code>
 <code>   }<br></code>
 <p>The script in this example raises the Demo window, writes &#8220;Hello world&#8221; in the middle of the window, waits until the user clicks the mouse or presses a key, and then closes.</p>
 <p>Note that Praat is distributed under the General Public License (GPL). This means that if you distribute a Praat-based stand-alone program, you have to make it open source under the GPL as well (version 3.0 or later).</p>

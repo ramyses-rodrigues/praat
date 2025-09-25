@@ -1638,13 +1638,13 @@ will never attempt to access the Internet by itself. For more information, see @
 
 ################################################################################
 "Reporting a problem"
-© Paul Boersma 2022
+© Paul Boersma 2022,2025
 
 Anything that you consider incorrect behaviour of Praat (a “bug”) can be reported
 to the authors by email (`paul.boersma@uva.nl`). This includes any crashes.
 
 Questions about how to use Praat for your specific cases
-can be posed to the Praat User List (`https://groups.io/g/Praat-Users-List`).
+can be posed to the Praat Users List (`https://groups.io/g/Praat-Users-List`).
 This includes any questions on why your self-written Praat script does something unexpected.
 
 ################################################################################

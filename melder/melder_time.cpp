@@ -36,12 +36,12 @@ double Melder_clock () {
 }
 
 double Melder_stopwatch () {
-	static double lastTime = 0.0;
+	static thread_local double lastTimeInThisThread = 0.0;
 	const double now = Melder_clock ();
-	const double timeElapsed = ( lastTime == 0.0 ? -1.0 : now - lastTime );
-	//Melder_casual ("%lf %lf %lf", now, lastTime, now - lastTime, timeElapsed);
-	lastTime = now;
-	return timeElapsed;
+	const double timeElapsedInThisThread = ( lastTimeInThisThread == 0.0 ? -1.0 : now - lastTimeInThisThread );
+	//Melder_casual ("%lf %lf %lf", now, lastTimeInThisThread, now - lastTimeInThisThread, timeElapsedInThisThread);
+	lastTimeInThisThread = now;
+	return timeElapsedInThisThread;
 }
 
 void Melder_sleep (double duration) {
