@@ -2668,6 +2668,8 @@ you can also write
 "Scripting 6.5. Calling system commands"
 © Paul Boersma 2020,2023,2025
 
+Running a command-line-like command
+===================================
 From a Praat script you can call system commands.
 These are the same commands that you would normally type into a terminal window or into the Windows command line prompt.
 The syntax is the same as that of the @`writeInfo` command.
@@ -2705,6 +2707,23 @@ you may lose all files on your computer or install malware without noticing it;
 you really have to have full control over your files and know exactly what you are doing
 before you use @`runSystem` or #`runSystem_nocheck`.
 
+A safer way to call other programs
+==================================
+The above is dangerous because `runSystem` has no concept of what an argument to a program is.
+For instance, what if `folder$` above is somehow “-rf .*; ls”? Will that remove my whole folder structure?
+A much safer way is to use @`runSubprocess`, in which you supply the arguments directly:
+{;
+	\#`{runSubprocess}: "/usr/local/sbin/theOtherApp ", folder$, "*.wav"
+}
+This will hand to `theOtherApp`: the contents of the string `folder$`
+(without fear of executing any commands that are inside the foldername),
+and the string `*.wav`. What is done with the asterisk (“*”) depends on your platform:
+on macOS and Linux, the string is handed verbatim as “*.wav” to `theOtherApp`,
+whereas on Windows the string is handed verbatim if there are no WAV files (in the folder of the script)
+but as e.g. “hello.wav goodbye.wav” if the script folder contains those two files.
+
+In general, then, @`runSubprocess` is quite predictable on macOS and Linux, but less so on Windows.
+ 
 Getting the values of system variables
 ======================================
 #`environment$` (%`symbol-string`)
@@ -2712,6 +2731,7 @@ Getting the values of system variables
 {;
 		homeFolder$ = \#`{environment$} ("HOME")
 }
+
 Getting system duration
 =======================
 #`stopwatch`

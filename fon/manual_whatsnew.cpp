@@ -29,6 +29,12 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.44# (25 September 2025)
+• Made @`runSubprocess` compatible with the Microsoft runtime (instead of MinGW).
+• Made Info window writing compatible with macOS 26 (Tahoe).
+• Made @`demoShow` compatible with macOS 26.
+• Made @ScriptEditor menus reachable on macOS 26 when the script is paused.
+
 ##6.4.43# (14 September 2025)
 • Calling Praat from the command line: the new switch `--send-or-form` sends a script
   to a different already running GUI instance of Praat, like `--send` does,
