@@ -20,18 +20,36 @@ Programming with Praat
 <p>Consult the README file on GitHub for directions to compile and link Praat for your platform.</p>
 <h2>4. Extending Praat</h2>
 <p>To start extending Praat&#8217;s functionality, you can edit <code><font size=+1>main/main_Praat.cpp</font></code>. This example shows you how to create a very simple program with all the functionality of the Praat program, and a single bit more (namely an additional command in the New menu):</p>
-<code>   #include "praatM.h"<br></code>
+<code>   #include "praatM.h"   // for macros such as DIRECT and INCLUDE_LIBRARY<br></code>
 <code>   <br></code>
-<code>   DIRECT (HelloFromJane) {<br></code>
+<code>   DIRECT (INFO_HelloFromJane) {   // a macro to include commands without parameters<br></code>
 <code>       Melder_information (U"Hello, I am Jane.");<br></code>
 <code>   }<br></code>
 <code>   <br></code>
 <code>   int main (int argc, char **argv) {<br></code>
-<code>       praat_init (U"Praat_Jane", argc, argv);<br></code>
-<code>       INCLUDE_LIBRARY (praat_uvafon_init)<br></code>
-<code>       praat_addMenuCommand (U"Objects", U"New", U"Hello from Jane...", nullptr, 0, DO_HelloFromJane);<br></code>
+<code>       praat_init (<br></code>
+<code>           U"Praat_Jane",   // the name of your app<br></code>
+<code>           U"1.2.01",   // the version of your app, as a string<br></code>
+<code>           1201,   // the version of your app, as a number<br></code>
+<code>           2025,   // the year of your app's version<br></code>
+<code>           9,   // the month of your app's version (here: September)<br></code>
+<code>           18,   // the day of your app's version (between 1 and 31)<br></code>
+<code>           U"jane.doe",   // the first part of your contact email address<br></code>
+<code>           U"univ.edu",   // the second part of your contact email address<br></code>
+<code>           argc,   // the number of command line arguments (0 if started from GUI)<br></code>
+<code>           argv   // the command line arguments (empty if started from GUI)<br></code>
+<code>       );<br></code>
+<code>       INCLUDE_LIBRARY (praat_uvafon_init)   // include all Praat functionality <br></code>
+<code>       praat_addMenuCommand (<br></code>
+<code>           U"Objects",   // the window in which this command will appear<br></code>
+<code>           U"New",   // the menu under which this command will appear<br></code>
+<code>           U"Hello from Jane...",   // the title of the menu command<br></code>
+<code>           nullptr,   // to insert after another command (unused here)<br></code>
+<code>           0,   // the depth at which this command will appear (0 for top level)<br></code>
+<code>           INFO_HelloFromJane   // the command defined above<br></code>
+<code>       );<br></code>
 <code>       praat_run ();<br></code>
-<code>       return 0;<br></code>
+<code>       return 0;   // obligatory<br></code>
 <code>   }<br></code>
 <h2>5. Learning how to program</h2>
 <p>To see how objects are defined, take a look at <code><font size=+1>sys/Thing.h</font></code>, <code><font size=+1>sys/Daata.h</font></code>, <code><font size=+1>sys/oo.h</font></code>, the <code><font size=+1>XXX_def.h</font></code> files in the <code><font size=+1>fon</font></code> folder, and the corresponding <code><font size=+1>XXX.cpp</font></code> files in the <code><font size=+1>fon</font></code> folder. To see how commands show up on the buttons in the fixed and dynamic menus, take a look at the large interface description file <code><font size=+1>fon/praat_Fon.cpp</font></code>.</p>
@@ -43,7 +61,7 @@ Programming with Praat
 </ul>
 <hr>
 <address>
-	<p>© Paul Boersma 2023-04-09, 2024</p>
+	<p>© Paul Boersma 2023-04-09, 2024, 2025</p>
 </address>
 </body>
 </html>

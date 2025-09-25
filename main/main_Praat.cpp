@@ -69,13 +69,14 @@ static void logo (Graphics graphics) {
 	Graphics_setFontSize (graphics, 10.0);
 	Graphics_setTextAlignment (graphics, Graphics_RIGHT, Graphics_HALF);
 	Graphics_text (graphics, 0.34, 0.28, U"Download sites:");
-	Graphics_text (graphics, 0.27, 0.08, U"Source code:");
+	Graphics_text (graphics, 0.27, 0.14, U"Source code:");
+	Graphics_text (graphics, 0.32, 0.065, U"Praat Users List:");
 	Graphics_setTextAlignment (graphics, Graphics_LEFT, Graphics_HALF);
 	Graphics_setFont (graphics, kGraphics_font::COURIER);
 	Graphics_text (graphics, 0.36, 0.28, U"https://praat.org");
 	Graphics_text (graphics, 0.36, 0.22, U"https://www.fon.hum.uva.nl/praat");
-	Graphics_text (graphics, 0.36, 0.16, U"https://praat.github.io");
-	Graphics_text (graphics, 0.28, 0.08, U"https://github.com/praat/praat.github.io");
+	Graphics_text (graphics, 0.28, 0.14, U"https://github.com/praat/praat.github.io");
+	Graphics_text (graphics, 0.33, 0.065, U"https://groups.io/g/Praat-Users-List");
 }
 
 int main (int argc, char *argv []) {
