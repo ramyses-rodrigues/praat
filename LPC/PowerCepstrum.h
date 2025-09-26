@@ -49,11 +49,11 @@ public:
 	autoVEC x, y; 				// numberOfPoints (in dB's)
 	autoMatrix asdBs;			// for peak detection
 	autoSlopeSelector slopeSelector;
-	bool slopeKnown, peakKnown, trendSubtracted;
+	bool slopeKnown = false, peakKnown = false, trendSubtracted = false;
 	kSlopeSelector_method method;
 	kCepstrum_trendType trendLineType;
-	kVector_peakInterpolation peakInterpolationType;
-	double qminSearchInterval, qmaxSearchInterval; // peak in [pitchFloor, pitchCeiling]
+	kVector_peakInterpolation peakInterpolationType = kVector_peakInterpolation :: PARABOLIC;
+	double qminPeakSearch, qmaxPeakSearch; // peak in [pitchFloor, pitchCeiling]
 	double slope, intercept;
 	double cpp; 				// = peakdB - trenddB
 	double trenddB, peakdB;
@@ -63,7 +63,7 @@ public:
 	
 	void initWorkspace (double qminFit, double qmaxFit,	kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
 	
-	void initPeakSearchPart (double qminSearchInterval,	double qmaxSearchInterval, kVector_peakInterpolation peakInterpolationType);
+	void initPeakSearchPart (double qminPeakSearch,	double qmaxPeakSearch, kVector_peakInterpolation peakInterpolationType);
 	
 	void newData (constPowerCepstrum thee);
 

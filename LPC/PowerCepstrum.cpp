@@ -142,9 +142,9 @@ void structPowerCepstrum :: newData (constPowerCepstrum thee) {
 void structPowerCepstrum :: getPeakAndPosition () {
 	Matrix thee = asdBs.get();
 	double peakdBR, peakQuefrencyR;
-	Vector_getMaximumAndX_twoSideApproach ((Vector) thee, qminSearchInterval, qmaxSearchInterval,
+	Vector_getMaximumAndX_twoSideApproach ((Vector) thee, qminPeakSearch, qmaxPeakSearch,
 		1, peakInterpolationType, false, & peakdB, & peakQuefrency);
-	Vector_getMaximumAndX_twoSideApproach ((Vector) thee, qminSearchInterval, qmaxSearchInterval,
+	Vector_getMaximumAndX_twoSideApproach ((Vector) thee, qminPeakSearch, qmaxPeakSearch,
 		1, peakInterpolationType, true, & peakdBR, & peakQuefrencyR);
 	const integer index = Sampled_xToIndex (thee, peakQuefrency), indexR = Sampled_xToIndex(thee, peakQuefrencyR);
 	if (index != indexR && (indexR - index) <= 5) {
@@ -275,11 +275,11 @@ void structPowerCepstrum :: initWorkspace (double qminFit, double qmaxFit,
 	newData (this); // new xp and yp reference
 }
 
-void structPowerCepstrum :: initPeakSearchPart (double qminSearchInterval, double qmaxSearchInterval,
+void structPowerCepstrum :: initPeakSearchPart (double qminPeakSearch, double qmaxPeakSearch,
 	kVector_peakInterpolation peakInterpolationType)
 {
-	our qminSearchInterval = qminSearchInterval;
-	our qmaxSearchInterval = qmaxSearchInterval;
+	our qminPeakSearch = qminPeakSearch;
+	our qmaxPeakSearch = qmaxPeakSearch;
 	our peakInterpolationType = peakInterpolationType;
 }
 
@@ -465,15 +465,15 @@ autoPowerCepstrum PowerCepstrum_smooth (constPowerCepstrum me, double quefrencyA
 }
 
 
-void PowerCepstrum_getMaximumAndQuefrency_q (PowerCepstrum me, double qminSearchInterval, double qmaxSearchInterval,
+void PowerCepstrum_getMaximumAndQuefrency_q (PowerCepstrum me, double qminPeakSearch, double qmaxPeakSearch,
 	kCepstrum_peakInterpolation peakInterpolationType, double& peakdB, double& quefrency)
 {
 	kVector_peakInterpolation interpolation = ( peakInterpolationType == kCepstrum_peakInterpolation :: PARABOLIC ?
 		kVector_peakInterpolation :: PARABOLIC : (peakInterpolationType == kCepstrum_peakInterpolation :: CUBIC ?
 		kVector_peakInterpolation :: CUBIC : kVector_peakInterpolation :: NONE)
 	);
-	my initWorkspace (qminSearchInterval, qmaxSearchInterval, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
-	my initPeakSearchPart (qminSearchInterval, qmaxSearchInterval, interpolation);
+	my initWorkspace (qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+	my initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, interpolation);
 	my getPeakAndPosition ();
 	peakdB = my peakdB;
 	quefrency = my peakQuefrency;	
@@ -483,10 +483,10 @@ void PowerCepstrum_getMaximumAndQuefrency_q (PowerCepstrum me, double qminSearch
 void PowerCepstrum_getMaximumAndQuefrency_pitch (PowerCepstrum me, double pitchFloor, double pitchCeiling,
 	kVector_peakInterpolation peakInterpolationType, double& peakdB, double& quefrency)
 {
-	const double qminSearchInterval = 1.0 / pitchCeiling;
-	const double qmaxSearchInterval = 1.0 / pitchFloor;
-	my initWorkspace (qminSearchInterval, qmaxSearchInterval, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
-	my initPeakSearchPart (qminSearchInterval, qmaxSearchInterval, peakInterpolationType);
+	const double qminPeakSearch = 1.0 / pitchCeiling;
+	const double qmaxPeakSearch = 1.0 / pitchFloor;
+	my initWorkspace (qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+	my initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
 	my getPeakAndPosition ();
 	peakdB = my peakdB;
 	quefrency = my peakQuefrency;	
@@ -494,13 +494,13 @@ void PowerCepstrum_getMaximumAndQuefrency_pitch (PowerCepstrum me, double pitchF
 
 autoTable PowerCepstrum_tabulateRhamonics (PowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType) {
 	try {
-		const double qminSearchInterval = 1.0 / pitchCeiling;
-		const double qmaxSearchInterval = 1.0 / pitchFloor;
-		my initWorkspace (qminSearchInterval, qmaxSearchInterval, kCepstrum_trendType::LINEAR,
+		const double qminPeakSearch = 1.0 / pitchCeiling;
+		const double qmaxPeakSearch = 1.0 / pitchFloor;
+		my initWorkspace (qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR,
 			kCepstrum_trendFit::ROBUST_FAST);
 
-		my initPeakSearchPart (qminSearchInterval, qmaxSearchInterval, peakInterpolationType);
-		my getRhamonicPeaks (qminSearchInterval, qmaxSearchInterval);
+		my initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
+		my getRhamonicPeaks (qminPeakSearch, qmaxPeakSearch);
 		
 		const conststring32 columnNames [] = { U"peak(dB)", U"quefrency(s)" };
 		autoTable thee = Table_createWithColumnNames (my numberOfRhamonics, ARRAY_TO_STRVEC (columnNames));
@@ -517,11 +517,11 @@ autoTable PowerCepstrum_tabulateRhamonics (PowerCepstrum me, double pitchFloor, 
 
 static autoMAT PowerCepstrum_getRhamonicsPower (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth) {
 	try {
-		const double qminSearchInterval = 1.0 / pitchCeiling;
-		const double qmaxSearchInterval = 1.0 / pitchFloor;
-		my initWorkspace (qminSearchInterval, qmaxSearchInterval, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
-		my initPeakSearchPart (qminSearchInterval, qmaxSearchInterval, kVector_peakInterpolation :: CUBIC);
-		my getRhamonicsPower (qminSearchInterval, qmaxSearchInterval, f0fractionalWidth);
+		const double qminPeakSearch = 1.0 / pitchCeiling;
+		const double qmaxPeakSearch = 1.0 / pitchFloor;
+		my initWorkspace (qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+		my initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, kVector_peakInterpolation :: CUBIC);
+		my getRhamonicsPower (qminPeakSearch, qmaxPeakSearch, f0fractionalWidth);
 		autoMAT result = copy_MAT (my rhamonics.get());
 		return result;
 	} catch (MelderError) {
@@ -530,18 +530,18 @@ static autoMAT PowerCepstrum_getRhamonicsPower (PowerCepstrum me, double pitchFl
 }
 
 double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth) {
-	const double qminSearchInterval = 1.0 / pitchCeiling;
-	const double qmaxSearchInterval = 1.0 / pitchFloor;
-	my initWorkspace (qminSearchInterval, qmaxSearchInterval, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
-	my initPeakSearchPart (qminSearchInterval, qmaxSearchInterval, kVector_peakInterpolation :: CUBIC);
-	const double rnr = my getRNR (qminSearchInterval, qmaxSearchInterval, f0fractionalWidth);
+	const double qminPeakSearch = 1.0 / pitchCeiling;
+	const double qmaxPeakSearch = 1.0 / pitchFloor;
+	my initWorkspace (qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+	my initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, kVector_peakInterpolation :: CUBIC);
+	const double rnr = my getRNR (qminPeakSearch, qmaxPeakSearch, f0fractionalWidth);
 	return rnr;
 }
 
 double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pitchFloor, double pitchCeiling, double& qpeak) {
 	my initWorkspace (0.001, my xmax, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::LEAST_SQUARES);
-	const double qmaxSearchInterval = 1.0 / pitchFloor, qminSearchInterval = 1.0 /pitchCeiling;
-	my initPeakSearchPart (qminSearchInterval,qmaxSearchInterval, kVector_peakInterpolation :: NONE);
+	const double qmaxPeakSearch = 1.0 / pitchFloor, qminPeakSearch = 1.0 /pitchCeiling;
+	my initPeakSearchPart (qminPeakSearch,qmaxPeakSearch, kVector_peakInterpolation :: NONE);
 	my getCPP ();
 	qpeak = my peakQuefrency;
 	return my cpp;
@@ -551,8 +551,8 @@ double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, dou
 	double qstartFit, double qendFit, kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod, double& qpeak)
 {
 	my initWorkspace (qstartFit, qendFit, trendLineType, fitMethod);
-	const double qmaxSearchInterval = 1.0 / pitchFloor, qminSearchInterval = 1.0 /pitchCeiling;
-	my initPeakSearchPart (qminSearchInterval,qmaxSearchInterval, peakInterpolationType);
+	const double qmaxPeakSearch = 1.0 / pitchFloor, qminPeakSearch = 1.0 /pitchCeiling;
+	my initPeakSearchPart (qminPeakSearch,qmaxPeakSearch, peakInterpolationType);
 	my getCPP ();
 	qpeak = my peakQuefrency;
 	return my cpp;

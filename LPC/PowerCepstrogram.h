@@ -52,16 +52,17 @@ Thing_define (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoSampledFrame
 	mutableMatrix outputMatrix;
 	autoPowerCepstrum powerCepstrum; // each column of the inputPowerCepstrogram
 	double qminFit, qmaxFit;
-	double qminSearchInterval, qmaxSearchInterval;
+	double qminPeakSearch, qmaxPeakSearch;
 	kCepstrum_trendType trendLineType;
 	kCepstrum_trendFit fitMethod;
 	kVector_peakInterpolation peakInterpolationType;
+	bool trendSubtracted = false;
 	bool wantSlopeAndIntercept, wantTrendSubtracted, wantPeakAndPosition;
 
 	void initBasicPowerCepstrogramFrameIntoMatrixFrame (constPowerCepstrogram inputPowerCepstrogram, mutableMatrix outputMatrix,
 		double qminFit, double qmaxFit, kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod);
 	
-	void initBasicPeakSearch (double qminSearchInterval, double qmaxSearchInterval, kVector_peakInterpolation peakInterpolationType);
+	void initBasicPeakSearch (double qminPeakSearch, double qmaxPeakSearch, kVector_peakInterpolation peakInterpolationType);
 	
 	void copyBasic (constSampledFrameIntoSampledFrame other)
 		override;
