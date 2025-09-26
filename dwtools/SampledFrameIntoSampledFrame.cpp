@@ -16,57 +16,11 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Preferences.h"
+#include "SoundFrameIntoSampledFrame.h"
 #include "SampledFrameIntoSampledFrame.h"
-#include "NUM2.h"
-#include "melder_str32.h"
 
-#include "oo_DESTROY.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_COPY.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_EQUAL.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_CAN_WRITE_AS_ENCODING.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_WRITE_TEXT.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_WRITE_BINARY.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_READ_TEXT.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_READ_BINARY.h"
-#include "SampledFrameIntoSampledFrame_def.h"
-#include "oo_DESCRIPTION.h"
-#include "SampledFrameIntoSampledFrame_def.h"
+Thing_implement_pureVirtual (SampledFrameIntoSampledFrame, Thing, 0);
 
-Thing_implement (SampledFrameIntoSampledFrame, Daata, 0);
-
-
-void structSampledFrameIntoSampledFrame :: getInputFrame () {
-	return;
-}
-
-bool structSampledFrameIntoSampledFrame :: inputFrameToOutputFrame () {
-	return true;
-}
-
-void structSampledFrameIntoSampledFrame :: saveOutputFrame () {
-	return;
-}
-
-void structSampledFrameIntoSampledFrame :: allocateOutputFrames () {
-	return;
-}
-
-void SampledFrameIntoSampledFrame_init (SampledFrameIntoSampledFrame me, mutableSampled output) {
-	my output = output;
-	my startFrame = 1;
-}
-
-void SampledFrameIntoSampledFrame_initForStatusUpdates (SampledFrameIntoSampledFrame me, mutableSampledIntoSampledStatus status, bool updateStatus) {
-	my status = status;
-	my updateStatus = updateStatus;
-}
+Thing_implement_pureVirtual (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame, 0);
 
 /* End of file SampledFrameIntoSampledFrame.cpp */

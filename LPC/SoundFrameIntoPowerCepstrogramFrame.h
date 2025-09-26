@@ -22,9 +22,6 @@
 #include "Sound.h"
 #include "PowerCepstrogram.h"
 #include "NUMFourier.h"
-#include "SoundFrameIntoMatrixFrame.h"
-
-#include "SoundFrameIntoPowerCepstrogramFrame_def.h"
 
 autoSoundFrameIntoPowerCepstrogramFrame SoundFrameIntoPowerCepstrogramFrame_create (constSound input, mutablePowerCepstrogram output, 
 	double effectiveAnalysisWidth, kSound_windowShape windowShape);

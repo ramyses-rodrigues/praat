@@ -23,9 +23,9 @@
 #include "LineSpectralFrequencies.h"
 #include "Polynomial.h"
 #include "Roots.h"
-#include "SampledFrameIntoSampledFrame2.h"
+#include "SampledFrameIntoSampledFrame.h"
 
-Thing_define (LPCFrameIntoLineSpectralFrequenciesFrame, SampledFrameIntoSampledFrame2) {
+Thing_define (LPCFrameIntoLineSpectralFrequenciesFrame, SampledFrameIntoSampledFrame) {
 
 	constLPC inputLPC;
 	mutableLineSpectralFrequencies outputLSF;
@@ -35,7 +35,10 @@ Thing_define (LPCFrameIntoLineSpectralFrequenciesFrame, SampledFrameIntoSampledF
 	autoRoots roots;
 	double gridSize;
 
-	void initBasicLPCFrameAndLineSpectralFrequencies (constLPC inputLPC, mutableLineSpectralFrequencies outputLSF);
+	void initBasicLPCFrameIntoLineSpectralFrequenciesFrame (constLPC inputLPC, mutableLineSpectralFrequencies outputLSF);
+	
+	void copyBasic (constSampledFrameIntoSampledFrame other)
+		override;
 	
 	void initHeap ()
 		override;
@@ -47,7 +50,7 @@ Thing_define (LPCFrameIntoLineSpectralFrequenciesFrame, SampledFrameIntoSampledF
 autoLPCFrameIntoLineSpectralFrequenciesFrame LPCFrameIntoLineSpectralFrequenciesFrame_create (constLPC input, 
 	mutableLineSpectralFrequencies output);
 
-Thing_define (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame2) {
+Thing_define (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame) {
 
 	constLineSpectralFrequencies inputLSF;
 	mutableLPC outputLPC;

@@ -21,9 +21,9 @@
 #include "LPC.h"
 #include "Roots.h"
 #include "Formant.h"
-#include "SampledFrameIntoSampledFrame2.h"
+#include "SampledFrameIntoSampledFrame.h"
 
-Thing_define (LPCFrameIntoFormantFrame2, SampledFrameIntoSampledFrame2) {
+Thing_define (LPCFrameIntoFormantFrame, SampledFrameIntoSampledFrame) {
 
 	constLPC inputLPC;
 	mutableFormant outputFormant;
@@ -34,8 +34,11 @@ Thing_define (LPCFrameIntoFormantFrame2, SampledFrameIntoSampledFrame2) {
 	autoPolynomial p;		// for the coefficients
 	autoRoots roots;		// the roots of the polynomial
 
-	void initBasicLPCFrameAndFormant (constLPC inputLPC, mutableFormant outputFormant, double margin);
+	void initBasicLPCFrameIntoFormantFrame (constLPC inputLPC, mutableFormant outputFormant, double margin);
 
+	void copyBasic (constSampledFrameIntoSampledFrame other)
+		override;
+	
 	bool inputFrameIntoOutputFrame (integer iframe)
 		override;
 
@@ -54,7 +57,7 @@ inline integer numberOfPolesFromNumberOfFormants2 (double numberOfFormants) {
 
 void Formant_Frame_init (Formant_Frame me, integer numberOfFormants);
 
-autoLPCFrameIntoFormantFrame2 LPCFrameIntoFormantFrame2_create (constLPC inputLPC, mutableFormant outputFormant, double margin);
+autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC, mutableFormant outputFormant, double margin);
 
 autoFormant LPC_to_Formant (constLPC me, double margin);
 

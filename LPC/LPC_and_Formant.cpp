@@ -20,7 +20,7 @@
 #include "LPC_and_Polynomial.h"
 #include "NUM2.h"
 #include "Roots_and_Formant.h"
-#include "SampledIntoSampled2.h"
+#include "SampledIntoSampled.h"
 
 static void LPC_Frame_into_Polynomial (constLPC_Frame me, mutablePolynomial p) {
 	/*
@@ -47,25 +47,33 @@ void Formant_Frame_init (Formant_Frame me, integer numberOfFormants) {
 	my numberOfFormants = my formant.size; // maintain invariant
 }
 
-Thing_implement (LPCFrameIntoFormantFrame2, SampledFrameIntoSampledFrame2, 0);
+Thing_implement (LPCFrameIntoFormantFrame, SampledFrameIntoSampledFrame, 0);
 
-void structLPCFrameIntoFormantFrame2 :: initBasicLPCFrameAndFormant (constLPC inputLPC, mutableFormant outputFormant, double margin) {
-	LPCFrameIntoFormantFrame2_Parent :: initBasic (inputLPC, outputFormant);
+void structLPCFrameIntoFormantFrame :: initBasicLPCFrameIntoFormantFrame (constLPC inputLPC, mutableFormant outputFormant, double margin) {
+	LPCFrameIntoFormantFrame_Parent :: initBasic (inputLPC, outputFormant);
 	our inputLPC = inputLPC;
 	our outputFormant = outputFormant;
 	our margin = margin;
-	our order = inputLPC -> maxnCoefficients;
 }
 
-void structLPCFrameIntoFormantFrame2 :: initHeap () {
-	LPCFrameIntoFormantFrame2_Parent :: initHeap ();
+void structLPCFrameIntoFormantFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
+	constLPCFrameIntoFormantFrame other = reinterpret_cast<constLPCFrameIntoFormantFrame> (other2);
+	LPCFrameIntoFormantFrame_Parent :: copyBasic (other);
+	our inputLPC = other -> inputLPC;
+	our outputFormant = other -> outputFormant;
+	our margin = other -> margin;
+}
+
+void structLPCFrameIntoFormantFrame :: initHeap () {
+	LPCFrameIntoFormantFrame_Parent :: initHeap ();
+	our order = inputLPC -> maxnCoefficients;
 	bufferSize = order * order + order + order + 11 * order;
 	buffer = raw_VEC (bufferSize);		
 	p = Polynomial_create (-1.0, 1.0, order);
 	roots = Roots_create (order);
 }
 
-bool structLPCFrameIntoFormantFrame2 :: inputFrameIntoOutputFrame (integer iframe) {
+bool structLPCFrameIntoFormantFrame :: inputFrameIntoOutputFrame (integer iframe) {
 	Formant_Frame formantFrame = & outputFormant -> frames [iframe];
 	LPC_Frame inputLPCFrame = & inputLPC -> d_frames [iframe];
 	formantFrame -> intensity = inputLPCFrame -> gain;
@@ -85,10 +93,10 @@ bool structLPCFrameIntoFormantFrame2 :: inputFrameIntoOutputFrame (integer ifram
 	return true;
 }
 
-autoLPCFrameIntoFormantFrame2 LPCFrameIntoFormantFrame2_create (constLPC inputLPC, mutableFormant outputFormant, double margin) {
+autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC, mutableFormant outputFormant, double margin) {
 	try {
-		autoLPCFrameIntoFormantFrame2 me = Thing_new (LPCFrameIntoFormantFrame2);
-		my initBasicLPCFrameAndFormant (inputLPC, outputFormant, margin);
+		autoLPCFrameIntoFormantFrame me = Thing_new (LPCFrameIntoFormantFrame);
+		my initBasicLPCFrameIntoFormantFrame (inputLPC, outputFormant, margin);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"Cannot create LPCFrameIntoFormantFrame.");
@@ -96,8 +104,8 @@ autoLPCFrameIntoFormantFrame2 LPCFrameIntoFormantFrame2_create (constLPC inputLP
 }
 
 void LPC_into_Formant (constLPC me, mutableFormant thee, double margin) {
-	SampledIntoSampled2_requireEqualDomainsAndSampling (me, thee);
-	autoLPCFrameIntoFormantFrame2 frameIntoFrame = LPCFrameIntoFormantFrame2_create (me, thee, margin);
+	SampledIntoSampled_requireEqualDomainsAndSampling (me, thee);
+	autoLPCFrameIntoFormantFrame frameIntoFrame = LPCFrameIntoFormantFrame_create (me, thee, margin);
 	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 	Formant_sort (thee);
 }
@@ -117,7 +125,10 @@ autoFormant LPC_to_Formant (constLPC me, double margin) {
 		for (integer iframe = 1; iframe <= thy nx; iframe ++) {
 			Formant_Frame_init (& thy frames [iframe], maximumNumberOfFormants);
 		}
-		LPC_into_Formant (me, thee.get(), margin);
+		autoLPCFrameIntoFormantFrame frameIntoFrame = Thing_new (LPCFrameIntoFormantFrame);
+		frameIntoFrame -> initBasicLPCFrameIntoFormantFrame (me, thee.get(), margin);
+		SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+		Formant_sort (thee.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no Formant created.");

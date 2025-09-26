@@ -39,7 +39,7 @@
 #include "oo_DESCRIPTION.h"
 #include "SoundFrameIntoPowerCepstrogramFrame_def.h"
 
-Thing_implement (SoundFrameIntoPowerCepstrogramFrame, SoundFrameIntoMatrixFrame, 0);
+Thing_implement (SoundFrameIntoPowerCepstrogramFrame, SoundFrameIntoSampledFrame, 0);
 
 bool structSoundFrameIntoPowerCepstrogramFrame :: inputFrameToOutputFrame () {
 	/*

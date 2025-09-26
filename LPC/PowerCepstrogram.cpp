@@ -17,8 +17,6 @@
  */
 
 #include "PowerCepstrogram.h"
-#include "PowerCepstrogramFrameIntoMatrixFrame.h"
-#include "SoundFrameIntoPowerCepstrogramFrame.h"
 #include "Cepstrum_and_Spectrum.h"
 #include "Matrix_extensions.h"
 #include "NUM2.h"
@@ -32,6 +30,91 @@
 #define FROMLOG(x) (exp ((x) * (NUMln10 / 10.0)) - 1e-30)
 
 integer a = sizeof(struct structMatrix);
+
+Thing_implement (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoSampledFrame, 0);
+
+void structPowerCepstrogramFrameIntoMatrixFrame :: initBasicPowerCepstrogramFrameIntoMatrixFrame (
+	constPowerCepstrogram inputPowerCepstrogram, mutableMatrix outputMatrix, double qminFit, double qmaxFit,
+	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod)
+{
+	PowerCepstrogramFrameIntoMatrixFrame_Parent :: initBasic (inputPowerCepstrogram, outputMatrix);
+	our inputPowerCepstrogram = inputPowerCepstrogram;
+	our outputMatrix = outputMatrix;
+	our qminFit = qminFit;
+	our qmaxFit = qmaxFit;
+	our trendLineType = trendLineType;
+	our fitMethod = fitMethod;
+}
+	
+void structPowerCepstrogramFrameIntoMatrixFrame :: initBasicPeakSearch (double qminSearchInterval, double qmaxSearchInterval,
+	kVector_peakInterpolation peakInterpolationType)
+{
+	our qminSearchInterval = qminSearchInterval;
+	our qmaxSearchInterval = qmaxSearchInterval;
+	our peakInterpolationType = peakInterpolationType;
+}
+
+void structPowerCepstrogramFrameIntoMatrixFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
+	constPowerCepstrogramFrameIntoMatrixFrame other = reinterpret_cast<constPowerCepstrogramFrameIntoMatrixFrame> (other2);
+	our qminFit = other -> qminFit;
+	our qmaxFit = other -> qmaxFit;
+	our qminSearchInterval = other -> qminSearchInterval;
+	our qmaxSearchInterval = other -> qmaxSearchInterval;
+	our trendLineType = other -> trendLineType;
+	our fitMethod = other -> fitMethod;
+	our peakInterpolationType = other -> peakInterpolationType;
+	our wantSlopeAndIntercept = other -> wantSlopeAndIntercept;
+	wantTrendSubtracted = other -> wantTrendSubtracted;
+	wantPeakAndPosition = other -> wantPeakAndPosition;
+}
+
+void structPowerCepstrogramFrameIntoMatrixFrame :: initHeap () {
+	powerCepstrum = PowerCepstrum_create (inputPowerCepstrogram -> ymax, inputPowerCepstrogram -> ny);
+	powerCepstrum -> initWorkspace (qminFit, qmaxFit, trendLineType, fitMethod);
+
+}
+
+void structPowerCepstrogramFrameIntoMatrixFrame :: getInputFrame (integer iframe) {
+	powerCepstrum -> z.row (1)  <<=  inputPowerCepstrogram -> z.column (iframe);
+	powerCepstrum -> newData (powerCepstrum.get()); // powercepstrum is in dB's now
+}
+
+bool structPowerCepstrogramFrameIntoMatrixFrame :: inputFrameIntoOutputFrame (integer iframe) {
+	if (wantSlopeAndIntercept) {
+		powerCepstrum -> getSlopeAndIntercept ();
+		powerCepstrum -> slopeKnown = true;
+	}
+	if (wantTrendSubtracted) {
+		Melder_assert (powerCepstrum -> slopeKnown);
+		powerCepstrum -> subtractTrend ();
+	}
+	if (wantPeakAndPosition) {
+		powerCepstrum -> getPeakAndPosition ();
+		powerCepstrum -> peakKnown = true;
+	}
+	return true;
+}
+
+void structPowerCepstrogramFrameIntoMatrixFrame :: saveOutputFrame (integer iframe) {
+	/* time, slope, intercept, peakdB, peakQuefrency, cpp, */
+	if (powerCepstrum -> trendSubtracted) {
+		outputMatrix -> z.column (iframe)  <<=  powerCepstrum -> z.row (1);
+	} else {
+		// outputMatrix -> z.column (iframe)  <<=  0.0;   // make all rows after the first six zero
+		outputMatrix -> z [1] [iframe] = Sampled_indexToX (outputMatrix, iframe);
+		if ( wantSlopeAndIntercept) {
+			outputMatrix -> z [2] [iframe] = powerCepstrum -> slope;
+			outputMatrix -> z [3] [iframe] = powerCepstrum -> intercept;
+		}
+		if (wantPeakAndPosition) {
+			outputMatrix -> z [4] [iframe] = powerCepstrum -> peakdB;
+			outputMatrix -> z [5] [iframe] = powerCepstrum -> peakQuefrency;
+			powerCepstrum -> getCPP ();
+			outputMatrix -> z [6] [iframe] = powerCepstrum -> cpp;
+		}
+	}
+}
+
 
 Thing_implement (PowerCepstrogram, Matrix, 2); // derives from Matrix -> also version 2
 
@@ -109,15 +192,14 @@ void PowerCepstrogram_paint (PowerCepstrogram me, Graphics g, double tmin, doubl
 void PowerCepstrogram_subtractTrend_inplace (mutablePowerCepstrogram me, double qstartFit, double qendFit, 
 	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod)
 {
-	autoPowerCepstrogramFrameIntoMatrixFrame ws = PowerCepstrogramFrameIntoMatrixFrame_create (me, me, qstartFit, qendFit,
+	autoPowerCepstrogramFrameIntoMatrixFrame frameIntoFrame = Thing_new (PowerCepstrogramFrameIntoMatrixFrame);
+	frameIntoFrame -> initBasicPowerCepstrogramFrameIntoMatrixFrame (me, me, qstartFit, qendFit,
 		trendLineType, fitMethod); // output == input
-	ws -> getSlopeAndIntercept = true;
-	ws -> getPeakAndPosition = false;
-	ws -> subtractTrend = true;
-	ws -> trendSubtracted = false;
-	autoPowerCepstrogramIntoMatrixStatus status =  PowerCepstrogramIntoMatrixStatus_create (my nx);
-	autoSampledIntoSampled sis = SampledIntoSampled_create (me, me, ws.move(), status.move());
-	SampledIntoSampled_analyseThreaded (sis.get());	
+	frameIntoFrame -> wantSlopeAndIntercept = true;
+	frameIntoFrame -> wantPeakAndPosition = false;
+	frameIntoFrame -> wantTrendSubtracted = true;
+	frameIntoFrame -> powerCepstrum -> trendSubtracted = false;
+	SampledIntoSampled_mt (frameIntoFrame.get(), 40);	
 }
 
 void PowerCepstrogram_subtractTrend_inplace_old (PowerCepstrogram me, double qstartFit, double qendFit, 
@@ -172,16 +254,15 @@ void PowerCepstrogram_into_Matrix_CPP (PowerCepstrogram me, mutableMatrix thee, 
 {
 		SampledIntoSampled_assertEqualDomains (me, thee);
 		
-		autoPowerCepstrogramFrameIntoMatrixFrame ws = PowerCepstrogramFrameIntoMatrixFrame_create (me, thee, qminFit, qmaxFit, trendLineType, fitMethod);
-		ws -> getSlopeAndIntercept = true;
-		ws -> getPeakAndPosition = true;
-		ws -> subtractTrend = false;
-		ws -> trendSubtracted = trendSubtracted;
+		autoPowerCepstrogramFrameIntoMatrixFrame frameIntoFrame = Thing_new (PowerCepstrogramFrameIntoMatrixFrame);
+		frameIntoFrame -> initBasicPowerCepstrogramFrameIntoMatrixFrame (me, thee, qminFit, qmaxFit, trendLineType, fitMethod);
+		frameIntoFrame -> wantSlopeAndIntercept = true;
+		frameIntoFrame -> wantPeakAndPosition = true;
+		frameIntoFrame -> wantTrendSubtracted = false;
+		frameIntoFrame -> powerCepstrum -> trendSubtracted = trendSubtracted;
 		const double qminSearchInterval = 1.0 / pitchCeiling, qmaxSearchInterval = 1.0 / pitchFloor;
-		PowerCepstrumWorkspace_initPeakSearchPart (ws -> powerCepstrumWs.get(), qminSearchInterval, qmaxSearchInterval, peakInterpolationType);
-		autoPowerCepstrogramIntoMatrixStatus status =  PowerCepstrogramIntoMatrixStatus_create (thy nx);
-		autoSampledIntoSampled sis = SampledIntoSampled_create (me, thee, ws.move(), status.move());
-		SampledIntoSampled_analyseThreaded (sis.get());
+		frameIntoFrame -> powerCepstrum -> initPeakSearchPart (qminSearchInterval, qmaxSearchInterval, peakInterpolationType);
+		SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 }
 
 autoMatrix PowerCepstrogram_to_Matrix_CPP (PowerCepstrogram me, bool trendSubtracted, double pitchFloor, double pitchCeiling,
@@ -409,97 +490,6 @@ autoPowerCepstrogram Matrix_to_PowerCepstrogram (Matrix me) {
 	}
 }
 
-void Sound_into_PowerCepstrogram (Sound input, PowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	SampledIntoSampled_assertEqualDomains (input,  output);
-	autoSoundFrameIntoPowerCepstrogramFrame ws = SoundFrameIntoPowerCepstrogramFrame_create (input, output, effectiveAnalysisWidth, windowShape);
-	autoSoundIntoPowerCepstrogramStatus status = SoundIntoPowerCepstrogramStatus_create (output -> nx);
-	autoSampledIntoSampled sis = SampledIntoSampled_create (input, output, ws.move(), status.move());
-	SampledIntoSampled_analyseThreaded (sis.get());
-}
-
-autoPowerCepstrogram Sound_to_PowerCepstrogram_new (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
-	try {
-		const kSound_windowShape windowShape = kSound_windowShape::GAUSSIAN_2;
-		const double effectiveAnalysisWidth = 3.0 / pitchFloor; // minimum analysis window has 3 periods of lowest pitch
-		const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);
-		const double physicalSoundDuration = my dx * my nx;
-		volatile const double windowDuration = Melder_clippedRight (physicalAnalysisWidth, physicalSoundDuration);
-		Melder_require (physicalSoundDuration >= physicalAnalysisWidth,
-			U"Your sound is too short:\n"
-			U"it should be longer than ", physicalAnalysisWidth, U" s.");
-		const double samplingFrequency = 2.0 * maximumFrequency;
-		autoSound input = Sound_resampleAndOrPreemphasize (me, maximumFrequency, 50_integer, preEmphasisFrequency);
-		double t1;
-		integer nFrames;
-		Sampled_shortTermAnalysis (me, windowDuration, dt, & nFrames, & t1);
-		const integer soundFrameSize = getSoundFrameSize (physicalAnalysisWidth, input -> dx);
-		const integer nfft = Melder_clippedLeft (2_integer, Melder_iroundUpToPowerOfTwo (soundFrameSize));
-		const integer nq = nfft / 2 + 1;
-		const double qmax = 0.5 * nfft / samplingFrequency, dq = 1.0 / samplingFrequency;
-		autoPowerCepstrogram output = PowerCepstrogram_create (my xmin, my xmax, nFrames, dt, t1, 0, qmax, nq, dq, 0);
-		Sound_into_PowerCepstrogram (input.get(), output.get(), effectiveAnalysisWidth, windowShape);
-		return output;
-	} catch (MelderError) {
-		Melder_throw (me, U": no PowerCepstrogram created.");
-	}
-}
-
-autoPowerCepstrogram Sound_to_PowerCepstrogram_old (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
-	try {
-		const double analysisWidth = 3.0 / pitchFloor; // minimum analysis window has 3 periods of lowest pitch
-		const double physicalAnalysisWidth = 2.0 * analysisWidth;
-		const double physicalSoundDuration = my dx * my nx;
-		volatile const double windowDuration = Melder_clippedRight (2.0 * analysisWidth, my dx * my nx);   // gaussian window
-		Melder_require (physicalSoundDuration >= physicalAnalysisWidth,
-			U"Your sound is too short:\n"
-			U"it should be longer than 6.0 / pitchFloor (", physicalAnalysisWidth, U" s).");
-		// Convenience: analyse the whole sound into one Cepstrogram_frame
-		const double samplingFrequency = 2.0 * maximumFrequency;
-		autoSound sound = Sound_resample (me, samplingFrequency, 50);
-		Sound_preEmphasize_inplace (sound.get(), preEmphasisFrequency);
-		double t1;
-		integer nFrames;
-		Sampled_shortTermAnalysis (me, windowDuration, dt, & nFrames, & t1);
-		autoSound sframe = Sound_createSimple (1_integer, windowDuration, samplingFrequency);
-		autoSound window = Sound_createGaussian (windowDuration, samplingFrequency);
-		/*
-			Find out the size of the FFT
-		*/
-		const integer nfft = Melder_clippedLeft (2_integer, Melder_iroundUpToPowerOfTwo (sframe -> nx));   // TODO: explain edge case
-		const integer nq = nfft / 2 + 1;
-		const double qmax = 0.5 * nfft / samplingFrequency, dq = 1.0 / samplingFrequency;
-		autoPowerCepstrogram thee = PowerCepstrogram_create (my xmin, my xmax, nFrames, dt, t1, 0, qmax, nq, dq, 0);
-
-		autoMelderProgress progress (U"Cepstrogram analysis");
-
-		for (integer iframe = 1; iframe <= nFrames; iframe++) {
-			const double t = Sampled_indexToX (thee.get(), iframe); // TODO express the following 3 lines more clearly
-			Sound_into_Sound (sound.get(), sframe.get(), t - windowDuration / 2);
-			Vector_subtractMean (sframe.get());
-			Sounds_multiply (sframe.get(), window.get());
-			autoSpectrum spec = Sound_to_Spectrum (sframe.get(), true);   // FFT yes
-			autoPowerCepstrum cepstrum = Spectrum_to_PowerCepstrum (spec.get());
-			for (integer i = 1; i <= nq; i ++)
-				thy z [i] [iframe] = cepstrum -> z [1] [i];
-
-			if (iframe % 10 == 1)
-				Melder_progress ((double) iframe / nFrames, U"PowerCepstrogram analysis of frame ",
-						iframe, U" out of ", nFrames, U".");
-		}
-		return thee;
-	} catch (MelderError) {
-		Melder_throw (me, U": no PowerCepstrogram created.");
-	}
-}
-
-autoPowerCepstrogram Sound_to_PowerCepstrogram (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
-	autoPowerCepstrogram result;
-	if (Melder_debug == -10)
-		result = Sound_to_PowerCepstrogram_old (me, pitchFloor, dt, maximumFrequency, preEmphasisFrequency);
-	else
-		result = Sound_to_PowerCepstrogram_new (me, pitchFloor, dt, maximumFrequency, preEmphasisFrequency);
-	return result;
-}
 
 //       1           2                          nfftdiv2
 //    re   im    re     im                   re      im
