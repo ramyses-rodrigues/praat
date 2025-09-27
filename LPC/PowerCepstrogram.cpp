@@ -76,48 +76,48 @@ void structPowerCepstrogramFrameIntoMatrixFrame :: copyBasic (constSampledFrameI
 void structPowerCepstrogramFrameIntoMatrixFrame :: initHeap () {
 	PowerCepstrogramFrameIntoMatrixFrame_Parent :: initHeap ();
 	powerCepstrum = PowerCepstrum_create (inputPowerCepstrogram -> ymax, inputPowerCepstrogram -> ny);
-	powerCepstrum -> initWorkspace (qminFit, qmaxFit, trendLineType, fitMethod);
-	powerCepstrum -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
-	powerCepstrum -> trendSubtracted = trendSubtracted;
+	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (powerCepstrum.get(), qminFit, qmaxFit, trendLineType, fitMethod);
+	workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
+	workspace -> trendSubtracted = trendSubtracted;
 }
 
 void structPowerCepstrogramFrameIntoMatrixFrame :: getInputFrame (integer iframe) {
 	powerCepstrum -> z.row (1)  <<=  inputPowerCepstrogram -> z.column (iframe);
-	powerCepstrum -> newData (powerCepstrum.get()); // powercepstrum is in dB's now
+	workspace -> newData (powerCepstrum.get()); // powercepstrum is in dB's now
 }
 
 bool structPowerCepstrogramFrameIntoMatrixFrame :: inputFrameIntoOutputFrame (integer iframe) {
 	if (wantSlopeAndIntercept) {
-		powerCepstrum -> getSlopeAndIntercept ();
-		powerCepstrum -> slopeKnown = true;
+		workspace -> getSlopeAndIntercept ();
+		workspace -> slopeKnown = true;
 	}
 	if (wantTrendSubtracted) {
-		Melder_assert (powerCepstrum -> slopeKnown);
-		powerCepstrum -> subtractTrend ();
+		Melder_assert (workspace -> slopeKnown);
+		workspace -> subtractTrend ();
 	}
 	if (wantPeakAndPosition) {
-		powerCepstrum -> getPeakAndPosition ();
-		powerCepstrum -> peakKnown = true;
+		workspace -> getPeakAndPosition ();
+		workspace -> peakKnown = true;
 	}
 	return true;
 }
 
 void structPowerCepstrogramFrameIntoMatrixFrame :: saveOutputFrame (integer iframe) {
 	/* time, slope, intercept, peakdB, peakQuefrency, cpp, */
-	if (powerCepstrum -> trendSubtracted) {
+	if (workspace -> trendSubtracted) {
 		outputMatrix -> z.column (iframe)  <<=  powerCepstrum -> z.row (1);
 	} else {
 		// outputMatrix -> z.column (iframe)  <<=  0.0;   // make all rows after the first six zero
 		outputMatrix -> z [1] [iframe] = Sampled_indexToX (outputMatrix, iframe);
 		if ( wantSlopeAndIntercept) {
-			outputMatrix -> z [2] [iframe] = powerCepstrum -> slope;
-			outputMatrix -> z [3] [iframe] = powerCepstrum -> intercept;
+			outputMatrix -> z [2] [iframe] = workspace -> slope;
+			outputMatrix -> z [3] [iframe] = workspace -> intercept;
 		}
 		if (wantPeakAndPosition) {
-			outputMatrix -> z [4] [iframe] = powerCepstrum -> peakdB;
-			outputMatrix -> z [5] [iframe] = powerCepstrum -> peakQuefrency;
-			powerCepstrum -> getCPP ();
-			outputMatrix -> z [6] [iframe] = powerCepstrum -> cpp;
+			outputMatrix -> z [4] [iframe] = workspace -> peakdB;
+			outputMatrix -> z [5] [iframe] = workspace -> peakQuefrency;
+			workspace -> getCPP ();
+			outputMatrix -> z [6] [iframe] = workspace -> cpp;
 		}
 	}
 }

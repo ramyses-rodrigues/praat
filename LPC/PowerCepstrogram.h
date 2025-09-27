@@ -24,7 +24,7 @@
 	of a (sound) signal.
 */
 
-#include "PowerCepstrum.h"
+#include "PowerCepstrumWorkspace.h"
 #include "Matrix.h"
 #include "SampledFrameIntoSampledFrame.h"
 #include "Sound.h"
@@ -51,6 +51,7 @@ Thing_define (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoSampledFrame
 	constPowerCepstrogram inputPowerCepstrogram;
 	mutableMatrix outputMatrix;
 	autoPowerCepstrum powerCepstrum; // each column of the inputPowerCepstrogram
+	autoPowerCepstrumWorkspace workspace;
 	double qminFit, qmaxFit;
 	double qminPeakSearch, qmaxPeakSearch;
 	kCepstrum_trendType trendLineType;
