@@ -197,15 +197,10 @@ void PowerCepstrogram_paint (PowerCepstrogram me, Graphics g, double tmin, doubl
 }
 
 void PowerCepstrogram_subtractTrend_inplace (mutablePowerCepstrogram me, double qminFit, double qmaxFit, 
-	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod)
+	kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
 {
-	autoPowerCepstrogramFrameIntoMatrixFrame frameIntoFrame = Thing_new (PowerCepstrogramFrameIntoMatrixFrame);
-	frameIntoFrame -> initBasicPowerCepstrogramFrameIntoMatrixFrame (me, me, qminFit, qmaxFit,
-		trendLineType, fitMethod); // output == input
-	frameIntoFrame -> wantSlopeAndIntercept = true;
-	frameIntoFrame -> wantPeakAndPosition = false;
-	frameIntoFrame -> wantTrendSubtracted = true;
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);	
+	autoPowerCepstrogram thee = PowerCepstrogram_subtractTrend (me, qminFit, qmaxFit, lineType, fitMethod);
+	my z = copy_MAT (thy z.get());
 }
 
 void PowerCepstrogram_subtractTrend_inplace_old (PowerCepstrogram me, double qminFit, double qmaxFit, 
@@ -225,8 +220,14 @@ void PowerCepstrogram_subtractTrend_inplace_old (PowerCepstrogram me, double qmi
 
 autoPowerCepstrogram PowerCepstrogram_subtractTrend (constPowerCepstrogram me, double qminFit, double qmaxFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod) {
 	try {
-		autoPowerCepstrogram thee = Data_copy (me);
-		PowerCepstrogram_subtractTrend_inplace (thee.get(), qminFit, qmaxFit, lineType, fitMethod);
+		autoPowerCepstrogram thee = PowerCepstrogram_create (my xmin, my xmax, my nx, my dx, my x1,
+			my ymin, my ymax, my ny, my dy, my y1);
+		autoPowerCepstrogramFrameIntoMatrixFrame frameIntoFrame = Thing_new (PowerCepstrogramFrameIntoMatrixFrame);
+		frameIntoFrame -> initBasicPowerCepstrogramFrameIntoMatrixFrame (me, thee.get(), qminFit, qmaxFit, lineType, fitMethod);
+		frameIntoFrame -> wantSlopeAndIntercept = true;
+		frameIntoFrame -> wantPeakAndPosition = false;
+		frameIntoFrame -> wantTrendSubtracted = true;
+		SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no tilt subtracted.");
