@@ -76,7 +76,7 @@ void structPowerCepstrogramFrameIntoMatrixFrame :: copyBasic (constSampledFrameI
 void structPowerCepstrogramFrameIntoMatrixFrame :: initHeap () {
 	PowerCepstrogramFrameIntoMatrixFrame_Parent :: initHeap ();
 	powerCepstrum = PowerCepstrum_create (inputPowerCepstrogram -> ymax, inputPowerCepstrogram -> ny);
-	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (powerCepstrum.get(), qminFit, qmaxFit, trendLineType, fitMethod);
+	workspace = PowerCepstrumWorkspace_create (powerCepstrum.get(), qminFit, qmaxFit, trendLineType, fitMethod);
 	workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
 	workspace -> trendSubtracted = trendSubtracted;
 }
