@@ -26,7 +26,7 @@
 Thing_define (SoundFrameIntoPowerCepstrogramFrame, SoundFrameIntoSampledFrame) {
 	
 	PowerCepstrogram outputPowerCepstrogram;
-	autoPowerCepstrum powercepstrum;
+	autoPowerCepstrum powerCepstrum;
 
 	void initBasicSoundFrameIntoPowerCepstrogramFrame (constSound input, mutablePowerCepstrogram output, 
 		double effectiveAnalysisWidth, kSound_windowShape windowShape);
@@ -38,6 +38,9 @@ Thing_define (SoundFrameIntoPowerCepstrogramFrame, SoundFrameIntoSampledFrame) {
 		override;
 
 	bool inputFrameIntoOutputFrame (integer currentFrame)
+		override;
+
+	void saveOutputFrame (integer iframe)
 		override;
 	
 };

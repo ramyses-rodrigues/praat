@@ -41,7 +41,7 @@ void structSoundFrameIntoPowerCepstrogramFrame :: copyBasic (constSampledFrameIn
 
 void structSoundFrameIntoPowerCepstrogramFrame :: initHeap () {
 	SoundFrameIntoPowerCepstrogramFrame_Parent :: initHeap ();
-	powercepstrum = PowerCepstrum_create (outputPowerCepstrogram -> ymax, outputPowerCepstrogram -> ny);
+	powerCepstrum = PowerCepstrum_create (outputPowerCepstrogram -> ymax, outputPowerCepstrogram -> ny);
 }
 
 #if 0
@@ -80,8 +80,39 @@ bool structSoundFrameIntoPowerCepstrogramFrame :: inputFrameToOutputFrame () {
 #endif
 
 bool structSoundFrameIntoPowerCepstrogramFrame :: inputFrameIntoOutputFrame (integer currentFrame) {
+	/*
+		Step 1: spectrum of the sound frame
+		a. soundFrameToForwardFourierTransform ()
+		b. scaling
+	*/
 	
+	for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
+		fourierSamples [i] *= frameAsSound -> dx;
+
+	/*
+		step 2: log of the spectrum power values log (re * re + im * im)
+	*/
+	fourierSamples [1] = log (fourierSamples [1] * fourierSamples [1] + 1e-300);
+	for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
+		const double re = fourierSamples [2 * i], im = fourierSamples [2 * i + 1];
+		fourierSamples [2 * i] = log (re * re + im * im + 1e-300);
+		fourierSamples [2 * i + 1] = 0.0;
+	}
+	fourierSamples [numberOfFourierSamples] = log (fourierSamples [numberOfFourierSamples] * fourierSamples [numberOfFourierSamples] + 1e-300);
+	/*
+		Step 3: inverse fft of the log spectrum
+	*/
+	NUMfft_backward (fourierTable.get(), fourierSamples.get());
+	const double df = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
+	for (integer i = 1; i <= powerCepstrum -> nx; i ++) {
+		const double val = fourierSamples [i] * df;
+		powerCepstrum -> z [1] [i] = val * val;
+	}
 	return true;
+}
+
+void structSoundFrameIntoPowerCepstrogramFrame :: saveOutputFrame (integer iframe) {
+	outputPowerCepstrogram -> z.column (iframe)  <<=  powerCepstrum -> z.row (1); 
 }
 
 void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
