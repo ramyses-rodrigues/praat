@@ -127,6 +127,7 @@ void structLPCFrameIntoLineSpectralFrequenciesFrame :: initBasicLPCFrameIntoLine
 	LPCFrameIntoLineSpectralFrequenciesFrame_Parent :: initBasic (inputLPC, outputLSF);
 	our inputLPC = inputLPC;
 	our outputLSF = outputLSF;
+	our gridSize = 0.02;
 }
 
 void structLPCFrameIntoLineSpectralFrequenciesFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
@@ -134,6 +135,7 @@ void structLPCFrameIntoLineSpectralFrequenciesFrame :: copyBasic (constSampledFr
 	LPCFrameIntoLineSpectralFrequenciesFrame_Parent :: copyBasic (other);
 	our inputLPC = other -> inputLPC;
 	our outputLSF = other -> outputLSF;
+	our gridSize = other -> gridSize;
 }
 
 void structLPCFrameIntoLineSpectralFrequenciesFrame :: initHeap () {
@@ -232,12 +234,18 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double 
 
 Thing_implement (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame, 0);
 
-void structLineSpectralFrequenciesFrameIntoLPCFrame :: initBasicLineSpectralFrequenciesFrameAndLPC
+void structLineSpectralFrequenciesFrameIntoLPCFrame :: initBasicLineSpectralFrequenciesFrameIntoLPCFrame
 	(constLineSpectralFrequencies inputLSF, mutableLPC outputLPC)
 {
 	LineSpectralFrequenciesFrameIntoLPCFrame_Parent :: initBasic (inputLSF, outputLPC);
 	our inputLSF = inputLSF;
 	our outputLPC = outputLPC;
+}
+
+void structLineSpectralFrequenciesFrameIntoLPCFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
+	constLineSpectralFrequenciesFrameIntoLPCFrame other = reinterpret_cast<constLineSpectralFrequenciesFrameIntoLPCFrame> (other2);
+	our inputLSF = other -> inputLSF;
+	our outputLPC = other -> outputLPC;
 }
 
 void structLineSpectralFrequenciesFrameIntoLPCFrame :: initHeap () {
@@ -287,26 +295,17 @@ bool structLineSpectralFrequenciesFrameIntoLPCFrame :: inputFrameIntoOutputFrame
 	return true;
 }
 
-autoLineSpectralFrequenciesFrameIntoLPCFrame LineSpectralFrequenciesFrameIntoLPCFrame_create (constLineSpectralFrequencies inputLSF,
-	mutableLPC outputLPC)
-{
-	try {
-		autoLineSpectralFrequenciesFrameIntoLPCFrame me = Thing_new (LineSpectralFrequenciesFrameIntoLPCFrame);
-		my initBasicLineSpectralFrequenciesFrameAndLPC (inputLSF, outputLPC);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create LineSpectralFrequenciesFrameIntoLPCFrame");
-	}
-}
 void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC) {
 	SampledIntoSampled_requireEqualDomainsAndSampling (me, outputLPC);
-	autoLineSpectralFrequenciesFrameIntoLPCFrame frameIntoFrame = LineSpectralFrequenciesFrameIntoLPCFrame_create (me, outputLPC);
+	autoLineSpectralFrequenciesFrameIntoLPCFrame frameIntoFrame = Thing_new (LineSpectralFrequenciesFrameIntoLPCFrame);
+	frameIntoFrame -> initBasicLineSpectralFrequenciesFrameIntoLPCFrame (me, outputLPC);
 	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 }
 
 autoLPC LineSpectralFrequencies_to_LPC (constLineSpectralFrequencies me) {
 	try {
-		autoLPC thee = LPC_create (my xmin, my xmax, my nx, my dx, my x1, my maximumNumberOfFrequencies, 0.5 / my maximumFrequency);
+		autoLPC thee = LPC_createCompletelyInitialized (my xmin, my xmax, my nx, my dx, my x1, my maximumNumberOfFrequencies,
+			0.5 / my maximumFrequency);
 		LineSpectralFrequencies_into_LPC (me, thee.get());	
 		return thee;
 	} catch (MelderError) {

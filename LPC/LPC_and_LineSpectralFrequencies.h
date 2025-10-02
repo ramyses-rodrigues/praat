@@ -57,7 +57,9 @@ Thing_define (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledF
 	autoPolynomial fs;
 	autoPolynomial fa;
 
-	void initBasicLineSpectralFrequenciesFrameAndLPC (constLineSpectralFrequencies inputLSF, mutableLPC outputLPC);
+	void initBasicLineSpectralFrequenciesFrameIntoLPCFrame (constLineSpectralFrequencies inputLSF, mutableLPC outputLPC);
+	
+	void copyBasic (constSampledFrameIntoSampledFrame other);
 
 	void initHeap ()
 		override;
