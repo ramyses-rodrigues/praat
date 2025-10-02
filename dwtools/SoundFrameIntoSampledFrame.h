@@ -115,13 +115,12 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 			fourierSamples = raw_VEC (numberOfFourierSamples);
 			const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
 			fourierTable = NUMFourierTable_create (numberOfFourierSamples);
-			fourierSamples = raw_VEC (numberOfFourierSamples);
 			spectrum = Spectrum_create (0.5 / frameAsSound -> dx, numberOfFrequencies);
 			spectrum -> dx = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
 		}
 	}
 	
-	void soundFrameToFourierSamples () {
+	void soundFrameToForwardFourierTransform () {
 		const integer numberOfChannels = frameAsSound -> ny;
 		if (numberOfChannels == 1)
 			fourierSamples.part (1, soundFrameSize)  <<=  frameAsSound -> z.row (1);
@@ -139,7 +138,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 	
 	void soundFrameIntoSpectrum () {
 		
-		soundFrameToFourierSamples ();
+		soundFrameToForwardFourierTransform ();
 		
 		const VEC re = spectrum -> z.row (1);
 		const VEC im = spectrum -> z.row (2);

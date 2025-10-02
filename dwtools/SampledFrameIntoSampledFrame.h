@@ -39,7 +39,7 @@ Thing_define (SampledFrameIntoSampledFrame, Thing) {
 	
 	/*
 		Step 2 to completely initialize a new object:
-		Allocate all the heap structures like autovectors that can be dimensioned once the
+		Allocate all the heap structures like autovectors that can be dimensioned only after the
 		basic initialization in step 1 has been done.
 	*/
 	virtual void initHeap () {};
