@@ -62,11 +62,7 @@ static void Sound_to_LPC_common_e (constSound inputSound, int predictionOrder, d
 			Sound_preEmphasize_inplace (sound.get(), preEmphasisFrequency);
 		outputSound = sound.move();
 		Sampled_shortTermAnalysis (outputSound.get(), physicalAnalysisWidth, dt, & numberOfFrames, & t1);
-		autoLPC lpc = LPC_create (outputSound -> xmin, outputSound -> xmax, numberOfFrames, dt, t1, predictionOrder, outputSound -> dx);
-		for (integer iframe = 1; iframe <= numberOfFrames; iframe ++) {
-			LPC_Frame lpcFrame = & lpc -> d_frames [iframe];
-			LPC_Frame_init (lpcFrame, lpc -> maxnCoefficients);
-		}
+		autoLPC lpc = LPC_createCompletelyInitialized (outputSound -> xmin, outputSound -> xmax, numberOfFrames, dt, t1, predictionOrder, outputSound -> dx);
 		outputLPC = lpc.move();
 	} catch (MelderError) {
 		Melder_throw (inputSound, U": Sound and/or LPC not created from specification.");
@@ -192,7 +188,7 @@ autoLPC Sound_to_LPC_auto (constSound me, int predictionOrder, double effectiveA
 Thing_implement (SoundFrameIntoLPCFrameCovar, SoundFrameIntoLPCFrame, 0);
 
 void structSoundFrameIntoLPCFrameCovar :: initHeap () {
-	SoundFrameIntoLPCFrame_Parent :: initHeap ();
+	SoundFrameIntoLPCFrameCovar_Parent :: initHeap ();
 	order2 = order * (order + 1) / 2;
 	b = raw_VEC (order2);
 	grc = raw_VEC (order);
@@ -643,8 +639,9 @@ autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiv
 
 Thing_implement (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame, 0);
 
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (constLPC inputLPC, constSound inputSound,
-	mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation)
+void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (
+	constLPC inputLPC, constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape,
+	double k_stdev, integer itermax, double tol, bool wantlocation)
 {
 	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
 	our inputLPC = inputLPC;
@@ -656,8 +653,8 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundF
 }
 
 void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: copyBasic (constSampledFrameIntoSampledFrame other2) {
+	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other2);
 	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = reinterpret_cast<constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
-	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other);
 	our inputLPC = other -> inputLPC;
 	our k_stdev = other -> k_stdev;
 	our itermax = other -> itermax;
@@ -742,7 +739,7 @@ bool structLPCFrameAndSoundFrameIntoLPCFrameRobust :: inputFrameIntoOutputFrame 
 	LPC_Frame outputLPCFrame = & outputLPC -> d_frames [currentFrame];
 	currentPredictionOrder = inputLPCFrame -> nCoefficients;
 	for (integer i = 1; i <= inputLPCFrame -> nCoefficients; i ++)
-		outputLPCFrame -> a[i] = inputLPCFrame -> a [i];
+		outputLPCFrame -> a [i] = inputLPCFrame -> a [i];
 	if (currentPredictionOrder == 0) // is empty frame ?
 		return true;
 	outputLPCFrame -> gain = inputLPCFrame -> gain;
@@ -780,18 +777,11 @@ bool structLPCFrameAndSoundFrameIntoLPCFrameRobust :: inputFrameIntoOutputFrame 
 	return true;
 }
 
-void Sound_into_LPC_marplecccc (constSound me, mutableLPC thee, double effectiveAnalysisWidth, double tol1, double tol2) {
-	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, thee);
-	autoSoundFrameIntoLPCFrameMarple frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameMarple);
-	frameIntoFrame -> initBasicSoundFrameIntoLPCFrameMarple (me, thee, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, tol1, tol2);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
-}
-
 void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth,
-	double preEmphasisFrequency, double k_stdev, integer itermax, double tol, bool wantlocation)
+	double k_stdev, integer itermax, double tol, bool wantlocation)
 {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (inputSound, inputLPC);
-	Sampled_requireEqualSampling (inputSound, outputLPC);
+	Sampled_requireEqualSampling (inputLPC, outputLPC);
 	autoLPCFrameAndSoundFrameIntoLPCFrameRobust frameIntoFrame = Thing_new (LPCFrameAndSoundFrameIntoLPCFrameRobust);
 	frameIntoFrame -> initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (inputLPC, inputSound, outputLPC,
 		effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
@@ -808,7 +798,7 @@ autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, d
 			Sound_preEmphasize_inplace (sound.get(), preEmphasisFrequency);
 		autoLPC outputLPC = Data_copy (inputLPC);
 		LPC_and_Sound_into_LPC_robust (inputLPC, sound.get(), outputLPC.get(), effectiveAnalysisWidth,
-			preEmphasisFrequency, k_stdev, itermax, tol, wantlocation);
+			k_stdev, itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
 		Melder_throw (inputLPC, U" and ", inputSound,  U": no LPC (robust) created.");
@@ -817,58 +807,14 @@ autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, d
 
 /*********************** Robust method (Sound) *************************************************************/
 
-Thing_implement (SoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrameAuto, 0);
 
-void structSoundFrameIntoLPCFrameRobust :: initBasicSoundFrameIntoLPCFrameRobust (constSound inputSound, mutableLPC outputLPC,
-	mutableLPC intermediateLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax,
-	double tol, bool wantlocation)
+void Sound_into_LPC_robust (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, double k_stdev, integer itermax, double tol, bool wantlocation)
 {
-	SoundFrameIntoLPCFrameRobust_Parent :: initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
-	lpcFrameAndSoundFrameIntoLPCFrame -> initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (intermediateLPC, inputSound, outputLPC,
-		effectiveAnalysisWidth,	 windowShape, k_stdev, itermax, tol, wantlocation);	
-}
-
-void structSoundFrameIntoLPCFrameRobust :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoLPCFrameRobust other = reinterpret_cast<constSoundFrameIntoLPCFrameRobust> (other2);
-	SoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other);
-	lpcFrameAndSoundFrameIntoLPCFrame -> copyBasic (other -> lpcFrameAndSoundFrameIntoLPCFrame.get());
-}
-
-void structSoundFrameIntoLPCFrameRobust :: initHeap () {
-	SoundFrameIntoLPCFrameRobust_Parent :: initHeap ();
-	lpcFrameAndSoundFrameIntoLPCFrame -> initHeap ();
-}
-
-bool structSoundFrameIntoLPCFrameRobust :: inputFrameIntoOutputFrame (integer iframe) {
-	bool firstPart = SoundFrameIntoLPCFrameRobust_Parent :: inputFrameIntoOutputFrame (iframe);
-	bool secondPart = true;
-	if (firstPart) {
-		lpcFrameAndSoundFrameIntoLPCFrame -> soundFrame = our soundFrame;
-		secondPart = lpcFrameAndSoundFrameIntoLPCFrame -> inputFrameIntoOutputFrame (iframe);
-	}
-	return firstPart && secondPart;
-}
-
-autoSoundFrameIntoLPCFrameRobust SoundFrameIntoLPCFrameRobust_create (constSound inputSound, mutableLPC outputLPC, mutableLPC intermediateLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation)
-{
-	try {
-		autoSoundFrameIntoLPCFrameRobust me = Thing_new (SoundFrameIntoLPCFrameRobust);
-		my initBasicSoundFrameIntoLPCFrameRobust (inputSound, outputLPC, intermediateLPC, effectiveAnalysisWidth, 
-			windowShape, k_stdev, itermax, tol, wantlocation);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameRobust");
-	}
-}
-
-void Sound_into_LPC_robust (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation)
-{
-	autoLPC inputLPC = Data_copy (outputLPC);
-	autoSoundFrameIntoLPCFrameRobust frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameRobust);
-	frameIntoFrame -> initBasicSoundFrameIntoLPCFrameRobust (inputSound, outputLPC, inputLPC.get(),
-		effectiveAnalysisWidth, windowShape, k_stdev, itermax, tol, wantlocation);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (inputSound, outputLPC);
+	autoLPC intermediateLPC = Data_copy (outputLPC);
+	Sound_into_LPC_auto (inputSound, intermediateLPC.get(), effectiveAnalysisWidth);
+	LPC_and_Sound_into_LPC_robust (intermediateLPC.get(), inputSound, outputLPC, effectiveAnalysisWidth,
+		k_stdev, itermax, tol, wantlocation);
 }
 
 autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt,
@@ -876,111 +822,15 @@ autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiv
 {
 	try {
 		autoSound emphasizedSound;
-		autoLPC intermediateLPC;
-		Sound_to_LPC_common_e (me, predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency, emphasizedSound, intermediateLPC);
-		autoLPC outputLPC = Data_copy (intermediateLPC.get());
-		autoSoundFrameIntoLPCFrameRobust frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameRobust);
-		frameIntoFrame -> initBasicSoundFrameIntoLPCFrameRobust (emphasizedSound.get(), outputLPC.get(), intermediateLPC.get(),
-			effectiveAnalysisWidth, kSound_windowShape :: GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
-		SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+		autoLPC outputLPC;
+		Sound_to_LPC_common_e (me, predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency, emphasizedSound, outputLPC);
+		Sound_into_LPC_robust (emphasizedSound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev, 
+			itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
 		Melder_throw (me, U": no LPC (robust) created.");
 	}
 }
-
-#if 0
-
-
-
-void Sound_into_LPC_marple (constSound me, mutableLPC thee, double effectiveAnalysisWidth, double tol1, double tol2) {
-	Sound_and_LPC2_require_equalDomainsAndSamplingPeriods (me, thee);
-	autoSoundFrameIntoLPCFrameMarple ws = SoundFrameIntoLPCFrameMarple_create (
-		me, thee, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, tol1, tol2);
-	autoSoundIntoLPCStatus status = SoundIntoLPCStatus_create (thy nx);
-	autoSampledIntoSampled sis = SampledIntoSampled_create (me, thee, ws.move(), status.move());
-	SampledIntoSampled_analyseThreaded (sis.get());
-}
-
-autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency,
-	double tol1, double tol2)
-{
-	try {
-		const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-		checkLPCAnalysisParameters_e (my dx, my nx, physicalAnalysisWidth, predictionOrder);
-		autoSound emphasized = Sound_resampleAndOrPreemphasize (me, 0.0, 0, preEmphasisFrequency);
-		autoLPC thee = LPC_createEmptyFromAnalysisSpecifications (emphasized.get(), predictionOrder, physicalAnalysisWidth, dt);
-		Sound_into_LPC_marple (emphasized.get(), thee.get(), effectiveAnalysisWidth, tol1, tol2);
-		return thee;
-	} catch (MelderError) {
-		Melder_throw (me, U": no LPC (marple) created.");
-	}
-}
-
-
-void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound sound, mutableLPC outputlpc, double effectiveAnalysisWidth, double k_stdev,
-	integer itermax, double tol, bool wantlocation)
-{
-	try {
-		Sound_and_LPC2_require_equalDomainsAndSamplingPeriods (sound, inputLPC);	
-		const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-		double location = 0.0;
-		checkLPCAnalysisParameters_e (sound -> dx, sound -> nx, physicalAnalysisWidth, outputlpc -> maxnCoefficients);
-		autoLPCAndSoundFramesIntoLPCFrameRobust ws = LPCAndSoundFramesIntoLPCFrameRobust_create (inputLPC, sound, outputlpc,
-			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, location, wantlocation);
-		autoSoundIntoLPCStatus status = SoundIntoLPCStatus_create (outputlpc -> nx);
-		autoSampledIntoSampled sis = SampledIntoSampled_create (sound, outputlpc, ws.move(), status.move());
-		SampledIntoSampled_analyseThreaded (sis.get());
-	} catch (MelderError) {
-		Melder_throw (sound, U": no LPC (robust) calculated.");
-	}	
-}
-
-autoLPC LPC_and_Sound_to_LPC_robust (constLPC thee, constSound me, double effectiveAnalysisWidth, 
-	double preEmphasisFrequency, double k_stdev, integer itermax, double tol, bool wantlocation)
-{
-	try {
-		Sound_and_LPC2_require_equalDomainsAndSamplingPeriods (me, thee);
-		autoSound emphasized = Sound_resampleAndOrPreemphasize (me, 0.0, 0, preEmphasisFrequency);
-		autoLPC result = LPC_create (thy xmin, thy xmax, thy nx, thy dx, thy x1, thy maxnCoefficients, thy samplingPeriod);
-		LPC_and_Sound_into_LPC_robust (thee, emphasized.get(), result.get(), effectiveAnalysisWidth, k_stdev, itermax, tol, wantlocation);
-		return result;
-	} catch (MelderError) {
-		Melder_throw (me, U": no robust LPC created.");
-	}	
-}
-
-void Sound_into_LPCrobust_common (constSound me, mutableLPC outputlpc, autoSoundFrameIntoLPCFrame soundIntoLPCany, double effectiveAnalysisWidth, 
-	double k_stdev, integer itermax, double tol, bool wantlocation)
-{
-	Sound_and_LPC2_require_equalDomainsAndSamplingPeriods (me, outputlpc);
-	autoLPC inputLPC = Data_copy (outputlpc);
-	autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC = LPCAndSoundFramesIntoLPCFrameRobust_create (inputLPC.get(), me, outputlpc, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, 0.0, wantlocation);
-	autoSoundFrameIntoLPCFrameRobust soundIntoLPCrobust = SoundFrameIntoLPCFrameRobust_create (soundIntoLPCany.move(),
-		lpcAndSoundIntoLPC.move());
-	autoSoundIntoLPCStatus status = SoundIntoLPCStatus_create (outputlpc -> nx); // TODO adapt
-	autoSampledIntoSampled sis = SampledIntoSampled_create (me, outputlpc, soundIntoLPCrobust.move(), status.move());
-	SampledIntoSampled_analyseThreaded (sis.get());
-}
-
-autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency,
-	double k_stdev, integer itermax, double tol, bool wantlocation)
-{
-	try {
-		const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-		autoSound emphasized = Sound_resampleAndOrPreemphasize (me, 0.0, 0, preEmphasisFrequency);
-		autoLPC thee = LPC_createEmptyFromAnalysisSpecifications (emphasized.get(), predictionOrder, physicalAnalysisWidth, dt);
-		autoLPC output = Data_copy (thee.get());
-		Sound_into_LPC_auto (emphasized.get(), thee.get(), effectiveAnalysisWidth);
-		LPC_and_Sound_into_LPC_robust (thee.get(), emphasized.get(), output.get(), effectiveAnalysisWidth, k_stdev,
-			itermax,  tol,  wantlocation);
-		return output;
-	} catch (MelderError) {
-		Melder_throw (me, U": no LPC (robust) created.");
-	}
-}
-
-#endif
 
 /*********************** (inverse) filtering ******************************/
 

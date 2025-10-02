@@ -59,6 +59,8 @@ void Formant_Frame_init (Formant_Frame me, integer numberOfFormants);
 
 autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC, mutableFormant outputFormant, double margin);
 
+void LPC_into_Formant (constLPC me, mutableFormant thee, double margin);
+
 autoFormant LPC_to_Formant (constLPC me, double margin);
 
 autoLPC Formant_to_LPC (constFormant me, double samplingPeriod);

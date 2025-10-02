@@ -344,7 +344,8 @@ autoFormantPath Sound_to_FormantPath_any (Sound me, kLPC_Analysis lpcType, doubl
 				resampledAndPreemphasized = Sound_resampleAndOrPreemphasize (me, thy ceilings [candidate], 50, preemphasisFrequency);
 			else 
 				resampledAndPreemphasized = midCeiling.move();
-			autoLPC lpc = LPC_create (my xmin, my xmax, numberOfFrames, timeStep, t1, predictionOrder, resampledAndPreemphasized -> dx);
+			autoLPC lpc = LPC_createCompletelyInitialized (my xmin, my xmax, numberOfFrames, timeStep, t1, predictionOrder,
+				resampledAndPreemphasized -> dx);
 			if (lpcType == kLPC_Analysis::BURG) {
 				Sound_into_LPC_burg (resampledAndPreemphasized.get(), lpc.get(), analysisWidth);
 			} else if (lpcType == kLPC_Analysis::AUTOCORRELATION) {
