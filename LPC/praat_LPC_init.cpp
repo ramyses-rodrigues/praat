@@ -38,6 +38,7 @@
 #include "NUM2.h"
 #include "PowerCepstrum.h"
 #include "PowerCepstrogram.h"
+#include "Sound_to_PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
 #include "Sound_to_Formant_mt.h"
 #include "Sound_and_Cepstrum.h"
@@ -1409,7 +1410,7 @@ DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH_TO_ONE (Sound)
 		autoLPC result = Sound_to_LPC_robust (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency, 
-			numberOfStandardDeviations, maximumNumberOfIterations, tolerance, true);
+			 numberOfStandardDeviations, maximumNumberOfIterations, tolerance, true);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -1555,7 +1556,8 @@ FORM (CONVERT_ONE_AND_ONE_TO_ONE__LPC_Sound_to_LPC_robust, U"Robust LPC analysis
 	OK
 DO
 	CONVERT_ONE_AND_ONE_TO_ONE (LPC, Sound)
-		autoLPC result = LPC_and_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, locationVariable);
+		autoLPC result = LPC_and_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations,
+			maximumNumberOfIterations, tolerance, locationVariable);
 	CONVERT_ONE_AND_ONE_TO_ONE_END (my name.get(), U"_r");
 }
 

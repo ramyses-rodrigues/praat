@@ -19,7 +19,7 @@
  */
 
 #include "Cepstrum.h"
-#include "Table.h"
+#include "Matrix.h"
 #include "Vector.h"
 
 /*
@@ -37,9 +37,15 @@
 */
 
 Thing_define (PowerCepstrum, Cepstrum) {
+
 	double v_getValueAtSample (integer isamp, integer which, int units) const
 		override;
+
 };
+
+void PowerCepstrum_initWorkspace (PowerCepstrum me, double qminFit, double qmaxFit,
+	kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
+
 
 autoPowerCepstrum PowerCepstrum_create (double qmax, integer nq);
 /* Preconditions:
@@ -55,11 +61,11 @@ autoPowerCepstrum PowerCepstrum_create (double qmax, integer nq);
 
 void PowerCepstrum_draw (constPowerCepstrum me, Graphics g, double qmin, double qmax, double dBminimum, double dBmaximum, bool garnish);
 
-integer PowerCepstrum_getPointRange (constPowerCepstrum me, double qmin, double qmax, integer& imin, integer& imax);
-void PowerCepstrum_getPoints (constPowerCepstrum me, integer imin, integer imax, VEC x, VEC y);
+integer PowerCepstrum_getPointRange (PowerCepstrum me, double qmin, double qmax, integer& imin, integer& imax);
+void PowerCepstrum_getPoints (PowerCepstrum me, integer imin, integer imax, VEC x, VEC y);
 
 
-void PowerCepstrum_drawTrendLine (constPowerCepstrum me, Graphics g, double qmin, double qmax, double dBminimum, double dBmaximum, double qstart, double qend, kCepstrum_trendType lineType, kCepstrum_trendFit method);
+void PowerCepstrum_drawTrendLine (PowerCepstrum me, Graphics g, double qmin, double qmax, double dBminimum, double dBmaximum, double qstart, double qend, kCepstrum_trendType lineType, kCepstrum_trendFit method);
 /*
 	Function:
 		Draw a Cepstrum
@@ -72,27 +78,27 @@ void PowerCepstrum_drawTrendLine (constPowerCepstrum me, Graphics g, double qmin
 		[minimum, maximum]: amplitude; y range of drawing.
 */
 
-void PowerCepstrum_getMaximumAndQuefrency_pitch (constPowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType, double& maximum, double& quefrency); // deprecated, too many options for interpolation type.
+void PowerCepstrum_getMaximumAndQuefrency_pitch (PowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType, double& maximum, double& quefrency); // deprecated, too many options for interpolation type.
 
-void PowerCepstrum_getMaximumAndQuefrency_q (constPowerCepstrum me, double fromQuefrency, double toQuefrency, 
+void PowerCepstrum_getMaximumAndQuefrency_q (PowerCepstrum me, double fromQuefrency, double toQuefrency, 
 	kCepstrum_peakInterpolation peakInterpolationType, double& peakdB, double& quefrency);
 
 // The standard of Hillenbrand with fitting options
-double PowerCepstrum_getPeakProminence_hillenbrand (constPowerCepstrum me, double pitchFloor, double pitchCeiling, double& qpeak);
+double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pitchFloor, double pitchCeiling, double& qpeak);
 
-double PowerCepstrum_getRNR (constPowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth);
+double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth);
 
-autoTable PowerCepstrum_tabulateRhamonics (constPowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType);
+autoTable PowerCepstrum_tabulateRhamonics (PowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType);
 /*
 	column 1: quefrency
 	column 2: power at quefrency
 */
 
-double PowerCepstrum_getPeakProminence (constPowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod, double& qpeak);
+double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod, double& qpeak);
 
-void PowerCepstrum_fitTrendLine (constPowerCepstrum me, double qmin, double qmax, double *out_slope, double *out_intercept, kCepstrum_trendType lineType, kCepstrum_trendFit method);
+void PowerCepstrum_fitTrendLine (PowerCepstrum me, double qmin, double qmax, double *out_slope, double *out_intercept, kCepstrum_trendType lineType, kCepstrum_trendFit method);
 
-double PowerCepstrum_getTrendLineValue (constPowerCepstrum me, double quefrency, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod);
+double PowerCepstrum_getTrendLineValue (PowerCepstrum me, double quefrency, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod);
 
 autoPowerCepstrum PowerCepstrum_subtractTrend (constPowerCepstrum me, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod);
 

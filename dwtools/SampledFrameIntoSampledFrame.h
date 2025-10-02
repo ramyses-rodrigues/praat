@@ -18,17 +18,44 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Data.h"
 #include "Sampled.h"
-#include "SampledIntoSampledStatus.h"
 
-#include "SampledFrameIntoSampledFrame_def.h"
+Thing_define (SampledFrameIntoSampledFrame, Thing) {
+	
+	constSampled input;
+	mutableSampled output;
+	integer frameAnalysisInfo = 0;
 
-void SampledFrameIntoSampledFrame_init (SampledFrameIntoSampledFrame me, mutableSampled output);
-
-void SampledFrameIntoSampledFrame_initForStatusUpdates (SampledFrameIntoSampledFrame me, mutableSampledIntoSampledStatus status, bool updateStatus);
-
-void SampledFrameIntoSampledFrame_initFrameInterval (SampledFrameIntoSampledFrame me, integer startFrame, integer endFrame);
-
+	/*
+		Step 1 to partially initialize a new object:
+		Supply the object with enough data such that the second step, initHeap(), can
+		complete the object initialization.
+	*/
+	virtual void initBasic (constSampled input, mutableSampled output) {
+		our input = input;
+		our output = output;	
+	}
+	
+	/*
+		Step 2 to completely initialize a new object:
+		Allocate all the heap structures like autovectors that can be dimensioned only after the
+		basic initialization in step 1 has been done.
+	*/
+	virtual void initHeap () {};
+		
+	virtual void copyBasic (constSampledFrameIntoSampledFrame other) {
+		our input = other -> input;
+		our output = other -> output;
+	}
+	
+	virtual void getInputFrame (integer /* iframe */) {};
+	
+	virtual bool inputFrameIntoOutputFrame (integer /* iframe */) { // the actual analysis
+		return true;
+	}
+	
+	virtual void saveOutputFrame (integer /* iframe */) {};
+};
 
 #endif /* _SampledFrameIntoSampledFrame_h_ */
-
