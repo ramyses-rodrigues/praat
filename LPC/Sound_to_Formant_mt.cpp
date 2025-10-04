@@ -18,41 +18,103 @@
 
 #include <thread>
 #include "Sound_to_Formant_mt.h"
-#include "SoundFrameIntoFormantFrame.h"
 #include "Sound_extensions.h"
 #include "LPC_and_Formant.h"
+#include "SampledIntoSampled.h"
+
+Thing_implement (SoundFrameIntoFormantFrame, SampledFrameIntoSampledFrame, 0);
+
+void structSoundFrameIntoFormantFrame :: initBasicSoundFrameIntoFormantFrame (constSound inputSound, mutableFormant outputFormant) {
+	SoundFrameIntoFormantFrame_Parent :: initBasic (inputSound, outputFormant);
+	
+}
+
+void structSoundFrameIntoFormantFrame :: initHeap () {
+	SoundFrameIntoFormantFrame_Parent :: initHeap ();
+	soundIntoLPC -> initHeap ();
+	lpcIntoFormant -> initHeap ();
+}
+
+bool structSoundFrameIntoFormantFrame :: inputFrameIntoOutputFrame (integer iframe) {
+	bool result = soundIntoLPC -> inputFrameIntoOutputFrame (iframe);
+	if (result)
+		result = lpcIntoFormant -> inputFrameIntoOutputFrame (iframe);
+	return result;
+}
+
+autoSoundFrameIntoFormantFrame SoundFrameIntoFormantFrame_create (SoundFrameIntoLPCFrame soundIntoLPC, LPCFrameIntoFormantFrame lpcIntoFormant) {
+	try {
+		autoSoundFrameIntoFormantFrame me = Thing_new (SoundFrameIntoFormantFrame);
+		my soundIntoLPC.adoptFromAmbiguousOwner (soundIntoLPC);
+		my lpcIntoFormant.adoptFromAmbiguousOwner (lpcIntoFormant);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create SoundFrameIntoFormantFrame.");
+	}
+}
+
 /*
 	Precondition:
 		Sound already has the 'right' sampling frequency and has been pre-emphasized
 */
 
+
+static void Sound_to_Formant_common (constSound inputSound, double& dt, double numberOfFormants_real, double maximumFrequency,
+	double effectiveAnalysisWidth, double preEmphasisFrequency,	double safetyMargin, 
+	autoFormant& outputFormant, autoLPC& outputLPC, autoSound& sound)
+{
+	try {
+		if (dt<= 0.0)
+			dt = effectiveAnalysisWidth / 4.0;
+		autoSound resampled = Sound_resampleAndOrPreemphasize (inputSound, maximumFrequency, 50, preEmphasisFrequency);
+		const integer numberOfPoles = 2.0 * numberOfFormants_real;
+		const double physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
+		integer numberOfFrames;
+		double t1;
+		Sampled_shortTermAnalysis (sound.get(), physicalAnalysisWidth, dt, & numberOfFrames, & t1);
+		const integer numberOfFormants = ( safetyMargin == 0.0 ? numberOfPoles : (numberOfPoles + 1) / 2 );
+		autoFormant formant = Formant_create (sound -> xmin, sound -> xmax, numberOfFrames, dt, t1, numberOfFormants);
+		for (integer iframe = 1; iframe <= numberOfFrames; iframe ++) {
+			Formant_Frame formantFrame = &formant -> frames [iframe];
+			Formant_Frame_init (formantFrame, numberOfFormants);
+		}
+		outputFormant = formant.move();
+		autoLPC lpc = LPC_createCompletelyInitialized (sound -> xmin, sound -> xmax, formant -> nx, formant -> dx,
+			formant -> x1, numberOfPoles, sound -> dx);
+		outputLPC = lpc.move();
+		sound = resampled.move();
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create Formant or LPC or Sound.");
+	}
+	
+}
 static autoFormant createFormant_common (constSound me, double dt, integer numberOfPoles, double effectiveAnalysisWidth,
 	double safetyMargin)
 {
 	integer numberOfFrames;
 	double t1;
-	const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
+	const double physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
 	Sampled_shortTermAnalysis (me, physicalAnalysisWidth, dt, & numberOfFrames, & t1);
-	const integer numberOfFormants = numberOfFormantsFromNumberOfCoefficients (numberOfPoles, safetyMargin);
+	const integer numberOfFormants = numberOfFormantsFromNumberOfCoefficients2 (numberOfPoles, safetyMargin);
 	autoFormant formant = Formant_create (my xmin, my xmax, numberOfFrames, dt, t1, numberOfFormants);
 	return formant;
 }
 
-autoFormant Sound_to_Formant_burg_mt (constSound me, double dt_in, double numberOfFormants, double maximumFrequency,
+autoFormant Sound_to_Formant_burg_mt (constSound me, double dt, double numberOfFormants, double maximumFrequency,
 	double effectiveAnalysisWidth, double preEmphasisFrequency, double safetyMargin)
 {
 	try {
-		const double dt = dt_in > 0.0 ? dt_in : effectiveAnalysisWidth / 4.0;
-		autoSound sound = Sound_resampleAndOrPreemphasize (me, maximumFrequency, 50, preEmphasisFrequency);
-		const integer numberOfPoles = numberOfPolesFromNumberOfFormants (numberOfFormants);
-		autoFormant formant = createFormant_common (sound.get(), dt, numberOfPoles, effectiveAnalysisWidth, safetyMargin);
-		autoLPC lpc = LPC_create (my xmin, my xmax, formant -> nx, formant -> dx, formant -> x1, numberOfPoles, sound -> dx);
-		autoSoundFrameIntoLPCFrameBurg first = SoundFrameIntoLPCFrameBurg_create (me, lpc.get(), effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-		autoLPCFrameIntoFormantFrame second = LPCFrameIntoFormantFrame_create (lpc.get(), formant.get(), safetyMargin);
-		autoSoundFrameIntoFormantFrame soundIntoFormant = SoundFrameIntoFormantFrame_create (first.move(), second.move());
-		autoSoundIntoFormantStatus status = SoundIntoFormantStatus_create (formant -> nx);
-		autoSampledIntoSampled sis = SampledIntoSampled_create (me, formant.get(), soundIntoFormant.move(), status.move());
-		SampledIntoSampled_analyseThreaded (sis.get());
+		autoSound sound;
+		autoFormant formant;
+		autoLPC lpc;
+		Sound_to_Formant_common (me, dt, numberOfFormants, maximumFrequency, effectiveAnalysisWidth, preEmphasisFrequency,safetyMargin,
+			formant, lpc, sound);
+		autoSoundFrameIntoLPCFrameBurg soundIntoLPC = SoundFrameIntoLPCFrameBurg_create (me, lpc.get(), effectiveAnalysisWidth,
+				kSound_windowShape ::GAUSSIAN_2);
+		autoLPCFrameIntoFormantFrame lpcIntoFormant = LPCFrameIntoFormantFrame_create (lpc.get(), formant.get(), safetyMargin);
+		autoSoundFrameIntoFormantFrame soundIntoFormant = SoundFrameIntoFormantFrame_create (soundIntoLPC.releaseToAmbiguousOwner(),
+			lpcIntoFormant.releaseToAmbiguousOwner());
+		SampledIntoSampled_mt (soundIntoFormant.get(), 40);
 		return formant;
 	} catch (MelderError) {
 		Melder_throw (U"Could not create Formant (burg).");
@@ -66,45 +128,36 @@ autoFormant Sound_and_LPC_to_Formant (constSound me, constLPC lpc, double effect
 		const double maximumFrequency = 1.0 / lpc -> samplingPeriod;
 		autoSound sound = Sound_resampleAndOrPreemphasize (me, maximumFrequency, 50, preEmphasisFrequency);
 		autoFormant formant = createFormant_common (sound.get(), lpc -> dx, lpc -> maxnCoefficients, effectiveAnalysisWidth, safetyMargin);
-		autoLPC outputlpc = Data_copy (lpc);
-		autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC = LPCAndSoundFramesIntoLPCFrameRobust_create (lpc, me, outputlpc.get(),
-			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, location, wantlocation);
-		autoLPCFrameIntoFormantFrame lpcFrameIntoFormant = LPCFrameIntoFormantFrame_create (outputlpc.get(), formant.get(), safetyMargin);
-		autoSoundFrameIntoFormantFrame sif = SoundFrameIntoFormantFrame_create (lpcAndSoundIntoLPC.move(), lpcFrameIntoFormant.move());
-		autoSoundAndLPCIntoFormantRobustStatus status = SoundAndLPCIntoFormantRobustStatus_create (formant -> nx);
-		autoSampledIntoSampled sis = SampledIntoSampled_create (me, formant.get(), sif.move(), status.move());
-		SampledIntoSampled_analyseThreaded (sis.get());
+		autoLPC outputLPC = Data_copy (lpc);
+		autoLPCFrameAndSoundFrameIntoLPCFrameRobust lpcFrameAndSoundFrameIntoLPCFrame = Thing_new (LPCFrameAndSoundFrameIntoLPCFrameRobust);
+		lpcFrameAndSoundFrameIntoLPCFrame -> initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (lpc, sound.get(),
+			outputLPC.get(), effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
+		autoLPCFrameIntoFormantFrame lpcIntoFormant = LPCFrameIntoFormantFrame_create (outputLPC.get(), formant.get(), safetyMargin);
+		autoSoundFrameIntoFormantFrame soundIntoFormant = SoundFrameIntoFormantFrame_create (lpcFrameAndSoundFrameIntoLPCFrame.releaseToAmbiguousOwner(), lpcIntoFormant.releaseToAmbiguousOwner());
+		SampledIntoSampled_mt (soundIntoFormant.get(), 40);
 		return formant;
 	} catch (MelderError) {
 		Melder_throw (U"Could not create Formant from Sound and LPC.");
 	}
 }
 
-autoFormant Sound_to_Formant_robust_mt (constSound me, double dt_in, double numberOfFormants, double maximumFrequency,
+autoFormant Sound_to_Formant_robust_mt (constSound inputSound, double dt, double numberOfFormants, double maximumFrequency,
 	double effectiveAnalysisWidth, double preEmphasisFrequency, double safetyMargin, double k_stdev, integer itermax, double tol,
 	double location, bool wantlocation)
 {
 	try {
-		const double dt = dt_in > 0.0 ? dt_in : effectiveAnalysisWidth / 4.0;
-		autoSound sound = Sound_resampleAndOrPreemphasize (me, maximumFrequency, 50, preEmphasisFrequency);
-		const integer numberOfPoles = numberOfPolesFromNumberOfFormants (numberOfFormants);
-		autoFormant formant = createFormant_common (sound.get(), dt, numberOfPoles, effectiveAnalysisWidth, safetyMargin);
-		autoLPC lpc = LPC_create (my xmin, my xmax, formant -> nx, formant -> dx, formant -> x1, numberOfPoles, my dx);
-		autoLPC outputLPC = Data_copy (lpc.get());
+		autoSound sound;
+		autoFormant outputFormant;
+		autoLPC outputLPC;		
+		Sound_to_Formant_common (inputSound, dt, numberOfFormants, maximumFrequency, effectiveAnalysisWidth, preEmphasisFrequency,
+			safetyMargin, outputFormant, outputLPC, sound);
 		const kSound_windowShape windowShape = kSound_windowShape::GAUSSIAN_2;
-		autoSoundFrameIntoLPCFrameAuto soundIntoLPC1 = SoundFrameIntoLPCFrameAuto_create (me, lpc.get(), effectiveAnalysisWidth, windowShape);
-		autoLPCAndSoundFramesIntoLPCFrameRobust lpcAndSoundIntoLPC = LPCAndSoundFramesIntoLPCFrameRobust_create (lpc.get(), me, outputLPC.get(),
-			effectiveAnalysisWidth, windowShape, k_stdev, itermax, tol, location, wantlocation);
-		autoSoundFrameIntoLPCFrame soundIntoLPC2 = SoundFrameIntoLPCFrameRobust_create (soundIntoLPC1.move(), lpcAndSoundIntoLPC.move());
-		Melder_assert (soundIntoLPC2 -> outputlpc);
-		autoLPCFrameIntoFormantFrame lpcFrameIntoFormant = LPCFrameIntoFormantFrame_create (outputLPC.get(), formant.get(), safetyMargin);
-		autoSoundFrameIntoFormantFrame sif = SoundFrameIntoFormantFrame_create (soundIntoLPC2.move(), lpcFrameIntoFormant.move());
-		autoSoundIntoFormantRobustStatus status = SoundIntoFormantRobustStatus_create (formant -> nx);
-		autoSampledIntoSampled sis = SampledIntoSampled_create (me, formant.get(), sif.move(), status.move());
-		SampledIntoSampled_analyseThreaded (sis.get());
-		return formant;
+		
+		Sound_into_LPC_robust (sound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev, itermax, tol, wantlocation);
+		LPC_into_Formant (outputLPC.get(), outputFormant.get(), safetyMargin);
+		return outputFormant;
 	} catch (MelderError) {
-		Melder_throw (me, U": no robust Formant created.");
+		Melder_throw (inputSound, U": no robust Formant created.");
 	}
 }
 
@@ -125,7 +178,7 @@ autoFormant Sound_to_Formant_robust (Sound me, double dt_in, double numberOfForm
 
 		autoLPC lpc = Sound_to_LPC_auto (sound.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
 		autoLPC lpcRobust = LPC_and_Sound_to_LPC_robust (lpc.get(), sound.get(), effectiveAnalysisWidth, preEmphasisFrequency,
-				numberOfStandardDeviations, maximumNumberOfIterations, tolerance, wantlocation);
+			numberOfStandardDeviations, maximumNumberOfIterations, tolerance, wantlocation);
 		autoFormant thee = LPC_to_Formant (lpcRobust.get(), safetyMargin);
 		return thee;
 	} catch (MelderError) {

@@ -16,22 +16,98 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "LPCFrameIntoFormantFrame.h"
 #include "LPC_and_Formant.h"
 #include "LPC_and_Polynomial.h"
 #include "NUM2.h"
 #include "Roots_and_Formant.h"
+#include "SampledIntoSampled.h"
+
+static void LPC_Frame_into_Polynomial (constLPC_Frame me, mutablePolynomial p) {
+	/*
+		The lpc coefficients are a[1..nCoefficients], a[0] == 1, is not stored
+		For the polynomial we therefore need one extra coefficient since
+		the a's are stored in reverse order in the polynomial and a[0]
+		represents the highest power and is stored into the last position
+		of the polynomial.
+	*/
+	Melder_assert (my nCoefficients  == my a.size); // check invariant
+	const integer highestPolynomialCoefficientNumber = my nCoefficients + 1;
+	Melder_assert (p -> _capacity >= highestPolynomialCoefficientNumber);
+	
+	p -> coefficients.resize (highestPolynomialCoefficientNumber);
+	p -> numberOfCoefficients = p -> coefficients.size; // maintain invariant
+	p -> coefficients [highestPolynomialCoefficientNumber] = 1.0;
+	for (integer icof = 1; icof <= my nCoefficients; icof ++)
+		p -> coefficients [icof] = my a [highestPolynomialCoefficientNumber - icof];
+}
+
+void Formant_Frame_init (Formant_Frame me, integer numberOfFormants) {
+	if (numberOfFormants > 0)
+		my formant = newvectorzero <structFormant_Formant> (numberOfFormants);
+	my numberOfFormants = my formant.size; // maintain invariant
+}
+
+Thing_implement (LPCFrameIntoFormantFrame, SampledFrameIntoSampledFrame, 0);
+
+void structLPCFrameIntoFormantFrame :: initBasicLPCFrameIntoFormantFrame (constLPC inputLPC, mutableFormant outputFormant, double margin) {
+	LPCFrameIntoFormantFrame_Parent :: initBasic (inputLPC, outputFormant);
+	our inputLPC = inputLPC;
+	our outputFormant = outputFormant;
+	our margin = margin;
+}
+
+void structLPCFrameIntoFormantFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
+	constLPCFrameIntoFormantFrame other = reinterpret_cast<constLPCFrameIntoFormantFrame> (other2);
+	LPCFrameIntoFormantFrame_Parent :: copyBasic (other);
+	our inputLPC = other -> inputLPC;
+	our outputFormant = other -> outputFormant;
+	our margin = other -> margin;
+}
+
+void structLPCFrameIntoFormantFrame :: initHeap () {
+	LPCFrameIntoFormantFrame_Parent :: initHeap ();
+	our order = inputLPC -> maxnCoefficients;
+	bufferSize = order * order + order + order + 11 * order;
+	buffer = raw_VEC (bufferSize);		
+	p = Polynomial_create (-1.0, 1.0, order);
+	roots = Roots_create (order);
+}
+
+bool structLPCFrameIntoFormantFrame :: inputFrameIntoOutputFrame (integer iframe) {
+	Formant_Frame formantFrame = & outputFormant -> frames [iframe];
+	LPC_Frame inputLPCFrame = & inputLPC -> d_frames [iframe];
+	formantFrame -> intensity = inputLPCFrame -> gain;
+	integer frameAnalysisInfo = 0;
+	if (inputLPCFrame -> nCoefficients == 0) {
+		formantFrame -> numberOfFormants = 0;
+		formantFrame -> formant.resize (formantFrame -> numberOfFormants); // maintain invariant
+		frameAnalysisInfo = 1;	
+		return true;
+	}
+	frameAnalysisInfo = 0;
+	const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;
+	LPC_Frame_into_Polynomial (inputLPCFrame, p.get());
+	Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
+	Roots_fixIntoUnitCircle (roots.get());
+	Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
+	return true;
+}
+
+autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC, mutableFormant outputFormant, double margin) {
+	try {
+		autoLPCFrameIntoFormantFrame me = Thing_new (LPCFrameIntoFormantFrame);
+		my initBasicLPCFrameIntoFormantFrame (inputLPC, outputFormant, margin);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create LPCFrameIntoFormantFrame.");
+	}
+}
 
 void LPC_into_Formant (constLPC me, mutableFormant thee, double margin) {
 	SampledIntoSampled_requireEqualDomainsAndSampling (me, thee);
-
-	autoLPCFrameIntoFormantFrame ws = LPCFrameIntoFormantFrame_create (me, thee, margin);
-	autoLPCIntoFormantStatus status = LPCIntoFormantStatus_create (thy nx);
-	autoSampledIntoSampled sis = SampledIntoSampled_create (me, thee, ws.move(), status.move());
-	const integer numberOfErrorFrames = SampledIntoSampled_analyseThreaded (sis.get());
+	autoLPCFrameIntoFormantFrame frameIntoFrame = LPCFrameIntoFormantFrame_create (me, thee, margin);
+	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 	Formant_sort (thee);
-	if (numberOfErrorFrames > 0)
-		Melder_warning (U"LPC_into_Formant: ", numberOfErrorFrames, U" frames have issues.");
 }
 
 autoFormant LPC_to_Formant (constLPC me, double margin) {
@@ -46,7 +122,13 @@ autoFormant LPC_to_Formant (constLPC me, double margin) {
 		Melder_require (my maxnCoefficients < 100,
 			U"We cannot find the roots of a polynomial of order > 99.");
 		autoFormant thee = Formant_create (my xmin, my xmax, my nx, my dx, my x1, maximumNumberOfFormants);
-		LPC_into_Formant (me, thee.get(), margin);
+		for (integer iframe = 1; iframe <= thy nx; iframe ++) {
+			Formant_Frame_init (& thy frames [iframe], maximumNumberOfFormants);
+		}
+		autoLPCFrameIntoFormantFrame frameIntoFrame = Thing_new (LPCFrameIntoFormantFrame);
+		frameIntoFrame -> initBasicLPCFrameIntoFormantFrame (me, thee.get(), margin);
+		SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+		Formant_sort (thee.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no Formant created.");
@@ -113,10 +195,10 @@ autoLPC Formant_to_LPC (constFormant me, double samplingPeriod) {
 
 		for (integer i = 1; i <= my nx; i ++) {
 			const Formant_Frame f = & my frames [i];
-			const LPC_Frame lpc = & thy d_frames [i];
+			const LPC_Frame lpcFrame = & thy d_frames [i];
 			const integer numberOfCoefficients = 2 * f -> numberOfFormants;
-			LPC_Frame_init (lpc, numberOfCoefficients);
-			Formant_Frame_into_LPC_Frame (f, lpc, samplingPeriod);
+			LPC_Frame_init (lpcFrame, numberOfCoefficients);
+			Formant_Frame_into_LPC_Frame (f, lpcFrame, samplingPeriod);
 		}
 		return thee;
 	} catch (MelderError) {

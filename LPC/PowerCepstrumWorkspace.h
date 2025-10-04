@@ -21,15 +21,78 @@
 #include "PowerCepstrum.h"
 #include "SlopeSelector.h"
 
-#include "PowerCepstrumWorkspace_def.h"
+Thing_define (PowerCepstrumWorkspace, Thing) {
+
+	/*
+		To do some of the calculations efficiently we use a Workspace to maintain state.
+		The following data will never be saved or copied when a PowerCepstrum is saved.
+	*/
+	constPowerCepstrum powerCepstrum;
+	integer numberOfPoints = 0;
+	integer imin, imax;			// [imin,imax]  the slope calculation interval
+	autoVEC x, y; 				// numberOfPoints (in dB's)
+	autoMatrix asdBs;			// for peak detection
+	autoSlopeSelector slopeSelector;
+	bool slopeKnown = false, peakKnown = false, trendSubtracted = false;
+	kSlopeSelector_method method;
+	kCepstrum_trendType trendLineType;
+	kVector_peakInterpolation peakInterpolationType = kVector_peakInterpolation :: PARABOLIC;
+	double qminPeakSearch, qmaxPeakSearch; // peak in [pitchFloor, pitchCeiling]
+	double slope, intercept;
+	double cpp; 				// = peakdB - trenddB
+	double trenddB, peakdB;
+	double peakQuefrency;
+	integer maximumNumberOfRhamonics, numberOfRhamonics;
+	autoMAT rhamonics; 			// maximumNumberOfRhamonics x 5: power, q1, q, q2, amplitude
+	
+	void initWorkspace (constPowerCepstrum me, double qminFit, double qmaxFit, kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
+	
+	void initPeakSearchPart (double qminPeakSearch,	double qmaxPeakSearch, kVector_peakInterpolation peakInterpolationType);
+	
+	void newData (constPowerCepstrum thee);
+
+	void getSlopeAndIntercept ();
+
+	void getPeakAndPosition ();
+
+	void subtractTrend ();
+
+	double getTrend (double quefrency);
+
+	void getCPP ();
+
+	void todBs ();
+	
+	void fromdBs ();
+	
+	void setMaximumNumberOfRhamonics (integer maximumNumberOfRhamonics);
+	
+	void getNumberOfRhamonics (double qmin, double qmax);
+	
+	void getRhamonicPeaks (double qmin, double qmax);
+	
+	void getRhamonicsPower (double qmin, double qmax, double f0fractionalWidth);
+			
+	double getRNR (double qmin, double qmax, double f0fractionalWidth);
+	
+
+};
+
+autoPowerCepstrumWorkspace PowerCepstrumWorkspace_create (constPowerCepstrum thee, double qminFit, double qmaxFit,
+	kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
+
+/*void PowerCepstrum_initWorkspace (PowerCepstrum me, double qminFit, double qmaxFit,
+	kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
+
 
 void PowerCepstrumWorkspace_init (mutablePowerCepstrumWorkspace me, constPowerCepstrum thee, double qminFit, double qmaxFit,
 	kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
 
-autoPowerCepstrumWorkspace PowerCepstrumWorkspace_create (constPowerCepstrum thee, double qminSearchInterval, double qmaxSearchInterval,
+autoPowerCepstrumWorkspace PowerCepstrumWorkspace_create (constPowerCepstrum thee, double qminFit, double qmaxFit,
 	kCepstrum_trendType trendLineType, kCepstrum_trendFit method);
 
-void PowerCepstrumWorkspace_initPeakSearchPart (mutablePowerCepstrumWorkspace me, double qminSearchInterval,
-	double qmaxSearchInterval, kVector_peakInterpolation peakInterpolationType);
+void PowerCepstrumWorkspace_initPeakSearchPart (mutablePowerCepstrumWorkspace me, double qminPeakSearch,
+	double qmaxPeakSearch, kVector_peakInterpolation peakInterpolationType);
+*/
 
 #endif /* PowerCepstrumWorkspace_h_ */
