@@ -50,7 +50,7 @@ Thing_define (Picture, Thing) {
 };
 
 /*
-	The drawing area is a rectangle measuring 18x15 inches.
+	The drawing area is a rectangle measuring 60x60 inches.
 */
 constexpr double Picture_WIDTH = 60.0;
 constexpr double Picture_HEIGHT = 60.0;
