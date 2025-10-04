@@ -83,6 +83,20 @@ Thing_implement (GuiShell, GuiForm, 0);
 			}
 		}
 	}
+	- (void) setDistinctiveBackGround {
+		if (@available (macOS 10.15, *))
+			[self   setBackgroundColor: [NSColor
+				colorWithName: @"dynamicWindowBackgroundColour"
+				dynamicProvider: ^ NSColor*_Nonnull (NSAppearance*_Nonnull appearance) {
+					if ([appearance   bestMatchFromAppearancesWithNames: @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]] == NSAppearanceNameDarkAqua)
+						return [NSColor   colorWithCalibratedWhite: 0.15   alpha: 1.0];   // dark mode, changing on the fly
+					else
+						return [NSColor   colorWithCalibratedWhite: 0.85   alpha: 1.0];   // light mode, changing on the fly
+				}
+			]];
+		else
+			[self   setBackgroundColor: [NSColor   colorWithCalibratedWhite: 0.85   alpha: 1.0]];   // not dynamic
+	}
 	@end
 #endif
 

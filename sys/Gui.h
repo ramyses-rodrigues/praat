@@ -134,7 +134,9 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 		- (void) magnifyBy: (double) step;
 	@end
 	@interface GuiCocoaScrolledWindow : NSScrollView <GuiCocoaAny> @end
-	@interface GuiCocoaShell : NSWindow <GuiCocoaAny> @end
+	@interface GuiCocoaShell : NSWindow <GuiCocoaAny>
+		- (void) setDistinctiveBackGround;   // slightly darker than Tahoe's background, in order to still see text widgets
+	@end
 	@interface GuiCocoaTextField : NSTextField <GuiCocoaAny> @end
 	@interface GuiCocoaTextView : NSTextView <GuiCocoaAny, NSTextViewDelegate> @end
 #elif motif

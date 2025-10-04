@@ -132,18 +132,7 @@ GuiDialog GuiDialog_create (GuiWindow parent, int x, int y, int width, int heigh
 		[my d_cocoaShell   setTitle: (NSString *) Melder_peek32toCfstring (title)];
 		//[my d_cocoaShell   makeKeyAndOrderFront: nil];
 		//[my d_cocoaShell   layoutIfNeeded];
-		if (@available (macOS 10.15, *))
-			[my d_cocoaShell   setBackgroundColor: [NSColor
-				colorWithName: @"dynamicWindowBackgroundColour"
-				dynamicProvider: ^ NSColor*_Nonnull (NSAppearance*_Nonnull appearance) {
-					if ([appearance   bestMatchFromAppearancesWithNames: @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]] == NSAppearanceNameDarkAqua)
-						return [NSColor   colorWithCalibratedWhite: 0.15   alpha: 1.0];   // dark mode, changing on the fly
-					else
-						return [NSColor   colorWithCalibratedWhite: 0.93   alpha: 1.0];   // light mode, changing on the fly
-				}
-			]];
-		else
-			[my d_cocoaShell   setBackgroundColor: [NSColor   colorWithCalibratedWhite: 0.93   alpha: 1.0]];   // not dynamic
+		[my d_cocoaShell   setDistinctiveBackGround];
 		my d_widget = (GuiObject) [my d_cocoaShell   contentView];
 		[my d_cocoaShell   setUserData: me.get()];
 		[my d_cocoaShell   setReleasedWhenClosed: NO];

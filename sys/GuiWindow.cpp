@@ -1,10 +1,10 @@
 /* GuiWindow.cpp
  *
- * Copyright (C) 1993-2018,2020,2021 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2018,2020,2021,2024,2025 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -185,17 +185,18 @@ GuiWindow GuiWindow_create (int x, int y, int width, int height, int minimumWidt
 			defer: false];
 		if (Melder_debug == 55)
 			Melder_casual (U"\t\tGuiCocoaShell-", Melder_pointer (my d_cocoaShell), U" init in ", Thing_messageNameAndAddress (me.get()));
-		[my d_cocoaShell setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
-        [my d_cocoaShell setMinSize: NSMakeSize (minimumWidth, minimumHeight)];
+		[my d_cocoaShell   setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
+		[my d_cocoaShell   setMinSize: NSMakeSize (minimumWidth, minimumHeight)];
 		GuiShell_setTitle (me.get(), title);
-		[my d_cocoaShell makeKeyAndOrderFront: nil];
-		[my d_cocoaShell layoutIfNeeded];
+		[my d_cocoaShell   makeKeyAndOrderFront: nil];
+		[my d_cocoaShell   layoutIfNeeded];
+		[my d_cocoaShell   setDistinctiveBackGround];
 		my d_widget = (GuiObject) [my d_cocoaShell   contentView];   // BUG: this d_widget doesn't have the GuiCocoaAny protocol
 		_GuiObject_setUserData (my d_cocoaShell, me.get());
 		//if (! theGuiCocoaWindowDelegate) {
 		//	theGuiCocoaWindowDelegate = [[GuiCocoaWindowDelegate alloc] init];
 		//}
-		//[my d_cocoaWindow setDelegate: theGuiCocoaWindowDelegate];
+		//[my d_cocoaWindow   setDelegate: theGuiCocoaWindowDelegate];
 	#endif
 	my d_width = width;
 	my d_height = height;
