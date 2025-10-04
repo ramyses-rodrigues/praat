@@ -42,7 +42,7 @@ and stand-alone programs (for the latter, see @@Scripting 9. Turning a script in
 
 ################################################################################
 "Demo window 1. My first Demo window script"
-© Paul Boersma 2009–2023
+© Paul Boersma 2009–2023,2025
 
 The Demo window is Praat’s least visible window: you can create it only through a script.
 Try the following script after selecting a Sound object:
@@ -69,7 +69,7 @@ which sets the world coordinates to something else than before (before, the worl
 Now suppose you want the Sound to appear in the top half of the window,
 and some texts in the bottom left and bottom right corners of the window.
 You can use @@Select outer viewport...@ and @@Select inner viewport...@,
-if you know that the size of the Demo window is “100” horizontally and “100” vertically (rather than 12\xx12, as the @@Picture window@),
+if you know that the size of the Demo window is “100” horizontally and “100” vertically (rather than 60\xx60 inch, as the @@Picture window@),
 and that the point (0, 0) lies in the bottom left (rather than the top left, as in the Picture window):
 {;
 	\#`{demo} \@{Erase all}

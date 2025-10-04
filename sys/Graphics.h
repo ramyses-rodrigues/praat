@@ -353,7 +353,7 @@ bool Graphics_stopRecording (Graphics me);
 void Graphics_clearRecording (Graphics me);
 void Graphics_play (Graphics from, Graphics to);
 void Graphics_writeRecordings (Graphics me, FILE *f);
-void Graphics_readRecordings (Graphics me, FILE *f);
+void Graphics_readRecordings (Graphics me, FILE *f, double heightCorrection);
 void Graphics_markGroup (Graphics me);
 void Graphics_undoGroup (Graphics me);
 
