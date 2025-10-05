@@ -750,7 +750,7 @@ autoHMMObservationSequence HMM_to_HMMObservationSequence (HMM me, integer startS
 
 				// get next state
 
-				istate = NUMgetIndexFromProbability (my transitionProbs.row (istate).part(1, my numberOfStates), NUMrandomUniform (0.0, 1.0));
+				istate = NUMgetIndexFromProbability (my transitionProbs.row (istate).part (1, my numberOfStates), NUMrandomUniform (0.0, 1.0));
 				if (istate == my numberOfStates + 1) { // final state
 					for (integer j = numberOfItems; j > i; j --)
 						HMMObservationSequence_removeObservation (thee.get(), j);

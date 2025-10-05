@@ -2,7 +2,7 @@
 #define _LPC_h_
 /* LPC.h
  *
- * Copyright (C) 1994-2020, 2025 David Weenink
+ * Copyright (C) 1994-2020,2025 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

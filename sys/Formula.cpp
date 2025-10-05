@@ -5463,7 +5463,7 @@ static void do_part_VEC () {
 
 	const integer newSize = last - (first - 1);
 	if (newSize > 0)
-		pushNumericVector (copy_VEC (vec. part (first, last)));
+		pushNumericVector (copy_VEC (vec.part (first, last)));
 	else
 		pushNumericVector (autoVEC ());
 }
@@ -5523,7 +5523,7 @@ static void do_part_MAT () {
 		U"The fifth argument of the function “part##” (the end column) should (after rounding) be at most the number of columns (",
 		numberOfColumns, U"), not ", endColumn, U"."
 	);
-	pushNumericMatrix (copy_MAT (mat. part (startingRow, endRow, startingColumn, endColumn)));
+	pushNumericMatrix (copy_MAT (mat.part (startingRow, endRow, startingColumn, endColumn)));
 }
 static void do_editor () {
 	const Stackel narg = pop;

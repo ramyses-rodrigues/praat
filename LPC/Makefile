@@ -16,7 +16,7 @@ OBJECTS = Cepstrum.o Cepstrumc.o Cepstrum_and_Spectrum.o \
 	LPC_and_Formant.o LPC_and_Cepstrumc.o \
 	LPC_and_LFCC.o \
 	LPC_and_LineSpectralFrequencies.o LPC_and_Polynomial.o \
-	LPC_to_Spectrum.o  LPC_to_Spectrogram.o \
+	LPC_to_Spectrum.o LPC_to_Spectrogram.o \
 	LPC_and_Tube.o \
 	PowerCepstrum.o PowerCepstrogram.o \
 	Roots_and_Formant.o \
@@ -41,5 +41,3 @@ libLPC.a: $(OBJECTS)
 	$(RANLIB) libLPC.a
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../dwtools/*.h ../fon/*.h ../foned/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h
-
-

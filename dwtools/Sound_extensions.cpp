@@ -1312,7 +1312,7 @@ autoSound Sound_createPlompTone (double minimumTime, double maximumTime, double 
 
 void Sounds_multiply (Sound me, Sound thee) {
 	const integer n = std::min (my nx, thy nx );
-	my z.row (1).part(1, n)  *=  thy z.row (1).part(1, n);
+	my z.row (1).part (1, n)  *=  thy z.row (1).part (1, n);
 }
 
 double Sound_power (Sound me) {

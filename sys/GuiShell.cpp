@@ -160,7 +160,7 @@ void GuiShell_setTitle (GuiShell me, conststring32 title /* cattable */) {
 	#endif
 }
 
-void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
+void GuiShell_drain (GuiShell me, bool waitUntilItHasHappened, bool allowOtherEvents) {
 	#if gtk
 		//gdk_window_process_all_updates ();
 		while (gtk_events_pending ())
@@ -175,17 +175,7 @@ void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 		[my d_cocoaShell   layoutIfNeeded];
 		[my d_cocoaShell   displayIfNeeded];
 		//[CATransaction flush];   // in case we ever implement layers
-		if (allowOtherEvents) {
-			NSEvent *nsEvent;
-			while ((nsEvent = [NSApp
-				nextEventMatchingMask: NSEventMaskAny
-				untilDate: [NSDate distantPast]
-				inMode: NSDefaultRunLoopMode
-				dequeue: YES]) != nullptr)
-			{
-				[NSApp   sendEvent: nsEvent];
-			}
-		} else {
+		if (waitUntilItHasHappened) {
 			constexpr double smallestExpectedScreenRefreshFrequency = 50.0;   // hertz
 			constexpr double greatestExpectedScreenRefreshPeriod =
 					1.0 / smallestExpectedScreenRefreshFrequency;   // e.g. 0.02 seconds
@@ -201,6 +191,32 @@ void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 					inMode: NSDefaultRunLoopMode
 					dequeue: YES]) != nullptr)
 				{
+					if (allowOtherEvents) {
+						[NSApp   sendEvent: nsEvent];
+					} else {
+						NSUInteger nsEventType = [nsEvent type];
+						if (nsEventType == NSEventTypeKeyDown)
+							NSBeep();
+						/*
+							Ignore all other events.
+						*/
+					}
+				}
+				constexpr double moderatePollingFrequency = 1000.0;   // hertz
+				constexpr double moderatePollingPeriod = 1.0 / moderatePollingFrequency;   // e.g. 1 ms
+				[NSThread   sleepForTimeInterval: moderatePollingPeriod];
+			}
+		} else {
+			NSEvent *nsEvent;
+			while ((nsEvent = [NSApp
+				nextEventMatchingMask: NSEventMaskAny
+				untilDate: [NSDate distantPast]
+				inMode: NSDefaultRunLoopMode
+				dequeue: YES]) != nullptr)
+			{
+				if (allowOtherEvents) {
+					[NSApp   sendEvent: nsEvent];
+				} else {
 					NSUInteger nsEventType = [nsEvent type];
 					if (nsEventType == NSEventTypeKeyDown)
 						NSBeep();
@@ -208,9 +224,6 @@ void GuiShell_drain (GuiShell me, bool allowOtherEvents) {
 						Ignore all other events.
 					*/
 				}
-				constexpr double moderatePollingFrequency = 1000.0;   // hertz
-				constexpr double moderatePollingPeriod = 1.0 / moderatePollingFrequency;   // e.g. 1 ms
-				[NSThread   sleepForTimeInterval: moderatePollingPeriod];
 			}
 		}
 		[pool release];
