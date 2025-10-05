@@ -21,7 +21,7 @@
 #define ooSTRUCT LineSpectralFrequencies_Frame
 oo_DEFINE_STRUCT (LineSpectralFrequencies_Frame)
 
-	oo_INT (numberOfFrequencies)
+	oo_INTEGER16 (numberOfFrequencies)
 	oo_VEC (frequencies, numberOfFrequencies)
 	
 oo_END_STRUCT (LineSpectralFrequencies_Frame)
@@ -32,7 +32,7 @@ oo_END_STRUCT (LineSpectralFrequencies_Frame)
 oo_DEFINE_CLASS (LineSpectralFrequencies, Sampled)
 
 	oo_DOUBLE (maximumFrequency)
-	oo_INT (maximumNumberOfFrequencies)
+	oo_INTEGER16 (maximumNumberOfFrequencies)
 	oo_STRUCTVEC (LineSpectralFrequencies_Frame, d_frames, nx)
 
 	#if oo_DECLARING
