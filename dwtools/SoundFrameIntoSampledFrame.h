@@ -45,7 +45,7 @@ inline double getPhysicalAnalysisWidth2 (double effectiveAnalysisWidth, kSound_w
 }
 
 Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
-	
+
 	constSound inputSound;
 	double physicalAnalysisWidth; 			// depends on the effectiveAnalysiswidth and the window window shape
 	integer soundFrameSize; 				// determined by the physicalAnalysisWidth and the samplingFrequency of the Sound
@@ -61,7 +61,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 	integer numberOfFourierSamples;
 	autoVEC fourierSamples;					// size = numberOfFourierSamples
 	autoNUMFourierTable fourierTable;		// of dimension numberOfFourierSamples;
-	
+
 	void initBasicSoundFrameIntoSampledFrame (constSound input, mutableSampled output, double effectiveAnalysisWidth, 
 		kSound_windowShape windowShape)
 	{
@@ -70,9 +70,9 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		our windowShape = windowShape;
 		physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, windowShape);
 	}
-		
+
 	void copyBasic (constSampledFrameIntoSampledFrame other2) override {
-		constSoundFrameIntoSampledFrame other = reinterpret_cast<constSoundFrameIntoSampledFrame> (other2);
+		constSoundFrameIntoSampledFrame other = static_cast <constSoundFrameIntoSampledFrame> (other2);
 		SoundFrameIntoSampledFrame_Parent :: copyBasic (other);
 		our inputSound = other -> inputSound;
 		our physicalAnalysisWidth = other -> physicalAnalysisWidth;
@@ -81,7 +81,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		our wantSpectrum = other -> wantSpectrum;
 		our fftInterpolationFactor = other -> fftInterpolationFactor;
 	}
-	
+
 	void getInputFrame (integer currentFrame) override {
 		const double midTime = Sampled_indexToX (output, currentFrame);
 		integer soundFrameBegin = Sampled_xToNearestIndex (inputSound, midTime - 0.5 * physicalAnalysisWidth); // approximation
@@ -96,7 +96,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		if (wantSpectrum)
 			soundFrameIntoSpectrum ();
 	}
-	
+
 	void initHeap () override {
 		SoundFrameIntoSampledFrame_Parent :: initHeap ();
 		soundFrameSize = getSoundFrameSize2 (physicalAnalysisWidth, inputSound -> dx);
@@ -119,7 +119,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 			spectrum -> dx = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
 		}
 	}
-	
+
 	void soundFrameToForwardFourierTransform () {
 		const integer numberOfChannels = frameAsSound -> ny;
 		if (numberOfChannels == 1)
@@ -135,11 +135,11 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		fourierSamples.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
 		NUMfft_forward (fourierTable.get(), fourierSamples.get());
 	}
-	
+
 	void soundFrameIntoSpectrum () {
-		
+
 		soundFrameToForwardFourierTransform ();
-		
+
 		const VEC re = spectrum -> z.row (1);
 		const VEC im = spectrum -> z.row (2);
 		const integer numberOfFrequencies = spectrum -> nx;
@@ -163,4 +163,3 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 };
 
 #endif /* _SoundFrameIntoSampledFrame_h_ */
- 
