@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -33,14 +33,14 @@ inline integer getSoundFrameSize2_uneven (double approximatePhysicalAnalysisWidt
 inline integer getSoundFrameSize2 (double physicalAnalysisWidth, double samplingPeriod) {
 	Melder_assert (physicalAnalysisWidth > 0.0);
 	Melder_assert (samplingPeriod > 0.0);
-	const double numberOfSamples_real = round (physicalAnalysisWidth / samplingPeriod);
-	return (integer) numberOfSamples_real;
+	return Melder_iround (physicalAnalysisWidth / samplingPeriod);
 }
 
 inline double getPhysicalAnalysisWidth2 (double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	const double physicalAnalysisWidth = ( (windowShape == kSound_windowShape::RECTANGULAR ||
+	const double physicalAnalysisWidth = ( windowShape == kSound_windowShape::RECTANGULAR ||
 		windowShape == kSound_windowShape::TRIANGULAR || windowShape == kSound_windowShape::HAMMING ||
-		windowShape == kSound_windowShape::HANNING) ? effectiveAnalysisWidth : 2.0 * effectiveAnalysisWidth);
+		windowShape == kSound_windowShape::HANNING ? effectiveAnalysisWidth : 2.0 * effectiveAnalysisWidth )
+	;
 	return physicalAnalysisWidth;
 }
 
