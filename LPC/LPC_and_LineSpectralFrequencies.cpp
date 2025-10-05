@@ -1,10 +1,10 @@
 /* LPC_and_LineSpectralFrequencies.cpp
  *
- * Copyright (C) 2016-2020, 2025 David Weenink
+ * Copyright (C) 2016-2021,2024,2025 David Weenink
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but
@@ -131,7 +131,7 @@ void structLPCFrameIntoLineSpectralFrequenciesFrame :: initBasicLPCFrameIntoLine
 }
 
 void structLPCFrameIntoLineSpectralFrequenciesFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constLPCFrameIntoLineSpectralFrequenciesFrame other = reinterpret_cast<constLPCFrameIntoLineSpectralFrequenciesFrame> (other2);
+	constLPCFrameIntoLineSpectralFrequenciesFrame other = static_cast <constLPCFrameIntoLineSpectralFrequenciesFrame> (other2);
 	LPCFrameIntoLineSpectralFrequenciesFrame_Parent :: copyBasic (other);
 	our inputLPC = other -> inputLPC;
 	our outputLSF = other -> outputLSF;
@@ -243,7 +243,7 @@ void structLineSpectralFrequenciesFrameIntoLPCFrame :: initBasicLineSpectralFreq
 }
 
 void structLineSpectralFrequenciesFrameIntoLPCFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constLineSpectralFrequenciesFrameIntoLPCFrame other = reinterpret_cast<constLineSpectralFrequenciesFrameIntoLPCFrame> (other2);
+	constLineSpectralFrequenciesFrameIntoLPCFrame other = static_cast <constLineSpectralFrequenciesFrameIntoLPCFrame> (other2);
 	our inputLSF = other -> inputLSF;
 	our outputLPC = other -> outputLPC;
 }

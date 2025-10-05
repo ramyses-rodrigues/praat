@@ -1,10 +1,10 @@
 /* praat_David_init.cpp
  *
- * Copyright (C) 1993-2025 David Weenink, 2015,2023,2024 Paul Boersma
+ * Copyright (C) 1993-2025 David Weenink, 2015,2023-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -10677,4 +10677,4 @@ void praat_David_init () {
 	INCLUDE_LIBRARY (praat_BSS_init)
 }
 
-/* End of file praat_David.cpp */
+/* End of file praat_David_init.cpp */

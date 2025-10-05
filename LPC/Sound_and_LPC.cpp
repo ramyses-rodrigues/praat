@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -79,7 +79,7 @@ void structSoundFrameIntoLPCFrame :: initBasicSoundFrameIntoLPCFrame (constSound
 }
 
 void structSoundFrameIntoLPCFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoLPCFrame other = reinterpret_cast<constSoundFrameIntoLPCFrame> (other2);
+	constSoundFrameIntoLPCFrame other = static_cast <constSoundFrameIntoLPCFrame> (other2);
 	SoundFrameIntoLPCFrame_Parent :: copyBasic (other);
 	our outputLPC = other -> outputLPC;
 }
@@ -450,7 +450,7 @@ void structSoundFrameIntoLPCFrameMarple :: initBasicSoundFrameIntoLPCFrameMarple
 }
 
 void structSoundFrameIntoLPCFrameMarple :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoLPCFrameMarple other = reinterpret_cast<constSoundFrameIntoLPCFrameMarple> (other2);
+	constSoundFrameIntoLPCFrameMarple other = static_cast <constSoundFrameIntoLPCFrameMarple> (other2);
 	SoundFrameIntoLPCFrameMarple_Parent :: copyBasic (other);
 	our tol1 = other -> tol1;
 	our tol2 = other -> tol2;
@@ -654,7 +654,7 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundF
 
 void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: copyBasic (constSampledFrameIntoSampledFrame other2) {
 	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other2);
-	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = reinterpret_cast<constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
+	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = static_cast <constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
 	our inputLPC = other -> inputLPC;
 	our k_stdev = other -> k_stdev;
 	our itermax = other -> itermax;
