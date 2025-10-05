@@ -2,11 +2,11 @@
 #define _LPC_and_LineSpectralFrequencies_h_
 /* LPC_and_LineLineSpectralFrequencies.h
  *
- * Copyright (C) 2016, 2025 David Weenink
+ * Copyright (C) 2016,2025 David Weenink
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but
@@ -59,7 +59,8 @@ Thing_define (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledF
 
 	void initBasicLineSpectralFrequenciesFrameIntoLPCFrame (constLineSpectralFrequencies inputLSF, mutableLPC outputLPC);
 	
-	void copyBasic (constSampledFrameIntoSampledFrame other);
+	void copyBasic (constSampledFrameIntoSampledFrame other)
+		override;
 
 	void initHeap ()
 		override;
