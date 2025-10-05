@@ -24,7 +24,7 @@
 #include "SampledFrameIntoSampledFrame.h"
 #include "Spectrum.h"
 
-inline integer getSoundFrameSize2_uneven (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
+inline integer getSoundFrameSize2_odd (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
 	const double halfFrameDuration = 0.5 * approximatePhysicalAnalysisWidth;
 	const integer halfFrameSamples = Melder_ifloor (halfFrameDuration / samplingPeriod);
 	return 2 * halfFrameSamples + 1;
