@@ -100,8 +100,8 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 	void initHeap () override {
 		SoundFrameIntoSampledFrame_Parent :: initHeap ();
 		soundFrameSize = getSoundFrameSize2 (physicalAnalysisWidth, inputSound -> dx);
-		windowFunction = raw_VEC (soundFrameSize);
-		windowShape_into_VEC (windowShape, windowFunction.get());
+		windowFunction = raw_VEC (soundFrameSize);   // TODO: move out of thread repetition
+		windowShape_into_VEC (windowShape, windowFunction.get());   // TODO: move out of thread repetition
 		frameAsSound = Sound_create (1_integer, 0.0, soundFrameSize * input -> dx, soundFrameSize, input -> dx, 0.5 * input -> dx); //
 		soundFrame = frameAsSound -> z.row (1);
 		Melder_assert (soundFrame.size == soundFrameSize);
