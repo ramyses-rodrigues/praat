@@ -24,14 +24,20 @@
 /* still only a skeleton implementation */
 void SampledIntoSampled_mt (SampledFrameIntoSampledFrame frameIntoFrame, integer thresholdNumberOfFramesPerThread) {
 	const integer numberOfFrames = frameIntoFrame -> output -> nx;
-	autoMelderProgress progress (U"Analysis...");// TODO make it specific!
+	autoMelderProgress progress (U"Analysis...");   // TODO make it specific! e.g. by not making this one function
+
+	/* TODO: put non-thread-specific code here (in the separate functions), such as window creation */
+
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
-		ClassInfo classInfo = frameIntoFrame -> classInfo;
-		autoSampledFrameIntoSampledFrame current =
-				Thing_newFromClass (classInfo).static_cast_move <structSampledFrameIntoSampledFrame>();
-		current -> copyBasic (frameIntoFrame);
-		current -> initHeap ();
+
+	ClassInfo classInfo = frameIntoFrame -> classInfo;
+	autoSampledFrameIntoSampledFrame current =
+			Thing_newFromClass (classInfo).static_cast_move <structSampledFrameIntoSampledFrame>();
+	current -> copyBasic (frameIntoFrame);
+	current -> initHeap ();
+
 	MelderThread_FOR (iframe) {
+
 		if (MelderThread_IS_MASTER) {
 			const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
 			Melder_progress (0.98 * estimatedProgress,
@@ -42,12 +48,13 @@ void SampledIntoSampled_mt (SampledFrameIntoSampledFrame frameIntoFrame, integer
 		current -> getInputFrame (iframe);
 		current -> inputFrameIntoOutputFrame (iframe);
 		current -> saveOutputFrame (iframe);
+
 	} MelderThread_ENDFOR
 }
 
 /*
 	Performs timing of a number of scenarios for multi-threading.
-	This timing is performed on the LPC analysis with the Burg algorithm on a sound file of a given duration
+	This timing is performed on the LPC analysis with the Burg algorithm on a sound of a given duration
 	and a sampling frequency of 11000 Hz.
 	The workspace for the Burg algorithm needs more memory for its analyses than the other LPC algorithms (it needs
 	n samples for the windowed sound frame and at least 2 vectors of length n for buffering).
