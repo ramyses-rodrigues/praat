@@ -62,7 +62,7 @@ static void LPC_Frame_into_Polynomial_sum (LPC_Frame me, Polynomial psum) {
 	/*
 		To Chebychev
 	*/
-	cos2x (psum -> coefficients.part(1, psum -> numberOfCoefficients));
+	cos2x (psum -> coefficients.part (1, psum -> numberOfCoefficients));
 }
 
 static void LPC_Frame_into_Polynomial_dif (LPC_Frame me, Polynomial pdif) {
@@ -99,7 +99,7 @@ static void LPC_Frame_into_Polynomial_dif (LPC_Frame me, Polynomial pdif) {
 	/*
 		To Chebychev
 	*/
-	cos2x (pdif -> coefficients.part(1, pdif -> numberOfCoefficients));
+	cos2x (pdif -> coefficients.part (1, pdif -> numberOfCoefficients));
 }
 
 static integer Polynomial_into_Roots_searchOnGrid (Polynomial me, Roots thee, double gridSize) {

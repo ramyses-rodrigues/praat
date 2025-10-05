@@ -39,7 +39,7 @@ Thing_define (SoundFrameIntoFormantFrame, SampledFrameIntoSampledFrame) {
 	}
 	
 	bool inputFrameIntoOutputFrame (integer iframe)
-			override;
+		override;
 };
 
 autoSoundFrameIntoFormantFrame SoundFrameIntoFormantFrame_create (SoundFrameIntoLPCFrame soundIntoLPC, 

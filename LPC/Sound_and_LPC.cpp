@@ -393,7 +393,7 @@ double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x
 }
 
 bool structSoundFrameIntoLPCFrameBurg :: inputFrameIntoOutputFrame (integer currentFrame) {
-	LPC_Frame lpcFrame = & outputLPC -> d_frames[currentFrame];
+	LPC_Frame lpcFrame = & outputLPC -> d_frames [currentFrame];
 	lpcFrame -> gain = burg (lpcFrame -> a.get(), soundFrame, frameAnalysisInfo);
 	if (lpcFrame -> gain <= 0.0) {
 		lpcFrame -> nCoefficients = 0;
