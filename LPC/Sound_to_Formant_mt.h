@@ -31,9 +31,7 @@ Thing_define (SoundFrameIntoFormantFrame, SampledFrameIntoSampledFrame) {
 
 	void initBasicSoundFrameIntoFormantFrame (constSound inputSound, mutableFormant outputFormant);
 	
-	void copyBasic (SoundFrameIntoFormantFrame other);
-	
-	void initHeap()
+	void initHeap ()
 		override;
 		
 	void getInputFrame (integer iframe) override {

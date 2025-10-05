@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -48,8 +48,9 @@ Thing_define (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame) {
 
 	virtual void initBasicSoundFrameIntoLPCFrame (constSound input, mutableLPC outLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape);
 	
-	void copyBasic (constSampledFrameIntoSampledFrame other) override;
-	
+	void copyBasic (constSampledFrameIntoSampledFrame other)
+		override;
+
 	void initHeap ()
 		override;
 };
@@ -198,8 +199,9 @@ Thing_define (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame) {
 	void initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC,
 		double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation);
 	
-	void copyBasic (constSampledFrameIntoSampledFrame other);
-	
+	void copyBasic (constSampledFrameIntoSampledFrame other)
+		override;
+
 	void initHeap ()
 		override;
 
