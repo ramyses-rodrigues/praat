@@ -232,74 +232,61 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double 
 
 /**************************** LineSpectralFrequencies to LPC **************************************************/
 
-Thing_implement (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame, 0);
-
-void structLineSpectralFrequenciesFrameIntoLPCFrame :: initBasicLineSpectralFrequenciesFrameIntoLPCFrame
-	(constLineSpectralFrequencies inputLSF, mutableLPC outputLPC)
-{
-	LineSpectralFrequenciesFrameIntoLPCFrame_Parent :: initBasic (inputLSF, outputLPC);
-	our inputLSF = inputLSF;
-	our outputLPC = outputLPC;
-}
-
-void structLineSpectralFrequenciesFrameIntoLPCFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constLineSpectralFrequenciesFrameIntoLPCFrame other = reinterpret_cast<constLineSpectralFrequenciesFrameIntoLPCFrame> (other2);
-	our inputLSF = other -> inputLSF;
-	our outputLPC = other -> outputLPC;
-}
-
-void structLineSpectralFrequenciesFrameIntoLPCFrame :: initHeap () {
-	LineSpectralFrequenciesFrameIntoLPCFrame_Parent :: initHeap ();
-	fs = Polynomial_create (-1.0, 1.0, inputLSF -> maximumNumberOfFrequencies + 2);
-	fa = Polynomial_create (-1.0, 1.0, inputLSF -> maximumNumberOfFrequencies + 2);
-}
-
-bool structLineSpectralFrequenciesFrameIntoLPCFrame :: inputFrameIntoOutputFrame (integer iframe) {
-	LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
-	VEC a = lpcFrame -> a.get();
-	LineSpectralFrequencies_Frame lsfFrame = & inputLSF -> d_frames [iframe];
-	const double maximumFrequency = inputLSF -> maximumFrequency;
-	const integer numberOfFrequencies = lsfFrame -> numberOfFrequencies;
-	integer numberOfOmegas = (numberOfFrequencies + 1) / 2;
-	/*
-		Reconstruct Fs (z)
-		Use lpcFrame -> a as a buffer whose size changes!!!
-	*/
-	for (integer i = 1; i <= numberOfOmegas; i ++) {
-		const double omega = lsfFrame -> frequencies [2 * i - 1] / maximumFrequency * NUMpi;
-		a [i] = -2.0 * cos (omega);
-	}
-	Polynomial_initFromProductOfSecondOrderTerms (fs.get(), a.part (1, numberOfOmegas));
-	/*
-		Reconstruct Fa (z)
-	*/
-	numberOfOmegas = numberOfFrequencies / 2;
-	for (integer i = 1; i <= numberOfOmegas; i ++) {
-		const double omega = lsfFrame -> frequencies [2 * i] / maximumFrequency * NUMpi;
-		a [i] = -2.0 * cos (omega);
-	}
-	Polynomial_initFromProductOfSecondOrderTerms (fa.get(), a.part (1, numberOfOmegas));
-	
-	if (numberOfFrequencies % 2 == 0) {
-		Polynomial_multiply_firstOrderFactor (fs.get(), -1.0);   // * (z + 1)
-		Polynomial_multiply_firstOrderFactor (fa.get(), 1.0);   // * (z - 1)
-	} else {
-		Polynomial_multiply_secondOrderFactor (fa.get(), 1.0);   // * (z^2 - 1)
-	}
-	Melder_assert (fs -> numberOfCoefficients == fa -> numberOfCoefficients);
-	/*
-		A(z) = (Fs(z) + Fa(z) / 2
-	*/
-	for (integer i = 1; i <= fs -> numberOfCoefficients - 2; i ++)
-		a [lsfFrame -> numberOfFrequencies - i + 1] = 0.5 * (fs -> coefficients [i + 1] + fa -> coefficients [i + 1]);
-	return true;
-}
-
 void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC) {
 	SampledIntoSampled_requireEqualDomainsAndSampling (me, outputLPC);
-	autoLineSpectralFrequenciesFrameIntoLPCFrame frameIntoFrame = Thing_new (LineSpectralFrequenciesFrameIntoLPCFrame);
-	frameIntoFrame -> initBasicLineSpectralFrequenciesFrameIntoLPCFrame (me, outputLPC);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+	const integer numberOfFrames = my nx, thresholdNumberOfFramesPerThread = 40;
+	const integer numberOfCoefficients = outputLPC -> maxnCoefficients;
+	autoMelderProgress progress (U"LineSpectralFrequencies_into_LPC...");// TODO make it specific!
+	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
+		autoPolynomial fs = Polynomial_create (-1.0, 1.0, my maximumNumberOfFrequencies + 2);
+		autoPolynomial fa = Polynomial_create (-1.0, 1.0, my maximumNumberOfFrequencies + 2);
+	MelderThread_FOR (iframe) {
+		if (MelderThread_IS_MASTER) {
+			const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
+			Melder_progress (0.98 * estimatedProgress,
+				U"Analysed approximately ", Melder_iround (numberOfFrames * estimatedProgress),
+				U" out of ", numberOfFrames, U" frames"
+			);
+		}
+		LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
+		VEC a = lpcFrame -> a.get();
+		LineSpectralFrequencies_Frame lsfFrame = & my d_frames [iframe];
+		const double maximumFrequency = my maximumFrequency;
+		const integer numberOfFrequencies = lsfFrame -> numberOfFrequencies;
+		integer numberOfOmegas = (numberOfFrequencies + 1) / 2;
+		/*
+			Reconstruct Fs (z)
+			Use lpcFrame -> a as a buffer whose size changes!!!
+		*/
+		for (integer i = 1; i <= numberOfOmegas; i ++) {
+			const double omega = lsfFrame -> frequencies [2 * i - 1] / maximumFrequency * NUMpi;
+			a [i] = -2.0 * cos (omega);
+		}
+		Polynomial_initFromProductOfSecondOrderTerms (fs.get(), a.part (1, numberOfOmegas));
+		/*
+			Reconstruct Fa (z)
+		*/
+		numberOfOmegas = numberOfFrequencies / 2;
+		for (integer i = 1; i <= numberOfOmegas; i ++) {
+			const double omega = lsfFrame -> frequencies [2 * i] / maximumFrequency * NUMpi;
+			a [i] = -2.0 * cos (omega);
+		}
+		Polynomial_initFromProductOfSecondOrderTerms (fa.get(), a.part (1, numberOfOmegas));
+	
+		if (numberOfFrequencies % 2 == 0) {
+			Polynomial_multiply_firstOrderFactor (fs.get(), -1.0);   // * (z + 1)
+			Polynomial_multiply_firstOrderFactor (fa.get(), 1.0);   // * (z - 1)
+		} else {
+			Polynomial_multiply_secondOrderFactor (fa.get(), 1.0);   // * (z^2 - 1)
+		}
+		Melder_assert (fs -> numberOfCoefficients == fa -> numberOfCoefficients);
+		/*
+			A(z) = (Fs(z) + Fa(z) / 2
+		*/
+		for (integer i = 1; i <= fs -> numberOfCoefficients - 2; i ++)
+			a [lsfFrame -> numberOfFrequencies - i + 1] = 0.5 * (fs -> coefficients [i + 1] + fa -> coefficients [i + 1]);
+
+	} MelderThread_ENDFOR
 }
 
 autoLPC LineSpectralFrequencies_to_LPC (constLineSpectralFrequencies me) {

@@ -50,28 +50,6 @@ Thing_define (LPCFrameIntoLineSpectralFrequenciesFrame, SampledFrameIntoSampledF
 autoLPCFrameIntoLineSpectralFrequenciesFrame LPCFrameIntoLineSpectralFrequenciesFrame_create (constLPC input, 
 	mutableLineSpectralFrequencies output);
 
-Thing_define (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame) {
-
-	constLineSpectralFrequencies inputLSF;
-	mutableLPC outputLPC;
-	autoPolynomial fs;
-	autoPolynomial fa;
-
-	void initBasicLineSpectralFrequenciesFrameIntoLPCFrame (constLineSpectralFrequencies inputLSF, mutableLPC outputLPC);
-	
-	void copyBasic (constSampledFrameIntoSampledFrame other);
-
-	void initHeap ()
-		override;
-	
-	bool inputFrameIntoOutputFrame (integer iframe)
-		override;
-
-};
-
-autoLineSpectralFrequenciesFrameIntoLPCFrame LineSpectralFrequenciesFrameIntoLPCFrame_create (constLineSpectralFrequencies inputLSF,
-	mutableLPC outputLPC);
-
 void LPC_into_LineSpectralFrequencies (constLPC me, mutableLineSpectralFrequencies outputLSF, double gridSize);
 
 autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double gridSize);
@@ -79,6 +57,5 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double 
 void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC);
 
 autoLPC LineSpectralFrequencies_to_LPC (constLineSpectralFrequencies me);
-
 
 #endif /* _LPC_and_LineSpectralFrequencies_h_ */
