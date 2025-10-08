@@ -707,13 +707,8 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundF
 }
 
 void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-<<<<<<< HEAD
 	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = reinterpret_cast<constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
 	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other);
-=======
-	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other2);
-	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = static_cast <constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
->>>>>>> 79e5e909ad20b40bc84bb02e1cffa3605f8f7cd0
 	our inputLPC = other -> inputLPC;
 	our k_stdev = other -> k_stdev;
 	our itermax = other -> itermax;

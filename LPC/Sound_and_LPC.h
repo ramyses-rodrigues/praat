@@ -224,11 +224,7 @@ Thing_define (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame) {
 	
 	void copyBasic (constSampledFrameIntoSampledFrame other)
 		override;
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> 79e5e909ad20b40bc84bb02e1cffa3605f8f7cd0
 	void initHeap ()
 		override;
 

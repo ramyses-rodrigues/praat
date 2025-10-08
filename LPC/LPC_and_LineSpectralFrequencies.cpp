@@ -235,7 +235,6 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double 
 void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC) {
 	SampledIntoSampled_requireEqualDomainsAndSampling (me, outputLPC);
 	const integer numberOfFrames = my nx, thresholdNumberOfFramesPerThread = 40;
-	const integer numberOfCoefficients = outputLPC -> maxnCoefficients;
 	autoMelderProgress progress (U"LineSpectralFrequencies_into_LPC...");// TODO make it specific!
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
 		autoPolynomial fs = Polynomial_create (-1.0, 1.0, my maximumNumberOfFrequencies + 2);
