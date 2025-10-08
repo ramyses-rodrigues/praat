@@ -42,20 +42,20 @@ Thing_define (SampledFrameIntoSampledFrame, Thing) {
 		Allocate all the heap structures like autovectors that can be dimensioned only after the
 		basic initialization in step 1 has been done.
 	*/
-	virtual void initHeap () {};
-		
+	virtual void initHeap () { }
+
 	virtual void copyBasic (constSampledFrameIntoSampledFrame other) {
 		our input = other -> input;
 		our output = other -> output;
 	}
 	
-	virtual void getInputFrame (integer /* iframe */) {};
-	
+	virtual void getInputFrame (integer /* iframe */) { }
+
 	virtual bool inputFrameIntoOutputFrame (integer /* iframe */) { // the actual analysis
 		return true;
 	}
 	
-	virtual void saveOutputFrame (integer /* iframe */) {};
+	virtual void saveOutputFrame (integer /* iframe */) { }
 };
 
 #endif /* _SampledFrameIntoSampledFrame_h_ */

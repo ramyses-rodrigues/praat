@@ -31,9 +31,7 @@ Thing_define (SoundFrameIntoFormantFrame, SampledFrameIntoSampledFrame) {
 
 	void initBasicSoundFrameIntoFormantFrame (constSound inputSound, mutableFormant outputFormant);
 	
-	void copyBasic (SoundFrameIntoFormantFrame other);
-	
-	void initHeap()
+	void initHeap ()
 		override;
 		
 	void getInputFrame (integer iframe) override {
@@ -41,7 +39,7 @@ Thing_define (SoundFrameIntoFormantFrame, SampledFrameIntoSampledFrame) {
 	}
 	
 	bool inputFrameIntoOutputFrame (integer iframe)
-			override;
+		override;
 };
 
 autoSoundFrameIntoFormantFrame SoundFrameIntoFormantFrame_create (SoundFrameIntoLPCFrame soundIntoLPC, 

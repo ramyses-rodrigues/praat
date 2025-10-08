@@ -228,7 +228,7 @@ static void do_ok (RunnerMFC me) {
 		if (my experiment -> blankWhilePlaying) {
 			my blanked = true;
 			Graphics_updateWs (my graphics.get());
-			GuiShell_drain (my windowForm, true);
+			GuiShell_drain (my windowForm, true, true);
 		}
 		if (my experiment -> stimuliAreSounds) {
 			autoMelderAudioSaveMaximumAsynchronicity saveMaximumAsynchronicity;
@@ -256,7 +256,7 @@ static void do_oops (RunnerMFC me) {
 	if (my experiment -> blankWhilePlaying) {
 		my blanked = true;
 		Graphics_updateWs (my graphics.get());
-		GuiShell_drain (my windowForm, true);
+		GuiShell_drain (my windowForm, true, true);
 	}
 	if (my experiment -> stimuliAreSounds) {
 		autoMelderAudioSaveMaximumAsynchronicity saveMaximumAsynchronicity;
@@ -275,7 +275,7 @@ static void do_replay (RunnerMFC me) {
 	if (my experiment -> blankWhilePlaying) {
 		my blanked = true;
 		Graphics_updateWs (my graphics.get());
-		GuiShell_drain (my windowForm, true);
+		GuiShell_drain (my windowForm, true, true);
 	}
 	if (my experiment -> stimuliAreSounds) {
 		autoMelderAudioSaveMaximumAsynchronicity saveMaximumAsynchronicity;
@@ -302,7 +302,7 @@ static void gui_drawingarea_cb_mouse (RunnerMFC me, GuiDrawingArea_MouseEvent ev
 		if (my experiment -> blankWhilePlaying) {
 			my blanked = true;
 			Graphics_updateWs (my graphics.get());
-			GuiShell_drain (my windowForm, true);
+			GuiShell_drain (my windowForm, true, true);
 		}
 		if (my experiment -> stimuliAreSounds) {
 			if (my experiment -> numberOfTrials < 1) {
@@ -331,7 +331,7 @@ static void gui_drawingarea_cb_mouse (RunnerMFC me, GuiDrawingArea_MouseEvent ev
 			if (my experiment -> blankWhilePlaying) {
 				my blanked = true;
 				Graphics_updateWs (my graphics.get());
-				GuiShell_drain (my windowForm, true);
+				GuiShell_drain (my windowForm, true, true);
 			}
 			if (my experiment -> stimuliAreSounds) {
 				autoMelderAudioSaveMaximumAsynchronicity saveMaximumAsynchronicity;

@@ -32,6 +32,8 @@
 #include "Notebook.h"
 #include "GuiTrust.h"
 
+//#include <QuartzCore/CoreAnimation.h>
+
 /********** Exported variable. **********/
 
 static GuiWindow Melder_topShell;
@@ -82,18 +84,6 @@ static bool waitWhileProgress (double progress, conststring32 message, GuiDialog
 		}
 	#elif cocoa
 		(void) cancelButton;   // the Interrupt button has its own callback
-		while (NSEvent *nsEvent = [NSApp
-			nextEventMatchingMask: NSAnyEventMask
-			untilDate: [NSDate distantPast]
-			inMode: NSDefaultRunLoopMode
-			dequeue: YES
-			])
-		{
-			NSUInteger nsEventType = [nsEvent type];
-			if (nsEventType == NSKeyDown)
-				NSBeep ();
-			[[nsEvent window]  sendEvent: nsEvent];
-		}
 	#endif
 	if (progress >= 1.0) {
 		GuiThing_hide (dia);
@@ -131,6 +121,8 @@ static bool waitWhileProgress (double progress, conststring32 message, GuiDialog
 		#elif cocoa
 			GuiProgressBar_setValue (scale, progress);
 			//[scale -> d_cocoaProgressBar   displayIfNeeded];
+			//[CATransaction flush];
+			GuiShell_drain (scale -> d_shell, true, true);
 			if (theProgressCancelled) {
 				theProgressCancelled = false;
 				return false;

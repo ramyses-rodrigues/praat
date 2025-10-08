@@ -500,7 +500,7 @@ void Graphics_writeRecordings (Graphics me, FILE *f) {
 	}
 }
 
-void Graphics_readRecordings (Graphics me, FILE *f) {
+void Graphics_readRecordings (Graphics me, FILE *f, double heightCorrection) {
 	integer old_irecord = my irecord;
 	integer added_irecord = 0;
 	double* p = nullptr;
@@ -537,6 +537,11 @@ void Graphics_readRecordings (Graphics me, FILE *f) {
 				if (uinteger_to_integer_a (fread (++ p, 8, integer_to_uinteger_a (numberOfArguments - 5), f)) < numberOfArguments - 5)   // text
 					Melder_throw (U"Error reading graphics recordings.");
 				p += numberOfArguments - 6;
+			} else if (opcode == SET_VIEWPORT) {
+				put (bingetr32 (f));                      // x1NDC
+				put (bingetr32 (f));                      // x2NDC
+				put (bingetr32 (f) + heightCorrection);   // y1NDC
+				put (bingetr32 (f) + heightCorrection);   // y2NDC
 			} else {
 				for (integer i = numberOfArguments; i > 0; i --)
 					put (bingetr32 (f));

@@ -1,10 +1,10 @@
 /* praat_picture.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -212,8 +212,8 @@ OK
 	Melder_clipRight (& xmargin, 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC));
 	SET_REAL (left, theCurrentPraatPicture -> x1NDC + xmargin)
 	SET_REAL (right, theCurrentPraatPicture -> x2NDC - xmargin)
-	SET_REAL (top, 12.0 - theCurrentPraatPicture -> y2NDC + ymargin)
-	SET_REAL (bottom, 12.0 - theCurrentPraatPicture -> y1NDC - ymargin)
+	SET_REAL (top, Picture_HEIGHT - theCurrentPraatPicture -> y2NDC + ymargin)
+	SET_REAL (bottom, Picture_HEIGHT - theCurrentPraatPicture -> y1NDC - ymargin)
 DO
 	//Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (), U"Viewport commands are not available inside manuals.");
 	double xmargin = theCurrentPraatPicture -> fontSize * 4.2 / 72.0, ymargin = theCurrentPraatPicture -> fontSize * 2.8 / 72.0;
@@ -240,9 +240,10 @@ DO
 	theCurrentPraatPicture -> x2NDC = right + xmargin;
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
 		Melder_sort (& top, & bottom);
-		theCurrentPraatPicture -> y1NDC = (12.0 - bottom) - ymargin;
-		theCurrentPraatPicture -> y2NDC = (12.0 - top) + ymargin;
-		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		theCurrentPraatPicture -> y1NDC = (Picture_HEIGHT - bottom) - ymargin;
+		theCurrentPraatPicture -> y2NDC = (Picture_HEIGHT - top) + ymargin;
+		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
+				theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
 		Graphics_updateWs (GRAPHICS);
 	} else if (theCurrentPraatObjects != & theForegroundPraatObjects) {   // in manual?
 		Melder_sort (& top, & bottom);
@@ -281,8 +282,8 @@ FORM (GRAPHICS_SelectOuterViewport, U"Praat picture: Select outer viewport", U"S
 OK
 	SET_REAL (left, theCurrentPraatPicture -> x1NDC)
 	SET_REAL (right, theCurrentPraatPicture -> x2NDC)
-	SET_REAL (top, 12.0 - theCurrentPraatPicture -> y2NDC)
-	SET_REAL (bottom, 12.0 - theCurrentPraatPicture -> y1NDC)
+	SET_REAL (top, Picture_HEIGHT - theCurrentPraatPicture -> y2NDC)
+	SET_REAL (bottom, Picture_HEIGHT - theCurrentPraatPicture -> y1NDC)
 DO
 	//Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (), U"Viewport commands are not available inside manuals.");
 	if (left == right)
@@ -294,9 +295,10 @@ DO
 	theCurrentPraatPicture -> x2NDC = right;
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
 		Melder_sort (& top, & bottom);
-		theCurrentPraatPicture -> y1NDC = 12.0 - bottom;
-		theCurrentPraatPicture -> y2NDC = 12.0 - top;
-		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		theCurrentPraatPicture -> y1NDC = Picture_HEIGHT - bottom;
+		theCurrentPraatPicture -> y2NDC = Picture_HEIGHT - top;
+		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
+				theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
 		Graphics_updateWs (GRAPHICS);
 	} else if (theCurrentPraatObjects != & theForegroundPraatObjects) {   // in manual?
 		Melder_sort (& top, & bottom);
@@ -1424,7 +1426,8 @@ FORM (GRAPHICS_HorizontalMmToWorldCoordinates, U"Compute horizontal distance in 
 DO
 	QUERY_GRAPHICS_FOR_REAL
 		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
+				theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
 		Graphics_setInner (GRAPHICS);
 		const double result = Graphics_dxMMtoWC (GRAPHICS, distance);
 		Graphics_unsetInner (GRAPHICS);
@@ -1437,7 +1440,8 @@ FORM (GRAPHICS_HorizontalWorldCoordinatesToMm, U"Compute horizontal distance in 
 DO
 	QUERY_GRAPHICS_FOR_REAL   // TODO: do we need autoPraatPictureOpen for any of these?
 		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
+				theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
 		Graphics_setInner (GRAPHICS);
 		const double result = Graphics_dxWCtoMM (GRAPHICS, distance);
 		Graphics_unsetInner (GRAPHICS);
@@ -1543,13 +1547,17 @@ DIRECT (GRAPHICS_Picture_settings_report) {
 		MelderInfo_writeLine (U"Outer viewport left: ", theCurrentPraatPicture -> x1NDC, units);
 		MelderInfo_writeLine (U"Outer viewport right: ", theCurrentPraatPicture -> x2NDC, units);
 		MelderInfo_writeLine (U"Outer viewport top: ",
-			theCurrentPraatPicture != & theForegroundPraatPicture ?
-				theCurrentPraatPicture -> y1NDC :
-				12 - theCurrentPraatPicture -> y2NDC, units);
+			( theCurrentPraatPicture != & theForegroundPraatPicture ?
+			  theCurrentPraatPicture -> y1NDC :
+			  Picture_HEIGHT - theCurrentPraatPicture -> y2NDC) ,
+			units
+		);
 		MelderInfo_writeLine (U"Outer viewport bottom: ",
-			theCurrentPraatPicture != & theForegroundPraatPicture ?
-				theCurrentPraatPicture -> y2NDC :
-				12 - theCurrentPraatPicture -> y1NDC, units);
+			( theCurrentPraatPicture != & theForegroundPraatPicture ?
+			  theCurrentPraatPicture -> y2NDC :
+			  Picture_HEIGHT - theCurrentPraatPicture -> y1NDC ),
+			units
+		);
 		MelderInfo_writeLine (U"Font size: ", theCurrentPraatPicture -> fontSize, U" points");
 		double xmargin = theCurrentPraatPicture -> fontSize * 4.2 / 72.0;
 		double ymargin = theCurrentPraatPicture -> fontSize * 2.8 / 72.0;
@@ -1568,20 +1576,25 @@ DIRECT (GRAPHICS_Picture_settings_report) {
 		MelderInfo_writeLine (U"Inner viewport left: ", theCurrentPraatPicture -> x1NDC + xmargin, units);
 		MelderInfo_writeLine (U"Inner viewport right: ", theCurrentPraatPicture -> x2NDC - xmargin, units);
 		MelderInfo_writeLine (U"Inner viewport top: ",
-			theCurrentPraatPicture != & theForegroundPraatPicture ?
-				theCurrentPraatPicture -> y1NDC + ymargin :
-				12 - theCurrentPraatPicture -> y2NDC + ymargin, units);
+			( theCurrentPraatPicture != & theForegroundPraatPicture ?
+			  theCurrentPraatPicture -> y1NDC + ymargin :
+			  Picture_HEIGHT - theCurrentPraatPicture -> y2NDC + ymargin ),
+			units
+		);
 		MelderInfo_writeLine (U"Inner viewport bottom: ",
-			theCurrentPraatPicture != & theForegroundPraatPicture ?
-				theCurrentPraatPicture -> y2NDC - ymargin :
-				12 - theCurrentPraatPicture -> y1NDC - ymargin, units);
+			( theCurrentPraatPicture != & theForegroundPraatPicture ?
+			  theCurrentPraatPicture -> y2NDC - ymargin :
+			  Picture_HEIGHT - theCurrentPraatPicture -> y1NDC - ymargin ),
+			units
+		);
 		MelderInfo_writeLine (U"Font: ", kGraphics_font_getText (theCurrentPraatPicture -> font));
 		MelderInfo_writeLine (U"Line type: ",
 			theCurrentPraatPicture -> lineType == Graphics_DRAWN ? U"Solid" :
 			theCurrentPraatPicture -> lineType == Graphics_DOTTED ? U"Dotted" :
 			theCurrentPraatPicture -> lineType == Graphics_DASHED ? U"Dashed" :
 			theCurrentPraatPicture -> lineType == Graphics_DASHED_DOTTED ? U"Dashed-dotted" :
-			U"(unknown)");
+			U"(unknown)"
+		);
 		MelderInfo_writeLine (U"Line width: ", theCurrentPraatPicture -> lineWidth);
 		MelderInfo_writeLine (U"Arrow size: ", theCurrentPraatPicture -> arrowSize);
 		MelderInfo_writeLine (U"Speckle size: ", theCurrentPraatPicture -> speckleSize);
@@ -1619,18 +1632,18 @@ static void cb_selectionChanged (Picture p, void * /* closure */,
 		UiHistory_write (U", ");
 		UiHistory_write (Melder_single (theCurrentPraatPicture -> x2NDC - xmargin));
 		UiHistory_write (U", ");
-		UiHistory_write (Melder_single (12 - theCurrentPraatPicture -> y2NDC + ymargin));
+		UiHistory_write (Melder_single (Picture_HEIGHT - theCurrentPraatPicture -> y2NDC + ymargin));
 		UiHistory_write (U", ");
-		UiHistory_write (Melder_single (12 - theCurrentPraatPicture -> y1NDC - ymargin));
+		UiHistory_write (Melder_single (Picture_HEIGHT - theCurrentPraatPicture -> y1NDC - ymargin));
 	} else {
 		UiHistory_write (U"\nSelect outer viewport: ");
 		UiHistory_write (Melder_single (theCurrentPraatPicture -> x1NDC));
 		UiHistory_write (U", ");
 		UiHistory_write (Melder_single (theCurrentPraatPicture -> x2NDC));
 		UiHistory_write (U", ");
-		UiHistory_write (Melder_single (12 - theCurrentPraatPicture -> y2NDC));
+		UiHistory_write (Melder_single (Picture_HEIGHT - theCurrentPraatPicture -> y2NDC));
 		UiHistory_write (U", ");
-		UiHistory_write (Melder_single (12 - theCurrentPraatPicture -> y1NDC));
+		UiHistory_write (Melder_single (Picture_HEIGHT - theCurrentPraatPicture -> y1NDC));
 	}
 }
 
@@ -1686,7 +1699,8 @@ void praat_picture_open () {
 	Graphics_setSpeckleSize (GRAPHICS, theCurrentPraatPicture -> speckleSize);
 	Graphics_setColour (GRAPHICS, theCurrentPraatPicture -> colour);
 
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
+			theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
 	/* The following will dump the axes to the PostScript file after Erase all. BUG: should be somewhere else. */
 	double x1WC, x2WC, y1WC, y2WC;
 	Graphics_inqWindow (GRAPHICS, & x1WC, & x2WC, & y1WC, & y2WC);
@@ -1714,7 +1728,7 @@ void praat_picture_datagui_close () {
 static autoDaata pictureRecognizer (integer nread, const char *header, MelderFile file) {
 	if (nread < 2)
 		return autoDaata ();
-	if (strnequ (header, "PraatPictureFile", 16)) {
+	if (strnequ (header, "PraatPicture", 12)) {
 		Picture_readFromPraatPictureFile (praat_picture.get(), file);
 		return Thing_new (Daata);   // a dummy
 	}
@@ -1732,8 +1746,8 @@ void praat_picture_init (bool showPictureWindowAtStartUp) {
 	theCurrentPraatPicture -> speckleSize = 1.0;
 	theCurrentPraatPicture -> x1NDC = 0.0;
 	theCurrentPraatPicture -> x2NDC = 6.0;
-	theCurrentPraatPicture -> y1NDC = 8.0;
-	theCurrentPraatPicture -> y2NDC = 12.0;
+	theCurrentPraatPicture -> y1NDC = Picture_HEIGHT - 4.0;
+	theCurrentPraatPicture -> y2NDC = Picture_HEIGHT;
 
 	Data_recognizeFileType (pictureRecognizer);
 
@@ -1982,7 +1996,8 @@ void praat_picture_init (bool showPictureWindowAtStartUp) {
 		nullptr, 'M', HELP_SearchManual_Picture);
 
 	if (! theCurrentPraatApplication -> batch) {
-		width = height = resolution * 12;
+		width = resolution * Picture_WIDTH;
+		height = resolution * Picture_HEIGHT;
 		scrollWindow = GuiScrolledWindow_createShown (thePictureWindow, margin, 0, Machine_getMenuBarBottom () + margin, 0, 1, 1, 0);
 		drawingArea = GuiDrawingArea_createShown (scrollWindow, width, height,
 				nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0);

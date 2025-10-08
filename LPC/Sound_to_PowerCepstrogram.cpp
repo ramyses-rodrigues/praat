@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -34,7 +34,7 @@ void structSoundFrameIntoPowerCepstrogramFrame :: initBasicSoundFrameIntoPowerCe
 }
 	
 void structSoundFrameIntoPowerCepstrogramFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoPowerCepstrogramFrame other = reinterpret_cast<constSoundFrameIntoPowerCepstrogramFrame> (other2);
+	constSoundFrameIntoPowerCepstrogramFrame other = static_cast <constSoundFrameIntoPowerCepstrogramFrame> (other2);
 	SoundFrameIntoPowerCepstrogramFrame_Parent :: copyBasic (other);
 	our outputPowerCepstrogram = other -> outputPowerCepstrogram;
 }

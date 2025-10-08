@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -1120,16 +1120,4 @@ void NUMeigencmp22 (double a, double b, double c, double *out_rt1, double *out_r
 
 void NUMpolynomial_recurrence (VEC const& pn, double a, double b, double c, constVEC const& pnm1, constVEC const& pnm2);
 
-
-/* 20200405 djmw This functions resides here temporarily until MelderThread.h copes with lambda's */
-static inline void NUMgetThreadingInfo (integer numberOfFrames, integer maximumNumberOfThreads, integer *inout_numberOfFramesPerThread, integer *out_numberOfThreads) {
-	if (*inout_numberOfFramesPerThread <= 0)
-		*inout_numberOfFramesPerThread = 25;
-	integer numberOfThreads = (numberOfFrames - 1) / *inout_numberOfFramesPerThread + 1;
-	Melder_clip (1_integer, & numberOfThreads, maximumNumberOfThreads);
-	*inout_numberOfFramesPerThread = (numberOfFrames - 1) / numberOfThreads + 1;
-	if (out_numberOfThreads)
-		*out_numberOfThreads = numberOfThreads;
-}
-
-#endif // _NUM2_h_
+#endif // !_NUM2_h_

@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -24,7 +24,7 @@
 #include "SampledFrameIntoSampledFrame.h"
 #include "Spectrum.h"
 
-inline integer getSoundFrameSize2_uneven (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
+inline integer getSoundFrameSize2_odd (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
 	const double halfFrameDuration = 0.5 * approximatePhysicalAnalysisWidth;
 	const integer halfFrameSamples = Melder_ifloor (halfFrameDuration / samplingPeriod);
 	return 2 * halfFrameSamples + 1;
@@ -33,19 +33,19 @@ inline integer getSoundFrameSize2_uneven (double approximatePhysicalAnalysisWidt
 inline integer getSoundFrameSize2 (double physicalAnalysisWidth, double samplingPeriod) {
 	Melder_assert (physicalAnalysisWidth > 0.0);
 	Melder_assert (samplingPeriod > 0.0);
-	const double numberOfSamples_real = round (physicalAnalysisWidth / samplingPeriod);
-	return (integer) numberOfSamples_real;
+	return Melder_iround (physicalAnalysisWidth / samplingPeriod);
 }
 
 inline double getPhysicalAnalysisWidth2 (double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	const double physicalAnalysisWidth = ( (windowShape == kSound_windowShape::RECTANGULAR ||
+	const double physicalAnalysisWidth = ( windowShape == kSound_windowShape::RECTANGULAR ||
 		windowShape == kSound_windowShape::TRIANGULAR || windowShape == kSound_windowShape::HAMMING ||
-		windowShape == kSound_windowShape::HANNING) ? effectiveAnalysisWidth : 2.0 * effectiveAnalysisWidth);
+		windowShape == kSound_windowShape::HANNING ? effectiveAnalysisWidth : 2.0 * effectiveAnalysisWidth )
+	;
 	return physicalAnalysisWidth;
 }
 
 Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
-	
+
 	constSound inputSound;
 	double physicalAnalysisWidth; 			// depends on the effectiveAnalysiswidth and the window window shape
 	integer soundFrameSize; 				// determined by the physicalAnalysisWidth and the samplingFrequency of the Sound
@@ -61,7 +61,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 	integer numberOfFourierSamples;
 	autoVEC fourierSamples;					// size = numberOfFourierSamples
 	autoNUMFourierTable fourierTable;		// of dimension numberOfFourierSamples;
-	
+
 	void initBasicSoundFrameIntoSampledFrame (constSound input, mutableSampled output, double effectiveAnalysisWidth, 
 		kSound_windowShape windowShape)
 	{
@@ -70,9 +70,9 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		our windowShape = windowShape;
 		physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, windowShape);
 	}
-		
+
 	void copyBasic (constSampledFrameIntoSampledFrame other2) override {
-		constSoundFrameIntoSampledFrame other = reinterpret_cast<constSoundFrameIntoSampledFrame> (other2);
+		constSoundFrameIntoSampledFrame other = static_cast <constSoundFrameIntoSampledFrame> (other2);
 		SoundFrameIntoSampledFrame_Parent :: copyBasic (other);
 		our inputSound = other -> inputSound;
 		our physicalAnalysisWidth = other -> physicalAnalysisWidth;
@@ -81,7 +81,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		our wantSpectrum = other -> wantSpectrum;
 		our fftInterpolationFactor = other -> fftInterpolationFactor;
 	}
-	
+
 	void getInputFrame (integer currentFrame) override {
 		const double midTime = Sampled_indexToX (output, currentFrame);
 		integer soundFrameBegin = Sampled_xToNearestIndex (inputSound, midTime - 0.5 * physicalAnalysisWidth); // approximation
@@ -96,12 +96,12 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		if (wantSpectrum)
 			soundFrameIntoSpectrum ();
 	}
-	
+
 	void initHeap () override {
 		SoundFrameIntoSampledFrame_Parent :: initHeap ();
 		soundFrameSize = getSoundFrameSize2 (physicalAnalysisWidth, inputSound -> dx);
-		windowFunction = raw_VEC (soundFrameSize);
-		windowShape_into_VEC (windowShape, windowFunction.get());
+		windowFunction = raw_VEC (soundFrameSize);   // TODO: move out of thread repetition
+		windowShape_into_VEC (windowShape, windowFunction.get());   // TODO: move out of thread repetition
 		frameAsSound = Sound_create (1_integer, 0.0, soundFrameSize * input -> dx, soundFrameSize, input -> dx, 0.5 * input -> dx); //
 		soundFrame = frameAsSound -> z.row (1);
 		Melder_assert (soundFrame.size == soundFrameSize);
@@ -119,7 +119,7 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 			spectrum -> dx = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
 		}
 	}
-	
+
 	void soundFrameToForwardFourierTransform () {
 		const integer numberOfChannels = frameAsSound -> ny;
 		if (numberOfChannels == 1)
@@ -135,11 +135,11 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 		fourierSamples.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
 		NUMfft_forward (fourierTable.get(), fourierSamples.get());
 	}
-	
+
 	void soundFrameIntoSpectrum () {
-		
+
 		soundFrameToForwardFourierTransform ();
-		
+
 		const VEC re = spectrum -> z.row (1);
 		const VEC im = spectrum -> z.row (2);
 		const integer numberOfFrequencies = spectrum -> nx;
@@ -163,4 +163,3 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 };
 
 #endif /* _SoundFrameIntoSampledFrame_h_ */
- 

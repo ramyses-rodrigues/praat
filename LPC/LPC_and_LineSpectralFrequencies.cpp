@@ -1,10 +1,10 @@
 /* LPC_and_LineSpectralFrequencies.cpp
  *
- * Copyright (C) 2016-2020, 2025 David Weenink
+ * Copyright (C) 2016-2021,2024,2025 David Weenink
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but
@@ -62,7 +62,7 @@ static void LPC_Frame_into_Polynomial_sum (LPC_Frame me, Polynomial psum) {
 	/*
 		To Chebychev
 	*/
-	cos2x (psum -> coefficients.part(1, psum -> numberOfCoefficients));
+	cos2x (psum -> coefficients.part (1, psum -> numberOfCoefficients));
 }
 
 static void LPC_Frame_into_Polynomial_dif (LPC_Frame me, Polynomial pdif) {
@@ -99,7 +99,7 @@ static void LPC_Frame_into_Polynomial_dif (LPC_Frame me, Polynomial pdif) {
 	/*
 		To Chebychev
 	*/
-	cos2x (pdif -> coefficients.part(1, pdif -> numberOfCoefficients));
+	cos2x (pdif -> coefficients.part (1, pdif -> numberOfCoefficients));
 }
 
 static integer Polynomial_into_Roots_searchOnGrid (Polynomial me, Roots thee, double gridSize) {
@@ -131,7 +131,7 @@ void structLPCFrameIntoLineSpectralFrequenciesFrame :: initBasicLPCFrameIntoLine
 }
 
 void structLPCFrameIntoLineSpectralFrequenciesFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constLPCFrameIntoLineSpectralFrequenciesFrame other = reinterpret_cast<constLPCFrameIntoLineSpectralFrequenciesFrame> (other2);
+	constLPCFrameIntoLineSpectralFrequenciesFrame other = static_cast <constLPCFrameIntoLineSpectralFrequenciesFrame> (other2);
 	LPCFrameIntoLineSpectralFrequenciesFrame_Parent :: copyBasic (other);
 	our inputLPC = other -> inputLPC;
 	our outputLSF = other -> outputLSF;
