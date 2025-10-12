@@ -197,9 +197,8 @@ static autostring32 runAny_STR (
 			if (! comspec)
 				comspec = U"cmd.exe";
 			MelderString_copy (& buffer, comspec);
-			MelderString_append (& buffer, U" /c");
 			Melder_assert (! str32chr (buffer.string, ' '));
-			MelderString_append (& buffer, U" ", command);
+			MelderString_append (& buffer, U" /c ", command);
 			autostringW bufferW = Melder_32toW_fileSystem (buffer.string);
 			if (! CreateProcess (nullptr, bufferW.get(), nullptr, nullptr, true, CREATE_NO_WINDOW, nullptr, nullptr, & siStartInfo, & piProcInfo))
 				Melder_throw (procedureMessageName, U": cannot start system command <<", command, U">>.");
