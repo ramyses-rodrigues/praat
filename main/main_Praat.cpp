@@ -81,7 +81,7 @@ static void logo (Graphics graphics) {
 
 int main (int argc, char *argv []) {
 	try {
-		TRACE
+		//TRACE
 		praat_setLogo (130.0, 100.0, logo);
 		MelderStopwatch stopwatch;
 		praat_init (U"" stringize (PRAAT_NAME),
