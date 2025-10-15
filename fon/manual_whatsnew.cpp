@@ -29,6 +29,12 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.45# (12 October 2025)
+• Made @@Picture window@ 60\xx60 inches (instead of 12\xx12).
+• Windows: repaired a crashing bug in @`runSystem` introduced in 6.4.44.
+• Made progress bar writing compatible with macOS 26 (Tahoe).
+• Repaired an old bug that could crash Praat when viewing a Table with 0 rows.
+
 ##6.4.44# (25 September 2025)
 • Made @`runSubprocess` compatible with the Microsoft runtime (instead of MinGW).
 • Made Info window writing compatible with macOS 26 (Tahoe).
