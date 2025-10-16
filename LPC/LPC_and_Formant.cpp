@@ -158,6 +158,24 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 	Roots_into_Formant_Frame (r.get(), thee, 1.0 / samplingPeriod, margin);
 }
 
+void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double samplingPeriod, 
+	double margin, Polynomial p, Roots roots, VEC polynomialIntoRootsWorkspace)
+{
+	//Melder_assert (thy formant._capacity >= (my nCoefficients + 1) / 2); //TODO find better test
+	Melder_assert (my nCoefficients <  p -> capacity()); // check invariant
+	Melder_assert (my nCoefficients <= roots -> capacity());
+	thy intensity = my gain;
+	if (my nCoefficients == 0) {
+		thy formant.resize (0);
+		return;
+	}
+	LPC_Frame_into_Polynomial (me, p);
+	Polynomial_into_Roots (p, roots, polynomialIntoRootsWorkspace);
+	Roots_fixIntoUnitCircle (roots);
+	Roots_into_Formant_Frame (roots, thee, 1.0 / samplingPeriod, margin);
+}
+
+
 void Formant_Frame_into_LPC_Frame (constFormant_Frame me, LPC_Frame thee, double samplingPeriod) {
 	if (my numberOfFormants < 1)
 		return;

@@ -41,7 +41,7 @@ void LPC_Frame_into_Polynomial (constLPC_Frame me, mutablePolynomial p) {
 		represents the highest power (==degree) it is stored into the last position
 		of the polynomial.
 	*/
-	Melder_assert (my nCoefficients  < p -> numberOfCoefficients);
+	Melder_assert (my nCoefficients  < p -> capacity ());
 	const integer numberOfPolynomialCoefficientsNeeded = my nCoefficients + 1;
 	p -> resize (numberOfPolynomialCoefficientsNeeded);
 	for (integer icof = 1; icof <= my nCoefficients; icof ++)

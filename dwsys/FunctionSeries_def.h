@@ -33,6 +33,9 @@ oo_DEFINE_CLASS (FunctionSeries, Function)
 		virtual void v_evaluateTerms (double x, VEC terms);
 		virtual void v_getExtrema (double x1, double x2, double *xmin, double *ymin, double *xmax, double *ymax);
 		virtual integer v_getDegree ();
+		virtual integer capacity () {
+			return coefficients._capacity;
+		}
 		virtual void resize (integer newNumberOfCoefficients) {
 			if (newNumberOfCoefficients < coefficients._capacity) {
 				coefficients.resize (newNumberOfCoefficients);
