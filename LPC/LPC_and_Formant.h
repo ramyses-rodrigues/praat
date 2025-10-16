@@ -47,6 +47,9 @@ Thing_define (LPCFrameIntoFormantFrame, SampledFrameIntoSampledFrame) {
 
 };
 
+autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC, mutableFormant outputFormant, double margin);
+
+
 inline integer numberOfFormantsFromNumberOfCoefficients2 (integer maxnCoefficients, double margin) {
 	return ( margin == 0.0 ? maxnCoefficients : (maxnCoefficients + 1) / 2 );
 }
@@ -56,8 +59,6 @@ inline integer numberOfPolesFromNumberOfFormants2 (double numberOfFormants) {
 }
 
 void Formant_Frame_init (Formant_Frame me, integer numberOfFormants);
-
-autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC, mutableFormant outputFormant, double margin);
 
 void LPC_into_Formant (constLPC me, mutableFormant thee, double margin);
 

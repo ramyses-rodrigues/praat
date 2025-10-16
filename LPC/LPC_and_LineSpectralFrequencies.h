@@ -23,55 +23,6 @@
 #include "LineSpectralFrequencies.h"
 #include "Polynomial.h"
 #include "Roots.h"
-#include "SampledFrameIntoSampledFrame.h"
-
-Thing_define (LPCFrameIntoLineSpectralFrequenciesFrame, SampledFrameIntoSampledFrame) {
-
-	constLPC inputLPC;
-	mutableLineSpectralFrequencies outputLSF;
-	integer maximumNumberOfFrequencies;
-	autoPolynomial gsum;
-	autoPolynomial gdif;
-	autoRoots roots;
-	double gridSize;
-
-	void initBasicLPCFrameIntoLineSpectralFrequenciesFrame (constLPC inputLPC, mutableLineSpectralFrequencies outputLSF);
-	
-	void copyBasic (constSampledFrameIntoSampledFrame other)
-		override;
-	
-	void initHeap ()
-		override;
-	
-	bool inputFrameIntoOutputFrame (integer iframe)
-		override;
-};
-
-autoLPCFrameIntoLineSpectralFrequenciesFrame LPCFrameIntoLineSpectralFrequenciesFrame_create (constLPC input, 
-	mutableLineSpectralFrequencies output);
-
-Thing_define (LineSpectralFrequenciesFrameIntoLPCFrame, SampledFrameIntoSampledFrame) {
-
-	constLineSpectralFrequencies inputLSF;
-	mutableLPC outputLPC;
-	autoPolynomial fs;
-	autoPolynomial fa;
-
-	void initBasicLineSpectralFrequenciesFrameIntoLPCFrame (constLineSpectralFrequencies inputLSF, mutableLPC outputLPC);
-	
-	void copyBasic (constSampledFrameIntoSampledFrame other)
-		override;
-
-	void initHeap ()
-		override;
-	
-	bool inputFrameIntoOutputFrame (integer iframe)
-		override;
-
-};
-
-autoLineSpectralFrequenciesFrameIntoLPCFrame LineSpectralFrequenciesFrameIntoLPCFrame_create (constLineSpectralFrequencies inputLSF,
-	mutableLPC outputLPC);
 
 void LPC_into_LineSpectralFrequencies (constLPC me, mutableLineSpectralFrequencies outputLSF, double gridSize);
 
@@ -80,6 +31,5 @@ autoLineSpectralFrequencies LPC_to_LineSpectralFrequencies (constLPC me, double 
 void LineSpectralFrequencies_into_LPC (constLineSpectralFrequencies me, mutableLPC outputLPC);
 
 autoLPC LineSpectralFrequencies_to_LPC (constLineSpectralFrequencies me);
-
 
 #endif /* _LPC_and_LineSpectralFrequencies_h_ */

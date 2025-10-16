@@ -635,6 +635,60 @@ autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiv
 	}
 }
 
+/*********************** PLP (Hermansky) method *************************************************************/
+
+Thing_implement (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame, 0);
+	
+void structSoundFrameIntoLPCFramePLP :: initBasicSoundFrameIntoLPCFramePLP (constSound inputSound, mutableLPC outputLPC,
+	double effectiveAnalysisWidth, kSound_windowShape windowShape)
+{
+	SoundFrameIntoLPCFramePLP_Parent :: initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth,	 windowShape);
+}
+
+void structSoundFrameIntoLPCFramePLP :: copyBasic (constSampledFrameIntoSampledFrame other2) {
+	constSoundFrameIntoLPCFramePLP other = reinterpret_cast<constSoundFrameIntoLPCFramePLP> (other2);
+	SoundFrameIntoLPCFramePLP_Parent :: copyBasic (other);
+}
+
+void structSoundFrameIntoLPCFramePLP :: initHeap () {
+	SoundFrameIntoLPCFramePLP_Parent :: initHeap ();
+	const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
+	equalLoudnessPreemphasis = raw_VEC (numberOfFrequencies);
+}
+
+bool structSoundFrameIntoLPCFramePLP :: inputFrameIntoOutputFrame (integer iframe) {
+	
+	
+	
+	
+	return true;
+}
+/*
+void structSoundFrameIntoLPCFramePLP :: getFilterCharacteristics () {
+	struct structCriticalBandFilter {
+		double fb, fm, fe;
+		integer i1, i2;
+		integer iv1, iv2;
+	};
+	const double nyquistFrequency = 0.5 / frameAsSound -> dx;
+	const double df = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
+	const double fmax_bark = hertzToBark (nyquistFrequency);
+	numberOfCriticalBandFilters = Melder_ifloor (fmax_bark) + 2;
+	const double df_bark = fmax_bark / (numberOfCriticalBandFilters - 1);
+	autovector<struct structCriticalBandFilter> filters = newvectorzero<struct structCriticalBandFilter> (numberOfCriticalBandFilters);
+	for (integer ifilter = 1; ifilter <= numberOfCriticalBandFilters; ifilter ++) {
+		struct structCriticalBandFilter *fstruct = & filters [ifilter];
+		const double fm_bark = ifilter * df_bark;
+		const double fb_bark = Melder_clippedLeft (0.0, fm_bark - 2.5);
+		const double fe_bark = Melder_clippedRight (fm_bark + 1.3, fmax_bark);
+		fstruct -> fb = barkToHertz (fb_bark);
+		fstruct -> fe = barkToHertz (fe_bark);
+		fstruct -> fm = barkToHertz (fm_bark);
+
+	}
+
+}*/
+
 /*********************** Robust method (LPC & Sound) *************************************************************/
 
 Thing_implement (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame, 0);
@@ -653,8 +707,8 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundF
 }
 
 void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other2);
-	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = static_cast <constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
+	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = reinterpret_cast<constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
+	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other);
 	our inputLPC = other -> inputLPC;
 	our k_stdev = other -> k_stdev;
 	our itermax = other -> itermax;

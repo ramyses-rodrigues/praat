@@ -26,14 +26,6 @@ oo_DEFINE_CLASS (FunctionSeries, Function)
 
 	oo_INTEGER (numberOfCoefficients)
 	oo_VEC (coefficients, numberOfCoefficients)
-	
-	#if ! oo_READING && ! oo_WRITING && ! oo_COMPARING
-		oo_INTEGER (_capacity)
-	#endif
-		
-	#if oo_READING
-		_capacity = numberOfCoefficients;
-	#endif
 
 	#if oo_DECLARING
 		virtual double v_evaluate (double x);
@@ -41,10 +33,13 @@ oo_DEFINE_CLASS (FunctionSeries, Function)
 		virtual void v_evaluateTerms (double x, VEC terms);
 		virtual void v_getExtrema (double x1, double x2, double *xmin, double *ymin, double *xmax, double *ymax);
 		virtual integer v_getDegree ();
-		virtual void extendCapacity (integer newCapacity) {
-			if (_capacity < newCapacity) {
-				coefficients. resize (newCapacity);
-				_capacity = newCapacity;
+		virtual integer capacity () {
+			return coefficients._capacity;
+		}
+		virtual void resize (integer newNumberOfCoefficients) {
+			if (newNumberOfCoefficients < coefficients._capacity) {
+				coefficients.resize (newNumberOfCoefficients);
+				numberOfCoefficients = newNumberOfCoefficients; // maintain invariant
 			}
 		}
 	#endif

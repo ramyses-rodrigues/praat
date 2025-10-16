@@ -168,11 +168,34 @@ void Sound_into_LPC_marple (constSound me, mutableLPC thee, double analysisWidth
 autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, 
 	double preEmphasisFrequency, double tol1, double tol2);
 
+/*********************** PLP (Hermansky) method *************************************************************/
+
+Thing_define (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame) {
+
+	integer numberOfCriticalBandFilters;
+	autoVEC equalLoudnessPreemphasis;	
+	
+	void initBasicSoundFrameIntoLPCFramePLP (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth,
+		kSound_windowShape windowShape);
+
+	void copyBasic (constSampledFrameIntoSampledFrame other)
+		override;
+
+	void initHeap ()
+		override;
+
+	bool inputFrameIntoOutputFrame (integer iframe)
+		override;
+		
+	void getFilterCharacteristics ();
+
+};
+
 /*********************** Robust method (LPC & Sound) *************************************************************/
 
 Thing_define (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame) {
+	
 	constLPC inputLPC;
-		
 	integer currentPredictionOrder;
 	double k_stdev;
 	integer iter;
