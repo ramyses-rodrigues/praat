@@ -40,6 +40,12 @@ oo_DEFINE_CLASS (Roots, Daata)
 	#if oo_DECLARING
 		void v1_info ()
 			override;
+		void resize (integer newNumberOfRoots) {
+			if (newNumberOfRoots <= roots._capacity) {
+				roots.resize (newNumberOfRoots);
+				numberOfRoots = newNumberOfRoots;
+			}
+		}
 	#endif
 	
 oo_END_CLASS (Roots)	
