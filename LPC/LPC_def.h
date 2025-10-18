@@ -33,6 +33,14 @@ oo_DEFINE_STRUCT (LPC_Frame)
 		oo_VEC (a, nCoefficients)
 		oo_DOUBLE (gain)
 	#endif
+	#if oo_DECLARING
+		void resize (integer newSize) {
+			if (newSize < a._capacity) {
+				a.resize (newSize);
+				nCoefficients = newSize; // maintain invariant
+			}
+		}
+	#endif
 
 oo_END_STRUCT (LPC_Frame)
 #undef ooSTRUCT
