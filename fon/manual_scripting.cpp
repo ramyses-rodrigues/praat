@@ -2713,7 +2713,7 @@ The above is dangerous because `runSystem` has no concept of what an argument to
 For instance, what if `folder$` above is somehow “-rf .*; ls”? Will that remove my whole folder structure?
 A much safer way is to use @`runSubprocess`, in which you supply the arguments directly:
 {;
-	\#`{runSubprocess}: "/usr/local/sbin/theOtherApp ", folder$, "*.wav"
+	\#`{runSubprocess}: "/usr/local/sbin/theOtherApp", folder$, "*.wav"
 }
 This will hand to `theOtherApp`: the contents of the string `folder$`
 (without fear of executing any commands that are inside the foldername),

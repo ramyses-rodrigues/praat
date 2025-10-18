@@ -1,10 +1,10 @@
 /* ScriptEditor.cpp
  *
- * Copyright (C) 1997-2005,2007-2018,2020-2024 Paul Boersma
+ * Copyright (C) 1997-2005,2007-2018,2020-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -261,7 +261,7 @@ static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
 	#ifdef macintosh
 		dispatch_async (dispatch_get_main_queue (), ^{ menu_cb_runSelection_async (me); });
 	#else
-		menu_cb_run_async (me);
+		menu_cb_runSelection_async (me);
 	#endif
 }
 
