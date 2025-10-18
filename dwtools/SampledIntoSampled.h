@@ -36,7 +36,7 @@
 
 void SampledIntoSampled_mt (SampledFrameIntoSampledFrame frameIntoFrame, integer thresholdNumberOfFramesPerThread);
 
-inline void Sampled_requireEqualSampling (constSampled me,  constSampled thee) {
+inline void Sampled_requireEqualSampling (constSampled me, constSampled thee) {
 	Melder_assert (me && thee);
 	Melder_require (my x1 == thy x1 && my nx == thy nx && my dx == thy dx,
 		U"The sampling of ", me, U" and ", thee, U" should be equal.");

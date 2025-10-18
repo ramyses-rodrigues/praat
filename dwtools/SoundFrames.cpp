@@ -24,13 +24,14 @@ void structSoundFrames :: init (constSound input, double effectiveAnalysisWidth,
 	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum, 
 	integer fftInterpolationFactor)
 {
+	our inputSound = input;
 	our physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);
 	if (timeStep == 0.0) {
 		// calculate output_dt
 	}
 	our dt = timeStep;
-	Sampled_shortTermAnalysis (inputSound, physicalAnalysisWidth, dt, & numberOfFrames, & t1);
-	initCommon (input, windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
+	Sampled_shortTermAnalysis (inputSound, physicalAnalysisWidth, dt, & our numberOfFrames, & our t1);
+	initCommon (windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 }
 	
 void structSoundFrames :: initWithSampled (constSound input, Sampled output, double effectiveAnalysisWidth,
@@ -39,23 +40,23 @@ void structSoundFrames :: initWithSampled (constSound input, Sampled output, dou
 {
 	Melder_require (input -> xmin == output -> xmin && input -> xmax == output -> xmax,
 		U"The domains of Sound ", input, U" and Sampled ", output , U" should be equal.");
+	our inputSound = input;
 	our t1 = output -> x1;
 	our numberOfFrames = output -> nx;
 	our dt = output -> dx;
 	// check
-	const double physicalAnalysisWidth2 = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);
+	our physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);
 	integer numberOfFrames_2;
 	double t1_2;
 	Sampled_shortTermAnalysis (inputSound, physicalAnalysisWidth, dt, & numberOfFrames_2, & t1_2);
 	Melder_assert (numberOfFrames_2 == numberOfFrames);
 	Melder_assert (t1_2 == t1);
-	initCommon (input, windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
+	initCommon (windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 }
 
-void structSoundFrames :: initCommon (constSound input, kSound_windowShape windowShape, 
+void structSoundFrames :: initCommon (kSound_windowShape windowShape, 
 	bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
 {
-	inputSound = input;
 	our windowShape = windowShape;
 	our subtractFrameMean = subtractFrameMean;
 	our wantSpectrum = wantSpectrum;
