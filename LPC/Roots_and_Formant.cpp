@@ -16,8 +16,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Formant.h"
-#include "Roots.h"
+#include "Roots_and_Formant.h"
 
 static void Formant_Frame_sort (Formant_Frame me) {
 	const integer n = my numberOfFormants;
