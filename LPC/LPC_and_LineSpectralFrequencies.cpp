@@ -126,7 +126,15 @@ void LPC_into_LineSpectralFrequencies (constLPC inputLPC, mutableLineSpectralFre
 	const integer numberOfFrames = inputLPC -> nx, thresholdNumberOfFramesPerThread = 40;
 	const integer numberOfCoefficients = inputLPC -> maxnCoefficients + 1;
 	autoMelderProgress progress (U"LPC into LineSpectralFrequencies...");
+
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
+
+	autoPolynomial gsum = Polynomial_create (-2.0, 2.0, numberOfCoefficients);   // large enough
+	autoPolynomial gdif = Polynomial_create (-2.0, 2.0, numberOfCoefficients);
+	autoRoots roots = Roots_create ((numberOfCoefficients + 1) / 2);
+
+	MelderThread_FOR (iframe) {
+
 		if (MelderThread_IS_MASTER) {
 			const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
 			Melder_progress (0.98 * estimatedProgress,
@@ -134,10 +142,6 @@ void LPC_into_LineSpectralFrequencies (constLPC inputLPC, mutableLineSpectralFre
 				U" out of ", numberOfFrames, U" frames"
 			);
 		}
-		autoPolynomial gsum = Polynomial_create (-2.0, 2.0, numberOfCoefficients); // large enough
-		autoPolynomial gdif = Polynomial_create (-2.0, 2.0, numberOfCoefficients);
-		autoRoots roots = Roots_create ((numberOfCoefficients + 1) / 2);
-	MelderThread_FOR (iframe) {
 		LPC_Frame inputFrame = & inputLPC -> d_frames [iframe];
 		LineSpectralFrequencies_Frame outputFrame = & outputLSF -> d_frames [iframe];
 		Melder_assert (inputFrame -> nCoefficients == inputFrame -> a.size); // check invariant
@@ -180,6 +184,7 @@ void LPC_into_LineSpectralFrequencies (constLPC inputLPC, mutableLineSpectralFre
 				outputFrame -> numberOfFrequencies --;
 		}
 		outputFrame -> frequencies.resize (outputFrame -> numberOfFrequencies); // maintain invariant		
+
 	} MelderThread_ENDFOR
 }
 
