@@ -94,14 +94,6 @@ void structSoundFrameIntoLPCFrame :: initHeap () {
 
 /*********************** Autocorrelation method *************************************************************/
 
-Thing_implement (SoundFrameIntoLPCFrameAuto, SoundFrameIntoLPCFrame, 0);
-
-void structSoundFrameIntoLPCFrameAuto :: initHeap () {
-	SoundFrameIntoLPCFrameAuto_Parent :: initHeap ();
-	r = raw_VEC (orderp1);
-	rc = raw_VEC (orderp1);
-}
-
 void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC r, VEC rc) {
 	integer order = lpcFrame -> nCoefficients, orderp1 = order + 1;
 	Melder_assert (a.size >= orderp1);
@@ -152,69 +144,6 @@ void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 	lpcFrame -> resize (i);
 }
 
-bool structSoundFrameIntoLPCFrameAuto :: inputFrameIntoOutputFrame (integer currentFrame) {
-	LPC_Frame lpcFrame = & outputLPC -> d_frames [currentFrame];
-	Melder_assert (lpcFrame -> nCoefficients > 0);
-	frameAnalysisInfo = 0;
-
-	VEC x = soundFrame;
-	
-	/*
-		Compute the autocorrelations
-	*/
-	lpcFrame -> a.get()  <<=  0.0;
-	lpcFrame -> gain = 0.0;
-	for (integer i = 1; i <= orderp1; i ++)
-		r [i] = NUMinner (x.part (1, x.size - i + 1), x.part (i, x.size));
-	if (r [1] == 0.0) {
-		/*
-			The sound frame contains only zero's
-		*/
-		lpcFrame -> nCoefficients = 0;
-		lpcFrame -> a.resize (lpcFrame -> nCoefficients); // maintain invariant
-		frameAnalysisInfo = 1;
-		return false;
-	}
-	a [1] = 1.0;
-	a [2] = rc [1] = - r [2] / r [1];
-	double gain = r [1] + r [2] * rc [1];
-	lpcFrame -> gain = gain;
-	integer i = 1;
-	for (i = 2; i <= order; i ++) {
-		longdouble s = 0.0;
-		for (integer j = 1; j <= i; j ++)
-			s += r [i - j + 2] * a [j];
-		rc [i] = - s / gain;
-		for (integer j = 2; j <= i / 2 + 1; j ++) {
-			const double at = a [j] + rc [i] * a [i - j + 2];
-			a [i - j + 2] += rc [i] * a [j];
-			a [j] = at;
-		}
-		a [i + 1] = rc [i];
-		gain += rc [i] * s;
-		if (gain <= 0.0) {
-			frameAnalysisInfo = 2;
-			break;
-		}
-		lpcFrame -> gain = gain;
-	}
-	-- i;
-	lpcFrame -> a.part (1, i)  <<=  a.part (2, i + 1);
-	lpcFrame -> a.resize (i);
-	lpcFrame -> nCoefficients = lpcFrame -> a.size; // maintain invariant
-	return true;
-}
-
-autoSoundFrameIntoLPCFrameAuto SoundFrameIntoLPCFrameAuto_create (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	try {
-		autoSoundFrameIntoLPCFrameAuto me = Thing_new (SoundFrameIntoLPCFrameAuto);
-		my initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameAuto");
-	}
-}
-
 void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
@@ -230,12 +159,6 @@ void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveA
 		VEC soundFrame = soundFrames -> getFrame (iframe);
 		soundFrameIntoLPCFrame_auto (soundFrame, lpcFrame, a.get(), r.get(), rc.get());
 	} MelderThread_ENDFOR
-}
-void Sound_into_LPC_auto2 (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
-	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
-	autoSoundFrameIntoLPCFrameAuto frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameAuto);
-	frameIntoFrame -> initBasicSoundFrameIntoLPCFrame (me, outputLPC, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 }
 
 autoLPC Sound_to_LPC_auto (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency) {

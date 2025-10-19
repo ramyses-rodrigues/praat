@@ -57,26 +57,11 @@ Thing_define (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame) {
 
 /*********************** Autocorrelation method *************************************************************/
 
-Thing_define (SoundFrameIntoLPCFrameAuto, SoundFrameIntoLPCFrame) {
-	
-	autoVEC r;		// orderp1
-	autoVEC rc;		// orderp1
-	
-	void initHeap ()
-		override;
-		
-	bool inputFrameIntoOutputFrame (integer currentFrame)
-		override;
-};
-
 /*
 	Precondition:
 	Sound and LPC have the same sampling.
 */
 void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth);
-
-autoSoundFrameIntoLPCFrameAuto SoundFrameIntoLPCFrameAuto_create (constSound inputSound, mutableLPC outputLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape);
 
 autoLPC Sound_to_LPC_auto (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency);
 

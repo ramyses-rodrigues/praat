@@ -37,10 +37,8 @@ oo_DEFINE_CLASS (FunctionSeries, Function)
 			return coefficients._capacity;
 		}
 		virtual void resize (integer newNumberOfCoefficients) {
-			if (newNumberOfCoefficients < coefficients._capacity) {
-				coefficients.resize (newNumberOfCoefficients);
-				numberOfCoefficients = newNumberOfCoefficients; // maintain invariant
-			}
+			coefficients.resize (newNumberOfCoefficients);
+			numberOfCoefficients = newNumberOfCoefficients; // maintain invariant
 		}
 	#endif
 	

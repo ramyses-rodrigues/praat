@@ -163,7 +163,6 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 {
 	//Melder_assert (thy formant._capacity >= (my nCoefficients + 1) / 2); //TODO find better test
 	Melder_assert (my nCoefficients <  p -> capacity()); // check invariant
-	Melder_assert (my nCoefficients <= roots -> capacity());
 	thy intensity = my gain;
 	if (my nCoefficients == 0) {
 		thy formant.resize (0);

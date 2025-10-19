@@ -222,8 +222,7 @@ autoRoots Polynomial_to_Roots (constPolynomial me) {
 		+ 11 * n	; the maximum for dhseqr_
 */
 void Polynomial_into_Roots (constPolynomial me, mutableRoots roots, VEC workspace) {
-	Melder_assert (my numberOfCoefficients - 1 <= roots -> capacity ());
-	integer np1 = my numberOfCoefficients, n = np1 - 1;	
+	integer np1 = my numberOfCoefficients, n = np1 - 1;
 	Melder_assert (workspace.size >= n * n + 2 * n + 11 * n);
 	
 	if (n == 0)
