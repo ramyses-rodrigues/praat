@@ -111,9 +111,11 @@ Finally we thank:
 
 ################################################################################
 "License"
-© Paul Boersma 2021
+© Paul Boersma 2021,2025
 
 Praat is free software distributed under the @@General Public License, version 3@ or higher.
+The source code is available on `https://github.com/praat/praat.github.io`.
+
 See @Acknowledgments for details on the licenses of software libraries by others
 that are included in Praat.
 
