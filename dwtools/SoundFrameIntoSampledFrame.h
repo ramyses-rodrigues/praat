@@ -62,18 +62,18 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 	autoVEC fourierSamples;					// size = numberOfFourierSamples
 	autoNUMFourierTable fourierTable;		// of dimension numberOfFourierSamples;
 
-	void initBasicSoundFrameIntoSampledFrame (constSound input, mutableSampled output, double effectiveAnalysisWidth, 
-		kSound_windowShape windowShape)
+	void initBasicSoundFrameIntoSampledFrame (constSound initialInput, mutableSampled initialOutput, double effectiveAnalysisWidth,
+		kSound_windowShape initialWindowShape)
 	{
-		SoundFrameIntoSampledFrame_Parent :: initBasic (input, output);
-		inputSound = input;
-		our windowShape = windowShape;
-		physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, windowShape);
+		our SoundFrameIntoSampledFrame_Parent :: initBasic (initialInput, initialOutput);
+		our inputSound = initialInput;
+		our windowShape = initialWindowShape;
+		our physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, initialWindowShape);
 	}
 
 	void copyBasic (constSampledFrameIntoSampledFrame other2) override {
 		constSoundFrameIntoSampledFrame other = static_cast <constSoundFrameIntoSampledFrame> (other2);
-		SoundFrameIntoSampledFrame_Parent :: copyBasic (other);
+		our SoundFrameIntoSampledFrame_Parent :: copyBasic (other);
 		our inputSound = other -> inputSound;
 		our physicalAnalysisWidth = other -> physicalAnalysisWidth;
 		our windowShape = other -> windowShape;
@@ -83,80 +83,79 @@ Thing_define (SoundFrameIntoSampledFrame, SampledFrameIntoSampledFrame) {
 	}
 
 	void getInputFrame (integer currentFrame) override {
-		const double midTime = Sampled_indexToX (output, currentFrame);
-		integer soundFrameBegin = Sampled_xToNearestIndex (inputSound, midTime - 0.5 * physicalAnalysisWidth); // approximation
-		
-		for (integer isample = 1; isample <= soundFrame.size; isample ++, soundFrameBegin ++) {
-			soundFrame [isample] = ( soundFrameBegin > 0 && soundFrameBegin <= inputSound -> nx ? inputSound -> z [1] [soundFrameBegin] : 0.0 );
-		}
-		if (subtractFrameMean)
-			centre_VEC_inout (soundFrame, nullptr);
-		soundFrameExtremum = NUMextremum_u (soundFrame);
-		soundFrame  *=  windowFunction.get();
-		if (wantSpectrum)
-			soundFrameIntoSpectrum ();
+		const double midTime = Sampled_indexToX (our output, currentFrame);
+		integer soundFrameBegin = Sampled_xToNearestIndex (our inputSound, midTime - 0.5 * our physicalAnalysisWidth);   // approximation
+
+		for (integer isample = 1; isample <= soundFrame.size; isample ++, soundFrameBegin ++)
+			our soundFrame [isample] = ( soundFrameBegin > 0 && soundFrameBegin <= our inputSound -> nx ? our inputSound -> z [1] [soundFrameBegin] : 0.0 );
+		if (our subtractFrameMean)
+			centre_VEC_inout (our soundFrame, nullptr);
+		our soundFrameExtremum = NUMextremum_u (our soundFrame);
+		our soundFrame  *=  windowFunction.get();
+		if (our wantSpectrum)
+			our soundFrameIntoSpectrum ();
 	}
 
 	void initHeap () override {
-		SoundFrameIntoSampledFrame_Parent :: initHeap ();
-		soundFrameSize = getSoundFrameSize2 (physicalAnalysisWidth, inputSound -> dx);
-		windowFunction = raw_VEC (soundFrameSize);   // TODO: move out of thread repetition
-		windowShape_into_VEC (windowShape, windowFunction.get());   // TODO: move out of thread repetition
-		frameAsSound = Sound_create (1_integer, 0.0, soundFrameSize * input -> dx, soundFrameSize, input -> dx, 0.5 * input -> dx); //
-		soundFrame = frameAsSound -> z.row (1);
-		Melder_assert (soundFrame.size == soundFrameSize);
-		if (wantSpectrum) {
-			numberOfFourierSamples = frameAsSound -> nx;
-			if (fftInterpolationFactor > 0) {
-				numberOfFourierSamples = Melder_iroundUpToPowerOfTwo (numberOfFourierSamples);
+		our SoundFrameIntoSampledFrame_Parent :: initHeap ();
+		our soundFrameSize = getSoundFrameSize2 (our physicalAnalysisWidth, our inputSound -> dx);
+		our windowFunction = raw_VEC (our soundFrameSize);   // TODO: move out of thread repetition
+		windowShape_into_VEC (our windowShape, our windowFunction.get());   // TODO: move out of thread repetition
+		our frameAsSound = Sound_create (1_integer, 0.0, our soundFrameSize * input -> dx, our soundFrameSize, our input -> dx, 0.5 * our input -> dx); //
+		our soundFrame = our frameAsSound -> z.row (1);
+		Melder_assert (our soundFrame.size == our soundFrameSize);
+		if (our wantSpectrum) {
+			our numberOfFourierSamples = our frameAsSound -> nx;
+			if (our fftInterpolationFactor > 0) {
+				our numberOfFourierSamples = Melder_iroundUpToPowerOfTwo (our numberOfFourierSamples);
 				for (integer imultiply = fftInterpolationFactor; imultiply > 1; imultiply --)
-					numberOfFourierSamples *= 2;
+					our numberOfFourierSamples *= 2;
 			}
-			fourierSamples = raw_VEC (numberOfFourierSamples);
-			const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
-			fourierTable = NUMFourierTable_create (numberOfFourierSamples);
-			spectrum = Spectrum_create (0.5 / frameAsSound -> dx, numberOfFrequencies);
-			spectrum -> dx = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
+			our fourierSamples = raw_VEC (our numberOfFourierSamples);
+			const integer numberOfFrequencies = our numberOfFourierSamples / 2 + 1;
+			our fourierTable = NUMFourierTable_create (our numberOfFourierSamples);
+			our spectrum = Spectrum_create (0.5 / our frameAsSound -> dx, numberOfFrequencies);
+			our spectrum -> dx = 1.0 / (our frameAsSound -> dx * our numberOfFourierSamples);
 		}
 	}
 
 	void soundFrameToForwardFourierTransform () {
-		const integer numberOfChannels = frameAsSound -> ny;
+		const integer numberOfChannels = our frameAsSound -> ny;
 		if (numberOfChannels == 1)
-			fourierSamples.part (1, soundFrameSize)  <<=  frameAsSound -> z.row (1);
+			our fourierSamples.part (1, our soundFrameSize)  <<=  our frameAsSound -> z.row (1);
 		else {
 			/*
 				Multiple channels: take the average.
-				*/
+			*/
 			for (integer ichan = 1; ichan <= numberOfChannels; ichan ++)
-				fourierSamples.part (1, soundFrameSize)  +=  frameAsSound -> z.row (ichan);
-			fourierSamples.part (1, soundFrameSize)  *=  1.0 / numberOfChannels;
+				our fourierSamples.part (1, our soundFrameSize)  +=  our frameAsSound -> z.row (ichan);
+			our fourierSamples.part (1, our soundFrameSize)  *=  1.0 / numberOfChannels;
 		}
-		fourierSamples.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
-		NUMfft_forward (fourierTable.get(), fourierSamples.get());
+		our fourierSamples.part (our soundFrameSize + 1, our numberOfFourierSamples)  <<=  0.0;
+		NUMfft_forward (our fourierTable.get(), our fourierSamples.get());
 	}
 
 	void soundFrameIntoSpectrum () {
 
-		soundFrameToForwardFourierTransform ();
+		our soundFrameToForwardFourierTransform ();
 
-		const VEC re = spectrum -> z.row (1);
-		const VEC im = spectrum -> z.row (2);
-		const integer numberOfFrequencies = spectrum -> nx;
-		const double scaling = output -> dx;
-		re [1] = fourierSamples [1] * scaling;
+		const VEC re = our spectrum -> z.row (1);
+		const VEC im = our spectrum -> z.row (2);
+		const integer numberOfFrequencies = our spectrum -> nx;
+		const double scaling = our output -> dx;
+		re [1] = our fourierSamples [1] * scaling;
 		im [1] = 0.0;
 		for (integer i = 2; i < numberOfFrequencies; i ++) {
-			re [i] = fourierSamples [i + i - 2] * scaling;   // fourierSamples [2], [4], ...
-			im [i] = fourierSamples [i + i - 1] * scaling;   // fourierSamples [3], [5], ...
+			re [i] = our fourierSamples [i + i - 2] * scaling;   // fourierSamples [2], [4], ...
+			im [i] = our fourierSamples [i + i - 1] * scaling;   // fourierSamples [3], [5], ...
 		}
-		if ((numberOfFourierSamples & 1) != 0) {
-			if (numberOfFourierSamples > 1) {
-				re [numberOfFrequencies] = fourierSamples [numberOfFourierSamples - 1] * scaling;
-				im [numberOfFrequencies] = fourierSamples [numberOfFourierSamples] * scaling;
+		if ((our numberOfFourierSamples & 1) != 0) {
+			if (our numberOfFourierSamples > 1) {
+				re [numberOfFrequencies] = our fourierSamples [our numberOfFourierSamples - 1] * scaling;
+				im [numberOfFrequencies] = our fourierSamples [our numberOfFourierSamples] * scaling;
 			}
 		} else {
-			re [numberOfFrequencies] = fourierSamples [numberOfFourierSamples] * scaling;
+			re [numberOfFrequencies] = our fourierSamples [our numberOfFourierSamples] * scaling;
 			im [numberOfFrequencies] = 0.0;
 		}
 	}

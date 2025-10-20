@@ -116,7 +116,7 @@ void structSoundFrameIntoPowerCepstrogramFrame :: saveOutputFrame (integer ifram
 }
 
 void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	SampledIntoSampled_assertEqualDomains (input,  output);
+	SampledIntoSampled_assertEqualDomains (input, output);
 	autoSoundFrameIntoPowerCepstrogramFrame frameIntoFrame = Thing_new (SoundFrameIntoPowerCepstrogramFrame);
 	frameIntoFrame -> initBasicSoundFrameIntoPowerCepstrogramFrame (input, output, effectiveAnalysisWidth, windowShape);
 	frameIntoFrame -> wantSpectrum = true;
