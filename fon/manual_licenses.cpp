@@ -159,7 +159,7 @@ Here is the FLAC license text:
 `
 ################################################################################
 "Ogg Vorbis BSD 3-clause license"
-© Xiph.org 2002–2020; introductory paragraphy by Paul Boersma 2020
+© Xiph.org 2002–2020; introductory paragraph by Paul Boersma 2020
 
 The Praat source code contains a copy of the Ogg Vorbis software (see @Acknowledgments).
 Here is the Ogg Vorbis license text:
