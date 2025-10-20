@@ -34,7 +34,7 @@ void structSoundFrames :: init (constSound input, double effectiveAnalysisWidth,
 	initCommon (windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 }
 	
-void structSoundFrames :: initWithSampled (constSound input, Sampled output, double effectiveAnalysisWidth,
+void structSoundFrames :: initWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
 	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum,
 	integer fftInterpolationFactor)
 {
@@ -44,13 +44,7 @@ void structSoundFrames :: initWithSampled (constSound input, Sampled output, dou
 	our t1 = output -> x1;
 	our numberOfFrames = output -> nx;
 	our dt = output -> dx;
-	// check
-	our physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);
-	integer numberOfFrames_2;
-	double t1_2;
-	Sampled_shortTermAnalysis (inputSound, physicalAnalysisWidth, dt, & numberOfFrames_2, & t1_2);
-	Melder_assert (numberOfFrames_2 == numberOfFrames);
-	Melder_assert (t1_2 == t1);
+	our physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);	
 	initCommon (windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 }
 
@@ -141,7 +135,21 @@ void structSoundFrames :: soundFrameIntoSpectrum () {
 	}
 }
 
-autoSoundFrames SoundFrame_create (constSound input, double effectiveAnalysisWidth,
+autoSoundFrames SoundFrames_create (constSound input, constSampled output, double effectiveAnalysisWidth,
+	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
+{
+	try {
+		autoSoundFrames me = Thing_new (SoundFrames);
+		my initWithSampled (input, output, effectiveAnalysisWidth, windowShape, subtractFrameMean,
+			wantSpectrum, fftInterpolationFactor);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"SoundFrames (with Sampled) could not be created.");
+	}
+}
+
+
+autoSoundFrames SoundFrames_create (constSound input, double effectiveAnalysisWidth,
 	double timeStep, kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum, 
 	integer fftInterpolationFactor)
 {

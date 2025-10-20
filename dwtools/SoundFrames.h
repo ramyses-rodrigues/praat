@@ -79,7 +79,7 @@ public:
 		Initialise the object and use the sampling (x1, dx, nx) of the Sampled 
 	
 	*/
-	void initWithSampled (constSound input, Sampled output, double effectiveAnalysisWidth,
+	void initWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
 		kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum,
 		integer fftInterpolationFactor);
 	
@@ -89,6 +89,9 @@ public:
 
 	void soundFrameIntoSpectrum ();
 };
+
+autoSoundFrames SoundFrames_create (constSound input, constSampled output, double effectiveAnalysisWidth,
+	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor);
 
 autoSoundFrames SoundFrame_create (constSound input, double effectiveAnalysisWidth,
 	double timeStep, kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum, 
