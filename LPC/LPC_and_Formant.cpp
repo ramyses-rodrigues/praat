@@ -148,7 +148,7 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 	Melder_assert (my nCoefficients == my a.size); // check invariant
 	thy intensity = my gain;
 	if (my nCoefficients == 0) {
-		thy formant.resize (0);
+		thy formant. resize (0);
 		thy numberOfFormants = thy formant.size; // maintain invariant
 		return;
 	}
@@ -166,7 +166,7 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 	Melder_assert (my nCoefficients <= roots -> capacity());
 	thy intensity = my gain;
 	if (my nCoefficients == 0) {
-		thy formant.resize (0);
+		thy formant. resize (0);
 		return;
 	}
 	LPC_Frame_into_Polynomial (me, p);
