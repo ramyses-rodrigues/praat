@@ -32,21 +32,23 @@ void checkLPCAnalysisParameters_e (double sound_dx, integer sound_nx, double phy
 	volatile const double physicalDuration = sound_dx * sound_nx;
 	Melder_require (physicalAnalysisWidth <= physicalDuration,
 		U"Your sound is shorter than two window lengths. "
-		"Either your sound is too short or your window is too long.");
+		"Either your sound is too short or your window is too long."
+	);
 	// we round the minimum duration to be able to use asserterror in testing scripts.
 	conststring32 minimumDurationRounded = Melder_fixed (predictionOrder * sound_dx , 5);
 	const integer approximateNumberOfSamplesPerWindow = Melder_iroundDown (physicalAnalysisWidth / sound_dx);
 	Melder_require (approximateNumberOfSamplesPerWindow > predictionOrder,
 		U"Analysis window duration too short. For a prediction order of ", predictionOrder,
 		U", the analysis window duration should be greater than ", minimumDurationRounded,
-		U" s. Please increase the analysis window duration or lower the prediction order.");
+		U" s. Please increase the analysis window duration or lower the prediction order."
+	);
 }
 
 static void Sound_and_LPC_require_equalDomainsAndSamplingPeriods (constSound me, constLPC thee) {
 	Melder_require (my xmin == thy xmin && thy xmax == my xmax,
-			U"The domains of the Sound and the LPC should be equal.");
+		U"The domains of the Sound and the LPC should be equal.");
 	Melder_require (my dx == thy samplingPeriod,
-			U"The sampling periods of the Sound and the LPC should be equal.");
+		U"The sampling periods of the Sound and the LPC should be equal.");
 }
 
 static void Sound_to_LPC_common_e (constSound inputSound, int predictionOrder, double effectiveAnalysisWidth, double dt,
@@ -326,7 +328,7 @@ void structSoundFrameIntoLPCFrameBurg :: initHeap () {
 
 double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x, integer& frameAnalysisInfo) {
 	const integer n = x.size, m = a.size;
-	a   <<=  0.0; // always safe
+	a  <<=  0.0; // always safe
 	if (n <= 2) {
 		a [1] = -1.0;
 		return ( n == 2 ? 0.5 * (x [1] * x [1] + x [2] * x [2]) : x [1] * x [1] );
@@ -838,7 +840,7 @@ void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mu
 	Sampled_requireEqualSampling (inputLPC, outputLPC);
 	autoLPCFrameAndSoundFrameIntoLPCFrameRobust frameIntoFrame = Thing_new (LPCFrameAndSoundFrameIntoLPCFrameRobust);
 	frameIntoFrame -> initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (inputLPC, inputSound, outputLPC,
-		effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
+			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
 	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 }
 
@@ -852,7 +854,7 @@ autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, d
 			Sound_preEmphasize_inplace (sound.get(), preEmphasisFrequency);
 		autoLPC outputLPC = Data_copy (inputLPC);
 		LPC_and_Sound_into_LPC_robust (inputLPC, sound.get(), outputLPC.get(), effectiveAnalysisWidth,
-			k_stdev, itermax, tol, wantlocation);
+				k_stdev, itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
 		Melder_throw (inputLPC, U" and ", inputSound,  U": no LPC (robust) created.");
@@ -868,7 +870,7 @@ void Sound_into_LPC_robust (constSound inputSound, mutableLPC outputLPC, double 
 	autoLPC intermediateLPC = Data_copy (outputLPC);
 	Sound_into_LPC_auto (inputSound, intermediateLPC.get(), effectiveAnalysisWidth);
 	LPC_and_Sound_into_LPC_robust (intermediateLPC.get(), inputSound, outputLPC, effectiveAnalysisWidth,
-		k_stdev, itermax, tol, wantlocation);
+			k_stdev, itermax, tol, wantlocation);
 }
 
 autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt,
@@ -879,7 +881,7 @@ autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiv
 		autoLPC outputLPC;
 		Sound_to_LPC_common_e (me, predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency, emphasizedSound, outputLPC);
 		Sound_into_LPC_robust (emphasizedSound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev, 
-			itermax, tol, wantlocation);
+				itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
 		Melder_throw (me, U": no LPC (robust) created.");
