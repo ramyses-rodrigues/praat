@@ -38,7 +38,7 @@ void Roots_into_Formant_Frame (constRoots me, Formant_Frame thee, double samplin
 		Determine the formants and bandwidths
 	*/
 	Melder_assert (my numberOfRoots == my roots.size); // check invariant
-	thy formant.resize (0);
+	thy formant. resize (0);
 	const double nyquistFrequency = 0.5 * samplingFrequency;
 	const double fLow = margin, fHigh = nyquistFrequency - margin;
 	for (integer iroot = 1; iroot <= my numberOfRoots; iroot ++) {
@@ -47,7 +47,7 @@ void Roots_into_Formant_Frame (constRoots me, Formant_Frame thee, double samplin
 		const double frequency = fabs (atan2 (my roots [iroot].imag(), my roots [iroot].real())) * nyquistFrequency / NUMpi;
 		if (frequency >= fLow && frequency <= fHigh) {
 			const double bandwidth = - log (norm (my roots [iroot])) * nyquistFrequency / NUMpi;
-			Formant_Formant newff = thy formant . append ();
+			Formant_Formant newff = thy formant. append ();
 			newff -> frequency = frequency;
 			newff -> bandwidth = bandwidth;
 		}
