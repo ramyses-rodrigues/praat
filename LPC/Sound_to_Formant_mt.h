@@ -63,6 +63,9 @@ autoFormant Sound_to_Formant_robust_mt (constSound me, double dt, double numberO
 
 void Sound_into_Formant_burg_mt (constSound me, Formant thee, double windowLength, integer numberOfPoles, double safetyMargin);
 
+void Sound_into_Formant_burg (constSound me, mutableLPC intermediateLPC, mutableFormant outputFormant, 
+		double effectiveAnalysisWidth,	double safetyMargin);
+
 autoFormant Sound_to_Formant_burg_mt (constSound me, double dt, double numberOfFormants, double maximumFrequency,
 	double windowLength, double preemphasisFrequency, double safetyMargin
 );
