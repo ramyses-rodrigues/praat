@@ -93,17 +93,21 @@ void LPC_into_Formant (constLPC inputLPC, mutableFormant outputFormant, double m
 	autoMelderProgress progress (U"LPC into LineSpectralFrequencies...");
 	const integer order = inputLPC -> maxnCoefficients;
 	const integer bufferSize = order * order + order + order + 11 * order;
+
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
-		autoVEC buffer = raw_VEC (bufferSize);		
-		autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
-		autoRoots roots = Roots_create (order);
+
+	autoVEC buffer = raw_VEC (bufferSize);
+	autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
+	autoRoots roots = Roots_create (order);
+
 	MelderThread_FOR (iframe) {
+
 		Formant_Frame formantFrame = & outputFormant -> frames [iframe];
 		LPC_Frame inputLPCFrame = & inputLPC -> d_frames [iframe];
 		formantFrame -> intensity = inputLPCFrame -> gain;
 		if (inputLPCFrame -> nCoefficients == 0) {
 			formantFrame -> numberOfFormants = 0;
-			formantFrame -> formant.resize (formantFrame -> numberOfFormants); // maintain invariant
+			formantFrame -> formant. resize (formantFrame -> numberOfFormants);   // maintain invariant
 			continue;
 		}
 		const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;
@@ -111,7 +115,9 @@ void LPC_into_Formant (constLPC inputLPC, mutableFormant outputFormant, double m
 		Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
 		Roots_fixIntoUnitCircle (roots.get());
 		Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
-	} MelderThread_ENDFOR	
+
+	} MelderThread_ENDFOR
+
 	Formant_sort (outputFormant);
 }
 

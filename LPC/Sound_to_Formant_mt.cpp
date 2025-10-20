@@ -80,7 +80,7 @@ static void Sound_to_Formant_common (constSound inputSound, double& dt, double n
 		}
 		outputFormant = formant.move();
 		autoLPC lpc = LPC_createCompletelyInitialized (sound -> xmin, sound -> xmax, formant -> nx, formant -> dx,
-			formant -> x1, numberOfPoles, sound -> dx);
+				formant -> x1, numberOfPoles, sound -> dx);
 		outputLPC = lpc.move();
 		sound = resampled.move();
 	} catch (MelderError) {
@@ -108,12 +108,12 @@ autoFormant Sound_to_Formant_burg_mt (constSound me, double dt, double numberOfF
 		autoFormant formant;
 		autoLPC lpc;
 		Sound_to_Formant_common (me, dt, numberOfFormants, maximumFrequency, effectiveAnalysisWidth, preEmphasisFrequency,safetyMargin,
-			formant, lpc, sound);
+				formant, lpc, sound);
 		autoSoundFrameIntoLPCFrameBurg soundIntoLPC = SoundFrameIntoLPCFrameBurg_create (me, lpc.get(), effectiveAnalysisWidth,
 				kSound_windowShape ::GAUSSIAN_2);
 		autoLPCFrameIntoFormantFrame lpcIntoFormant = LPCFrameIntoFormantFrame_create (lpc.get(), formant.get(), safetyMargin);
 		autoSoundFrameIntoFormantFrame soundIntoFormant = SoundFrameIntoFormantFrame_create (soundIntoLPC.releaseToAmbiguousOwner(),
-			lpcIntoFormant.releaseToAmbiguousOwner());
+				lpcIntoFormant.releaseToAmbiguousOwner());
 		SampledIntoSampled_mt (soundIntoFormant.get(), 40);
 		return formant;
 	} catch (MelderError) {
@@ -131,7 +131,7 @@ autoFormant Sound_and_LPC_to_Formant (constSound me, constLPC lpc, double effect
 		autoLPC outputLPC = Data_copy (lpc);
 		autoLPCFrameAndSoundFrameIntoLPCFrameRobust lpcFrameAndSoundFrameIntoLPCFrame = Thing_new (LPCFrameAndSoundFrameIntoLPCFrameRobust);
 		lpcFrameAndSoundFrameIntoLPCFrame -> initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (lpc, sound.get(),
-			outputLPC.get(), effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
+				outputLPC.get(), effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
 		autoLPCFrameIntoFormantFrame lpcIntoFormant = LPCFrameIntoFormantFrame_create (outputLPC.get(), formant.get(), safetyMargin);
 		autoSoundFrameIntoFormantFrame soundIntoFormant = SoundFrameIntoFormantFrame_create (lpcFrameAndSoundFrameIntoLPCFrame.releaseToAmbiguousOwner(), lpcIntoFormant.releaseToAmbiguousOwner());
 		SampledIntoSampled_mt (soundIntoFormant.get(), 40);
@@ -150,7 +150,7 @@ autoFormant Sound_to_Formant_robust_mt (constSound inputSound, double dt, double
 		autoFormant outputFormant;
 		autoLPC outputLPC;		
 		Sound_to_Formant_common (inputSound, dt, numberOfFormants, maximumFrequency, effectiveAnalysisWidth, preEmphasisFrequency,
-			safetyMargin, outputFormant, outputLPC, sound);
+				safetyMargin, outputFormant, outputLPC, sound);
 		const kSound_windowShape windowShape = kSound_windowShape::GAUSSIAN_2;
 		
 		Sound_into_LPC_robust (sound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev, itermax, tol, wantlocation);
@@ -178,7 +178,7 @@ autoFormant Sound_to_Formant_robust (Sound me, double dt_in, double numberOfForm
 
 		autoLPC lpc = Sound_to_LPC_auto (sound.get(), predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency);
 		autoLPC lpcRobust = LPC_and_Sound_to_LPC_robust (lpc.get(), sound.get(), effectiveAnalysisWidth, preEmphasisFrequency,
-			numberOfStandardDeviations, maximumNumberOfIterations, tolerance, wantlocation);
+				numberOfStandardDeviations, maximumNumberOfIterations, tolerance, wantlocation);
 		autoFormant thee = LPC_to_Formant (lpcRobust.get(), safetyMargin);
 		return thee;
 	} catch (MelderError) {
@@ -192,7 +192,7 @@ void Sound_into_Formant_robust_mt (constSound me, mutableFormant thee, double ef
 	double k_stdev, integer itermax, double tol, double location, bool wantlocation)
 {
 	autoSoundFrameIntoFormantFrameRobust ws = SoundFrameIntoFormantFrameRobust_create (me, thee,
-		effectiveAnalysisWidth, kSound_windowShape :: GAUSSIAN_2, k_stdev, itermax, tol, location, wantlocation, numberOfPoles, safetyMargin);
+			effectiveAnalysisWidth, kSound_windowShape :: GAUSSIAN_2, k_stdev, itermax, tol, location, wantlocation, numberOfPoles, safetyMargin);
 	
 	
 	SampledToSampled_analyseThreaded (ws.get());
@@ -213,7 +213,7 @@ autoFormant Sound_to_Formant_robust_mt (constSound me, double dt_in, double numb
 		const integer numberOfFormants = numberOfFormantsFromNumberOfCoefficients (numberOfPoles, safetyMargin);
 		autoFormant formant = Formant_create (my xmin, my xmax, numberOfFrames, dt, t1, numberOfFormants);
 		Sound_into_Formant_robust_mt (sound.get(), formant.get(), effectiveAnalysisWidth, numberOfPoles, safetyMargin, k_stdev,
-			itermax, tol, location, wantlocation);
+				itermax, tol, location, wantlocation);
 		return formant;
 	} catch (MelderError) {
 		Melder_throw (me, U": no robust Formant created.");
