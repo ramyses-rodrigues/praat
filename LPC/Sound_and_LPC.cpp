@@ -20,7 +20,7 @@
  djmw 20020625 GPL header
 */
 
-#include "SampledIntoSampled.h"
+#include "SampledAndSampled.h"
 #include "SoundFrames.h"
 #include "Sound_and_LPC.h"
 #include "Sound_extensions.h"
@@ -43,13 +43,6 @@ void checkLPCAnalysisParameters_e (double sound_dx, integer sound_nx, double phy
 		U" s. Please increase the analysis window duration or lower the prediction order.");
 }
 
-static void Sound_and_LPC_require_equalDomainsAndSamplingPeriods (constSound me, constLPC thee) {
-	Melder_require (my xmin == thy xmin && thy xmax == my xmax,
-			U"The domains of the Sound and the LPC should be equal.");
-	Melder_require (my dx == thy samplingPeriod,
-			U"The sampling periods of the Sound and the LPC should be equal.");
-}
-
 static void Sound_to_LPC_common_e (constSound inputSound, int predictionOrder, double effectiveAnalysisWidth, double dt,
 	double preEmphasisFrequency, autoSound& outputSound, autoLPC& outputLPC)
 {
@@ -70,36 +63,14 @@ static void Sound_to_LPC_common_e (constSound inputSound, int predictionOrder, d
 	}
 }
 
-Thing_implement (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame, 0);
-
-void structSoundFrameIntoLPCFrame :: initBasicSoundFrameIntoLPCFrame (constSound inputSound, mutableLPC outputLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape)
-{
-	initBasicSoundFrameIntoSampledFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
-	our outputLPC = outputLPC;
-}
-
-void structSoundFrameIntoLPCFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoLPCFrame other = static_cast <constSoundFrameIntoLPCFrame> (other2);
-	SoundFrameIntoLPCFrame_Parent :: copyBasic (other);
-	our outputLPC = other -> outputLPC;
-}
-
-void structSoundFrameIntoLPCFrame :: initHeap () {
-	SoundFrameIntoLPCFrame_Parent :: initHeap ();
-	order = outputLPC -> maxnCoefficients;
-	orderp1 = order + 1;
-	a = zero_VEC (orderp1);
-}
-
 /*********************** Autocorrelation method *************************************************************/
 
-void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC r, VEC rc) {
+void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC r, VEC rc, integer& info) {
 	integer order = lpcFrame -> nCoefficients, orderp1 = order + 1;
 	Melder_assert (a.size >= orderp1);
 	Melder_assert (r.size >= orderp1);
 	Melder_assert (rc.size >= orderp1);
-	integer frameAnalysisInfo = 0;
+	info = 0;
 	/*
 		Compute the autocorrelations
 	*/
@@ -113,7 +84,7 @@ void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 		lpcFrame -> gain = 0.0;
 		lpcFrame -> nCoefficients = 0;
 		lpcFrame -> a.resize (lpcFrame -> nCoefficients); // maintain invariant
-		frameAnalysisInfo = 1;
+		info = 1;
 		return;
 	}
 	a [1] = 1.0;
@@ -134,30 +105,28 @@ void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 		a [i + 1] = rc [i];
 		gain += rc [i] * s;
 		if (gain <= 0.0) {
-			frameAnalysisInfo = 2;
+			info = 2;
 			break;
 		}
 		lpcFrame -> gain = gain;
 	}
 	-- i;
-	lpcFrame -> a.part (1, i)  <<=  a.part (2, i + 1);
 	lpcFrame -> resize (i);
+	lpcFrame -> a.part (1, i)  <<=  a.part (2, i + 1);
 }
 
 void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
-		autoVEC a = raw_VEC (order + 1);
-		autoVEC r = raw_VEC (order + 1);
-		autoVEC rc = raw_VEC (order + 1);
-		autoSoundFrames soundFrames = Thing_new (SoundFrames);
-		soundFrames -> initWithSampled (me, outputLPC, effectiveAnalysisWidth, 
+		integer info;
+		autoVEC a = raw_VEC (order + 1), r = raw_VEC (order + 1), rc = raw_VEC (order + 1);
+		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth,
 			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
 	MelderThread_FOR (iframe) {
 		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
 		VEC soundFrame = soundFrames -> getFrame (iframe);
-		soundFrameIntoLPCFrame_auto (soundFrame, lpcFrame, a.get(), r.get(), rc.get());
+		soundFrameIntoLPCFrame_auto (soundFrame, lpcFrame, a.get(), r.get(), rc.get(), info);
 	} MelderThread_ENDFOR
 }
 
@@ -175,41 +144,28 @@ autoLPC Sound_to_LPC_auto (constSound me, int predictionOrder, double effectiveA
 
 /*********************** Covariance method *************************************************************/
 
-Thing_implement (SoundFrameIntoLPCFrameCovar, SoundFrameIntoLPCFrame, 0);
-
-void structSoundFrameIntoLPCFrameCovar :: initHeap () {
-	SoundFrameIntoLPCFrameCovar_Parent :: initHeap ();
-	order2 = order * (order + 1) / 2;
-	b = raw_VEC (order2);
-	grc = raw_VEC (order);
-	beta = raw_VEC (order);
-	cc = raw_VEC (orderp1);
-}
-
-bool structSoundFrameIntoLPCFrameCovar :: inputFrameIntoOutputFrame (integer currentFrame) {
-	LPC_Frame lpcFrame = & outputLPC -> d_frames [currentFrame];
-	const integer n = soundFrameSize, m = order;
-	frameAnalysisInfo = 0;
+void soundFrameIntoLPCFrame_covar (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC b, VEC grc, VEC beta, VEC cc, integer & info) {
+	const integer n = soundFrame.size, order = lpcFrame -> nCoefficients;
+	const integer order2 = order * (order + 1) / 2;
+	integer frameAnalysisInfo = 0;
 	
 	if (lpcFrame -> nCoefficients == 0) {
-		frameAnalysisInfo = 6;
-		return false;
+		info = 6;
 	}		
 	constVEC x = soundFrame;
 	/*
 		Compute the covariances
 	*/
-	constVECVU xi = x.part (m + 1, n), xim1 = x.part (m, n - 1);
+	constVECVU xi = x.part (order + 1, n), xim1 = x.part (order, n - 1);
 	double gain = NUMinner (xi, xi);
 	cc [1] = NUMinner (xi, xim1);
 	cc [2] = NUMinner (xim1, xim1);
 
 	if (gain == 0.0) {
-		frameAnalysisInfo = 1;
+		info = 1;
 		lpcFrame -> nCoefficients = 0;
 		lpcFrame -> gain = gain;
 		lpcFrame -> a.resize (lpcFrame -> nCoefficients); //maintain invariant
-		return false;
 	}
 
 	b [1] = 1.0;
@@ -220,17 +176,17 @@ bool structSoundFrameIntoLPCFrameCovar :: inputFrameIntoOutputFrame (integer cur
 	a [2] = grc [1] = -cc [1] / cc [2];
 	lpcFrame -> gain = gain += grc [1] * cc [1];
 	integer i = 2;
-	for (i = 2; i <= m; i ++) { // 130
+	for (i = 2; i <= order; i ++) { // 130
 		for (integer j = 1; j <= i; j ++)
-			cc [i - j + 2] = cc [i - j + 1] + x [m - i + 1] * x [m - i + j] - x [n - i + 1] * x [n - i + j];
+			cc [i - j + 2] = cc [i - j + 1] + x [order - i + 1] * x [order - i + j] - x [n - i + 1] * x [n - i + j];
 		
 		// cc[1]=0.0; for (integer j = m + 1; j <= n; j ++) cc [1] += x [j - i] * x [j];
-		cc [1] = NUMinner (x.part (m + 1 - i, n - i), x.part (m + 1, n)); //30
+		cc [1] = NUMinner (x.part (order + 1 - i, n - i), x.part (order + 1, n)); //30
 			
 		b [i * (i + 1) / 2] = 1.0;
 		for (integer j = 1; j <= i - 1; j ++) { // 70
 			if (beta [j] < 0.0) {
-				frameAnalysisInfo = 2;
+				info = 2;
 				goto end;
 			} else if (beta [j] == 0.0)
 				continue;
@@ -247,7 +203,7 @@ bool structSoundFrameIntoLPCFrameCovar :: inputFrameIntoOutputFrame (integer cur
 		for (integer j = 1; j <= i; j ++)
 			beta [i] += cc [j + 1] * b [i * (i - 1) / 2 + j]; // 80
 		if (beta [i] <= 0.0) {
-			frameAnalysisInfo = 3;
+			info = 3;
 			break;
 		}
 		double s = 0.0;
@@ -261,34 +217,37 @@ bool structSoundFrameIntoLPCFrameCovar :: inputFrameIntoOutputFrame (integer cur
 		s = grc [i] * grc [i] * beta [i];
 		gain -= s;
 		if (gain <= 0.0) {
-			frameAnalysisInfo = 4;
+			info = 4;
 			break;
 		}
 		lpcFrame -> gain = gain;
 	}
 end:
 	const integer numberOfCoefficients = i - 1;
-	lpcFrame -> a.resize (numberOfCoefficients);
+	lpcFrame -> resize (numberOfCoefficients);
 	lpcFrame -> a.part (1, numberOfCoefficients)  <<=  a.part (2, i);
-	lpcFrame -> nCoefficients = numberOfCoefficients; // maintain invariant
-	return true;
+	
 }
 
-autoSoundFrameIntoLPCFrameCovar SoundFrameIntoLPCFrameCovar_create (constSound input, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	try {
-		autoSoundFrameIntoLPCFrameCovar me = Thing_new (SoundFrameIntoLPCFrameCovar);
-		my initBasicSoundFrameIntoLPCFrame (input, outputLPC, effectiveAnalysisWidth, windowShape);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameCovar");
-	}
-}
-
-void Sound_into_LPC_covar (constSound me, mutableLPC thee, double effectiveAnalysisWidth) {
-	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, thee);
-	autoSoundFrameIntoLPCFrameCovar frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameCovar);
-	frameIntoFrame -> initBasicSoundFrameIntoLPCFrame (me, thee, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+void Sound_into_LPC_covar (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
+	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
+	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
+		autoSoundFrames soundFrames = Thing_new (SoundFrames);
+		soundFrames -> initWithSampled (me, outputLPC, effectiveAnalysisWidth, 
+			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+		integer info;
+		autoVEC a = raw_VEC (order + 1);
+		autoVEC b = raw_VEC (order * (order + 1) / 2);
+		autoVEC grc = raw_VEC (order);
+		autoVEC beta = raw_VEC (order);
+		autoVEC cc = raw_VEC (order + 1);
+	MelderThread_FOR (iframe) {
+		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
+		VEC soundFrame = soundFrames -> getFrame (iframe);
+		soundFrameIntoLPCFrame_covar (soundFrame, lpcFrame, a.get(), b.get(), grc.get(),
+			beta.get(), cc.get(), info);
+	} MelderThread_ENDFOR
 }
 
 autoLPC Sound_to_LPC_covar (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency) {
@@ -305,21 +264,15 @@ autoLPC Sound_to_LPC_covar (constSound me, int predictionOrder, double effective
 
 /*********************** Burg method *************************************************************/
 
-Thing_implement (SoundFrameIntoLPCFrameBurg, SoundFrameIntoLPCFrame, 0);
-
-void structSoundFrameIntoLPCFrameBurg :: initHeap () {
-	SoundFrameIntoLPCFrameBurg_Parent :: initHeap ();
-	b1 = raw_VEC (soundFrameSize);
-	b2 = raw_VEC (soundFrameSize);
-	aa = raw_VEC (order);
-}
-
-double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x, integer& frameAnalysisInfo) {
-	const integer n = x.size, m = a.size;
+void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC b1, VEC b2, 
+	VEC aa, integer &info)
+{
+	const integer n = soundFrame.size, order = lpcFrame ->nCoefficients;
+	VEC x = soundFrame;
 	a   <<=  0.0; // always safe
 	if (n <= 2) {
 		a [1] = -1.0;
-		return ( n == 2 ? 0.5 * (x [1] * x [1] + x [2] * x [2]) : x [1] * x [1] );
+		lpcFrame -> gain = ( n == 2 ? 0.5 * (x [1] * x [1] + x [2] * x [2]) : x [1] * x [1] );
 	}
 
 	// (3)
@@ -327,8 +280,10 @@ double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x
 	double p = NUMinner (x, x);
 
 	if (p == 0.0) {
-		frameAnalysisInfo = 1;
-		return 0.0;
+		info = 1;
+		lpcFrame -> gain = 0.0;
+		lpcFrame -> resize (0_integer);
+		return;
 	}
 	// (9)
 
@@ -338,7 +293,7 @@ double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x
 	b2 [n - 1] = x [n];
 
 	longdouble xms = p / n;
-	for (integer i = 1; i <= m; i ++) {
+	for (integer i = 1; i <= order; i ++) {
 		// (7)
 
 		/*
@@ -352,9 +307,11 @@ double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x
 		const double num = NUMinner (b1part, b2part);
 		const double denum = NUMinner (b1part, b1part) + NUMinner (b2part, b2part);
 		
-		if (denum <= 0.0) {
-			frameAnalysisInfo = 1;
-			return 0.0;	// warning ill-conditioned
+		if (denum <= 0.0) { // part of sound has zero amplitude
+			info = 1;
+			lpcFrame -> gain = 0.0;
+			lpcFrame -> resize (0_integer);
+			return;	// warning ill-conditioned
 		}
 		a [i] = 2.0 * num / denum;
 
@@ -367,7 +324,7 @@ double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x
 		for (integer j = 1; j <= i - 1; j ++)
 			a [j] = aa [j] - a [i] * aa [i - j];
 
-		if (i < m) {
+		if (i < order) {
 
 			// (8) Watch out: i -> i+1
 
@@ -379,39 +336,26 @@ double structSoundFrameIntoLPCFrameBurg :: burg (VEC const& a, constVEC const& x
 			}
 		}
 	}
-	return double (xms);
-}
-
-bool structSoundFrameIntoLPCFrameBurg :: inputFrameIntoOutputFrame (integer currentFrame) {
-	LPC_Frame lpcFrame = & outputLPC -> d_frames [currentFrame];
-	lpcFrame -> gain = burg (lpcFrame -> a.get(), soundFrame, frameAnalysisInfo);
-	if (lpcFrame -> gain <= 0.0) {
-		lpcFrame -> nCoefficients = 0;
-		lpcFrame -> a.resize (lpcFrame -> nCoefficients); // maintain invariant
-		return false;
-	} else {
-		lpcFrame -> gain *= soundFrame.size;
-		for (integer i = 1; i <= lpcFrame -> nCoefficients; i ++)
-			lpcFrame -> a [i] = - lpcFrame -> a [i];
-		return true;
-	}
-}
-
-autoSoundFrameIntoLPCFrameBurg SoundFrameIntoLPCFrameBurg_create (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	try {
-		autoSoundFrameIntoLPCFrameBurg me = Thing_new (SoundFrameIntoLPCFrameBurg);
-		my initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameBurg");
-	}
+	lpcFrame -> gain *= n;
+	for (integer i = 1; i <= lpcFrame -> nCoefficients; i ++)
+		lpcFrame -> a [i] = - lpcFrame -> a [i];
 }
 
 void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
-	autoSoundFrameIntoLPCFrameBurg frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameBurg);
-	frameIntoFrame -> initBasicSoundFrameIntoLPCFrame (me, outputLPC, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
+		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth, 
+			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+		integer info;
+		autoVEC a  = raw_VEC (order + 1), aa = raw_VEC (order);
+		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
+		autoVEC b2 = raw_VEC (soundFrames -> soundFrameSize);
+	MelderThread_FOR (iframe) {
+		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
+		VEC soundFrame = soundFrames -> getFrame (iframe);
+		soundFrameIntoLPCFrame_burg (soundFrame, lpcFrame, a.get(), b1.get(), b2.get(), aa.get(), info);
+	} MelderThread_ENDFOR
 }
 
 autoLPC Sound_to_LPC_burg (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency) {
@@ -426,50 +370,24 @@ autoLPC Sound_to_LPC_burg (constSound me, int predictionOrder, double effectiveA
 	}
 }
 
-
 /*********************** Marple method *************************************************************/
 
-Thing_implement (SoundFrameIntoLPCFrameMarple, SoundFrameIntoLPCFrame, 0);
-
-void structSoundFrameIntoLPCFrameMarple :: initBasicSoundFrameIntoLPCFrameMarple (constSound inputSound, mutableLPC outputLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape, double tol1, double tol2)
+void soundFrameIntoLPCFrame_marple (VEC soundFrame, LPC_Frame lpcFrame, VEC c, VEC d, VEC r,
+	double tol1, double tol2, integer& info)
 {
-	SoundFrameIntoLPCFrameMarple_Parent :: initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
-	our tol1 = tol1;
-	our tol2 = tol2;
-}
-
-void structSoundFrameIntoLPCFrameMarple :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoLPCFrameMarple other = static_cast <constSoundFrameIntoLPCFrameMarple> (other2);
-	SoundFrameIntoLPCFrameMarple_Parent :: copyBasic (other);
-	our tol1 = other -> tol1;
-	our tol2 = other -> tol2;
-}
-
-void structSoundFrameIntoLPCFrameMarple :: initHeap () {
-	SoundFrameIntoLPCFrameMarple_Parent :: initHeap ();
-	c = raw_VEC (orderp1);
-	d = raw_VEC (orderp1);
-	r = raw_VEC (orderp1);
-}
-
-bool structSoundFrameIntoLPCFrameMarple :: inputFrameIntoOutputFrame (integer iframe) {
-	const integer mmax = order, n = soundFrame.size;
-	LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
+	const integer mmax = lpcFrame -> nCoefficients, n = soundFrame.size;
 	VEC x = soundFrame;
 	
-	frameAnalysisInfo = 0;
-	VEC c = a.get(); // yes 'a'
+	info = 0;
 	VEC a = lpcFrame -> a.get();
 
 	double gain = 0.0, e0 = 2.0 * NUMsum2 (x);
 	integer m = 1;
 	if (e0 == 0.0) {
-		lpcFrame -> nCoefficients = 0;
-		lpcFrame -> a.resize (lpcFrame -> nCoefficients); // maintain invariant
+		info = 1;
+		lpcFrame -> resize (0_integer);
 		lpcFrame -> gain = gain;
-		frameAnalysisInfo = 1;
-		return false;
+		return;
 	}
 	double q1 = 1.0 / e0;
 	double q2 = q1 * x [1], q = q1 * x [1] * x [1], w = q1 * x [n] * x [n];
@@ -523,7 +441,7 @@ bool structSoundFrameIntoLPCFrameMarple :: inputFrameIntoOutputFrame (integer if
 		q6 = 1.0 - w;
 		den = q5 * q6 - h * h;
 		if (den <= 0.0) {
-			frameAnalysisInfo = 2;
+			info = 2;
 			goto end; // 2: ill-conditioning
 		}
 		q4 = 1.0 / den;
@@ -575,40 +493,45 @@ bool structSoundFrameIntoLPCFrameMarple :: inputFrameIntoOutputFrame (integer if
 		y1 = q2 * q2;
 		gain *= 1.0 - y1;
 		if (y1 >= 1.0) {
-			frameAnalysisInfo = 3;
+			info = 3;
 			break; // |a [m]| > 1
 		}
 		if (gain < e0 * tol1) {
-			frameAnalysisInfo = 4;
+			info = 4;
 			break;
 		}
 		if (eOld - gain < eOld * tol2) {
-			frameAnalysisInfo = 5;
+			info = 5;
 			break;
 		}
 	}
-end:
 	lpcFrame -> gain = gain * 0.5;   // because e0 is twice the energy
-	lpcFrame -> a.resize (m);
-	lpcFrame -> nCoefficients = m;   // maintain invariant
-	return frameAnalysisInfo == 0 || frameAnalysisInfo == 4 || frameAnalysisInfo == 5;
+	lpcFrame -> resize (m);
+end:
+	if (!(info == 0 || info == 4 || info == 5)) {
+		lpcFrame -> resize (0_integer);
+		lpcFrame -> gain = gain;
+	}	
 }
 
-autoSoundFrameIntoLPCFrameMarple SoundFrameIntoLPCFrameMarple_create (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape, double tol1, double tol2) {
-	try {
-		autoSoundFrameIntoLPCFrameMarple me = Thing_new (SoundFrameIntoLPCFrameMarple);
-		my initBasicSoundFrameIntoLPCFrameMarple (inputSound, outputLPC, effectiveAnalysisWidth, windowShape, tol1, tol2);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"Cannot create SoundFrameIntoLPCFrameMarple");
-	}
-}
+void Sound_into_LPC_marple (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth, 
+	double tol1, double tol2)
+{
+	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
 
-void Sound_into_LPC_marple (constSound me, mutableLPC thee, double effectiveAnalysisWidth, double tol1, double tol2) {
-	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, thee);
-	autoSoundFrameIntoLPCFrameMarple frameIntoFrame = Thing_new (SoundFrameIntoLPCFrameMarple);
-	frameIntoFrame -> initBasicSoundFrameIntoLPCFrameMarple (me, thee, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, tol1, tol2);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
+		integer info;
+		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth,
+			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+		autoVEC c = raw_VEC (order + 1);
+		autoVEC d = raw_VEC (order + 1);
+		autoVEC r = raw_VEC (order + 1);
+	MelderThread_FOR (iframe) {
+		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
+		VEC soundFrame = soundFrames -> getFrame (iframe);
+		soundFrameIntoLPCFrame_marple (soundFrame, lpcFrame, c.get(), d.get(), r.get(), tol1, tol2, info);
+	} MelderThread_ENDFOR
 }
 
 autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, 
@@ -627,24 +550,6 @@ autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiv
 
 /*********************** PLP (Hermansky) method *************************************************************/
 
-Thing_implement (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame, 0);
-	
-void structSoundFrameIntoLPCFramePLP :: initBasicSoundFrameIntoLPCFramePLP (constSound inputSound, mutableLPC outputLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape)
-{
-	SoundFrameIntoLPCFramePLP_Parent :: initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth,	 windowShape);
-}
-
-void structSoundFrameIntoLPCFramePLP :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoLPCFramePLP other = reinterpret_cast<constSoundFrameIntoLPCFramePLP> (other2);
-	SoundFrameIntoLPCFramePLP_Parent :: copyBasic (other);
-}
-
-void structSoundFrameIntoLPCFramePLP :: initHeap () {
-	SoundFrameIntoLPCFramePLP_Parent :: initHeap ();
-	const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
-	equalLoudnessPreemphasis = raw_VEC (numberOfFrequencies);
-}
 
 bool structSoundFrameIntoLPCFramePLP :: inputFrameIntoOutputFrame (integer iframe) {
 	
@@ -679,39 +584,27 @@ void structSoundFrameIntoLPCFramePLP :: getFilterCharacteristics () {
 
 }*/
 
-/*********************** Robust method (LPC & Sound) *************************************************************/
+/*********************** Robust method (LPC & Sound) **********************************************/
 
-Thing_implement (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame, 0);
+Thing_implement (RobustLPCWorkspace, Thing, 0);
 
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (
-	constLPC inputLPC, constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape,
-	double k_stdev, integer itermax, double tol, bool wantlocation)
+void structRobustLPCWorkspace :: init (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC,
+	double effectiveAnalysisWidth, kSound_windowShape windowShape,
+	double k_stdev, integer itermax, double tol, bool wantLocation)
 {
-	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: initBasicSoundFrameIntoLPCFrame (inputSound, outputLPC, effectiveAnalysisWidth, windowShape);
+	const double physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);
+	const integer soundFrameSize = getSoundFrameSize (physicalAnalysisWidth, inputSound -> dx);
+	our order = inputLPC -> maxnCoefficients;
 	our inputLPC = inputLPC;
+	our outputLPC = outputLPC;
 	our k_stdev = k_stdev;
 	our itermax = itermax;
 	our tol1 = tol;
-	our wantlocation = wantlocation;
+	our wantLocation = wantLocation;
+	our wantScale = true;
 	our location = 0.0;
-}
-
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constLPCFrameAndSoundFrameIntoLPCFrameRobust other = reinterpret_cast<constLPCFrameAndSoundFrameIntoLPCFrameRobust> (other2);
-	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: copyBasic (other);
-	our inputLPC = other -> inputLPC;
-	our k_stdev = other -> k_stdev;
-	our itermax = other -> itermax;
-	our tol1 = other -> tol1;
-	our tolSVD = other -> tolSVD;
-	our wantlocation = other -> wantlocation;
-	our location = other -> location;
-}
-
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initHeap () {
-	LPCFrameAndSoundFrameIntoLPCFrameRobust_Parent :: initHeap ();
-	error = raw_VEC (soundFrameSize);
-	sampleWeights = raw_VEC (soundFrameSize);
+	our error = raw_VEC (soundFrameSize);
+	our sampleWeights = raw_VEC (soundFrameSize);
 	coefficients = raw_VEC (order);
 	covariancesw = raw_VEC (order);
 	covarmatrixw = raw_MAT (order, order);
@@ -724,7 +617,7 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: initHeap () {
 	huberwork = raw_VEC (soundFrameSize);
 }
 
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: resize () {
+void structRobustLPCWorkspace :: resize () {
 	if (currentPredictionOrder == svd -> numberOfColumns)
 		return;
 	Melder_assert (currentPredictionOrder <= order);
@@ -734,34 +627,25 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: resize () {
 	SVD_resizeWithinOldBounds (svd.get(), order, order, currentPredictionOrder, currentPredictionOrder);
 }
 
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: setSampleWeights () {
-	const double kstdev = k_stdev * scale;
+void structRobustLPCWorkspace :: setSampleWeights () {
+	const double kstdev2 = k_stdev * scale;
 	for (integer isamp = 1 ; isamp <= error.size; isamp ++) {
 		const double absDiff = fabs (error [isamp] - location);
-		sampleWeights [isamp] = ( absDiff <= kstdev ? 1.0 : kstdev / absDiff );
+		sampleWeights [isamp] = ( absDiff <= kstdev2 ? 1.0 : kstdev2 / absDiff );
 	}
 }
 
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: setCovariances () {
+void structRobustLPCWorkspace :: setCovariances () {
 	MATVU covar = MATVU (covarmatrixw.part (1, currentPredictionOrder, 1, currentPredictionOrder));
 	for (integer i = 1; i <= currentPredictionOrder; i ++) {
 		for (integer j = i; j <= currentPredictionOrder; j ++) {
-			longdouble cv1 = 0.0;
 			/*
-				The following inner loop will need the most CPU time of all the robust calculations
-				
-					for (integer k = my currentPredictionOrder + 1; k <= s.size; k ++)
-						cv1 += s [k - j] * s [k - i] *  my sampleWeights [k];
-				
-				The following code speeds it up from 23.24% to 18.32% of the total CPU time used
-				(sound with 44100 Hz sampling frequency, 0.025 s window length)
+				The following inner loop will take the most CPU time of all the robust calculations
 			*/
-			const double *skmj = & soundFrame [currentPredictionOrder - j];
-			const double *skmi = & soundFrame [currentPredictionOrder - i];
-			const double *sw = & sampleWeights [currentPredictionOrder];
-			for (integer k = 1; k <= soundFrame.size - currentPredictionOrder; k ++)
-				cv1 += *++skmj * *++skmi * *++sw;
-			covar [i] [j] = covar [j] [i] = (double) cv1;
+			longdouble cv1 = 0.0;
+			for (integer k = currentPredictionOrder + 1; k <= soundFrame.size; k ++)
+				cv1 += soundFrame [k - j] * soundFrame [k - i] * sampleWeights [k];
+			covar [i] [j] = cv1;
 		}
 		longdouble cv2 = 0.0;
 		for (integer k = currentPredictionOrder + 1; k <= soundFrame.size; k ++)
@@ -770,7 +654,7 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: setCovariances () {
 	}
 }
 
-void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: solvelpc () {
+void structRobustLPCWorkspace :: solvelpc () {
 	svd -> u.all()  <<=  covarmatrixw.all();
 	svdwork2.resize (currentPredictionOrder);
 	SVD_compute (svd.get(), svdwork1.get());
@@ -778,28 +662,28 @@ void structLPCFrameAndSoundFrameIntoLPCFrameRobust :: solvelpc () {
 	coefficients.resize (currentPredictionOrder); // maintain invariant
 }
 
-bool structLPCFrameAndSoundFrameIntoLPCFrameRobust :: inputFrameIntoOutputFrame (integer currentFrame) {
-	LPC_Frame inputLPCFrame = & inputLPC -> d_frames [currentFrame];
-	LPC_Frame outputLPCFrame = & outputLPC -> d_frames [currentFrame];
+void structRobustLPCWorkspace :: inputFrameIntoOutputFrame (LPC_Frame inputLPCFrame, LPC_Frame outputLPCFrame, VEC soundFrame, integer& info) {
+	our soundFrame = soundFrame;
 	currentPredictionOrder = inputLPCFrame -> nCoefficients;
-	for (integer i = 1; i <= inputLPCFrame -> nCoefficients; i ++)
-		outputLPCFrame -> a [i] = inputLPCFrame -> a [i];
-	if (currentPredictionOrder == 0) // is empty frame ?
-		return true;
+	outputLPCFrame -> resize (currentPredictionOrder);
 	outputLPCFrame -> gain = inputLPCFrame -> gain;
+	info = 0;
+	if (currentPredictionOrder == 0) // is empty frame ?
+		return;
+	for (integer i = 1; i <= currentPredictionOrder; i ++)
+		outputLPCFrame -> a [i] = inputLPCFrame -> a [i];
 	
-	VEC inout_a = outputLPCFrame -> a.part (1, currentPredictionOrder);
+	VEC inout_a = outputLPCFrame -> a.get();
 	iter = 0;
 	scale = 1e308;
 	bool farFromScale = true;
 	resize ();
 	filterMemory.resize (currentPredictionOrder);
-	frameAnalysisInfo = 0;
 	do {
 		const double previousScale = scale;
 		error.all()  <<=  soundFrame;
 		VECfilterInverse_inplace (error.get(), inout_a, filterMemory.get());
-		NUMstatistics_huber (error.get(), & location, wantlocation, & scale, wantscale, k_stdev, tol1, huber_iterations, huberwork.get());
+		NUMstatistics_huber (error.get(), & location, wantLocation, & scale, wantScale, k_stdev, tol1, huber_iterations, huberwork.get());
 		setSampleWeights ();
 
 		setCovariances ();
@@ -812,24 +696,54 @@ bool structLPCFrameAndSoundFrameIntoLPCFrameRobust :: inputFrameIntoOutputFrame 
 			farFromScale = ( fabs (scale - previousScale) > std::max (tol1 * fabs (scale), NUMeps) );
 		} catch (MelderError) {
 			Melder_clearError (); // No change could be made
-			frameAnalysisInfo = 2; // solvelpc in error
+			info = 2; // solvelpc in error
 			inputLPCFrame -> copy (outputLPCFrame);
-			return false;
+			return;
 		}
 	} while (++ iter < itermax && farFromScale);
-	frameAnalysisInfo = 3; // maximum number of iterations
-	return true;
+	info = 3; // maximum number of iterations
 }
 
-void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth,
+autoRobustLPCWorkspace RobustLPCWorkspace_create (constLPC inputLPC, constSound inputSound,
+	mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape,
 	double k_stdev, integer itermax, double tol, bool wantlocation)
 {
-	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (inputSound, inputLPC);
-	Sampled_requireEqualSampling (inputLPC, outputLPC);
-	autoLPCFrameAndSoundFrameIntoLPCFrameRobust frameIntoFrame = Thing_new (LPCFrameAndSoundFrameIntoLPCFrameRobust);
-	frameIntoFrame -> initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (inputLPC, inputSound, outputLPC,
-		effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
-	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
+	try {
+		autoRobustLPCWorkspace me = Thing_new (RobustLPCWorkspace);
+		my init (inputLPC, inputSound, outputLPC, effectiveAnalysisWidth, windowShape, 
+			k_stdev, itermax, tol, wantlocation);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create RobustLPCWorkspace.");
+	}
+}
+
+void soundFrameAndLPCFrameIntoLPCFrame (VEC soundFrame, LPC_Frame inputLPCFrame, LPC_Frame outputLPCFrame,
+	RobustLPCWorkspace ws, integer& info)
+{
+	const integer currentPredictionOrder = inputLPCFrame -> nCoefficients;
+	ws -> currentPredictionOrder = currentPredictionOrder;
+	ws -> inputFrameIntoOutputFrame (inputLPCFrame, outputLPCFrame, soundFrame, info);
+}
+
+void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC,
+	double effectiveAnalysisWidth, double k_stdev, integer itermax, double tol, bool wantlocation)
+{
+	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (inputSound, outputLPC);
+	SampledAndSampled_requireEqualDomainsAndSampling (inputLPC, outputLPC);
+	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
+		autoSoundFrames soundFrames = SoundFrames_create (inputSound, outputLPC, effectiveAnalysisWidth,
+			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+		integer info;
+		autoRobustLPCWorkspace ws = RobustLPCWorkspace_create (inputLPC, inputSound, outputLPC,
+			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
+	MelderThread_FOR (iframe) {
+		const LPC_Frame outputLPCFrame = & outputLPC -> d_frames [iframe];
+		const LPC_Frame inputLPCFrame  = & inputLPC  -> d_frames [iframe];
+		VEC soundFrame = soundFrames -> getFrame (iframe);
+		soundFrameAndLPCFrameIntoLPCFrame (soundFrame, inputLPCFrame, outputLPCFrame, ws.get(), info);
+	} MelderThread_ENDFOR
 }
 
 autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, double effectiveAnalysisWidth,
@@ -849,7 +763,7 @@ autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, d
 	}
 }
 
-/*********************** Robust method (Sound) *************************************************************/
+/*********************** Robust method (Sound) ******************************************************/
 
 
 void Sound_into_LPC_robust (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, double k_stdev, integer itermax, double tol, bool wantlocation)
@@ -868,7 +782,7 @@ autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiv
 		autoSound emphasizedSound;
 		autoLPC outputLPC;
 		Sound_to_LPC_common_e (me, predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency, emphasizedSound, outputLPC);
-		Sound_into_LPC_robust (emphasizedSound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev, 
+		Sound_into_LPC_robust (emphasizedSound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev,
 			itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
