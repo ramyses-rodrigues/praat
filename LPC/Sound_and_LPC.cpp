@@ -122,7 +122,7 @@ void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveA
 		integer info;
 		autoVEC a = raw_VEC (order + 1), r = raw_VEC (order + 1), rc = raw_VEC (order + 1);
 		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 	MelderThread_FOR (iframe) {
 		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
 		VEC soundFrame = soundFrames -> getFrame (iframe);
@@ -235,7 +235,7 @@ void Sound_into_LPC_covar (constSound me, mutableLPC outputLPC, double effective
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = Thing_new (SoundFrames);
 		soundFrames -> initWithSampled (me, outputLPC, effectiveAnalysisWidth, 
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 		integer info;
 		autoVEC a = raw_VEC (order + 1);
 		autoVEC b = raw_VEC (order * (order + 1) / 2);
@@ -346,7 +346,7 @@ void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveA
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth, 
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 		integer info;
 		autoVEC a  = raw_VEC (order + 1), aa = raw_VEC (order);
 		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
@@ -523,7 +523,7 @@ void Sound_into_LPC_marple (constSound me, mutableLPC outputLPC, double effectiv
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		integer info;
 		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 		autoVEC c = raw_VEC (order + 1);
 		autoVEC d = raw_VEC (order + 1);
 		autoVEC r = raw_VEC (order + 1);
@@ -734,7 +734,7 @@ void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mu
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = SoundFrames_create (inputSound, outputLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 		integer info;
 		autoRobustLPCWorkspace ws = RobustLPCWorkspace_create (inputLPC, inputSound, outputLPC,
 			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
