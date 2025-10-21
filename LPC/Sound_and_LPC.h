@@ -85,7 +85,7 @@ void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveA
 
 autoLPC Sound_to_LPC_burg (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency);
 
-void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC b1, VEC b2, 
+void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC b1, VEC b2, 
 	VEC aa, integer &info);
 
 /*********************** Marple method *****************************************************/

@@ -82,8 +82,7 @@ void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 			The sound frame contains only zero's
 		*/
 		lpcFrame -> gain = 0.0;
-		lpcFrame -> nCoefficients = 0;
-		lpcFrame -> a.resize (lpcFrame -> nCoefficients); // maintain invariant
+		lpcFrame -> resize (0_integer); // maintain invariant
 		info = 1;
 		return;
 	}
@@ -110,9 +109,9 @@ void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 		}
 		lpcFrame -> gain = gain;
 	}
-	-- i;
-	lpcFrame -> resize (i);
-	lpcFrame -> a.part (1, i)  <<=  a.part (2, i + 1);
+	const integer numberOfCoefficients = i - 1;
+	lpcFrame -> resize (numberOfCoefficients);
+	lpcFrame -> a.part (1, numberOfCoefficients)  <<=  a.part (2, numberOfCoefficients + 1);
 }
 
 void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
@@ -151,6 +150,7 @@ void soundFrameIntoLPCFrame_covar (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VE
 	
 	if (lpcFrame -> nCoefficients == 0) {
 		info = 6;
+		return;
 	}		
 	constVEC x = soundFrame;
 	/*
@@ -163,14 +163,12 @@ void soundFrameIntoLPCFrame_covar (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VE
 
 	if (gain == 0.0) {
 		info = 1;
-		lpcFrame -> nCoefficients = 0;
 		lpcFrame -> gain = gain;
-		lpcFrame -> a.resize (lpcFrame -> nCoefficients); //maintain invariant
+		lpcFrame -> resize (0_integer); //maintain invariant
+		return;
 	}
-
+	b  <<=  0.0;
 	b [1] = 1.0;
-	for (integer i = 2; i <= b.size; i ++)
-		b [i] = 0.0;
 	beta [1] = cc [2];
 	a [1] = 1.0;
 	a [2] = grc [1] = -cc [1] / cc [2];
@@ -225,7 +223,7 @@ void soundFrameIntoLPCFrame_covar (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VE
 end:
 	const integer numberOfCoefficients = i - 1;
 	lpcFrame -> resize (numberOfCoefficients);
-	lpcFrame -> a.part (1, numberOfCoefficients)  <<=  a.part (2, i);
+	lpcFrame -> a.part (1, numberOfCoefficients)  <<=  a.part (2, numberOfCoefficients + 1);
 	
 }
 
@@ -264,22 +262,24 @@ autoLPC Sound_to_LPC_covar (constSound me, int predictionOrder, double effective
 
 /*********************** Burg method *************************************************************/
 
-void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC b1, VEC b2, 
+void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC b1, VEC b2,
 	VEC aa, integer &info)
 {
 	const integer n = soundFrame.size, order = lpcFrame ->nCoefficients;
 	VEC x = soundFrame;
-	a   <<=  0.0; // always safe
+	VEC a = lpcFrame -> a.get(); // always safe
+	aa  <<=  0.0;
 	if (n <= 2) {
 		a [1] = -1.0;
 		lpcFrame -> gain = ( n == 2 ? 0.5 * (x [1] * x [1] + x [2] * x [2]) : x [1] * x [1] );
+		lpcFrame -> resize (1_integer);
 	}
 
 	// (3)
 
-	double p = NUMinner (x, x);
+	double gain = NUMinner (x, x);
 
-	if (p == 0.0) {
+	if (gain == 0.0) {
 		info = 1;
 		lpcFrame -> gain = 0.0;
 		lpcFrame -> resize (0_integer);
@@ -292,7 +292,6 @@ void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 		b1 [j] = b2 [j - 1] = x [j];
 	b2 [n - 1] = x [n];
 
-	longdouble xms = p / n;
 	for (integer i = 1; i <= order; i ++) {
 		// (7)
 
@@ -317,7 +316,7 @@ void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 
 		// (10)
 
-		xms *= 1.0 - a [i] * a [i];
+		gain *= 1.0 - a [i] * a [i];
 
 		// (5)
 
@@ -336,9 +335,9 @@ void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 			}
 		}
 	}
-	lpcFrame -> gain *= n;
+	lpcFrame -> gain = gain; // djmw 20251021 no need to multiply by n!
 	for (integer i = 1; i <= lpcFrame -> nCoefficients; i ++)
-		lpcFrame -> a [i] = - lpcFrame -> a [i];
+		a [i] = - a [i];
 }
 
 void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
@@ -348,13 +347,13 @@ void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveA
 		autoSoundFrames soundFrames = SoundFrames_create (me, outputLPC, effectiveAnalysisWidth, 
 			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 		integer info;
-		autoVEC a  = raw_VEC (order + 1), aa = raw_VEC (order);
+		autoVEC aa = raw_VEC (order);
 		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
 		autoVEC b2 = raw_VEC (soundFrames -> soundFrameSize);
 	MelderThread_FOR (iframe) {
 		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
 		VEC soundFrame = soundFrames -> getFrame (iframe);
-		soundFrameIntoLPCFrame_burg (soundFrame, lpcFrame, a.get(), b1.get(), b2.get(), aa.get(), info);
+		soundFrameIntoLPCFrame_burg (soundFrame, lpcFrame, b1.get(), b2.get(), aa.get(), info);
 	} MelderThread_ENDFOR
 }
 
@@ -381,12 +380,12 @@ void soundFrameIntoLPCFrame_marple (VEC soundFrame, LPC_Frame lpcFrame, VEC c, V
 	info = 0;
 	VEC a = lpcFrame -> a.get();
 
-	double gain = 0.0, e0 = 2.0 * NUMsum2 (x);
+	double e0 = 2.0 * NUMsum2 (x);
+	lpcFrame -> gain = 0.0;
 	integer m = 1;
 	if (e0 == 0.0) {
 		info = 1;
 		lpcFrame -> resize (0_integer);
-		lpcFrame -> gain = gain;
 		return;
 	}
 	double q1 = 1.0 / e0;
@@ -395,7 +394,7 @@ void soundFrameIntoLPCFrame_marple (VEC soundFrame, LPC_Frame lpcFrame, VEC c, V
 	double den = 1.0 - q - w;
 	double q4 = 1.0 / den, q5 = 1.0 - q, q6 = 1.0 - w;
 	double h = q2 * x [n], s = h;
-	gain = e0 * den;
+	double gain = e0 * den;
 	q1 = 1.0 / gain;
 	c [1] = q1 * x [1];
 	d [1] = q1 * x [n];
@@ -505,13 +504,11 @@ void soundFrameIntoLPCFrame_marple (VEC soundFrame, LPC_Frame lpcFrame, VEC c, V
 			break;
 		}
 	}
-	lpcFrame -> gain = gain * 0.5;   // because e0 is twice the energy
 	lpcFrame -> resize (m);
 end:
-	if (!(info == 0 || info == 4 || info == 5)) {
-		lpcFrame -> resize (0_integer);
-		lpcFrame -> gain = gain;
-	}	
+	lpcFrame -> gain = gain * 0.5;   // because e0 is twice the energy
+	if (!(info == 0 || info == 4 || info == 5))
+		lpcFrame -> resize (m - 1);
 }
 
 void Sound_into_LPC_marple (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth, 

@@ -114,7 +114,7 @@ void Sound_into_Formant_burg (constSound me, mutableLPC intermediateLPC, mutable
 		autoSoundFrames soundFrames = SoundFrames_create (me, intermediateLPC, effectiveAnalysisWidth,
 			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
 		integer info;
-		autoVEC a  = raw_VEC (order + 1), aa = raw_VEC (order);
+		autoVEC aa = raw_VEC (order);
 		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
 		autoVEC b2 = raw_VEC (soundFrames -> soundFrameSize);
 		autoVEC polynomialIntoRootsWorkspace = raw_VEC (order * order + order + order + 11 * order);		
@@ -123,7 +123,7 @@ void Sound_into_Formant_burg (constSound me, mutableLPC intermediateLPC, mutable
 	MelderThread_FOR (iframe) {
 		const LPC_Frame lpcFrame = & intermediateLPC -> d_frames [iframe];
 		VEC soundFrame = soundFrames -> getFrame (iframe);
-		soundFrameIntoLPCFrame_burg (soundFrame, lpcFrame, a.get(), b1.get(), b2.get(), aa.get(), info);
+		soundFrameIntoLPCFrame_burg (soundFrame, lpcFrame, b1.get(), b2.get(), aa.get(), info);
 		Formant_Frame formantFrame = & outputFormant -> frames [iframe];
 		LPC_Frame_into_Formant_Frame (lpcFrame, formantFrame, samplingPeriod,
 			safetyMargin, p.get(), roots.get(), polynomialIntoRootsWorkspace.get());
