@@ -133,7 +133,7 @@ Thing_define (RobustLPCWorkspace, Thing) {
 	double k_stdev;
 	integer iter;
 	integer itermax;
-	integer huber_iterations; // = 5;
+	integer huber_iterations = 5; // = 5;
 	bool wantLocation = true;	//
 	bool wantScale = true;	//
 	double location = 0.0;	// not a parameter in initBasic!

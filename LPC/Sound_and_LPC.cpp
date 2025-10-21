@@ -602,6 +602,7 @@ void structRobustLPCWorkspace :: init (constLPC inputLPC, constSound inputSound,
 	our wantLocation = wantLocation;
 	our wantScale = true;
 	our location = 0.0;
+	our huber_iterations = 5;
 	our error = raw_VEC (soundFrameSize);
 	our sampleWeights = raw_VEC (soundFrameSize);
 	coefficients = raw_VEC (order);
@@ -630,7 +631,8 @@ void structRobustLPCWorkspace :: setSampleWeights () {
 	const double kstdev2 = k_stdev * scale;
 	for (integer isamp = 1 ; isamp <= error.size; isamp ++) {
 		const double absDiff = fabs (error [isamp] - location);
-		sampleWeights [isamp] = ( absDiff <= kstdev2 ? 1.0 : kstdev2 / absDiff );
+		//sampleWeights [isamp] = ( absDiff <= kstdev2 ? 1.0 : kstdev2 / absDiff );
+		sampleWeights [isamp] = std::max (1.0, k_stdev * scale / absDiff);
 	}
 }
 
@@ -644,7 +646,7 @@ void structRobustLPCWorkspace :: setCovariances () {
 			longdouble cv1 = 0.0;
 			for (integer k = currentPredictionOrder + 1; k <= soundFrame.size; k ++)
 				cv1 += soundFrame [k - j] * soundFrame [k - i] * sampleWeights [k];
-			covar [i] [j] = cv1;
+			covar [i] [j] = covar [j] [i] = cv1;
 		}
 		longdouble cv2 = 0.0;
 		for (integer k = currentPredictionOrder + 1; k <= soundFrame.size; k ++)
@@ -682,7 +684,8 @@ void structRobustLPCWorkspace :: inputFrameIntoOutputFrame (LPC_Frame inputLPCFr
 		const double previousScale = scale;
 		error.all()  <<=  soundFrame;
 		VECfilterInverse_inplace (error.get(), inout_a, filterMemory.get());
-		NUMstatistics_huber (error.get(), & location, wantLocation, & scale, wantScale, k_stdev, tol1, huber_iterations, huberwork.get());
+		NUMstatistics_huber (error.get(), & location, wantLocation, & scale, wantScale, k_stdev, 
+			tol1, huber_iterations, huberwork.get());
 		setSampleWeights ();
 
 		setCovariances ();
