@@ -7,6 +7,8 @@ appendInfoLine: "test_LPC"
 
 @testLPCInterface
 
+@testDifferentAnalyses
+
 @more
 
 appendInfoLine: "test_LPC OK"
@@ -188,3 +190,69 @@ procedure get_formants: .lpc, .method$
 	...	" ", fixed$ (.f[5], 0), " ", fixed$ (.b[5], 0)
 	removeObject: .formant
 endproc
+
+procedure testDifferentAnalyses
+	appendInfoLine: tab$, "LPC algorithms:"
+	soundraw = Read from file: "sa1.wav"
+	sound = Resample: 10000, 50
+	appendInfo: tab$, tab$, "LPC autocorrelation:"
+	for order from 8 to 14
+		selectObject: sound
+		lpc = To LPC (autocorrelation): order, 0.025, 0.005, 50.0
+		appendInfo: " ", order
+		removeObject: lpc
+	endfor
+	appendInfo: newline$
+
+	appendInfo: tab$, tab$, "LPC covariance:"
+	for order from 8 to 14
+		selectObject: sound
+		lpc = To LPC (covariance): order, 0.025, 0.005, 50.0
+		appendInfo: " ", order
+		removeObject: lpc
+	endfor
+	appendInfo: newline$
+
+	appendInfo: tab$, tab$, "LPC burg:"
+	for order from 8 to 14
+		selectObject: sound
+		lpc = To LPC (burg): order, 0.025, 0.005, 50.0
+		appendInfo: " ", order
+		removeObject: lpc
+	endfor
+	appendInfo: newline$
+	
+	appendInfo: tab$, tab$, "LPC marple:"
+	for order from 8 to 14
+		selectObject: sound
+		lpc = To LPC (marple): order, 0.025, 0.005, 50.0, 1.0e-6, 1.0e-6
+		appendInfo: " ", order
+		removeObject: lpc
+	endfor
+	appendInfo: newline$
+
+	appendInfo: tab$, tab$, "LPC robust:"
+	for order from 8 to 14
+		selectObject: sound
+		lpc = To LPC (robust): order, 0.025, 0.005, 50.0, 1.5, 5, 1.0e-6
+		appendInfo: " ", order
+		removeObject: lpc
+	endfor
+	appendInfo: newline$
+
+	appendInfo: tab$, tab$, "Sound & LPC robust:"
+	for order from 8 to 14
+		selectObject: sound
+		lpc = To LPC (autocorrelation): order, 0.025, 0.005, 50.0
+		selectObject: sound, lpc
+		lpc2 = To LPC (robust): 0.025, 50.0, 1.5, 5, 1.0e-6, "no"
+		appendInfo: " ", order
+		removeObject: lpc, lpc2
+	endfor
+	appendInfo: newline$
+	removeObject: soundraw, sound
+	appendInfoLine: tab$, "LPC algorithms: OK"
+	
+endproc
+
+

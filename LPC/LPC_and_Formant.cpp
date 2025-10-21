@@ -20,7 +20,7 @@
 #include "LPC_and_Polynomial.h"
 #include "NUM2.h"
 #include "Roots_and_Formant.h"
-#include "SampledIntoSampled.h"
+#include "SampledAndSampled.h"
 
 /*- Start of to be removed */
 Thing_implement (LPCFrameIntoFormantFrame, SampledFrameIntoSampledFrame, 0);
@@ -87,18 +87,17 @@ void Formant_Frame_init (Formant_Frame me, integer numberOfFormants) {
 }
 
 void LPC_into_Formant (constLPC inputLPC, mutableFormant outputFormant, double margin) {
-	SampledIntoSampled_requireEqualDomainsAndSampling (inputLPC, outputFormant);
+	SampledAndSampled_requireEqualDomainsAndSampling (inputLPC, outputFormant);
 	const integer numberOfFrames = inputLPC -> nx, thresholdNumberOfFramesPerThread = 40;
-	const integer numberOfCoefficients = inputLPC -> maxnCoefficients + 1;
 	autoMelderProgress progress (U"LPC into LineSpectralFrequencies...");
 	const integer order = inputLPC -> maxnCoefficients;
 	const integer bufferSize = order * order + order + order + 11 * order;
-
+	const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
 
-	autoVEC buffer = raw_VEC (bufferSize);
-	autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
-	autoRoots roots = Roots_create (order);
+		autoVEC buffer = raw_VEC (bufferSize);
+		autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
+		autoRoots roots = Roots_create (order);
 
 	MelderThread_FOR (iframe) {
 
@@ -106,16 +105,14 @@ void LPC_into_Formant (constLPC inputLPC, mutableFormant outputFormant, double m
 		LPC_Frame inputLPCFrame = & inputLPC -> d_frames [iframe];
 		formantFrame -> intensity = inputLPCFrame -> gain;
 		if (inputLPCFrame -> nCoefficients == 0) {
-			formantFrame -> numberOfFormants = 0;
-			formantFrame -> formant. resize (formantFrame -> numberOfFormants);   // maintain invariant
-			continue;
+			formantFrame -> numberOfFormants = 0; // TODO Formant_Frame -> resize (newNumberOfFormants)
+			formantFrame -> formant.resize (formantFrame -> numberOfFormants); // maintain invariant
+		} else {
+			LPC_Frame_into_Polynomial (inputLPCFrame, p.get());
+			Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
+			Roots_fixIntoUnitCircle (roots.get());
+			Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
 		}
-		const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;
-		LPC_Frame_into_Polynomial (inputLPCFrame, p.get());
-		Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
-		Roots_fixIntoUnitCircle (roots.get());
-		Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
-
 	} MelderThread_ENDFOR
 
 	Formant_sort (outputFormant);
@@ -167,9 +164,6 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double samplingPeriod, 
 	double margin, Polynomial p, Roots roots, VEC polynomialIntoRootsWorkspace)
 {
-	//Melder_assert (thy formant._capacity >= (my nCoefficients + 1) / 2); //TODO find better test
-	Melder_assert (my nCoefficients <  p -> capacity()); // check invariant
-	Melder_assert (my nCoefficients <= roots -> capacity());
 	thy intensity = my gain;
 	if (my nCoefficients == 0) {
 		thy formant. resize (0);
@@ -180,7 +174,6 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 	Roots_fixIntoUnitCircle (roots);
 	Roots_into_Formant_Frame (roots, thee, 1.0 / samplingPeriod, margin);
 }
-
 
 void Formant_Frame_into_LPC_Frame (constFormant_Frame me, LPC_Frame thee, double samplingPeriod) {
 	if (my numberOfFormants < 1)

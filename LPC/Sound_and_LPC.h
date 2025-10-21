@@ -57,47 +57,15 @@ Thing_define (SoundFrameIntoLPCFrame, SoundFrameIntoSampledFrame) {
 
 /*********************** Autocorrelation method *************************************************************/
 
-Thing_define (SoundFrameIntoLPCFrameAuto, SoundFrameIntoLPCFrame) {
-	
-	autoVEC r;		// orderp1
-	autoVEC rc;		// orderp1
-	
-	void initHeap ()
-		override;
-		
-	bool inputFrameIntoOutputFrame (integer currentFrame)
-		override;
-};
-
 /*
 	Precondition:
 	Sound and LPC have the same sampling.
 */
 void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth);
 
-autoSoundFrameIntoLPCFrameAuto SoundFrameIntoLPCFrameAuto_create (constSound inputSound, mutableLPC outputLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape);
-
 autoLPC Sound_to_LPC_auto (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency);
 
 /*********************** Covariance method *************************************************************/
-
-Thing_define (SoundFrameIntoLPCFrameCovar, SoundFrameIntoLPCFrame) {
-	integer order2;	// size: order * (order + 1) / 2
-	autoVEC b;		// size: order2
-	autoVEC grc;	// size: order
-	autoVEC beta;	// size: order
-	autoVEC cc;		// size: orderp1	
-
-	void initHeap ()
-		override;
-	
-	bool inputFrameIntoOutputFrame (integer currentFrame)
-		override;
-};
-
-autoSoundFrameIntoLPCFrameCovar SoundFrameIntoLPCFrameCovar_create (constSound input, mutableLPC outLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape);
 
 /*
 	Precondition:
@@ -107,25 +75,7 @@ void Sound_into_LPC_covar (constSound me, mutableLPC outputLPC, double effective
 
 autoLPC Sound_to_LPC_covar (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency);
 
-/*********************** Burg method *************************************************************/
-
-Thing_define (SoundFrameIntoLPCFrameBurg, SoundFrameIntoLPCFrame) {
-	autoVEC b1;		// size: soundFrameSize
-	autoVEC b2;		// size: soundFrameSize
-	autoVEC aa;		// size: order
-
-	void initHeap ()
-		override;
-
-	double burg (VEC const& a, constVEC const& x, integer& frameAnalysisInfo);
-
-	bool inputFrameIntoOutputFrame (integer currentFrame)
-		override;
-
-};
-
-autoSoundFrameIntoLPCFrameBurg SoundFrameIntoLPCFrameBurg_create (constSound input, mutableLPC outLPC,
-	double effectiveAnalysisWidth, kSound_windowShape windowShape);
+/*********************** Burg method *******************************************************/
 
 /*
 	Precondition:
@@ -135,29 +85,10 @@ void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveA
 
 autoLPC Sound_to_LPC_burg (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency);
 
-/*********************** Marple method *************************************************************/
+void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC b1, VEC b2, 
+	VEC aa, integer &info);
 
-Thing_define (SoundFrameIntoLPCFrameMarple, SoundFrameIntoLPCFrame) {
-	double tol1, tol2;
-	autoVEC c;	// orderp1)
-	autoVEC d;	// orderp1)
-	autoVEC r;	// orderp1)
-
-	void initBasicSoundFrameIntoLPCFrameMarple (constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth,
-		kSound_windowShape windowShape, double tol1, double tol2);
-
-	void copyBasic (constSampledFrameIntoSampledFrame other)
-		override;
-
-	void initHeap ()
-		override;
-
-	bool inputFrameIntoOutputFrame (integer iframe)
-		override;
-
-};
-
-autoSoundFrameIntoLPCFrameMarple SoundFrameIntoLPCFrameMarple_create (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, double preEmphasisFrequency, double tol1, double tol2);
+/*********************** Marple method *****************************************************/
 
 /*
 	Precondition:
@@ -165,10 +96,10 @@ autoSoundFrameIntoLPCFrameMarple SoundFrameIntoLPCFrameMarple_create (constSound
 */
 void Sound_into_LPC_marple (constSound me, mutableLPC thee, double analysisWidth, double tol1, double tol2);
 
-autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt, 
+autoLPC Sound_to_LPC_marple (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt,
 	double preEmphasisFrequency, double tol1, double tol2);
 
-/*********************** PLP (Hermansky) method *************************************************************/
+/*********************** PLP (Hermansky) method ******************************************************/
 
 Thing_define (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame) {
 
@@ -191,18 +122,20 @@ Thing_define (SoundFrameIntoLPCFramePLP, SoundFrameIntoLPCFrame) {
 
 };
 
-/*********************** Robust method (LPC & Sound) *************************************************************/
+/*********************** Robust method (LPC & Sound) *******************************************************/
 
-Thing_define (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame) {
+Thing_define (RobustLPCWorkspace, Thing) {
 	
 	constLPC inputLPC;
-	integer currentPredictionOrder;
+	mutableLPC outputLPC;
+	VEC soundFrame;
+	integer order, currentPredictionOrder;
 	double k_stdev;
 	integer iter;
 	integer itermax;
-	integer huber_iterations; // = 5;
-	bool wantlocation;	//
-	bool wantscale;	//
+	integer huber_iterations = 5; // = 5;
+	bool wantLocation = true;	//
+	bool wantScale = true;	//
 	double location = 0.0;	// not a parameter in initBasic!
 	double scale;
 	double tol1;
@@ -219,35 +152,27 @@ Thing_define (LPCFrameAndSoundFrameIntoLPCFrameRobust, SoundFrameIntoLPCFrame) {
 	autoVEC filterMemory;	// order
 	autoVEC huberwork;		// soundFrameSize)
 
-	void initBasicLPCFrameAndSoundFrameIntoLPCFrameRobust (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC,
-		double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation);
-	
-	void copyBasic (constSampledFrameIntoSampledFrame other)
-		override;
-
-	void initHeap ()
-		override;
-
-	bool inputFrameIntoOutputFrame (integer iframe)
-		override;
-
-private:
+	void init (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth,
+		kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation);
 
 	void resize ();
 	void setSampleWeights ();
 	void setCovariances ();
 	void solvelpc ();
+	void inputFrameIntoOutputFrame (LPC_Frame inputLPCFrame, LPC_Frame outputLPCFrame,
+		VEC soundFrame, integer& info);
 };
 
-autoLPCFrameAndSoundFrameIntoLPCFrameRobust LPCFrameAndSoundFrameIntoLPCFrameRobust_create (constLPC inputLPC,
-	constSound inputSound, mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape, double k_stdev, integer itermax, double tol, bool wantlocation);
+autoRobustLPCWorkspace RobustLPCWorkspace_create (constLPC inputLPC, constSound inputSound,
+	mutableLPC outputLPC, double effectiveAnalysisWidth, kSound_windowShape windowShape,
+	double k_stdev, integer itermax, double tol, bool wantlocation);
 
 /*
 	Precondition:
 	Sound and LPC have the same sampling.
 */
-void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mutableLPC outpuLPC, double effectiveAnalysisWidth, 
-	double k_stdev, integer itermax, double tol, bool wantlocation);
+void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mutableLPC outputLPC,
+	double effectiveAnalysisWidth, double k_stdev, integer itermax, double tol, bool wantlocation);
 
 /*
 	Precondition:
@@ -255,6 +180,9 @@ void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mu
 */
 autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, double effectiveAnalysisWidth,
 	double preEmphasisFrequency, double k_stdev, integer itermax, double tol, bool wantlocation);
+
+void soundFrameAndLPCFrameIntoLPCFrame (VEC soundFrame, LPC_Frame inputLPCFrame, LPC_Frame outputLPCFrame,
+	RobustLPCWorkspace ws, integer& info);
 
 /*********************** Robust method (Sound) *************************************************************/
 
@@ -331,5 +259,12 @@ void LPC_Sound_filterInverseWithFilterAtTime_inplace (constLPC me, mutableSound 
 	For all LPC analysis
 */
 void checkLPCAnalysisParameters_e (double sound_dx, integer sound_nx, double physicalAnalysisWidth, integer predictionOrder);
+
+inline void Sound_and_LPC_require_equalDomainsAndSamplingPeriods (constSound me, constLPC thee) {
+	Melder_require (my xmin == thy xmin && thy xmax == my xmax,
+		U"The domains of the Sound and the LPC should be equal.");
+	Melder_require (my dx == thy samplingPeriod,
+		U"The sampling periods of the Sound and the LPC should be equal.");
+}
 
 #endif /* _Sound_and_LPC_h_ */

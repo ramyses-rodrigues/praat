@@ -222,8 +222,7 @@ autoRoots Polynomial_to_Roots (constPolynomial me) {
 		+ 11 * n	; the maximum for dhseqr_
 */
 void Polynomial_into_Roots (constPolynomial me, mutableRoots roots, VEC workspace) {
-	Melder_assert (my numberOfCoefficients - 1 <= roots -> capacity ());
-	integer np1 = my numberOfCoefficients, n = np1 - 1;	
+	integer np1 = my numberOfCoefficients, n = np1 - 1;
 	Melder_assert (workspace.size >= n * n + 2 * n + 11 * n);
 	
 	if (n == 0)
@@ -246,8 +245,10 @@ void Polynomial_into_Roots (constPolynomial me, mutableRoots roots, VEC workspac
 		We don't need to find out size of the working storage needed because for the current version 
 		of NUMlapack_dhseqr (20240608) its size equals maximally 11*n.
 	*/
-	VEC wr = workspace.part (size + 1, size + n); size += n;
-	VEC wi = workspace.part (size + 1, size + n); size += n;
+	VEC wr = workspace.part (size + 1, size + n);
+	size += n;
+	VEC wi = workspace.part (size + 1, size + n);
+	size += n;
 	VEC work = workspace.part (size + 1, size + 11 * n);
 
 	integer lwork = work.size, info;
@@ -255,8 +256,8 @@ void Polynomial_into_Roots (constPolynomial me, mutableRoots roots, VEC workspac
 	integer numberOfEigenvaluesFound = n, ioffset = 0;
 	if (info > 0) {
 		/*
-			if INFO = i, NUMlapack_dhseqr failed to compute all of the eigenvalues. Elements i+1:n of
-		WR and WI contain those eigenvalues which have been successfully computed
+			if INFO = i, NUMlapack_dhseqr failed to compute all of the eigenvalues. 
+			Elements i+1:n of WR and WI contain those eigenvalues which have been successfully computed
 		*/
 		numberOfEigenvaluesFound -= info;
 		Melder_require (numberOfEigenvaluesFound > 0,

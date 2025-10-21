@@ -74,6 +74,8 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 */
 void LPC_Frame_into_Formant_Frame_mt (constLPC_Frame me, Formant_Frame thee, double samplingPeriod, double margin, Polynomial p, Roots r, VEC const& workspace);
 
+void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double samplingPeriod, 
+	double margin, Polynomial p, Roots roots, VEC polynomialIntoRootsWorkspace);
 
 void Formant_Frame_into_LPC_Frame (constFormant_Frame me, LPC_Frame thee, double samplingPeriod);
 

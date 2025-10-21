@@ -54,7 +54,9 @@ static double NUMgauss (double x) {
 	return NUM1_sqrt2pi * exp (- 0.5 * x * x);
 }
 
-void NUMstatistics_huber (constVEC x, double *inout_location, bool wantlocation, double *inout_scale, bool wantscale, double k_stdev, double tol, integer maximumNumberOfiterations, VEC const& workSpace) {
+void NUMstatistics_huber (constVEC x, double *inout_location, bool wantlocation, double *inout_scale, 
+	bool wantscale, double k_stdev, double tol, integer maximumNumberOfiterations, VEC const& workSpace)
+{
 	Melder_assert (inout_location && inout_scale);
 	Melder_assert (workSpace.size >= x.size);
 	
