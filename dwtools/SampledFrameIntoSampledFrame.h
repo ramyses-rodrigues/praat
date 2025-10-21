@@ -32,9 +32,9 @@ Thing_define (SampledFrameIntoSampledFrame, Thing) {
 		Supply the object with enough data such that the second step, initHeap(), can
 		complete the object initialization.
 	*/
-	virtual void initBasic (constSampled input, mutableSampled output) {
-		our input = input;
-		our output = output;	
+	virtual void initBasic (constSampled initialInput, mutableSampled initialOutput) {
+		our input = initialInput;
+		our output = initialOutput;
 	}
 	
 	/*

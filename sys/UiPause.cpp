@@ -159,31 +159,6 @@ void UiPause_caption (conststring32 label) {
 	UiForm_addCaption (thePauseForm.get(), nullptr, label);
 }
 
-static void Gui_waitAndHandleOneEvent_any () {
-	#if gtk
-		gtk_main_iteration ();
-	#elif cocoa
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		//[theDemoEditor -> windowForm -> d_cocoaWindow   flushWindow];
-		NSEvent *nsEvent = [NSApp
-			nextEventMatchingMask: NSAnyEventMask
-			untilDate: [NSDate distantFuture]   // wait
-			inMode: NSDefaultRunLoopMode
-			dequeue: YES
-		];
-		Melder_assert (nsEvent);
-		//TRACE
-		trace ([nsEvent type]);
-		[NSApp  sendEvent: nsEvent];
-		[NSApp  updateWindows];   // called automatically?
-		[pool release];
-	#elif motif
-		XEvent event;
-		GuiNextEvent (& event);
-		XtDispatchEvent (& event);
-	#endif
-}
-
 int UiPause_end (int numberOfContinueButtons, int defaultContinueButton, int cancelContinueButton,
 	conststring32 continueText1, conststring32 continueText2, conststring32 continueText3,
 	conststring32 continueText4, conststring32 continueText5, conststring32 continueText6,
@@ -219,8 +194,32 @@ int UiPause_end (int numberOfContinueButtons, int defaultContinueButton, int can
 		Melder_assert (theEventLoopDepth == 0);
 		theEventLoopDepth ++;
 		try {
+			/*
+				TODO: make asynchronous, with Interpreter_resume()
+			*/
 			do {
-				Gui_waitAndHandleOneEvent_any ();
+				#if gtk
+					gtk_main_iteration ();
+				#elif cocoa
+					NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+					NSEvent *nsEvent;
+					if ((nsEvent = [NSApp
+						nextEventMatchingMask: NSEventMaskAny
+						untilDate: [NSDate distantPast]
+						inMode: NSDefaultRunLoopMode
+						dequeue: YES]) != nullptr)
+					{
+						[NSApp   sendEvent: nsEvent];
+					}
+					constexpr double moderatePollingFrequency = 300.0;   // hertz
+					constexpr double moderatePollingPeriod = 1.0 / moderatePollingFrequency;   // e.g. 3.333 ms
+					[NSThread   sleepForTimeInterval: moderatePollingPeriod];
+					[pool release];
+				#elif motif
+					XEvent event;
+					GuiNextEvent (& event);
+					XtDispatchEvent (& event);
+				#endif
 			} while (! thePauseForm_clicked);
 		} catch (MelderError) {
 			Melder_flushError (U"An error made it to the outer level in a pause window; should not occur! Please write to paul.boersma@uva.nl");

@@ -29,7 +29,7 @@ void structSoundFrameIntoPowerCepstrogramFrame :: initBasicSoundFrameIntoPowerCe
 	mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape)
 {
 	SoundFrameIntoPowerCepstrogramFrame_Parent :: initBasicSoundFrameIntoSampledFrame (input, output,
-		effectiveAnalysisWidth, windowShape);
+			effectiveAnalysisWidth, windowShape);
 	our outputPowerCepstrogram = output;
 }
 	
@@ -116,7 +116,7 @@ void structSoundFrameIntoPowerCepstrogramFrame :: saveOutputFrame (integer ifram
 }
 
 void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
-	SampledIntoSampled_assertEqualDomains (input,  output);
+	SampledIntoSampled_assertEqualDomains (input, output);
 	autoSoundFrameIntoPowerCepstrogramFrame frameIntoFrame = Thing_new (SoundFrameIntoPowerCepstrogramFrame);
 	frameIntoFrame -> initBasicSoundFrameIntoPowerCepstrogramFrame (input, output, effectiveAnalysisWidth, windowShape);
 	frameIntoFrame -> wantSpectrum = true;
@@ -133,7 +133,8 @@ autoPowerCepstrogram Sound_to_PowerCepstrogram_new (Sound me, double pitchFloor,
 		volatile const double windowDuration = Melder_clippedRight (physicalAnalysisWidth, physicalSoundDuration);
 		Melder_require (physicalSoundDuration >= physicalAnalysisWidth,
 			U"Your sound is too short:\n"
-			U"it should be longer than ", physicalAnalysisWidth, U" s.");
+			U"it should be longer than ", physicalAnalysisWidth, U" s."
+		);
 		const double samplingFrequency = 2.0 * maximumFrequency;
 		autoSound input = Sound_resampleAndOrPreemphasize (me, maximumFrequency, 50_integer, preEmphasisFrequency);
 		double t1;
@@ -159,7 +160,8 @@ autoPowerCepstrogram Sound_to_PowerCepstrogram_old (Sound me, double pitchFloor,
 		volatile const double windowDuration = Melder_clippedRight (2.0 * analysisWidth, my dx * my nx);   // gaussian window
 		Melder_require (physicalSoundDuration >= physicalAnalysisWidth,
 			U"Your sound is too short:\n"
-			U"it should be longer than 6.0 / pitchFloor (", physicalAnalysisWidth, U" s).");
+			U"it should be longer than 6.0 / pitchFloor (", physicalAnalysisWidth, U" s)."
+		);
 		// Convenience: analyse the whole sound into one Cepstrogram_frame
 		const double samplingFrequency = 2.0 * maximumFrequency;
 		autoSound sound = Sound_resample (me, samplingFrequency, 50);

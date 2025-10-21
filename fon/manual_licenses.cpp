@@ -111,9 +111,11 @@ Finally we thank:
 
 ################################################################################
 "License"
-© Paul Boersma 2021
+© Paul Boersma 2021,2025
 
 Praat is free software distributed under the @@General Public License, version 3@ or higher.
+The source code is available on `https://github.com/praat/praat.github.io`.
+
 See @Acknowledgments for details on the licenses of software libraries by others
 that are included in Praat.
 
@@ -157,7 +159,7 @@ Here is the FLAC license text:
 `
 ################################################################################
 "Ogg Vorbis BSD 3-clause license"
-© Xiph.org 2002–2020; introductory paragraphy by Paul Boersma 2020
+© Xiph.org 2002–2020; introductory paragraph by Paul Boersma 2020
 
 The Praat source code contains a copy of the Ogg Vorbis software (see @Acknowledgments).
 Here is the Ogg Vorbis license text:

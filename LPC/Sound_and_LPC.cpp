@@ -33,14 +33,16 @@ void checkLPCAnalysisParameters_e (double sound_dx, integer sound_nx, double phy
 	volatile const double physicalDuration = sound_dx * sound_nx;
 	Melder_require (physicalAnalysisWidth <= physicalDuration,
 		U"Your sound is shorter than two window lengths. "
-		"Either your sound is too short or your window is too long.");
+		"Either your sound is too short or your window is too long."
+	);
 	// we round the minimum duration to be able to use asserterror in testing scripts.
 	conststring32 minimumDurationRounded = Melder_fixed (predictionOrder * sound_dx , 5);
 	const integer approximateNumberOfSamplesPerWindow = Melder_iroundDown (physicalAnalysisWidth / sound_dx);
 	Melder_require (approximateNumberOfSamplesPerWindow > predictionOrder,
 		U"Analysis window duration too short. For a prediction order of ", predictionOrder,
 		U", the analysis window duration should be greater than ", minimumDurationRounded,
-		U" s. Please increase the analysis window duration or lower the prediction order.");
+		U" s. Please increase the analysis window duration or lower the prediction order."
+	);
 }
 
 static void Sound_to_LPC_common_e (constSound inputSound, int predictionOrder, double effectiveAnalysisWidth, double dt,
@@ -709,6 +711,7 @@ autoRobustLPCWorkspace RobustLPCWorkspace_create (constLPC inputLPC, constSound 
 		autoRobustLPCWorkspace me = Thing_new (RobustLPCWorkspace);
 		my init (inputLPC, inputSound, outputLPC, effectiveAnalysisWidth, windowShape, 
 			k_stdev, itermax, tol, wantlocation);
+		my wantScale = true; // explicit
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"Cannot create RobustLPCWorkspace.");
@@ -753,7 +756,7 @@ autoLPC LPC_and_Sound_to_LPC_robust (constLPC inputLPC, constSound inputSound, d
 			Sound_preEmphasize_inplace (sound.get(), preEmphasisFrequency);
 		autoLPC outputLPC = Data_copy (inputLPC);
 		LPC_and_Sound_into_LPC_robust (inputLPC, sound.get(), outputLPC.get(), effectiveAnalysisWidth,
-			k_stdev, itermax, tol, wantlocation);
+				k_stdev, itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
 		Melder_throw (inputLPC, U" and ", inputSound,  U": no LPC (robust) created.");
@@ -769,7 +772,7 @@ void Sound_into_LPC_robust (constSound inputSound, mutableLPC outputLPC, double 
 	autoLPC intermediateLPC = Data_copy (outputLPC);
 	Sound_into_LPC_auto (inputSound, intermediateLPC.get(), effectiveAnalysisWidth);
 	LPC_and_Sound_into_LPC_robust (intermediateLPC.get(), inputSound, outputLPC, effectiveAnalysisWidth,
-		k_stdev, itermax, tol, wantlocation);
+			k_stdev, itermax, tol, wantlocation);
 }
 
 autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiveAnalysisWidth, double dt,

@@ -27,7 +27,7 @@ Scripting 6.5. Calling system commands
 <p>Typically, however, the use of <a href="_runSystem_.html"><b><code><font size=+1>runSystem</font></code></b></a> or <b><code><font size=+1>runSystem_nocheck</font></code></b> is DANGEROUS: if the string <code><font size=+1>folder$</font></code> contains spaces and semicolons and slashes, for instance, you may lose all files on your computer or install malware without noticing it; you really have to have full control over your files and know exactly what you are doing before you use <a href="_runSystem_.html"><b><code><font size=+1>runSystem</font></code></b></a> or <b><code><font size=+1>runSystem_nocheck</font></code></b>.</p>
 <h2>A safer way to call other programs</h2>
 <p>The above is dangerous because <code><font size=+1>runSystem</font></code> has no concept of what an argument to a program is. For instance, what if <code><font size=+1>folder$</font></code> above is somehow &#8220;-rf .*; ls&#8221;? Will that remove my whole folder structure? A much safer way is to use <a href="_runSubprocess_.html"><b><code><font size=+1>runSubprocess</font></code></b></a>, in which you supply the arguments directly:</p>
-<code>   <b><a href="_runSubprocess_.html">runSubprocess</a></b>: "/usr/local/sbin/theOtherApp ", folder$, "*.wav"<br></code>
+<code>   <b><a href="_runSubprocess_.html">runSubprocess</a></b>: "/usr/local/sbin/theOtherApp", folder$, "*.wav"<br></code>
 <p>This will hand to <code><font size=+1>theOtherApp</font></code>: the contents of the string <code><font size=+1>folder$</font></code> (without fear of executing any commands that are inside the foldername), and the string <code><font size=+1>*.wav</font></code>. What is done with the asterisk (&#8220;*&#8221;) depends on your platform: on macOS and Linux, the string is handed verbatim as &#8220;*.wav&#8221; to <code><font size=+1>theOtherApp</font></code>, whereas on Windows the string is handed verbatim if there are no WAV files (in the folder of the script) but as e.g. &#8220;hello.wav goodbye.wav&#8221; if the script folder contains those two files.</p>
 <p>In general, then, <a href="_runSubprocess_.html"><b><code><font size=+1>runSubprocess</font></code></b></a> is quite predictable on macOS and Linux, but less so on Windows.</p>
 <h2>Getting the values of system variables</h2>
@@ -49,11 +49,11 @@ Scripting 6.5. Calling system commands
 <code>   time = <b><a href="_stopwatch_.html">stopwatch</a></b><br></code>
 <code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: a, " ", fixed$ (time, 3)<br></code>
 <code style="color:red">=&gt;</code><br>
-<code>   1.23456789e+123 0.028<br></code>
+<code>   1.23456789e+123 0.027<br></code>
 <p>How many nanoseconds is that per assignment?</p>
 <code>   <a href="_writeInfoLine_.html">writeInfoLine</a>: round (time / 100000 * 1e9)<br></code>
 <code style="color:red">=&gt;</code><br>
-<code>   281<br></code>
+<code>   275<br></code>
 <h3>Links to this page</h3>
 <ul>
 <li><a href="_runSubprocess-S_.html"><code><font size=+1>runSubprocess$</font></code></a>

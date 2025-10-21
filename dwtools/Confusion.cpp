@@ -113,7 +113,8 @@ autoConfusion Confusion_createSimple (conststring32 labels_string) {
 
 autoConfusion Categories_to_Confusion (Categories me, Categories thee) {
 	try {
-		Melder_require (my size == thy size, U"Both Categories should have the same number of items.");
+		Melder_require (my size == thy size,
+			U"Both Categories should have the same number of items.");
 
 		autoCategories ul1 = Categories_selectUniqueItems (me);
 		autoCategories ul2 = Categories_selectUniqueItems (thee);

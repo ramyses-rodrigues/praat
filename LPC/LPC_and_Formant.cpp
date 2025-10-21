@@ -92,24 +92,29 @@ void LPC_into_Formant (constLPC inputLPC, mutableFormant outputFormant, double m
 	autoMelderProgress progress (U"LPC into LineSpectralFrequencies...");
 	const integer order = inputLPC -> maxnCoefficients;
 	const integer bufferSize = order * order + order + order + 11 * order;
-	const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
-		autoVEC buffer = raw_VEC (bufferSize);		
+	const double samplingFrequency = 1.0 / inputLPC -> samplingPeriod;
+	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
+
+		autoVEC buffer = raw_VEC (bufferSize);
 		autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
 		autoRoots roots = Roots_create (order);
+
 	MelderThread_FOR (iframe) {
+
 		Formant_Frame formantFrame = & outputFormant -> frames [iframe];
 		LPC_Frame inputLPCFrame = & inputLPC -> d_frames [iframe];
 		formantFrame -> intensity = inputLPCFrame -> gain;
 		if (inputLPCFrame -> nCoefficients == 0) {
-			formantFrame -> numberOfFormants = 0; // TODO Formant_Frame aff -> resize (newNumberOfFormants)
+			formantFrame -> numberOfFormants = 0; // TODO Formant_Frame -> resize (newNumberOfFormants)
 			formantFrame -> formant.resize (formantFrame -> numberOfFormants); // maintain invariant
-			continue;
+		} else {
+			LPC_Frame_into_Polynomial (inputLPCFrame, p.get());
+			Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
+			Roots_fixIntoUnitCircle (roots.get());
+			Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
 		}
-		LPC_Frame_into_Polynomial (inputLPCFrame, p.get());
-		Polynomial_into_Roots (p.get(), roots.get(), buffer.get());
-		Roots_fixIntoUnitCircle (roots.get());
-		Roots_into_Formant_Frame (roots.get(), formantFrame, samplingFrequency, margin);
-	} MelderThread_ENDFOR	
+	} MelderThread_ENDFOR
+
 	Formant_sort (outputFormant);
 }
 
@@ -146,7 +151,7 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 	Melder_assert (my nCoefficients == my a.size); // check invariant
 	thy intensity = my gain;
 	if (my nCoefficients == 0) {
-		thy formant.resize (0);
+		thy formant. resize (0);
 		thy numberOfFormants = thy formant.size; // maintain invariant
 		return;
 	}
@@ -161,7 +166,7 @@ void LPC_Frame_into_Formant_Frame (constLPC_Frame me, Formant_Frame thee, double
 {
 	thy intensity = my gain;
 	if (my nCoefficients == 0) {
-		thy formant.resize (0);
+		thy formant. resize (0);
 		return;
 	}
 	LPC_Frame_into_Polynomial (me, p);

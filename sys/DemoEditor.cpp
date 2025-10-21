@@ -240,6 +240,9 @@ void Demo_waitForInput (Interpreter interpreter) {
 		if (wasBackgrounding)
 			praat_foreground ();
 		try {
+			/*
+				TODO: make asynchronous, with Interpreter_resume()
+			*/
 			#if gtk
 				do {
 					gtk_main_iteration ();
@@ -253,13 +256,15 @@ void Demo_waitForInput (Interpreter interpreter) {
 					Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());   // make sure that even texts will be drawn
 					NSEvent *nsEvent = [NSApp
 						nextEventMatchingMask: NSAnyEventMask
-						untilDate: [NSDate distantFuture]   // wait
+						untilDate: [NSDate distantPast]
 						inMode: NSDefaultRunLoopMode
 						dequeue: YES
 					];
-					Melder_assert (nsEvent);
-					[NSApp  sendEvent: nsEvent];
-					[NSApp  updateWindows];   // called automatically?
+					if (nsEvent)
+						[NSApp  sendEvent: nsEvent];
+					constexpr double moderatePollingFrequency = 300.0;   // hertz
+					constexpr double moderatePollingPeriod = 1.0 / moderatePollingFrequency;   // e.g. 3.333 ms
+					[NSThread   sleepForTimeInterval: moderatePollingPeriod];
 					[pool release];
 				} while (! theReferenceToTheOnlyDemoEditor -> clicked &&
 				         ! theReferenceToTheOnlyDemoEditor -> keyPressed &&
@@ -316,7 +321,7 @@ void Demo_peekInput (Interpreter interpreter) {
 				}
 			#elif cocoa
 				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-				[theReferenceToTheOnlyDemoEditor -> windowForm -> d_cocoaShell   flushWindow];
+				[theReferenceToTheOnlyDemoEditor -> windowForm -> d_cocoaShell   flushWindow];   // TODO: needed?
 				Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());   // make sure that even texts will be drawn
 				while (NSEvent *nsEvent = [NSApp
 					nextEventMatchingMask: NSAnyEventMask
@@ -326,7 +331,7 @@ void Demo_peekInput (Interpreter interpreter) {
 				{
 					[NSApp  sendEvent: nsEvent];
 				}
-				[NSApp  updateWindows];   // called automatically?
+				[NSApp  updateWindows];   // called automatically? TODO: remove
 				[pool release];
 			#elif defined (_WIN32)
 				XEvent event;

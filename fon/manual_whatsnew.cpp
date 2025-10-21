@@ -29,6 +29,10 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.46# (20 October 2025)
+• ScriptEditor: made ##Run selection# work again on Windows and Linux (bug since 6.4.44).
+• Made pause windows (and perhaps Demo window) compatible with macOS 26 (Tahoe).
+
 ##6.4.45# (12 October 2025)
 • Made @@Picture window@ 60\xx60 inches (instead of 12\xx12).
 • Windows: repaired a crashing bug in @`runSystem` introduced in 6.4.44.
