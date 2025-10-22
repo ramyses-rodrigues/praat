@@ -23,6 +23,7 @@
 #include "SampledAndSampled.h"
 
 /*- Start of to be removed */
+#if 0
 Thing_implement (LPCFrameIntoFormantFrame, SampledFrameIntoSampledFrame, 0);
 
 void structLPCFrameIntoFormantFrame :: initBasicLPCFrameIntoFormantFrame (constLPC inputLPC, mutableFormant outputFormant, double margin) {
@@ -78,6 +79,7 @@ autoLPCFrameIntoFormantFrame LPCFrameIntoFormantFrame_create (constLPC inputLPC,
 		Melder_throw (U"Cannot create LPCFrameIntoFormantFrame.");
 	}
 }
+#endif
 /*- End of to be removed */
 
 void Formant_Frame_init (Formant_Frame me, integer numberOfFormants) {
