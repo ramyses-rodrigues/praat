@@ -159,9 +159,9 @@ chan1.LPC = To LPC (burg)... 16 0.025 0.005 50.0
 select Sound chan2
 chan2.LPC = To LPC (burg)... 16 0.025 0.005 50.0
 if praatVersion >= 6447
-	assert objectsAreIdentical (chan2.LPC, chan1.LPC)   ; when will this happen?
+	assert objectsAreIdentical (chan2.LPC, chan1.LPC)   ; correct since October 2025
 else
-	assert not objectsAreIdentical (chan2.LPC, chan1.LPC)   ; bug since 2009
+	assert not objectsAreIdentical (chan2.LPC, chan1.LPC)   ; bug from 2009 to 2025
 endif
 
 select LPC chan1
@@ -174,9 +174,9 @@ chan1.LPC = To LPC (autocorrelation)... 16 0.025 0.005 50.0
 select Sound chan2
 chan2.LPC = To LPC (autocorrelation)... 16 0.025 0.005 50.0
 if praatVersion >= 6447
-	assert objectsAreIdentical (chan2.LPC, chan1.LPC)   ; when will this happen?
+	assert objectsAreIdentical (chan2.LPC, chan1.LPC)   ; correct since October 2025
 else
-	assert not objectsAreIdentical (chan2.LPC, chan1.LPC)   ; bug since 2009
+	assert not objectsAreIdentical (chan2.LPC, chan1.LPC)   ; bug from 2009 to 2025
 endif
 
 select LPC chan1
