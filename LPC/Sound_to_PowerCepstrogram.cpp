@@ -121,37 +121,38 @@ static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogr
 	const integer numberOfFrames = output -> nx;
 	//autoMelderProgress progress (U"Analyse power cepstrogram...");
 
-	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
-		autoSoundFrameIntoPowerCepstrogramFrame frameIntoFrame = Thing_new (SoundFrameIntoPowerCepstrogramFrame);
-		frameIntoFrame -> input = input;
-		frameIntoFrame -> output = output;
-		frameIntoFrame -> inputSound = input;
-		frameIntoFrame -> windowShape = windowShape;
-		frameIntoFrame -> physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, windowShape);
-		frameIntoFrame -> outputPowerCepstrogram = output;
-		frameIntoFrame -> wantSpectrum = true;
-		frameIntoFrame -> fftInterpolationFactor = 1;
+	/*
+		The stuff that is constant, and equal among threads.
+	*/
+	const double physicalAnalysisWidth = getPhysicalAnalysisWidth2 (effectiveAnalysisWidth, windowShape);
+	const integer soundFrameSize = getSoundFrameSize2 (physicalAnalysisWidth, input -> dx);
+	autoVEC windowFunction = raw_VEC (soundFrameSize);
+	windowShape_into_VEC (windowShape, windowFunction.get());
 
-		frameIntoFrame -> powerCepstrum = PowerCepstrum_create (frameIntoFrame -> outputPowerCepstrogram -> ymax, frameIntoFrame -> outputPowerCepstrogram -> ny);
-		frameIntoFrame -> soundFrameSize = getSoundFrameSize2 (frameIntoFrame -> physicalAnalysisWidth, frameIntoFrame -> inputSound -> dx);
-		frameIntoFrame -> windowFunction = raw_VEC (frameIntoFrame -> soundFrameSize);   // TODO: move out of thread repetition
-		windowShape_into_VEC (frameIntoFrame -> windowShape, frameIntoFrame -> windowFunction.get());   // TODO: move out of thread repetition
-		frameIntoFrame -> frameAsSound = Sound_create (1_integer, 0.0, frameIntoFrame -> soundFrameSize * input -> dx, frameIntoFrame -> soundFrameSize, frameIntoFrame -> input -> dx, 0.5 * frameIntoFrame -> input -> dx); //
-		frameIntoFrame -> soundFrame = frameIntoFrame -> frameAsSound -> z.row (1);
-		Melder_assert (frameIntoFrame -> soundFrame.size == frameIntoFrame -> soundFrameSize);
-		if (frameIntoFrame -> wantSpectrum) {
-			frameIntoFrame -> numberOfFourierSamples = frameIntoFrame -> frameAsSound -> nx;
-			if (frameIntoFrame -> fftInterpolationFactor > 0) {
-				frameIntoFrame -> numberOfFourierSamples = Melder_iroundUpToPowerOfTwo (frameIntoFrame -> numberOfFourierSamples);
-				for (integer imultiply = frameIntoFrame -> fftInterpolationFactor; imultiply > 1; imultiply --)
-					frameIntoFrame -> numberOfFourierSamples *= 2;
-			}
-			frameIntoFrame -> fourierSamples = raw_VEC (frameIntoFrame -> numberOfFourierSamples);
-			const integer numberOfFrequencies = frameIntoFrame -> numberOfFourierSamples / 2 + 1;
-			frameIntoFrame -> fourierTable = NUMFourierTable_create (frameIntoFrame -> numberOfFourierSamples);
-			frameIntoFrame -> spectrum = Spectrum_create (0.5 / frameIntoFrame -> frameAsSound -> dx, numberOfFrequencies);
-			frameIntoFrame -> spectrum -> dx = 1.0 / (frameIntoFrame -> frameAsSound -> dx * frameIntoFrame -> numberOfFourierSamples);
+	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
+		bool subtractFrameMean = true;   // TODO: check
+		bool wantSpectrum = true;
+		integer fftInterpolationFactor = 1;
+
+		autoPowerCepstrum powerCepstrum = PowerCepstrum_create (output -> ymax, output -> ny);
+		autoSound frameAsSound = Sound_create (1, 0.0, soundFrameSize * input -> dx, soundFrameSize, input -> dx, 0.5 * input -> dx);
+		VEC soundFrame = frameAsSound -> z.row (1);
+		Melder_assert (soundFrame.size == soundFrameSize);
+
+		/*
+			Spectrum.
+		*/
+		integer numberOfFourierSamples = frameAsSound -> nx;
+		if (fftInterpolationFactor > 0) {
+			numberOfFourierSamples = Melder_iroundUpToPowerOfTwo (numberOfFourierSamples);
+			for (integer imultiply = fftInterpolationFactor; imultiply > 1; imultiply --)
+				numberOfFourierSamples *= 2;
 		}
+		autoVEC fourierSamples = raw_VEC (numberOfFourierSamples);
+		const integer numberOfFrequencies = numberOfFourierSamples / 2 + 1;
+		autoNUMFourierTable fourierTable = NUMFourierTable_create (numberOfFourierSamples);
+		autoSpectrum spectrum = Spectrum_create (0.5 / frameAsSound -> dx, numberOfFrequencies);
+		spectrum -> dx = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
 	MelderThread_FOR (iframe) {
 		if (MelderThread_IS_MASTER && 0) {
 			const double estimatedProgress = MelderThread_ESTIMATED_PROGRESS;
@@ -160,52 +161,48 @@ static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogr
 				U" out of ", numberOfFrames, U" frames"
 			);
 		}
-		frameIntoFrame -> getInputFrame (iframe);
-		const double midTime = Sampled_indexToX (frameIntoFrame -> output, iframe);
-		integer soundFrameBegin = Sampled_xToNearestIndex (frameIntoFrame -> inputSound, midTime - 0.5 * frameIntoFrame -> physicalAnalysisWidth);   // approximation
+		const double midTime = Sampled_indexToX (output, iframe);
+		integer soundFrameBegin = Sampled_xToNearestIndex (input, midTime - 0.5 * physicalAnalysisWidth);   // approximation
 
-		for (integer isample = 1; isample <= frameIntoFrame -> soundFrame.size; isample ++, soundFrameBegin ++)
-			frameIntoFrame -> soundFrame [isample] = ( soundFrameBegin > 0 && soundFrameBegin <= frameIntoFrame -> inputSound -> nx ? frameIntoFrame -> inputSound -> z [1] [soundFrameBegin] : 0.0 );
-		if (frameIntoFrame -> subtractFrameMean)
-			centre_VEC_inout (frameIntoFrame -> soundFrame, nullptr);
-		frameIntoFrame -> soundFrameExtremum = NUMextremum_u (frameIntoFrame -> soundFrame);
-		frameIntoFrame -> soundFrame  *=  frameIntoFrame -> windowFunction.get();
-		if (frameIntoFrame -> wantSpectrum) {
-			//frameIntoFrame -> soundFrameIntoSpectrum ();
-			//frameIntoFrame -> soundFrameToForwardFourierTransform ();
-			const integer numberOfChannels = frameIntoFrame -> frameAsSound -> ny;
-			if (numberOfChannels == 1)
-				frameIntoFrame -> fourierSamples.part (1, frameIntoFrame -> soundFrameSize)  <<=  frameIntoFrame -> frameAsSound -> z.row (1);
-			else {
-				/*
-					Multiple channels: take the average.
-				*/
-				for (integer ichan = 1; ichan <= numberOfChannels; ichan ++)
-					frameIntoFrame -> fourierSamples.part (1, frameIntoFrame -> soundFrameSize)  +=  frameIntoFrame -> frameAsSound -> z.row (ichan);
-				frameIntoFrame -> fourierSamples.part (1, frameIntoFrame -> soundFrameSize)  *=  1.0 / numberOfChannels;
-			}
-			frameIntoFrame -> fourierSamples.part (frameIntoFrame -> soundFrameSize + 1, frameIntoFrame -> numberOfFourierSamples)  <<=  0.0;
-			NUMfft_forward (frameIntoFrame -> fourierTable.get(), frameIntoFrame -> fourierSamples.get());
+		for (integer isample = 1; isample <= soundFrame.size; isample ++, soundFrameBegin ++)
+			soundFrame [isample] = ( soundFrameBegin > 0 && soundFrameBegin <= input -> nx ? input -> z [1] [soundFrameBegin] : 0.0 );
+		if (subtractFrameMean)
+			centre_VEC_inout (soundFrame, nullptr);
+		const double soundFrameExtremum = NUMextremum_u (soundFrame);
+		soundFrame  *=  windowFunction.get();
 
-			const VEC re = frameIntoFrame -> spectrum -> z.row (1);
-			const VEC im = frameIntoFrame -> spectrum -> z.row (2);
-			const integer numberOfFrequencies = frameIntoFrame -> spectrum -> nx;
-			const double scaling = frameIntoFrame -> output -> dx;
-			re [1] = frameIntoFrame -> fourierSamples [1] * scaling;
-			im [1] = 0.0;
-			for (integer i = 2; i < numberOfFrequencies; i ++) {
-				re [i] = frameIntoFrame ->  fourierSamples [i + i - 2] * scaling;   // fourierSamples [2], [4], ...
-				im [i] = frameIntoFrame ->  fourierSamples [i + i - 1] * scaling;   // fourierSamples [3], [5], ...
+		const integer numberOfChannels = frameAsSound -> ny;
+		if (numberOfChannels == 1)
+			fourierSamples.part (1, soundFrameSize)  <<=  frameAsSound -> z.row (1);
+		else {
+			/*
+				Multiple channels: take the average.
+			*/
+			for (integer ichan = 1; ichan <= numberOfChannels; ichan ++)
+				fourierSamples.part (1, soundFrameSize)  +=  frameAsSound -> z.row (ichan);
+			fourierSamples.part (1, soundFrameSize)  *=  1.0 / numberOfChannels;
+		}
+		fourierSamples.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
+		NUMfft_forward (fourierTable.get(), fourierSamples.get());
+
+		const VEC re = spectrum -> z.row (1);
+		const VEC im = spectrum -> z.row (2);
+		const integer numberOfFrequencies = spectrum -> nx;
+		const double scaling = output -> dx;
+		re [1] = fourierSamples [1] * scaling;
+		im [1] = 0.0;
+		for (integer i = 2; i < numberOfFrequencies; i ++) {
+			re [i] = fourierSamples [i + i - 2] * scaling;   // fourierSamples [2], [4], ...
+			im [i] = fourierSamples [i + i - 1] * scaling;   // fourierSamples [3], [5], ...
+		}
+		if ((numberOfFourierSamples & 1) != 0) {
+			if (numberOfFourierSamples > 1) {
+				re [numberOfFrequencies] = fourierSamples [numberOfFourierSamples - 1] * scaling;
+				im [numberOfFrequencies] = fourierSamples [numberOfFourierSamples] * scaling;
 			}
-			if ((frameIntoFrame -> numberOfFourierSamples & 1) != 0) {
-				if (frameIntoFrame -> numberOfFourierSamples > 1) {
-					re [numberOfFrequencies] = frameIntoFrame -> fourierSamples [frameIntoFrame -> numberOfFourierSamples - 1] * scaling;
-					im [numberOfFrequencies] = frameIntoFrame -> fourierSamples [frameIntoFrame -> numberOfFourierSamples] * scaling;
-				}
-			} else {
-				re [numberOfFrequencies] = frameIntoFrame -> fourierSamples [frameIntoFrame -> numberOfFourierSamples] * scaling;
-				im [numberOfFrequencies] = 0.0;
-			}
+		} else {
+			re [numberOfFrequencies] = fourierSamples [numberOfFourierSamples] * scaling;
+			im [numberOfFrequencies] = 0.0;
 		}
 
 		/*
@@ -214,30 +211,30 @@ static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogr
 			b. scaling
 		*/
 
-		for (integer i = 1 ; i <= frameIntoFrame -> numberOfFourierSamples; i ++)
-			frameIntoFrame -> fourierSamples [i] *= frameIntoFrame -> frameAsSound -> dx;
+		for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
+			fourierSamples [i] *= frameAsSound -> dx;
 
 		/*
 			step 2: log of the spectrum power values log (re * re + im * im)
 		*/
-		frameIntoFrame -> fourierSamples [1] = log (frameIntoFrame -> fourierSamples [1] * frameIntoFrame -> fourierSamples [1] + 1e-300);
-		for (integer i = 1; i < frameIntoFrame -> numberOfFourierSamples / 2; i ++) {
-			const double re = frameIntoFrame -> fourierSamples [2 * i], im = frameIntoFrame -> fourierSamples [2 * i + 1];
-			frameIntoFrame -> fourierSamples [2 * i] = log (re * re + im * im + 1e-300);
-			frameIntoFrame -> fourierSamples [2 * i + 1] = 0.0;
+		fourierSamples [1] = log (fourierSamples [1] * fourierSamples [1] + 1e-300);
+		for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
+			const double re = fourierSamples [2 * i], im = fourierSamples [2 * i + 1];
+			fourierSamples [2 * i] = log (re * re + im * im + 1e-300);
+			fourierSamples [2 * i + 1] = 0.0;
 		}
-		frameIntoFrame -> fourierSamples [frameIntoFrame -> numberOfFourierSamples] = log (frameIntoFrame -> fourierSamples [frameIntoFrame -> numberOfFourierSamples] * frameIntoFrame -> fourierSamples [frameIntoFrame -> numberOfFourierSamples] + 1e-300);
+		fourierSamples [numberOfFourierSamples] = log (fourierSamples [numberOfFourierSamples] * fourierSamples [numberOfFourierSamples] + 1e-300);
 		/*
 			Step 3: inverse fft of the log spectrum
 		*/
-		NUMfft_backward (frameIntoFrame -> fourierTable.get(), frameIntoFrame -> fourierSamples.get());
-		const double df = 1.0 / (frameIntoFrame -> frameAsSound -> dx * frameIntoFrame -> numberOfFourierSamples);
-		for (integer i = 1; i <= frameIntoFrame -> powerCepstrum -> nx; i ++) {
-			const double val = frameIntoFrame -> fourierSamples [i] * df;
-			frameIntoFrame -> powerCepstrum -> z [1] [i] = val * val;
+		NUMfft_backward (fourierTable.get(), fourierSamples.get());
+		const double df = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
+		for (integer i = 1; i <= powerCepstrum -> nx; i ++) {
+			const double val = fourierSamples [i] * df;
+			powerCepstrum -> z [1] [i] = val * val;
 		}
 
-		frameIntoFrame -> outputPowerCepstrogram -> z.column (iframe)  <<=  frameIntoFrame -> powerCepstrum -> z.row (1);
+		output -> z.column (iframe)  <<=  powerCepstrum -> z.row (1);
 	} MelderThread_ENDFOR
 }
 
