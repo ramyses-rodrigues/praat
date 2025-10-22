@@ -16,10 +16,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- djmw 20020625 GPL header
-*/
-
 #include "SampledAndSampled.h"
 #include "SoundFrames.h"
 #include "Sound_and_LPC.h"
@@ -119,11 +115,12 @@ void soundFrameIntoLPCFrame_auto (VEC soundFrame, LPC_Frame lpcFrame, VEC a, VEC
 void Sound_into_LPC_auto (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		integer info;
 		autoVEC a = raw_VEC (order + 1), r = raw_VEC (order + 1), rc = raw_VEC (order + 1);
 		autoSoundFrames soundFrames = SoundFrames_createWithSampled (me, outputLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+				kSound_windowShape::GAUSSIAN_2, true);
 	MelderThread_FOR (iframe) {
 		const LPC_Frame lpcFrame = & outputLPC -> d_frames [iframe];
 		VEC soundFrame = soundFrames -> getFrame (iframe);
@@ -232,10 +229,10 @@ end:
 void Sound_into_LPC_covar (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = Thing_new (SoundFrames);
-		soundFrames -> initWithSampled (me, outputLPC, effectiveAnalysisWidth, 
-				kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+		soundFrames -> initWithSampled (me, outputLPC, effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, true);
 		integer info;
 		autoVEC a = raw_VEC (order + 1);
 		autoVEC b = raw_VEC (order * (order + 1) / 2);
@@ -345,9 +342,10 @@ void soundFrameIntoLPCFrame_burg (VEC soundFrame, LPC_Frame lpcFrame, VEC b1, VE
 void Sound_into_LPC_burg (constSound me, mutableLPC outputLPC, double effectiveAnalysisWidth) {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
-		autoSoundFrames soundFrames = SoundFrames_createWithSampled (me, outputLPC, effectiveAnalysisWidth, 
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+		autoSoundFrames soundFrames = SoundFrames_createWithSampled (me, outputLPC, effectiveAnalysisWidth,
+			kSound_windowShape::GAUSSIAN_2, true);
 		integer info;
 		autoVEC aa = raw_VEC (order);
 		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
@@ -517,12 +515,12 @@ void Sound_into_LPC_marple (constSound me, mutableLPC outputLPC, double effectiv
 	double tol1, double tol2)
 {
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (me, outputLPC);
-
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		integer info;
 		autoSoundFrames soundFrames = SoundFrames_createWithSampled (me, outputLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+				kSound_windowShape::GAUSSIAN_2, true);
 		autoVEC c = raw_VEC (order + 1);
 		autoVEC d = raw_VEC (order + 1);
 		autoVEC r = raw_VEC (order + 1);
@@ -713,7 +711,7 @@ autoRobustLPCWorkspace RobustLPCWorkspace_create (constLPC inputLPC, constSound 
 	try {
 		autoRobustLPCWorkspace me = Thing_new (RobustLPCWorkspace);
 		my init (inputLPC, inputSound, outputLPC, effectiveAnalysisWidth, windowShape, 
-			k_stdev, itermax, tol, wantlocation);
+				k_stdev, itermax, tol, wantlocation);
 		my wantScale = true; // explicit
 		return me;
 	} catch (MelderError) {
@@ -735,12 +733,13 @@ void LPC_and_Sound_into_LPC_robust (constLPC inputLPC, constSound inputSound, mu
 	Sound_and_LPC_require_equalDomainsAndSamplingPeriods (inputSound, outputLPC);
 	SampledAndSampled_requireEqualDomainsAndSampling (inputLPC, outputLPC);
 	const integer thresholdNumberOfFramesPerThread = 40, order = outputLPC -> maxnCoefficients;
+
 	MelderThread_PARALLELIZE (outputLPC -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = SoundFrames_createWithSampled (inputSound, outputLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+				kSound_windowShape::GAUSSIAN_2, true);
 		integer info;
 		autoRobustLPCWorkspace ws = RobustLPCWorkspace_create (inputLPC, inputSound, outputLPC,
-			effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
+				effectiveAnalysisWidth, kSound_windowShape::GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
 	MelderThread_FOR (iframe) {
 		const LPC_Frame outputLPCFrame = & outputLPC -> d_frames [iframe];
 		const LPC_Frame inputLPCFrame  = & inputLPC  -> d_frames [iframe];
@@ -786,7 +785,7 @@ autoLPC Sound_to_LPC_robust (constSound me, int predictionOrder, double effectiv
 		autoLPC outputLPC;
 		Sound_to_LPC_common_e (me, predictionOrder, effectiveAnalysisWidth, dt, preEmphasisFrequency, emphasizedSound, outputLPC);
 		Sound_into_LPC_robust (emphasizedSound.get(), outputLPC.get(), effectiveAnalysisWidth, k_stdev,
-			itermax, tol, wantlocation);
+				itermax, tol, wantlocation);
 		return outputLPC;
 	} catch (MelderError) {
 		Melder_throw (me, U": no LPC (robust) created.");
