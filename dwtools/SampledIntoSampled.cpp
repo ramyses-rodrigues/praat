@@ -17,7 +17,6 @@
 */
 
 #include "SampledIntoSampled.h"
-#include "MelderThread.h"
 #include "Sound.h"
 #include "Sound_and_LPC.h"
 
