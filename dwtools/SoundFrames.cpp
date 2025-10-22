@@ -133,7 +133,7 @@ void structSoundFrames :: soundFrameIntoSpectrum () {
 	}
 }
 
-autoSoundFrames SoundFrames_create (constSound input, constSampled output, double effectiveAnalysisWidth,
+autoSoundFrames SoundFrames_createWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
 	kSound_windowShape windowShape, bool averageSoundChannelsFirst, bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
 {
 	try {
