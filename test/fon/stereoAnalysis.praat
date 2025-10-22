@@ -158,7 +158,7 @@ chan1.LPC = To LPC (burg)... 16 0.025 0.005 50.0
 
 select Sound chan2
 chan2.LPC = To LPC (burg)... 16 0.025 0.005 50.0
-if praatVersion >= 9999
+if praatVersion >= 6447
 	assert objectsAreIdentical (chan2.LPC, chan1.LPC)   ; when will this happen?
 else
 	assert not objectsAreIdentical (chan2.LPC, chan1.LPC)   ; bug since 2009
@@ -173,11 +173,15 @@ chan1.LPC = To LPC (autocorrelation)... 16 0.025 0.005 50.0
 
 select Sound chan2
 chan2.LPC = To LPC (autocorrelation)... 16 0.025 0.005 50.0
-if praatVersion >= 9999
+if praatVersion >= 6447
 	assert objectsAreIdentical (chan2.LPC, chan1.LPC)   ; when will this happen?
 else
 	assert not objectsAreIdentical (chan2.LPC, chan1.LPC)   ; bug since 2009
 endif
+
+select LPC chan1
+plus LPC chan2
+Remove
 
 #
 # CEPSTROGRAM ANALYSIS

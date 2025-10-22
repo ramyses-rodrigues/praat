@@ -16,7 +16,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <thread>
 #include "Sound_to_Formant_mt.h"
 #include "Sound_extensions.h"
 #include "SoundFrames.h"
