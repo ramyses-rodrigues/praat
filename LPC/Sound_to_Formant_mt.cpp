@@ -23,6 +23,7 @@
 #include "LPC_and_Formant.h"
 #include "SampledAndSampled.h"
 
+#if 0
 Thing_implement (SoundFrameIntoFormantFrame, SampledFrameIntoSampledFrame, 0);
 
 void structSoundFrameIntoFormantFrame :: initBasicSoundFrameIntoFormantFrame (constSound inputSound, mutableFormant outputFormant) {
@@ -53,6 +54,7 @@ autoSoundFrameIntoFormantFrame SoundFrameIntoFormantFrame_create (SoundFrameInto
 		Melder_throw (U"Cannot create SoundFrameIntoFormantFrame.");
 	}
 }
+#endif
 
 /*
 	Precondition:
@@ -111,7 +113,7 @@ void Sound_into_Formant_burg (constSound me, mutableLPC intermediateLPC, mutable
 	const double samplingPeriod = intermediateLPC -> samplingPeriod;
 	MelderThread_PARALLELIZE (outputFormant -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = SoundFrames_createWithSampled (me, intermediateLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
+				kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
 		integer info;
 		autoVEC aa = raw_VEC (order);
 		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
@@ -137,7 +139,7 @@ autoFormant Sound_to_Formant_burg_mt (constSound me, double dt, double numberOfF
 		autoFormant outputFormant;
 		autoLPC intermediateLPC;
 		Sound_to_Formant_common (me, dt, numberOfFormants, maximumFrequency, effectiveAnalysisWidth,
-			preEmphasisFrequency,safetyMargin, outputFormant, intermediateLPC, sound);
+				preEmphasisFrequency, safetyMargin, outputFormant, intermediateLPC, sound);
 		Sound_into_Formant_burg (me, intermediateLPC.get(), outputFormant.get(), effectiveAnalysisWidth, safetyMargin);
 		return outputFormant;
 	} catch (MelderError) {
@@ -145,7 +147,8 @@ autoFormant Sound_to_Formant_burg_mt (constSound me, double dt, double numberOfF
 	}
 }
 
-void Sound_and_LPC_into_Formant (constSound inputSound, constLPC inputLPC, mutableLPC intermediateLPC, 
+#if 0
+void Sound_and_LPC_into_Formant (constSound inputSound, constLPC inputLPC, mutableLPC intermediateLPC,
 	mutableFormant outputFormant, double effectiveAnalysisWidth, double safetyMargin, double k_stdev, 
 	integer itermax, double tol, double location, bool wantlocation) 
 {
@@ -157,10 +160,10 @@ void Sound_and_LPC_into_Formant (constSound inputSound, constLPC inputLPC, mutab
 	const double samplingPeriod = inputLPC -> samplingPeriod;
 	MelderThread_PARALLELIZE (outputFormant -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = SoundFrames_createWithSampled (inputSound, intermediateLPC, effectiveAnalysisWidth,
-			kSound_windowShape::GAUSSIAN_2, false, true, false, 0_integer);
+				kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
 		integer info;
 		autoRobustLPCWorkspace ws = RobustLPCWorkspace_create (inputLPC, inputSound, intermediateLPC,
-			effectiveAnalysisWidth, kSound_windowShape :: GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
+				effectiveAnalysisWidth, kSound_windowShape :: GAUSSIAN_2, k_stdev, itermax, tol, wantlocation);
 		autoVEC polynomialIntoRootsWorkspace = raw_VEC (order * order + order + order + 11 * order);		
 		autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
 		autoRoots roots = Roots_create (order);
@@ -172,7 +175,7 @@ void Sound_and_LPC_into_Formant (constSound inputSound, constLPC inputLPC, mutab
 
 		soundFrameAndLPCFrameIntoLPCFrame (soundFrame, inputLPCFrame, intermediateLPCFrame, ws.get(), info);
 		LPC_Frame_into_Formant_Frame (intermediateLPCFrame, formantFrame, samplingPeriod,
-			safetyMargin, p.get(), roots.get(), polynomialIntoRootsWorkspace.get());
+				safetyMargin, p.get(), roots.get(), polynomialIntoRootsWorkspace.get());
 	} MelderThread_ENDFOR
 }
 
@@ -186,12 +189,13 @@ autoFormant Sound_and_LPC_to_Formant (constSound inputSound, constLPC inputLPC, 
 			inputLPC -> maxnCoefficients, effectiveAnalysisWidth, safetyMargin);
 		autoLPC intermediateLPC = Data_copy (inputLPC);
 		Sound_and_LPC_into_Formant (inputSound, inputLPC, intermediateLPC.get(), outputFormant.get(),
-			effectiveAnalysisWidth, safetyMargin, k_stdev, itermax, tol, location, wantlocation);
+				effectiveAnalysisWidth, safetyMargin, k_stdev, itermax, tol, location, wantlocation);
 		return outputFormant;
 	} catch (MelderError) {
 		Melder_throw (U"Could not create Formant from Sound and LPC.");
 	}
 }
+#endif
 
 autoFormant Sound_to_Formant_robust_mt (constSound inputSound, double dt, double numberOfFormants, double maximumFrequency,
 	double effectiveAnalysisWidth, double preEmphasisFrequency, double safetyMargin, double k_stdev, integer itermax, double tol,
@@ -218,7 +222,7 @@ autoFormant Sound_to_Formant_robust (Sound me, double dt_in, double numberOfForm
 	double numberOfStandardDeviations, integer maximumNumberOfIterations, double tolerance,
 	double location, bool wantlocation)
 {
-	const double dt = dt_in > 0.0 ? dt_in : effectiveAnalysisWidth / 4.0;
+	const double dt = ( dt_in > 0.0 ? dt_in : effectiveAnalysisWidth / 4.0 );
 	const double nyquist = 0.5 / my dx;
 	const integer predictionOrder = Melder_ifloor (2 * numberOfFormants);
 	try {

@@ -115,7 +115,7 @@ void structSoundFrameIntoPowerCepstrogramFrame :: saveOutputFrame (integer ifram
 	outputPowerCepstrogram -> z.column (iframe)  <<=  powerCepstrum -> z.row (1); 
 }
 
-void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
+static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
 	SampledIntoSampled_assertEqualDomains (input, output);
 	autoSoundFrameIntoPowerCepstrogramFrame frameIntoFrame = Thing_new (SoundFrameIntoPowerCepstrogramFrame);
 	frameIntoFrame -> initBasicSoundFrameIntoPowerCepstrogramFrame (input, output, effectiveAnalysisWidth, windowShape);
@@ -124,7 +124,7 @@ void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram outp
 	SampledIntoSampled_mt (frameIntoFrame.get(), 40);
 }
 
-autoPowerCepstrogram Sound_to_PowerCepstrogram_new (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
+static autoPowerCepstrogram Sound_to_PowerCepstrogram_new (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
 	try {
 		const kSound_windowShape windowShape = kSound_windowShape::GAUSSIAN_2;
 		const double effectiveAnalysisWidth = 3.0 / pitchFloor; // minimum analysis window has 3 periods of lowest pitch
@@ -152,7 +152,7 @@ autoPowerCepstrogram Sound_to_PowerCepstrogram_new (Sound me, double pitchFloor,
 	}
 }
 
-autoPowerCepstrogram Sound_to_PowerCepstrogram_old (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
+static autoPowerCepstrogram Sound_to_PowerCepstrogram_old (Sound me, double pitchFloor, double dt, double maximumFrequency, double preEmphasisFrequency) {
 	try {
 		const double analysisWidth = 3.0 / pitchFloor; // minimum analysis window has 3 periods of lowest pitch
 		const double physicalAnalysisWidth = 2.0 * analysisWidth;
