@@ -1,6 +1,6 @@
 /* Sound_to_PowerCepstrogram.cpp
  *
- * Copyright (C) 2012-2025 David Weenink
+ * Copyright (C) 2012-2025 David Weenink, 2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,98 +22,7 @@
 #include "Sound_and_Spectrum.h"
 #include "Sound_extensions.h"
 #include "Sound_to_PowerCepstrogram.h"
-
-Thing_implement (SoundFrameIntoPowerCepstrogramFrame, SoundFrameIntoSampledFrame, 0);
-
-void structSoundFrameIntoPowerCepstrogramFrame :: initBasicSoundFrameIntoPowerCepstrogramFrame (constSound input,
-	mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape)
-{
-	our SoundFrameIntoPowerCepstrogramFrame_Parent :: initBasicSoundFrameIntoSampledFrame (input, output,
-			effectiveAnalysisWidth, windowShape);
-	our outputPowerCepstrogram = output;
-}
-	
-void structSoundFrameIntoPowerCepstrogramFrame :: copyBasic (constSampledFrameIntoSampledFrame other2) {
-	constSoundFrameIntoPowerCepstrogramFrame other = static_cast <constSoundFrameIntoPowerCepstrogramFrame> (other2);
-	our SoundFrameIntoPowerCepstrogramFrame_Parent :: copyBasic (other);
-	our outputPowerCepstrogram = other -> outputPowerCepstrogram;
-}
-
-void structSoundFrameIntoPowerCepstrogramFrame :: initHeap () {
-	our SoundFrameIntoPowerCepstrogramFrame_Parent :: initHeap ();
-	our powerCepstrum = PowerCepstrum_create (outputPowerCepstrogram -> ymax, outputPowerCepstrogram -> ny);
-}
-
-#if 0
-bool structSoundFrameIntoPowerCepstrogramFrame :: inputFrameToOutputFrame () {
-	/*
-		Step 1: spectrum of the sound frame
-	*/
-	fftData.part (1, soundFrameSize)  <<=  soundFrame;
-	if (numberOfFourierSamples > soundFrameSize)
-		fftData.part (soundFrameSize + 1, numberOfFourierSamples)  <<=  0.0;
-	NUMfft_forward (fourierTable.get(), fftData.get());
-	for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
-		fftData [i] *= sound -> dx;
-
-	/*
-		step 2: log of the spectrum power values log (re * re + im * im)
-	*/
-	fftData [1] = log (fftData [1] * fftData [1] + 1e-300);
-	for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
-		const double re = fftData [2 * i], im = fftData [2 * i + 1];
-		fftData [2 * i] = log (re * re + im * im + 1e-300);
-		fftData [2 * i + 1] = 0.0;
-	}
-	fftData [numberOfFourierSamples] = log (fftData [numberOfFourierSamples] * fftData [numberOfFourierSamples] + 1e-300);
-	/*
-		Step 3: inverse fft of the log spectrum
-	*/
-	NUMfft_backward (fourierTable.get(), fftData.get());
-	const double df = 1.0 / (sound -> dx * numberOfFourierSamples);
-	for (integer i = 1; i <= powercepstrum -> nx; i ++) {
-		const double val = fftData [i] * df;
-		powercepstrum -> z [1] [i] = val * val;
-	}
-	return true;
-}		
-#endif
-
-bool structSoundFrameIntoPowerCepstrogramFrame :: inputFrameIntoOutputFrame (integer currentFrame) {
-	/*
-		Step 1: spectrum of the sound frame
-		a. soundFrameToForwardFourierTransform ()
-		b. scaling
-	*/
-	
-	for (integer i = 1 ; i <= numberOfFourierSamples; i ++)
-		fourierSamples [i] *= frameAsSound -> dx;
-
-	/*
-		step 2: log of the spectrum power values log (re * re + im * im)
-	*/
-	fourierSamples [1] = log (fourierSamples [1] * fourierSamples [1] + 1e-300);
-	for (integer i = 1; i < numberOfFourierSamples / 2; i ++) {
-		const double re = fourierSamples [2 * i], im = fourierSamples [2 * i + 1];
-		fourierSamples [2 * i] = log (re * re + im * im + 1e-300);
-		fourierSamples [2 * i + 1] = 0.0;
-	}
-	fourierSamples [numberOfFourierSamples] = log (fourierSamples [numberOfFourierSamples] * fourierSamples [numberOfFourierSamples] + 1e-300);
-	/*
-		Step 3: inverse fft of the log spectrum
-	*/
-	NUMfft_backward (fourierTable.get(), fourierSamples.get());
-	const double df = 1.0 / (frameAsSound -> dx * numberOfFourierSamples);
-	for (integer i = 1; i <= powerCepstrum -> nx; i ++) {
-		const double val = fourierSamples [i] * df;
-		powerCepstrum -> z [1] [i] = val * val;
-	}
-	return true;
-}
-
-void structSoundFrameIntoPowerCepstrogramFrame :: saveOutputFrame (integer iframe) {
-	outputPowerCepstrogram -> z.column (iframe)  <<=  powerCepstrum -> z.row (1); 
-}
+#include "SoundFrameIntoSampledFrame.h"   // needed only for getPhysicalAnalysisWidth2; TODO: move that function into the right location
 
 static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogram output, double effectiveAnalysisWidth, kSound_windowShape windowShape) {
 	SampledIntoSampled_assertEqualDomains (input, output);
@@ -131,7 +40,6 @@ static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogr
 
 	MelderThread_PARALLELIZE (numberOfFrames, thresholdNumberOfFramesPerThread)
 		bool subtractFrameMean = true;   // TODO: check
-		bool wantSpectrum = true;
 		integer fftInterpolationFactor = 1;
 
 		autoPowerCepstrum powerCepstrum = PowerCepstrum_create (output -> ymax, output -> ny);
@@ -168,7 +76,7 @@ static void Sound_into_PowerCepstrogram (constSound input, mutablePowerCepstrogr
 			soundFrame [isample] = ( soundFrameBegin > 0 && soundFrameBegin <= input -> nx ? input -> z [1] [soundFrameBegin] : 0.0 );
 		if (subtractFrameMean)
 			centre_VEC_inout (soundFrame, nullptr);
-		const double soundFrameExtremum = NUMextremum_u (soundFrame);
+		//const double soundFrameExtremum = NUMextremum_u (soundFrame);   // not used
 		soundFrame  *=  windowFunction.get();
 
 		const integer numberOfChannels = frameAsSound -> ny;
