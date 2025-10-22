@@ -21,7 +21,7 @@
 Thing_implement (SoundFrames, Thing, 0);
 
 void structSoundFrames :: init (constSound input, double effectiveAnalysisWidth, double timeStep, 
-	kSound_windowShape windowShape, bool averageSoundChannelsFirst, bool subtractFrameMean, bool wantSpectrum, 
+	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum,
 	integer fftInterpolationFactor)
 {
 	our inputSound = input;
@@ -31,11 +31,11 @@ void structSoundFrames :: init (constSound input, double effectiveAnalysisWidth,
 	}
 	our dt = timeStep;
 	Sampled_shortTermAnalysis (inputSound, physicalAnalysisWidth, dt, & our numberOfFrames, & our t1);
-	initCommon (windowShape, averageSoundChannelsFirst, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
+	initCommon (windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 }
 	
 void structSoundFrames :: initWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
-	kSound_windowShape windowShape, bool averageSoundChannelsFirst, bool subtractFrameMean, bool wantSpectrum,
+	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum,
 	integer fftInterpolationFactor)
 {
 	Melder_require (input -> xmin == output -> xmin && input -> xmax == output -> xmax,
@@ -45,14 +45,13 @@ void structSoundFrames :: initWithSampled (constSound input, constSampled output
 	our numberOfFrames = output -> nx;
 	our dt = output -> dx;
 	our physicalAnalysisWidth = getPhysicalAnalysisWidth (effectiveAnalysisWidth, windowShape);	
-	initCommon (windowShape, subtractFrameMean, averageSoundChannelsFirst, wantSpectrum, fftInterpolationFactor);
+	initCommon (windowShape, subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 }
 
-void structSoundFrames :: initCommon (kSound_windowShape windowShape, bool averageSoundChannelsFirst,
+void structSoundFrames :: initCommon (kSound_windowShape windowShape,
 	bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
 {
 	our windowShape = windowShape;
-	our averageSoundChannelsFirst = averageSoundChannelsFirst;
 	our subtractFrameMean = subtractFrameMean;
 	our wantSpectrum = wantSpectrum;
 
@@ -80,14 +79,13 @@ void structSoundFrames :: initCommon (kSound_windowShape windowShape, bool avera
 
 VEC structSoundFrames :: getFrame (integer iframe) {
 	const double midTime = t1 + (iframe - 1) * dt;
-	integer soundFrameBegin = Sampled_xToNearestIndex (inputSound, midTime - 0.5 * physicalAnalysisWidth); // approximation
-	const integer lastChannel = ( averageSoundChannelsFirst ? inputSound -> ny : 1 );
+	integer soundFrameBegin = Sampled_xToNearestIndex (inputSound, midTime - 0.5 * physicalAnalysisWidth);   // approximation
 	for (integer isample = 1; isample <= soundFrame.size; isample ++, soundFrameBegin ++) {
 		double sample = 0.0;
 		if (soundFrameBegin > 0 && soundFrameBegin <= inputSound -> nx) {
-			for (integer ichannel = 1; ichannel <= lastChannel; ichannel ++)
+			for (integer ichannel = 1; ichannel <= inputSound -> ny; ichannel ++)
 				sample += inputSound -> z [ichannel] [soundFrameBegin];
-			sample /= lastChannel;
+			sample /= inputSound -> ny;
 		}
 		soundFrame [isample] = sample;
 	}
@@ -134,12 +132,12 @@ void structSoundFrames :: soundFrameIntoSpectrum () {
 }
 
 autoSoundFrames SoundFrames_createWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
-	kSound_windowShape windowShape, bool averageSoundChannelsFirst, bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
+	kSound_windowShape windowShape, bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
 {
 	try {
 		autoSoundFrames me = Thing_new (SoundFrames);
-		my initWithSampled (input, output, effectiveAnalysisWidth, windowShape, averageSoundChannelsFirst,
-			subtractFrameMean, wantSpectrum, fftInterpolationFactor);
+		my initWithSampled (input, output, effectiveAnalysisWidth, windowShape,
+				subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"SoundFrames (with Sampled) could not be created.");
@@ -148,13 +146,13 @@ autoSoundFrames SoundFrames_createWithSampled (constSound input, constSampled ou
 
 
 autoSoundFrames SoundFrames_create (constSound input, double effectiveAnalysisWidth,
-	double timeStep, kSound_windowShape windowShape, bool averageSoundChannelsFirst, 
+	double timeStep, kSound_windowShape windowShape,
 	bool subtractFrameMean, bool wantSpectrum, integer fftInterpolationFactor)
 {
 	try {
 		autoSoundFrames me = Thing_new (SoundFrames);
-		my init (input, effectiveAnalysisWidth, timeStep, windowShape, averageSoundChannelsFirst,
-			subtractFrameMean, wantSpectrum, fftInterpolationFactor);
+		my init (input, effectiveAnalysisWidth, timeStep, windowShape,
+				subtractFrameMean, wantSpectrum, fftInterpolationFactor);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"SoundFrames could not be created.");
