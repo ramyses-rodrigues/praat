@@ -18,10 +18,10 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "melder.h"
+//#include "melder.h"
 #include "NUMFourier.h"
 #include "Sound_extensions.h"
-#include "SampledFrameIntoSampledFrame.h"
+//#include "SampledFrameIntoSampledFrame.h"
 #include "Spectrum.h"
 
 inline integer getSoundFrameSize_odd (double approximatePhysicalAnalysisWidth, double samplingPeriod) {
@@ -57,30 +57,29 @@ Thing_define (SoundFrames, Thing) {
 	VEC soundFrame;							// row [1] of the frameAsSound
 	kSound_windowShape windowShape;			// Type: Rectangular, triangular, hamming, etc..
 	bool subtractFrameMean = true;			// if true, the frame mean will be subtracted before windowing
+	#if 0
 	bool wantSpectrum = false;				// the spectrum of the frameAsSound;
 	autoSpectrum spectrum;
 	integer fftInterpolationFactor = 1;		// 0 = DFT, 1 = FFT, 2, 4, 8 FFT with extra zero's
 	integer numberOfFourierSamples;
 	autoVEC fourierSamples;					// size = numberOfFourierSamples
 	autoNUMFourierTable fourierTable;		// of dimension numberOfFourierSamples;
+	#endif
 
 private:
 	
-	void initCommon (kSound_windowShape windowShape, bool subtractFrameMean, 
-		bool wantSpectrum, integer fftInterpolationFactor);
+	void initCommon (kSound_windowShape windowShape, bool subtractFrameMean);
 	
 public:
 	
 	void init (constSound input, double effectiveAnalysisWidth, double timeStep,
-		kSound_windowShape windowShape, bool subtractFrameMean,
-		bool wantSpectrum, integer fftInterpolationFactor);
+		kSound_windowShape windowShape, bool subtractFrameMean);
 	
 	/*
 		Initialise the object and use the sampling (x1, dx, nx) of the Sampled.
 	*/
 	void initWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
-		kSound_windowShape windowShape, bool subtractFrameMean,
-		bool wantSpectrum, integer fftInterpolationFactor);
+		kSound_windowShape windowShape, bool subtractFrameMean);
 	
 	VEC getFrame (integer iframe);
 
@@ -90,11 +89,9 @@ public:
 };
 
 autoSoundFrames SoundFrames_createWithSampled (constSound input, constSampled output, double effectiveAnalysisWidth,
-	kSound_windowShape windowShape, bool subtractFrameMean,
-	bool wantSpectrum, integer fftInterpolationFactor);
+	kSound_windowShape windowShape, bool subtractFrameMean);
 
 autoSoundFrames SoundFrames_create (constSound input, double effectiveAnalysisWidth, double timeStep,
-	kSound_windowShape windowShape, bool subtractFrameMean,
-	bool wantSpectrum, integer fftInterpolationFactor);
+	kSound_windowShape windowShape, bool subtractFrameMean);
 
 #endif /* _SoundFrames_h_ */

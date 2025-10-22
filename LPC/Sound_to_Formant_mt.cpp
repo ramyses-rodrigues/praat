@@ -111,14 +111,15 @@ void Sound_into_Formant_burg (constSound me, mutableLPC intermediateLPC, mutable
 	const integer order = intermediateLPC -> maxnCoefficients;
 	const integer thresholdNumberOfFramesPerThread = 40;
 	const double samplingPeriod = intermediateLPC -> samplingPeriod;
+
 	MelderThread_PARALLELIZE (outputFormant -> nx, thresholdNumberOfFramesPerThread)
 		autoSoundFrames soundFrames = SoundFrames_createWithSampled (me, intermediateLPC, effectiveAnalysisWidth,
-				kSound_windowShape::GAUSSIAN_2, true, false, 0_integer);
+				kSound_windowShape::GAUSSIAN_2, true);
 		integer info;
 		autoVEC aa = raw_VEC (order);
 		autoVEC b1 = raw_VEC (soundFrames -> soundFrameSize);
 		autoVEC b2 = raw_VEC (soundFrames -> soundFrameSize);
-		autoVEC polynomialIntoRootsWorkspace = raw_VEC (order * order + order + order + 11 * order);		
+		autoVEC polynomialIntoRootsWorkspace = raw_VEC (order * order + order + order + 11 * order);
 		autoPolynomial p = Polynomial_create (-1.0, 1.0, order);
 		autoRoots roots = Roots_create (order);
 	MelderThread_FOR (iframe) {
@@ -127,7 +128,7 @@ void Sound_into_Formant_burg (constSound me, mutableLPC intermediateLPC, mutable
 		soundFrameIntoLPCFrame_burg (soundFrame, lpcFrame, b1.get(), b2.get(), aa.get(), info);
 		Formant_Frame formantFrame = & outputFormant -> frames [iframe];
 		LPC_Frame_into_Formant_Frame (lpcFrame, formantFrame, samplingPeriod,
-			safetyMargin, p.get(), roots.get(), polynomialIntoRootsWorkspace.get());
+				safetyMargin, p.get(), roots.get(), polynomialIntoRootsWorkspace.get());
 	} MelderThread_ENDFOR
 }
 
