@@ -161,6 +161,8 @@ static autostring32 runAny_STR (
 		siStartInfo. dwFlags = STARTF_USESTDHANDLES;
 		if (collectStdout)
 			siStartInfo. hStdOutput = stdoutWritePipe;   // attach stdout write pipe to child process
+		else
+			siStartInfo. hStdOutput = GetStdHandle (STD_OUTPUT_HANDLE);   // TODO: make this work in the Windows console, not just in Cygwin and MSYS
 		siStartInfo. hStdError = stderrWritePipe;   // attach stderr write pipe to child process
 		PROCESS_INFORMATION piProcInfo;
 		memset (& piProcInfo, 0, sizeof (piProcInfo));
