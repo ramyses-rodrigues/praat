@@ -225,7 +225,10 @@ procedure readCheckCollectionFile ( )
 	assert objectsAreIdentical: textgrid, textgrid2
 	network2 = selected: "Network"
 	assert objectsAreIdentical: network, network2
-	removeObject: sound2, pitch2, formant2, pulses2, pitchTier2, manipulation2, matrix2, speaker2, grammar2, table2, tableOfReal2,
+	removeObject: sound2, pitch2, formant2,
+	... spectrogram2, cochleagram2, melSpectrogram2, barkSpectrogram2,
+	... pulses2, pitchTier2,
+	... manipulation2, matrix2, speaker2, grammar2, table2, tableOfReal2,
 	... ffnet2, pattern2, categories2, discriminant2, dtw2, textgrid2, network2
 endproc
 
@@ -244,7 +247,8 @@ appendInfoLine: "binary Collection"
 Save as binary file: "kanweg.Collection"
 @readCheckCollectionFile ( )
 
-removeObject: sound, pitch, formant, spectrogram, cochleagram, melSpectrogram, barkSpectrogram,
+removeObject: sound, pitch, formant,
+... spectrogram, cochleagram, melSpectrogram, barkSpectrogram,
 ... pulses, pitchTier,
 ... manipulation, matrix, speaker, grammar, table, tableOfReal,
 ... ffnet, pattern, categories, discriminant, dtw, textgrid, network
