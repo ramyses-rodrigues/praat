@@ -966,30 +966,27 @@ praat.h (no início deste CPP) - para ter acesso aos objetos do Praat carregados
 */
 #include "TextGrid.h"
 static void Save_TextGrid_to_Disk (TextGrid tg, MelderFile fileName) {
-	
-	customSaveFiletoDisk(U"Salvar TextGrid", Melder_cat(fileName, U".TextGrid"));
-	Data_writeToTextFile (tg, fileName);	
-	
-	// EDITOR_FORM_SAVE (U"Save whole TextGrid as text file", nullptr)
-	// 	Melder_sprint (defaultName, 300, tg -> name.get(), U".TextGrid");
-	// EDITOR_DO_SAVE
-	// 	Data_writeToTextFile (tg, file);
-	// EDITOR_END
+	static structMelderFile lastSavedDir {}; // mantém variável ativa após sair da função
+	customSaveFiletoDisk(U"Salvar TextGrid", fileName->path);
+	Melder_information(fileName);
+	Data_writeToTextFile (tg, fileName);		
 }
 
 static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
-	
+		
 	for (int iArea = 0; iArea < FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iArea ++ ) {					
 			FunctionArea area = static_cast <FunctionArea> (my functionAreas [iArea].get());
 			if (area) {
 				// tenta extrair dessa functionArea o objeto textGrid
 				TextGrid tg = static_cast <TextGrid> (area -> function());
 				if (tg)  {
-					MelderFile file {};
-					Melder_pathToFile (tg->name.get(), &file);   // atualiza file.path com o nome do tg da janela ativa
-
-					Save_TextGrid_to_Disk (tg, file);
+					structMelderFile file { };					
+					Melder_pathToFile (Melder_cat(tg->name.get(), U".TextGrid"), &file);   // atualiza file.path com o nome do tg da janela ativa
+					// Melder_information(Melder_cat(file.path)); 
+					Save_TextGrid_to_Disk (tg, &file);
 				}
+			}
+		}
 }
 
 
