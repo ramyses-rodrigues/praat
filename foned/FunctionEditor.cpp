@@ -918,43 +918,7 @@ static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS) {
 }
 
 
-// Ramyses: primeira parte do callback do botão SAVE: cria caixa de diálogo SaveFile
-autostring32 customSaveFiletoDisk(conststring32 title, conststring32 fullFileName) {
-
-	OPENFILENAME openFileName;
-	static WCHAR customFilter[100 + 2] = L"TextGrid files (*.textGrid)";
-	static WCHAR fullFileNameW[300 + 2];
-	autostring32 outfileName;
-
-	wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (fullFileName), 300 + 2);
-	
-	fullFileNameW[300 + 1] = L'\0';
-
-	openFileName.lStructSize = sizeof (OPENFILENAME);
-	openFileName.hwndOwner = nullptr;
-	openFileName.lpstrFilter = nullptr;   // like *.txt
-	openFileName.lpstrCustomFilter = customFilter;
-	openFileName.nMaxCustFilter = 100;
-	openFileName.lpstrFile = fullFileNameW;
-	openFileName.nMaxFile = 300;
-	openFileName.lpstrFileTitle = nullptr;
-	openFileName.lpstrInitialDir = nullptr;
-	openFileName.lpstrTitle = Melder_peek32toW_fileSystem (title);
-	openFileName.Flags = OFN_LONGNAMES | OFN_OVERWRITEPROMPT | OFN_EXPLORER |
-	                     OFN_HIDEREADONLY;
-	openFileName.lpstrDefExt = nullptr;
-	
-	
-	if (GetSaveFileName (&openFileName))
-		outfileName = Melder_Wto32 (fullFileNameW);
-	setlocale (LC_ALL, "C");
-
-	return outfileName;
-
-}
-
-
-// Ramyses: segunda parte do callback do botão SAVE: 
+// Ramyses: callback do botão SAVE: 
 /* 
 salva o conteúdo do objeto textGrid em um arquio de texto com extensão .textGrid
 headers necessários:
@@ -966,10 +930,18 @@ praat.h (no início deste CPP) - para ter acesso aos objetos do Praat carregados
 */
 #include "TextGrid.h"
 static void Save_TextGrid_to_Disk (TextGrid tg, MelderFile fileName) {
-	static structMelderFile lastSavedDir {}; // mantém variável ativa após sair da função
-	customSaveFiletoDisk(U"Salvar TextGrid", fileName->path);
-	Melder_information(fileName);
-	Data_writeToTextFile (tg, fileName);		
+	static structMelderFile lastSavedfile {}; // mantém variável ativa após sair da função
+	//lastSavedDir = MelderFolder_getParentFolder()
+
+	autostring32 outfile = GuiFileSelect_getOutfileName(nullptr, U"Salvar TextGrid", fileName->path); 
+	//customSaveFiletoDisk(U"Salvar TextGrid", fileName->path);
+	
+	if (! outfile)
+		return; // usuário cancelou a operação
+	
+	Melder_pathToFile (outfile.get(), &lastSavedfile);   // atualiza lastSavedfile
+	Melder_information(lastSavedfile.path);
+	// Data_writeToTextFile (tg, fileName);		
 }
 
 static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
@@ -980,7 +952,7 @@ static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 				// tenta extrair dessa functionArea o objeto textGrid
 				TextGrid tg = static_cast <TextGrid> (area -> function());
 				if (tg)  {
-					structMelderFile file { };					
+					structMelderFile file {};
 					Melder_pathToFile (Melder_cat(tg->name.get(), U".TextGrid"), &file);   // atualiza file.path com o nome do tg da janela ativa
 					// Melder_information(Melder_cat(file.path)); 
 					Save_TextGrid_to_Disk (tg, &file);

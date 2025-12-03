@@ -105,15 +105,6 @@ void * Melder_realloc (void *ptr, int64 size) {
 		Melder_throw (U"Can never allocate ", Melder_bigInteger (size), U" bytes.");
 	if (sizeof (size_t) < 8 && size > SIZE_MAX)
 		Melder_throw (U"Can never allocate ", Melder_bigInteger (size), U" bytes. Use a 64-bit edition of Praat instead?");
-	
-	/* Ramyses: Pesquisando solução para BUG nesse ponto... 
-	Em análise: Executar Praat como administrador parece que resolve...
-	No modo ADM, arrastar e soltar não funciona e o BUG não aparece. 
-	Se carregar os arquivos pelo menu Open->... o BUG parece não ocorrer?
-	*/
-	// if ( ptr != 0x0 && size > 1200) // debug
-	// 	Melder_warning (U"Size maior do que ", Melder_integer(size), U". Máximo tamanho permitido: ", Melder_bigInteger (SIZE_MAX));
-
 	void *result = nullptr;
 	result = realloc (ptr, (size_t) size);   // will not show in the statistics...
 	if (! result)
