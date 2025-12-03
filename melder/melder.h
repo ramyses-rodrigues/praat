@@ -2,11 +2,11 @@
 #define _melder_h_
 /* melder.h
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -33,6 +33,8 @@
 #include <new>   // placement new
 #include <algorithm>   // std::min
 #include <limits>   // std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()
+#include <mutex>
+#include <atomic>   // std::atomic<integer>
 
 /*
 	Law of Demeter for class functions defined outside class definition.
@@ -57,7 +59,7 @@
 #define stringize_helper(s)  #s
 
 #include "melder_assert.h"   // Melder_assert
-#include "melder_int.h"   // <stdint.h>, int64, integer_to_uinteger (requires Melder_assert)
+#include "melder_int.h"   // <stdint.h>, int64, integer_to_uinteger_a (requires Melder_assert)
 #include "melder_pointer.h"   // NULL
 #include "melder_real.h"   // longdouble, MelderPoint, MelderRealRange
 #include "NUMmath.h"   // <math.h>, NUMpi, undefined
@@ -82,6 +84,7 @@
 
 #include "MelderArg.h"   // MelderArg (requires Melder_double, MelderFile, Melder_VEC)
 #include "MelderString.h"   // MelderString_append (requires MelderArg)
+#include "MelderThread.h"   // Melder_thisThread_getUniqueID
 #include "melder_textencoding.h"   // Melder_length_utf8, Melder_32to8 (requires MelderString)
 #include "melder_debug.h"   // trace (requires MelderFile, MelderArg, MelderString), Melder_debug
 #include "MelderFile.h"   // MelderFile_open (requires MelderFile), MelderFile_write (requires MelderArg)

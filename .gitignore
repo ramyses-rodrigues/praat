@@ -12,6 +12,9 @@ DerivedData
 # OSX-specific files
 .DS_Store
 
+# Windows-specific files
+Thumbs.db
+
 # editor temporaries
 *.kate-swp
 *.orig
@@ -27,6 +30,7 @@ makefile.defs
 praat
 Praat
 Praat.exe
+Praat.app
 *.exe
 
 # files created by R scripts in the test folders

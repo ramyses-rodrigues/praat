@@ -1,10 +1,10 @@
 /* manual_functions.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -87,6 +87,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`chooseReadFile$` (%`title$`) – pops up a file selection window for opening (or appending to) an existing file
 , @`chooseWriteFile$` (%`title$`, %`defaultFilename$`) – pops up a file selection window for saving to a new file
 , @`clearinfo` – clear the Info window
+, @`clock` ( ) – typically the number of seconds since system start-up
 , @`col` – the columns number (of the current cell) in a Formula command
 , @`col$` [%`i`] – the name of column %i of an object
 , @`col#` (%`matrix##`, %`columnNumber`) - extract one column from a matrix
@@ -152,6 +153,8 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`fisherP` (%`f`, %`df1`, %`df2`) – area under the Fisher %F curve up to %`f`
 , @`fisherQ` (%`f`, %`df1`, %`df2`) – area under the Fisher %F curve after %`f`
 , @`fixed$` (%`number`, %`precision`) – format a number as a string, with %`precision` digits after the decimal point
+, @`fixed$` (%`vector#`, %`precision`) – format a vector as a string, with all elements expressed in %`precision` digits after the decimal point
+, @`fixed$` (%`matrix##`, %`precision`) – format a matrix as a string, with all cells expressed in %`precision` digits after the decimal point
 , @`floor` (%`x`) – round down to integer
 , @`floor#` (%`vector#`) – round down each element of %`vector#`
 , @`floor##` (%`matrix##`) – round down each cell of %`matrix##`
@@ -200,6 +203,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`log10` (%x) – logarithm, base 10
 , @`log10#` (%`vector#`) – base-10 logarithm of each element of %`vector#`
 , @`log10##` (%`matrix##`) – base-10 logarithm of each cell of %`matrix##`
+, @`lowerCase$` (%`string$`) – turns all capitals into lower case
 , @`lowerCaseAppName$` ( ) – the name of the app in lower snake case, e.g. `praat` or `praat_for_hospitals`
 , @`max` (%`x`, `...`) – maximum
 , @`mean` (%`v#`) – average of the elements of a vector
@@ -207,6 +211,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`mid$` (%`string$`, %`from`, %`n`) – the %`n` characters in %`string$` starting at position %`from`
 , @`min` (%`x`, `...`) – minimum
 , @`minusObject` (`...`) – shrink the selection of objects in the list
+, @`moveAndOrRenameFile` (%`fromFilePath$`, %`toFilePath$`) – move and/or rename a file (note: supply two paths)
 , @`mul##` (%`a##`, %`b##`) – matrix multiplication
 , @`ncol` – the number of columns of an object
 , @`nrow` – the number of rows of an object
@@ -367,6 +372,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`unicode` (%`c$`) – the Unicode codepoint number that corresponds to character %`c$`
 , @`unicode$` (%`n`) – the character that corresponds to Unicode codepoint %`n`
 , @`unicodeToBackslashTrigraphs$` (%`string$`) – convert e.g. \ct to \bsct
+, @`upperCase$` (%`string$`) – turns all lower-case characters into capitals
 , @`upperCaseAppName$` ( ) – the name of the app in upper camel case, e.g. `Praat` or `PraatForHospitals`
 , @`variableExists` (%`variableName$`) – does the variable %`variableName$` exist?
 , @`vertical$` (%`stringArray$#`) – format a string array vertically
@@ -1267,6 +1273,33 @@ Syntax and semantics
 : clear the @@Info window@.
 
 ################################################################################
+"`clock`"
+© Paul Boersma 2025
+
+A function that can be used in @@Formulas@.
+
+Syntax and semantics
+====================
+#`clock` ( )
+: the number of seconds since system start-up, with microsecond precision.
+
+Examples
+========
+{
+	t = \#{clock}()
+	for i to 1000
+	endfor
+	\`{appendInfoLine}: "Time elapsed: ", \#{clock}() - t, " seconds"
+}
+{
+	t = \#{clock}()
+	for i to 1000
+	endfor
+	timeElapsed = \#{clock}() - t
+	\`{appendInfoLine}: "Time elapsed: ", \`{fixed$} (1000 * timeElapsed, 3), " ms"
+}
+
+################################################################################
 "`col`"
 © Paul Boersma 2024
 
@@ -2094,7 +2127,7 @@ Syntax and semantics
 
 ################################################################################
 "`fileNames$#`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2025
 
 A function that can be used in @@Formulas@, especially in @Scripting.
 
@@ -2103,6 +2136,65 @@ Syntax and semantics
 #`fileNames$#` (%`folderNameOrPattern$`)
 : return the names (not the whole paths) of the files in a folder
 	or that match a file-name pattern with up to two asterisks.
+
+Behaviour
+=========
+The resulting string array will contain an alphabetical list of file names (by naïve Unicode-sorting),
+without the preceding path through the folder structures. If there are no files that match the file path,
+the string array will contain 0 strings.
+
+Usage
+=====
+There are two ways to specify the file path.
+
+One way is to specify a folder name only. On Unix, the file path could be
+`/usr/people/miep/sounds` or `/usr/people/miep/sounds/`, for instance. On Windows,
+`C:\Users\Miep\Sounds` or `C:\Users\Miep\Sounds\`.
+On Macintosh, `/Users/miep/Sounds` or `/Users/miep/Sounds/`. Any of these produce
+a list of all the files in the specified folder.
+
+The other way is to specify a wildcard (a single asterisk) for the file names.
+To get a list of all the files whose names start with “`hal`” and end in “`.wav`”,
+use `/usr/people/miep/sounds/hal*.wav`, `C:\Users\Miep\Sounds\hal*.wav`,
+or `/Users/miep/Sounds/hal*.wav`.
+
+You can even use %two wildcards: #`fileNames$#` (“/usr/people/miep/sounds/*al*.wav”)
+gives you a list of all files whose names contain “al” and end in “wav`.
+
+Usage
+=====
+In a script, you can use this command to cycle through the files in a folder.
+For instance, to read in all the sound files in a specified folder,
+you could use the following script:
+{;
+	folder$ = “/usr/people/miep/sounds”
+	list$# = \#`{fileNames$#}: folder$ + “/*.wav”
+	for ifile to \`{size} (list$#)
+		\@{Read from file:} folder$ + “/” + list$# [ifile]
+	endfor
+}
+If the script has been saved to a script file, you can use file paths that are relative to the folder
+where you saved the script. Thus, with
+{;
+	list$# = \#`{fileNames$#}: “*.wav”
+}
+you get a list of all the `.wav` files that are in the same folder as the script that contains this line.
+And to get a list of all the `.wav` files in the folder `Sounds` that resides in the same folder as your script,
+you can do
+{;
+	list$# = \#`{fileNames$#}: “Sounds/*.wav”
+}
+As is usual in Praat scripting, the forward slash (“/”) in this example can be used on all platforms, including Windows.
+This makes your script portable across platforms.
+
+Note that the above functionality can also be written four lines shorter, using built-in functions:
+{;
+	folder$ = “/usr/people/miep/sounds”
+	list$# = \#`{fileNames$#}: folder$ + “/*.wav”
+	for ifile to \`{size} (list$#)
+		\@{Read from file:} folder$ + “/” + list$# [ifile]
+	endfor
+}
 
 See also
 ========
@@ -2178,7 +2270,7 @@ Related functions
 
 ################################################################################
 "`fixed$`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2025
 
 A function that can be used in @@Formulas@.
 
@@ -2186,6 +2278,28 @@ Syntax and semantics
 ====================
 #`fixed$` (%`number`, %`precision`)
 : format a number as a string, with %`precision` digits after the decimal point.
+
+#`fixed$` (%`vector#`, %`precision`)
+: format a vector as a string, with all elements expressed in %`precision` digits after the decimal point.
+
+#`fixed$` (%`matrix##`, %`precision`)
+: format a matrix as a string, with all cells expressed in %`precision` digits after the decimal point.
+
+Examples
+========
+
+{
+	assert fixed$ (pi, 3) = "3.142"
+	assert fixed$ (-1, 3) = "-1.000"
+	assert fixed$ (1e6, 3) = "1000000.000"
+	assert fixed$ (0.01, 3) = "0.010"
+	assert fixed$ (0.001, 3) = "0.001"
+	assert fixed$ (0.0001, 3) = "0.0001"   ; never less than 1 significant digit!
+	
+	assert fixed$ ({ pi, -1, 1e6, 0.0001 }, 3) =
+	... "3.142" + newline$ + "-1.000" + newline$ +
+	... "1000000.000" + newline$ + "0.0001" + newline$
+}
 
 ################################################################################
 "`floor`"
@@ -2786,6 +2900,29 @@ Syntax and semantics
 : compute the base-10 logarithm (@`log10`) of each cell of the matrix %`m##`.
 
 ################################################################################
+"`lowerCase$`"
+© Paul Boersma 2025
+
+A function that can be used in @@Formulas@. It turns all capitals
+into lower-case characters.
+
+Syntax and semantics
+====================
+#`lowerCase$` (%`string$`)
+: give the lower-case version of %`string$`, whereby all upper-case letters
+  have been replaced with lower-case letters.
+
+Tests
+=====
+{
+	\`{assert} \#{lowerCase$} ("HOwAREYou") = "howareyou"
+	\`{assert} \#{lowerCase$} ("Maria Ressa") = "maria ressa"
+	\`{assert} \#{lowerCase$} ("GSL") = "gsl"
+	\`{assert} \#{lowerCase$} ("ÖAV") = "öav"
+	\`{assert} \#{lowerCase$} ("TOUCHÉ") = "touché"
+}
+
+################################################################################
 "`lowerCaseAppName$`"
 © Paul Boersma 2024
 
@@ -2884,6 +3021,38 @@ Syntax and semantics
 ====================
 #`minusObject` (`...`)
 : deselect the objects given by IDs and/or full names.
+
+################################################################################
+"`moveAndOrRenameFile`"
+© Paul Boersma 2025
+
+A function that can be used in @Scripting.
+
+Syntax and semantics
+====================
+#`moveAndOrRenameFile` (%`fromFilePath$`, %`toFilePath$`)
+: move and/or rename an existing file to a new location and/or name.
+
+Example: rename
+===============
+{;
+	\#{moveAndOrRenameFile} (“/Users/me/Desktop/hello.wav”,
+	... “/Users/me/Desktop/goodbye.wav”)
+}
+
+Example: move
+===============
+{;
+	\#{moveAndOrRenameFile} (“/Users/me/Desktop/hello.wav”,
+	... “/Users/me/sound files/hello.wav”)
+}
+
+Example: move and rename
+========================
+{;
+	\#{moveAndOrRenameFile} (“/Users/me/Desktop/hello.wav”,
+	... “/Users/me/sound files/goodbye.wav”)
+}
 
 ################################################################################
 "`mul##`"
@@ -3825,7 +3994,7 @@ Syntax and semantics
 
 ################################################################################
 "`random_initializeWithSeedUnsafelyButPredictably`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2025
 
 A function that can be used in @@Formulas@.
 
@@ -3833,6 +4002,8 @@ Syntax and semantics
 ====================
 #`random_initializeWithSeedUnsafelyButPredictably` (%`seed`)
 : produce (from now on) a reproducible sequence of random numbers.
+
+The effects of this function can be undone by @`random_initializeSafelyAndUnpredictably`.
 
 ################################################################################
 "`readFile`"
@@ -5145,6 +5316,29 @@ Syntax and semantics
 #`unicodeToBackslashTrigraphs$` (%`string$`)
 : convert from unicode characters to backslash trigraphs,
 e.g. from “\ct” to “\bsct”.
+
+################################################################################
+"`upperCase$`"
+© Paul Boersma 2025
+
+A function that can be used in @@Formulas@. It turns all lower-case characters
+into capitals.
+
+Syntax and semantics
+====================
+#`upperCase$` (%`string$`)
+: give the upper-case version of %`string$`, whereby all lower-case letters
+  have been replaced with upper-case letters.
+
+Tests
+=====
+{
+	\`{assert} \#{upperCase$} ("HOwAREYou") = "HOWAREYOU"
+	\`{assert} \#{upperCase$} ("Maria Ressa") = "MARIA RESSA"
+	\`{assert} \#{upperCase$} ("e.g.") = "E.G."
+	\`{assert} \#{upperCase$} ("öav") = "ÖAV"
+	\`{assert} \#{upperCase$} ("touché") = "TOUCHÉ"
+}
 
 ################################################################################
 "`upperCaseAppName$`"

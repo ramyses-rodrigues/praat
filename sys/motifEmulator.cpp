@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -125,10 +125,10 @@ static XtWorkProc theWorkProcs[10];
 static XtPointer theWorkProcClosures[10];
 
 static int theNumberOfTimeOuts;
-static XtTimerCallbackProc theTimeOutProcs[10];
-static XtPointer theTimeOutClosures[10];
-static clock_t theTimeOutStarts[10];
-static uinteger theTimeOutIntervals[10];
+static XtTimerCallbackProc theTimeOutProcs [10];
+static XtPointer theTimeOutClosures [10];
+static double theTimeOutStarts [10];
+static double theTimeOutIntervals [10];
 
 static void Native_move (GuiObject w, int dx, int dy);   // forward
 
@@ -565,9 +565,7 @@ static void _GuiNativizeWidget (GuiObject me) {
 			        theGui.instance, NULL);
 			SetWindowLongPtr (my window, GWLP_USERDATA, (LONG_PTR) me);
 		} break;
-		case xmDrawingAreaWidgetClass:
-			Melder_fatal (U"Should be implemented in GuiDrawingArea.");
-			break;
+		case xmDrawingAreaWidgetClass: Melder_crash (U"Should be implemented in GuiDrawingArea."); break;
 		case xmFormWidgetClass: {
 			/* Ramyses: adicionado estilo WS_EX_ACCEPTFILES para permitir aceitar arquivos arrastados*/
 			my window = CreateWindowEx (WS_EX_ACCEPTFILES,
@@ -585,9 +583,7 @@ static void _GuiNativizeWidget (GuiObject me) {
 			//TRACE
 			trace (U"Created window ", Melder_pointer (my window), U" for original RowColumn ", Melder_pointer (me));
 		} break;
-		case xmListWidgetClass:
-			Melder_fatal (U"Should be implemented in GuiList.");
-			break;
+		case xmListWidgetClass: Melder_crash (U"Should be implemented in GuiList."); break;
 		case xmMenuBarWidgetClass: {
 			if (!my shell->motiff.shell.isDialog &&
 			        my shell->nat.shell.menuBar == NULL &&
@@ -659,9 +655,7 @@ static void _GuiNativizeWidget (GuiObject me) {
 				my nat.menu.handle = CreatePopupMenu ();
 			}
 		} break;
-		case xmLabelWidgetClass:
-			Melder_fatal (U"Should be implemented in GuiLabel.");
-			break;
+		case xmLabelWidgetClass: Melder_crash (U"Should be implemented in GuiLabel."); break;
 		case xmCascadeButtonWidgetClass: {
 			if (my motiff.cascadeButton.inBar) {
 				my nat.entry.handle =
@@ -677,16 +671,9 @@ static void _GuiNativizeWidget (GuiObject me) {
 				SetWindowFont (my window, theWinGuiNormalLabelFont (), false);
 			}
 		} break;
-		case xmPushButtonWidgetClass:
-			Melder_fatal (U"Should be implemented in GuiButton.");
-			break;
-		case xmTextWidgetClass:
-			Melder_fatal (U"Should be implemented in GuiText.");
-			break;
-		case xmToggleButtonWidgetClass:
-			Melder_fatal (U"Should be implemented in GuiCheckButton and "
-			              U"GuiRadioButton.");
-			break;
+		case xmPushButtonWidgetClass: Melder_crash (U"Should be implemented in GuiButton."); break;
+		case xmTextWidgetClass: Melder_crash (U"Should be implemented in GuiText."); break;
+		case xmToggleButtonWidgetClass: Melder_crash (U"Should be implemented in GuiCheckButton and GuiRadioButton."); break;
 		case xmScaleWidgetClass: {
 			my window = CreateWindow (PROGRESS_CLASS,
 			        Melder_peek32toW (
@@ -1525,16 +1512,15 @@ void XtRemoveWorkProc (XtWorkProcId id) {
 	theNumberOfWorkProcs--;
 }
 
-XtIntervalId GuiAddTimeOut (
-        uinteger interval, XtTimerCallbackProc proc, XtPointer closure) {
+XtIntervalId GuiAddTimeOut (double interval, XtTimerCallbackProc proc, XtPointer closure) {
 	integer i = 1;
 	while (i < 10 && theTimeOutProcs[i]) i++;
 	Melder_assert (i < 10);
-	theTimeOutProcs[i] = proc;
-	theTimeOutStarts[i] = clock ();
-	theTimeOutIntervals[i] = (interval * (double) CLOCKS_PER_SEC) / 1000;
-	theTimeOutClosures[i] = closure;
-	theNumberOfTimeOuts++;
+	theTimeOutProcs [i] = proc;
+	theTimeOutStarts [i] = Melder_clock ();
+	theTimeOutIntervals [i] = interval;
+	theTimeOutClosures [i] = closure;
+	theNumberOfTimeOuts ++;
 	return i;
 }
 
@@ -2469,18 +2455,15 @@ static void processWorkProcsAndTimeOuts () {
 				if (theWorkProcs[i](theWorkProcClosures[i]))
 					XtRemoveWorkProc (i);
 	if (theNumberOfTimeOuts != 0) {
-		clock_t now = clock ();
-		for (integer i = 1; i < 10; i++)
-			if (theTimeOutProcs[i]) {
-				static volatile clock_t
-				        timeElapsed;   // careful: use 32-bit integers
-				                       // circularly; prevent optimization
-				timeElapsed = now - theTimeOutStarts[i];
-				if (timeElapsed > theTimeOutIntervals[i]) {
-					theTimeOutProcs[i](theTimeOutClosures[i], &i);
-					XtRemoveTimeOut (i);
-				}
+		const double now = Melder_clock ();
+		for (integer i = 1; i < 10; i ++) if (theTimeOutProcs [i]) {
+			static volatile double timeElapsed;
+			timeElapsed = now - theTimeOutStarts [i];
+			if (timeElapsed > theTimeOutIntervals [i]) {
+				theTimeOutProcs [i] (theTimeOutClosures [i], & i);
+				XtRemoveTimeOut (i);
 			}
+		}
 	}
 }
 
@@ -2492,32 +2475,55 @@ void GuiNextEvent (XEvent *xevent) {
 			processWorkProcsAndTimeOuts ();   // Handle chores during idle time.
 			xevent->message = 0;   // Hand null message to XtDispatchEvent.
 		}
-	} else
-		GetMessage (xevent, NULL, 0,
-		        0);   // be neighbour-friendly: do not hand null events
+	} else GetMessage (xevent, NULL, 0, 0);   // be neighbour-friendly: do not hand null events
+}
+
+static GuiObject _motif_findDrawingArea (GuiObject me) {
+	if (my widgetClass == xmDrawingAreaWidgetClass)
+		return me;
+	for (GuiObject sub = my firstChild; sub != NULL; sub = sub -> nextSibling)
+		if (! MEMBER (sub, Shell)) {   // only in same top window
+			GuiObject drawingArea = _motif_findDrawingArea (sub);
+			if (drawingArea)
+				return drawingArea;
+		}
+	return NULL;   // no DrawingArea found
 }
 
 static int win_shell_processKeyboardEquivalent (GuiObject me, int kar, int modifiers) {
-	for (int imenu = 1; imenu <= MAXIMUM_NUMBER_OF_MENUS; imenu++)
-		if (theMenus[imenu] && theMenus[imenu]->shell == me) {
-			for (GuiObject child = theMenus[imenu]->firstChild; child != NULL;
-			        child = child->nextSibling) {
-				if ((child->widgetClass == xmPushButtonWidgetClass ||
-				            child->widgetClass == xmToggleButtonWidgetClass) &&
-				        child->motiff.pushButton.acceleratorChar == kar &&
-				        child->motiff.pushButton.acceleratorModifiers ==
-				                modifiers) {
-					if (child->activateCallback && !child->insensitive) {
-						child->activateCallback (child, child->activateClosure, 0);
-						return 1;
-					} else if (child->widgetClass ==  xmToggleButtonWidgetClass) {
-						XmToggleButtonGadgetSetState (child, 1 - XmToggleButtonGadgetGetState (child), False);
-						_Gui_callCallbacks (child, &child->motiff.toggleButton.valueChangedCallbacks, 0);
-						return 1;
-					}
+	//TRACE
+	for (int imenu = 1; imenu <= MAXIMUM_NUMBER_OF_MENUS; imenu ++) if (theMenus [imenu] && theMenus [imenu] -> shell == me) {
+		for (GuiObject child = theMenus [imenu] -> firstChild; child != NULL; child = child -> nextSibling) {
+			if ((child -> widgetClass == xmPushButtonWidgetClass || child -> widgetClass == xmToggleButtonWidgetClass) &&
+					child -> motiff.pushButton.acceleratorChar == kar &&
+					child -> motiff.pushButton.acceleratorModifiers == modifiers) {
+				if (child -> activateCallback && ! child -> insensitive) {
+					child -> activateCallback (child, child -> activateClosure, 0);
+					return 1;
+				} else if (child -> widgetClass == xmToggleButtonWidgetClass) {
+					XmToggleButtonGadgetSetState (child, 1 - XmToggleButtonGadgetGetState (child), False);
+					_Gui_callCallbacks (child, & child -> motiff.toggleButton.valueChangedCallbacks, 0);
+					return 1;
 				}
 			}
 		}
+	}
+	if (me && my shell) {
+		GuiObject drawingArea = _motif_findDrawingArea (my shell);
+		if (drawingArea) {
+			trace (U"kar5 ", kar);
+			if ((modifiers & _motif_COMMAND_MASK) && kar >= 'A' && kar <= 'Z' && ! (modifiers & _motif_SHIFT_MASK))
+				kar += 'a' - 'A';
+			if (kar == VK_RETURN) kar = 10;
+			if (kar == VK_LEFT)   kar = 0x2190;
+			if (kar == VK_RIGHT)  kar = 0x2192;
+			if (kar == VK_UP)     kar = 0x2191;
+			if (kar == VK_DOWN)   kar = 0x2193;
+			if (kar == VK_OEM_7)  kar = '\'';
+			_GuiWinDrawingArea_handleKey (drawingArea, kar);   // TODO: event -> key?
+			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -2532,17 +2538,8 @@ static int win_processKeyboardEquivalent (GuiObject me, int kar, int modifiers) 
 	return 0;
 }
 
-static GuiObject _motif_findDrawingArea (GuiObject me) {
-	if (my widgetClass == xmDrawingAreaWidgetClass) return me;
-	for (GuiObject sub = my firstChild; sub != NULL; sub = sub->nextSibling)
-		if (!MEMBER (sub, Shell)) {   // only in same top window
-			GuiObject drawingArea = _motif_findDrawingArea (sub);
-			if (drawingArea) return drawingArea;
-		}
-	return NULL;   // no DrawingArea found
-}
-
 void XtDispatchEvent (XEvent *xevent) {
+	//TRACE
 	MSG *message = (MSG *) xevent;
 	if (message->message == 0)
 		return;   // null message from PeekMessage during work proc or time out.
@@ -2568,16 +2565,14 @@ void XtDispatchEvent (XEvent *xevent) {
 	 * a German keyboard, the backslash can be generated by Ctrl-Alt-ringel-s as
 	 * well); otherwise Alt keys give WM_SYSKEYDOWN messages.
 	 */
-	if (message->message == WM_KEYDOWN &&
-	                (GetKeyState (VK_CONTROL) < 0 ||
-	                        !(message->lParam & (1 << 29))) ||
-	        message->message == WM_SYSKEYDOWN && GetKeyState (VK_MENU) < 0 &&
-	                (message->lParam &
-	                        (1 << 29)) ||   // R&N 413: Alt key is pressed
-	        message->message == WM_SYSKEYDOWN && GetKeyState (VK_CONTROL) < 0) {
-		int kar = LOWORD (message->wParam);
-		GuiObject me =
-		        (GuiObject) GetWindowLongPtr (message->hwnd, GWLP_USERDATA);
+	if (message -> message == WM_KEYDOWN && (GetKeyState (VK_CONTROL) < 0 || ! (message -> lParam & (1<<29))) ||
+		message -> message == WM_SYSKEYDOWN && GetKeyState (VK_MENU) < 0
+			&& (message -> lParam & (1<<29)) ||   // R&N 413: Alt key is pressed
+		message -> message == WM_SYSKEYDOWN && GetKeyState (VK_CONTROL) < 0)
+	{
+		int kar = LOWORD (message -> wParam);
+		trace (U"kar1 ", kar);
+		GuiObject me = (GuiObject) GetWindowLongPtr (message -> hwnd, GWLP_USERDATA);
 		int modifiers = 0;
 		if (GetKeyState (VK_CONTROL) < 0) modifiers |= _motif_COMMAND_MASK;
 		if (GetKeyState (VK_MENU) < 0) modifiers |= _motif_OPTION_MASK;
@@ -2617,18 +2612,12 @@ void XtDispatchEvent (XEvent *xevent) {
 						                my shell->defaultButton))
 							return;
 					}
-				} else if (kar == VK_ESCAPE) {   // shortcut or cancel button
-					if (acc & 1 << GuiMenu_ESCAPE) {
-						win_processKeyboardEquivalent (
-						        my shell, GuiMenu_ESCAPE, modifiers);
-						return;
-					} else {
-						if (my shell->cancelButton &&
-						        _GuiWinButton_tryToHandleShortcutKey (
-						                my shell->cancelButton))
-							return;
+				} else if (kar == VK_ESCAPE) {   // shortcut or cancel button (and from 2024-04-06:) or text
+					if (acc & 1 << GuiMenu_ESCAPE) { win_processKeyboardEquivalent (my shell, GuiMenu_ESCAPE, modifiers); return; }
+					else {
+						if (my shell -> cancelButton && _GuiWinButton_tryToHandleShortcutKey (my shell -> cancelButton)) return;
 					}
-					return;
+					//return;   // this return has been here from before 2002; don't know why an Escape cannot be text (Demo wants it)
 				} else if (kar == VK_PRIOR) {   // shortcut or text
 					if (acc & 1 << GuiMenu_PAGE_UP) {
 						win_processKeyboardEquivalent (
@@ -2700,16 +2689,14 @@ void XtDispatchEvent (XEvent *xevent) {
 				            my shell, kar - VK_F1 + GuiMenu_F1, modifiers))
 					return;
 				/* Let windowProc handle Alt-F4 etc. */
-				/*
-				 * If the Command key is pressed with a printable character,
-				 * this is often a menu shortcut.
-				 */
-			} else if (modifiers & _motif_COMMAND_MASK) {
-				if (MEMBER (me, Text) && (kar == 'X' || kar == 'C' ||
-				                                 kar == 'V' || kar == 'Z')) {
+			/*
+			 * If the Command key is pressed with a printable character, this is often a menu shortcut.
+			 */
+			} else if ((modifiers & _motif_COMMAND_MASK) && ! (modifiers & _motif_OPTION_MASK)) {
+				if (MEMBER (me, Text) && (kar == 'X' || kar == 'C' || kar == 'V' || kar == 'Z')) {
 					;   // let window proc handle text editing
 				} else if (kar >= 186) {
-					int shift = modifiers & _motif_SHIFT_MASK;
+					const int shift = modifiers & _motif_SHIFT_MASK;
 					/*
 					 * BUG: The following is not internationally correct.
 					 */
@@ -2750,11 +2737,9 @@ void XtDispatchEvent (XEvent *xevent) {
 						return;
 					}
 				} else {
-					if (win_processKeyboardEquivalent (
-					            my shell, kar, modifiers))
-						return;   // handle shortcuts like Ctrl-T and Ctrl-Alt-T
-					/* Let window proc handle international Alt-GR (= Ctrl-Alt)
-					 * sequences, which are plain characters. */
+					if (win_processKeyboardEquivalent (my shell, kar, modifiers))
+						return;   // handle shortcuts like Ctrl-T (but not Ctrl-Alt-T, because of Alt_GR on some keyboards)
+					/* Let window proc handle international Alt-GR (= Ctrl-Alt) sequences, which are plain characters. */
 				}
 			}
 			/* Other characters: to text. */
@@ -2771,8 +2756,14 @@ void XtDispatchEvent (XEvent *xevent) {
 		if (me && MEMBER2 (me, PushButton, ToggleButton)) {
 			GuiObject drawingArea = _motif_findDrawingArea (my shell);
 			if (drawingArea) {
-				_GuiWinDrawingArea_handleKey (
-				        drawingArea, kar);   // TODO: event -> key?
+				trace (U"kar2 ", kar);
+				if (kar == VK_RETURN) kar = 10;
+				if (kar == VK_LEFT)   kar = 0x2190;
+				if (kar == VK_RIGHT)  kar = 0x2192;
+				if (kar == VK_UP)     kar = 0x2191;
+				if (kar == VK_DOWN)   kar = 0x2193;
+				if (kar == VK_OEM_7)  kar = '\'';
+				_GuiWinDrawingArea_handleKey (drawingArea, kar);   // TODO: event -> key?
 				return;
 			}
 		}
@@ -3122,6 +3113,8 @@ static void on_size (HWND window, UINT state, int cx, int cy) {
 		FORWARD_WM_SIZE (window, state, cx, cy, DefWindowProc);
 }
 static void on_key (HWND window, UINT key, BOOL down, int repeat, UINT flags) {
+	//TRACE
+	trace (U"KEY ", key);
 	Melder_assert (down == true);
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me && key >= VK_LEFT && key <= VK_DOWN) {
@@ -3133,8 +3126,14 @@ static void on_key (HWND window, UINT key, BOOL down, int repeat, UINT flags) {
 			                                          // mirrored in `on_char`
 			GuiObject drawingArea = _motif_findDrawingArea (me);
 			if (drawingArea) {
-				GuiObject textFocus =
-				        drawingArea->shell->textFocus;   // BUG: ignore?
+				GuiObject textFocus = drawingArea -> shell -> textFocus;   // BUG: ignore?
+				trace (U"kar3 ", key);
+				if (key == VK_RETURN) key = 10;
+				if (key == VK_LEFT)   key = 0x2190;
+				if (key == VK_RIGHT)  key = 0x2192;
+				if (key == VK_UP)     key = 0x2191;
+				if (key == VK_DOWN)   key = 0x2193;
+				if (key == VK_OEM_7)  key = '\'';
 				_GuiWinDrawingArea_handleKey (drawingArea, key);
 			} else {
 				FORWARD_WM_KEYDOWN (window, key, repeat, flags, DefWindowProc);
@@ -3146,6 +3145,7 @@ static void on_key (HWND window, UINT key, BOOL down, int repeat, UINT flags) {
 	}
 }
 static void on_char (HWND window, TCHAR kar, int repeat) {
+	//TRACE
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
 		if (MEMBER (me, Shell) ||
@@ -3155,8 +3155,8 @@ static void on_char (HWND window, TCHAR kar, int repeat) {
 			                                          // mirrored in `on_key`
 			GuiObject drawingArea = _motif_findDrawingArea (me);
 			if (drawingArea) {
-				GuiObject textFocus =
-				        drawingArea->shell->textFocus;   // BUG: ignore?
+				GuiObject textFocus = drawingArea -> shell -> textFocus;   // BUG: ignore?
+				trace (U"kar4 ", kar);
 				_GuiWinDrawingArea_handleKey (drawingArea, kar);
 			} else {
 				FORWARD_WM_CHAR (window, kar, repeat, DefWindowProc);
@@ -3364,14 +3364,13 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
-
-		// Ramyses: manupular arrastar e soltar arquivos
-		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);
-		case WM_APP: {
+		case WM_USER:   // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
+		case WM_APP:
+		{
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
 			SetForegroundWindow (window);*/
 			//TRACE
-			trace (U"app message ", WM_APP);
+			trace (U"app message ", message);
 			return theUserMessageCallback ? theUserMessageCallback () : 1;
 		}
 		default: return DefWindowProc (window, message, wParam, lParam);

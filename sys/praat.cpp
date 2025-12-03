@@ -1,10 +1,10 @@
 /* praat.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -190,7 +190,7 @@ integer praat_numberOfSelected (ClassInfo klas) {
 		return theCurrentPraatObjects -> totalSelection;
 	integer readableClassId = klas -> sequentialUniqueIdOfReadableClass;
 	if (readableClassId == 0)
-		Melder_fatal (U"No sequential unique ID for class ", klas -> className, U".");
+		Melder_crash (U"No sequential unique ID for class ", klas -> className, U" (numberOfSelected).");
 	return theCurrentPraatObjects -> numberOfSelected [readableClassId];
 }
 
@@ -224,7 +224,7 @@ void praat_select (integer IOBJECT) {
 	Melder_assert (object);
 	integer readableClassId = object -> classInfo -> sequentialUniqueIdOfReadableClass;
 	if (readableClassId == 0)
-		Melder_fatal (U"No sequential unique ID for class ", object -> classInfo -> className, U".");
+		Melder_crash (U"No sequential unique ID for class ", object -> classInfo -> className, U" (selectObject).");
 	theCurrentPraatObjects -> numberOfSelected [readableClassId] += 1;
 	if (! theCurrentPraatApplication -> batch && ! Melder_backgrounding)
 		GuiList_selectItem (praatList_objects, IOBJECT);
@@ -398,12 +398,12 @@ void praat_newWithFile (autoDaata me, MelderFile file, conststring32 myName) {
 	integer IOBJECT = ++ theCurrentPraatObjects -> n;
 	Melder_assert (FULL_NAME == nullptr);
 	theCurrentPraatObjects -> list [IOBJECT]. name = Melder_dup_f (name.string);   // all right to crash if out of memory
-	++ theCurrentPraatObjects -> uniqueId;
+	++ theCurrentPraatObjects -> sequentialUniqueIdOfLatestObjectInList;
 
 	if (! theCurrentPraatApplication -> batch)   // put a new object on the screen, at the bottom of the list
 		GuiList_insertItem (
 			praatList_objects,
-			Melder_cat (theCurrentPraatObjects -> uniqueId, U". ", name.string),
+			Melder_cat (theCurrentPraatObjects -> sequentialUniqueIdOfLatestObjectInList, U". ", name.string),
 			theCurrentPraatObjects -> n
 		);
 	CLASS = my classInfo;
@@ -415,7 +415,7 @@ void praat_newWithFile (autoDaata me, MelderFile file, conststring32 myName) {
 		MelderFile_copy (file, & theCurrentPraatObjects -> list [IOBJECT]. file);
 	else
 		MelderFile_setToNull (& theCurrentPraatObjects -> list [IOBJECT]. file);
-	ID = theCurrentPraatObjects -> uniqueId;
+	ID = theCurrentPraatObjects -> sequentialUniqueIdOfLatestObjectInList;
 	theCurrentPraatObjects -> list [IOBJECT]. isBeingCreated = true;
 	Thing_setName (OBJECT, givenName.string);
 	theCurrentPraatObjects -> totalBeingCreated ++;
@@ -860,19 +860,22 @@ static int publishProc (autoDaata me) {
 /***** QUIT *****/
 
 FORM (DO_Quit, U"Confirm Quit", U"Quit") {
-	MUTABLE_COMMENT (label, U"You have objects in your list!")
+	MUTABLE_COMMENT (label1, U"You have objects in your list!")
+	MUTABLE_COMMENT (label2, U"Do you still want to quit?")
 	OK
 {
-	char32 prompt [300];
-	if (ScriptEditors_dirty () || NotebookEditors_dirty ()) {
-		if (theCurrentPraatObjects -> n)
-			Melder_sprint (prompt,300, U"You have objects and unsaved scripts or notebooks! Do you still want to quit ", Melder_upperCaseAppName(), U"?");
+	const bool youHaveObjectsInYourList = ( theCurrentPraatObjects -> n > 0 );
+	const bool youHaveUnsavedScriptsOrNotebooks = ( ScriptEditors_dirty () || NotebookEditors_dirty () );
+	if (youHaveObjectsInYourList || youHaveUnsavedScriptsOrNotebooks) {
+		if (youHaveObjectsInYourList && youHaveUnsavedScriptsOrNotebooks)
+			SET_STRING (label1, U"You have objects in your list, and unsaved scripts or notebooks!")
+		else if (youHaveUnsavedScriptsOrNotebooks)
+			SET_STRING (label1, U"You have unsaved scripts or notebooks!")
 		else
-			Melder_sprint (prompt,300, U"You have unsaved scripts or notebooks! Do you still want to quit ", Melder_upperCaseAppName(), U"?");
-		SET_STRING (label, prompt)
-	} else if (theCurrentPraatObjects -> n) {
-		Melder_sprint (prompt,300, U"You have objects in your list! Do you still want to quit ", Melder_upperCaseAppName(), U"?");
-		SET_STRING (label, prompt)
+			SET_STRING (label1, U"You have objects in your list!")
+		char32 prompt [200];
+		Melder_sprint (prompt,200, U"Do you still want to quit ", Melder_upperCaseAppName(), U"?");
+		SET_STRING (label2, prompt)
 	} else {
 		praat_exit (0);
 	}
@@ -1113,6 +1116,9 @@ static void printHelp () {
 	MelderInfo_writeLine (U"   To run a Praat script in a new GUI instance of Praat:");
 	MelderInfo_writeLine (U"      praat --new-send [OPTION]... SCRIPT-FILE-NAME [SCRIPT-ARGUMENT]...");
 	MelderInfo_writeLine (U"");
+	MelderInfo_writeLine (U"   As --send, but potentially presenting a form to query for arguments:");
+	MelderInfo_writeLine (U"      praat --send-or-form [OPTION]... SCRIPT-FILE-NAME");
+	MelderInfo_writeLine (U"");
 	MelderInfo_writeLine (U"   To start up Praat in an interactive command line session:");
 	MelderInfo_writeLine (U"      praat [OPTION]... -");
 	MelderInfo_writeLine (U"");
@@ -1125,7 +1131,7 @@ static void printHelp () {
 	MelderInfo_writeLine (U"Options:");
 	MelderInfo_writeLine (U"  --no-pref-files  don't read or write the preferences file and the buttons file");
 	MelderInfo_writeLine (U"  --no-plugins     don't activate the plugins");
-	MelderInfo_writeLine (U"  --pref-dir=DIR   set the preferences directory to DIR");
+	MelderInfo_writeLine (U"  --pref-dir=DIR   set the preferences folder to DIR");
 	MelderInfo_writeLine (U"  -u, --utf16      use UTF-16LE output encoding, no BOM (the default on Windows)");
 	MelderInfo_writeLine (U"  -8, --utf8       use UTF-8 output encoding (the default on MacOS and Linux)");
 	MelderInfo_writeLine (U"  -a, --ansi       use ISO Latin-1 output encoding (lossy, hence not recommended)");
@@ -1138,7 +1144,7 @@ static void printHelp () {
 	static void *theWinApplicationWindow;
 #endif
 
-static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSendOption) {
+static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSendOption, bool foundTheSendOrFormOption) {
 	/*
 		This function returns true only if we can be certain that we have sent
 		the command line to an already running invocation of Praat that is not identical to ourselves
@@ -1169,7 +1175,7 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 		trace (U"Current bundle identifier: ", Melder_peek8to32 ([currentBundleIdentifier UTF8String]));
 		NSArray<NSRunningApplication *> *list = [NSRunningApplication runningApplicationsWithBundleIdentifier: currentBundleIdentifier];
 		NSRunningApplication *runningPraat = nullptr;
-		const integer numberOfPraats = uinteger_to_integer ([list count]);
+		const integer numberOfPraats = uinteger_to_integer_a ([list count]);
 		for (integer ipraat = 1; ipraat <= numberOfPraats; ipraat ++) {
 			NSRunningApplication *praat = [list objectAtIndex: ipraat-1];
 			pid_t pidOfPraat = [praat processIdentifier];
@@ -1248,7 +1254,7 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 			TODO: bring Praat to the foreground on GTK.
 		*/
 	#endif
-	if (! foundTheOpenOption && ! foundTheSendOption)
+	if (! foundTheOpenOption && ! foundTheSendOption && ! foundTheSendOrFormOption)
 		return true;
 	/*
 		Send something to the running Praat, and bail out.
@@ -1278,8 +1284,27 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 		Melder_relativePathToFile (theCurrentPraatApplication -> batchName.string, & scriptFile);
 		conststring32 absolutePath = MelderFile_peekPath (& scriptFile);
 		MelderString_append (& text32, quote_doubleSTR (absolutePath).get());
+		//TRACE
+		trace (U"--send ", absolutePath);
 		for (integer iarg = praatP.argumentNumber; iarg < praatP.argc; iarg ++)   // do not change praatP.argumentNumber itself (we might return false)
 			MelderString_append (& text32, U", ", quote_doubleSTR (Melder_peek8to32 (praatP.argv [iarg])).get());
+	} else if (foundTheSendOrFormOption) {
+		/*
+			praat --send-or-form [OPTION]... SCRIPT-FILE-NAME
+		*/
+		MelderString_append (& text32, U"setWorkingDirectory: ");
+		structMelderFolder currentFolder { };
+		Melder_getCurrentFolder (& currentFolder);
+		MelderString_append (& text32, quote_doubleSTR (MelderFolder_peekPath (& currentFolder)).get());
+		MelderString_append (& text32, U"\nrunScriptWithForm: ");
+		structMelderFile scriptFile { };
+		Melder_relativePathToFile (theCurrentPraatApplication -> batchName.string, & scriptFile);
+		conststring32 absolutePath = MelderFile_peekPath (& scriptFile);
+		MelderString_append (& text32, quote_doubleSTR (absolutePath).get());
+		//TRACE
+		trace (U"--send-or-form ", absolutePath);
+		Melder_require (praatP.argc - praatP.argumentNumber == 0,
+				U"The --send-or-form switch should be followed by precisely one argument, namely the name of the script file.");
 	}
 	autostring8 text8 = Melder_32to8 (text32.string);
 	#if defined (macintosh)
@@ -1362,7 +1387,7 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 				return false;   // event not sent correctly
 			return true;   // we did send an event to a running non-identical Praat successfully
 		} else {
-			Melder_fatal (U"Unknown Apple Event version.");
+			Melder_crash (U"Unknown Apple Event version.");
 		}
 	#elif defined (UNIX)
 		autofile f;
@@ -1440,6 +1465,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 			praatP.foundTheNewSwitch = true;
 			praatP.foundTheSendSwitch = true;
 			praatP.argumentNumber += 1;
+		} else if (strequ (argv [praatP.argumentNumber], "--send-or-form")) {
+			praatP.foundTheSendOrFormSwitch = true;
+			praatP.argumentNumber += 1;
+		} else if (strequ (argv [praatP.argumentNumber], "--new-send-or-form")) {
+			praatP.foundTheNewSwitch = true;
+			praatP.foundTheSendOrFormSwitch = true;
+			praatP.argumentNumber += 1;
 		} else if (strequ (argv [praatP.argumentNumber], "--no-pref-files")) {
 			praatP.ignorePreferenceFiles = true;
 			praatP.argumentNumber += 1;
@@ -1504,9 +1536,9 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		}
 	}
 	const bool thereIsAFileNameInTheArgumentList = ( praatP.argumentNumber < argc );
-	trace (U"Start-up flags: cornsf = ",
+	trace (U"Start-up flags: cornsff = ",
 		weWereStartedFromTheCommandLine, praatP.foundTheOpenSwitch, praatP.foundTheRunSwitch,
-		praatP.foundTheNewSwitch, praatP.foundTheSendSwitch, thereIsAFileNameInTheArgumentList
+		praatP.foundTheNewSwitch, praatP.foundTheSendSwitch, praatP.foundTheSendOrFormSwitch, thereIsAFileNameInTheArgumentList
 	);
 	if (praatP.foundTheRunSwitch && praatP.foundTheOpenSwitch) {
 		MelderInfo_open ();
@@ -1522,9 +1554,30 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		MelderInfo_close ();
 		exit (-1);
 	}
+	if (praatP.foundTheRunSwitch && praatP.foundTheSendOrFormSwitch) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"Conflicting command line switches --run and --send-or-form (or --new-send-or-form).", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
 	if (praatP.foundTheOpenSwitch && praatP.foundTheSendSwitch) {
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"Conflicting command line switches --open (or --new-open) and --send (or --new-send).", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
+	if (praatP.foundTheOpenSwitch && praatP.foundTheSendOrFormSwitch) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"Conflicting command line switches --open (or --new-open) and --send-or-form (or --new-send-or-form).", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
+	if (praatP.foundTheSendSwitch && praatP.foundTheSendOrFormSwitch) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"Conflicting command line switches --send (or --new-send) and --send-or-form (or --new-send-or-form).", U"\n");
 		printHelp ();
 		MelderInfo_close ();
 		exit (-1);
@@ -1543,6 +1596,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		MelderInfo_close ();
 		exit (-1);
 	}
+	if (praatP.foundTheSendOrFormSwitch && ! thereIsAFileNameInTheArgumentList) {
+		MelderInfo_open ();
+		MelderInfo_writeLine (U"The switch --send-or-form requires a script file name.", U"\n");
+		printHelp ();
+		MelderInfo_close ();
+		exit (-1);
+	}
 	if (praatP.foundTheOpenSwitch && ! thereIsAFileNameInTheArgumentList) {
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"The switch --open requires at least one file name.", U"\n");
@@ -1553,12 +1613,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 	Melder_batch =
 		! praatP.foundTheOpenSwitch &&
 		! praatP.foundTheSendSwitch &&
+		! praatP.foundTheSendOrFormSwitch &&
 		(praatP.foundTheRunSwitch || thereIsAFileNameInTheArgumentList && weWereStartedFromTheCommandLine)   // this line to be removed
 	;
 	bool userWantsGui = ! Melder_batch;
 	praatP.fileNamesCameInByDropping =
 		userWantsGui &&
-		! praatP.foundTheRunSwitch && ! praatP.foundTheOpenSwitch && ! praatP.foundTheSendSwitch &&
+		! praatP.foundTheRunSwitch && ! praatP.foundTheOpenSwitch && ! praatP.foundTheSendSwitch && ! praatP.foundTheSendOrFormSwitch &&
 		thereIsAFileNameInTheArgumentList
 	;   // doesn't happen on the Mac
 	trace (U"Did file names come in by dropping? ", praatP.fileNamesCameInByDropping);
@@ -1566,11 +1627,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 	trace (U"User wants to open: ", praatP.userWantsToOpen);
 	praatP.userWantsToSend = userWantsGui && praatP.foundTheSendSwitch;
 	trace (U"User wants to send: ", praatP.userWantsToSend);
-	praatP.userWantsExistingInstance = (praatP.userWantsToOpen || praatP.userWantsToSend) && ! praatP.foundTheNewSwitch
+	praatP.userWantsToSendOrForm = userWantsGui && praatP.foundTheSendOrFormSwitch;
+	trace (U"User wants to send-or-form: ", praatP.userWantsToSendOrForm);
+	praatP.userWantsExistingInstance = (praatP.userWantsToOpen || praatP.userWantsToSend || praatP.userWantsToSendOrForm) && ! praatP.foundTheNewSwitch
 		|| (userWantsGui && ! weWereStartedFromTheCommandLine);
 	trace (U"User wants existing instance: ", praatP.userWantsExistingInstance);
 
-	if (Melder_batch || praatP.userWantsToSend) {
+	if (Melder_batch || praatP.userWantsToSend || praatP.userWantsToSendOrForm) {
 		Melder_assert (praatP.argumentNumber < argc);
 		/*
 			We now get the script file name. It is next on the command line
@@ -1604,6 +1667,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		if (praatP.foundTheSendSwitch) {
 			MelderInfo_open ();
 			MelderInfo_writeLine (U"The switch --send (or --new-send) is not compatible with running a stand-alone script.", U"\n");
+			printHelp ();
+			MelderInfo_close ();
+			exit (-1);
+		}
+		if (praatP.foundTheSendOrFormSwitch) {
+			MelderInfo_open ();
+			MelderInfo_writeLine (U"The switch --send-or-form (or --new-send-or-form) is not compatible with running a stand-alone script.", U"\n");
 			printHelp ();
 			MelderInfo_close ();
 			exit (-1);
@@ -1643,6 +1713,13 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 		if (praatP.foundTheSendSwitch) {
 			MelderInfo_open ();
 			MelderInfo_writeLine (U"The switch --send (or --new-send) is not compatible with running Praat interactively from the command line.", U"\n");
+			printHelp ();
+			MelderInfo_close ();
+			exit (-1);
+		}
+		if (praatP.foundTheSendOrFormSwitch) {
+			MelderInfo_open ();
+			MelderInfo_writeLine (U"The switch --send-form (or --new-send-form) is not compatible with running Praat interactively from the command line.", U"\n");
 			printHelp ();
 			MelderInfo_close ();
 			exit (-1);
@@ -1800,7 +1877,7 @@ void praat_init (conststring32 title,
 		theWinApplicationWindow = GuiWin_initialize1 (Melder_upperCaseAppName());
 	#endif
 	if (praatP.userWantsExistingInstance)
-		if (tryToSwitchToRunningPraat (praatP.userWantsToOpen, praatP.userWantsToSend))
+		if (tryToSwitchToRunningPraat (praatP.userWantsToOpen, praatP.userWantsToSend, praatP.userWantsToSendOrForm))
 			exit (0);
 
 	#ifdef UNIX
@@ -2156,7 +2233,7 @@ void praat_run () {
 	{
 		int64 dummy = 1000000000000;
 		if (! str32equ (Melder_integer (dummy), U"1000000000000"))
-			Melder_fatal (U"The number 1000000000000 is mistakenly written on this machine as ", dummy, U".");
+			Melder_crash (U"The number 1000000000000 is mistakenly written on this machine as ", dummy, U".");
 	}
 	{ uint32 dummy = 0xffffffff;
 		Melder_assert ((int64) dummy == 4294967295LL);
@@ -2274,7 +2351,7 @@ void praat_run () {
 	Melder_assert (Melder_iroundUpToPowerOfTwo (131071) == 131072);
 	Melder_assert (Melder_iroundUpToPowerOfTwo (131072) == 131072);
 	Melder_assert (Melder_iroundUpToPowerOfTwo (131073) == 262144);
-	if (sizeof (integer) == 4) {
+	if constexpr (sizeof (integer) == 4) {
 		Melder_assert (Melder_iroundUpToPowerOfTwo (1073741823) == 1073741824);   // 2^30 - 1
 		Melder_assert (Melder_iroundUpToPowerOfTwo (1073741824) == 1073741824);   // 2^30
 		Melder_assert (Melder_iroundUpToPowerOfTwo (1073741825) == 0);   // 2^30 + 1
@@ -2493,6 +2570,7 @@ void praat_run () {
 		if (praatP.userWantsToOpen) {
 			/*
 				praat --new-open [OPTION]... FILE-NAME...
+				praat --open [OPTION]... FILE-NAME...   (if not yet running)
 			*/
 			for (; praatP.argumentNumber < praatP.argc; praatP.argumentNumber ++) {
 				autostring32 text = Melder_dup (Melder_cat (U"Read from file... ",   // TODO: ~
@@ -2507,11 +2585,23 @@ void praat_run () {
 		} else if (praatP.userWantsToSend) {
 			/*
 				praat --new-send [OPTION]... SCRIPT-FILE-NAME [SCRIPT-ARGUMENT]...
+				praat --send [OPTION]... SCRIPT-FILE-NAME [SCRIPT-ARGUMENT]...   (if not yet running)
 			*/
 			autoPraatBackground background;   // to e.g. make audio synchronous
 			try {
 				praat_executeScriptFromCommandLine (theCurrentPraatApplication -> batchName.string,
 						praatP.argc - praatP.argumentNumber, & praatP.argv [praatP.argumentNumber]);
+			} catch (MelderError) {
+				Melder_flushError ();
+			}
+		} else if (praatP.userWantsToSendOrForm) {
+			/*
+				praat --new-send-or-form [OPTION]... SCRIPT-FILE-NAME
+				praat --send-or-form [OPTION]... SCRIPT-FILE-NAME   (if not yet running)
+			*/
+			autoPraatBackground background;   // to e.g. make audio synchronous
+			try {
+				praat_runScriptWithForm (theCurrentPraatApplication -> batchName.string);
 			} catch (MelderError) {
 				Melder_flushError ();
 			}

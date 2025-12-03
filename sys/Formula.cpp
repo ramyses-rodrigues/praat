@@ -1,10 +1,10 @@
 /* Formula.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -149,7 +149,7 @@ enum { NO_SYMBOL_,
 		DO_, DOSTR_,
 		WRITE_INFO_, WRITE_INFO_LINE_, APPEND_INFO_, APPEND_INFO_LINE_,
 		WRITE_FILE_, WRITE_FILE_LINE_, APPEND_FILE_, APPEND_FILE_LINE_,
-		PAUSE_SCRIPT_, EXIT_SCRIPT_, RUN_SCRIPT_, RUN_NOTEBOOK_,
+		PAUSE_SCRIPT_, EXIT_SCRIPT_, RUN_SCRIPT_, RUN_SCRIPT_WITH_FORM_, RUN_NOTEBOOK_,
 		RUN_SYSTEM_, RUN_SYSTEM_STR_, RUN_SYSTEM_NOCHECK_, RUN_SUBPROCESS_, RUN_SUBPROCESS_STR_,
 		MIN_, MIN_E_, MIN_IGNORE_UNDEFINED_,
 		MAX_, MAX_E_, MAX_IGNORE_UNDEFINED_,
@@ -169,6 +169,7 @@ enum { NO_SYMBOL_,
 		REALVECTOR_, POSITIVEVECTOR_, INTEGERVECTOR_, NATURALVECTOR_,
 		HEADING_, COMMENT_, END_PAUSE_,
 		LOWER_CASE_APP_NAME_STR_, UPPER_CASE_APP_NAME_STR_,
+		CLOCK_,
 		APP_VERSION_, APP_VERSION_STR_, APP_YEAR_, APP_MONTH_, APP_MONTH_STR_, APP_DAY_,
 		CHOOSE_READ_FILE_STR_, CHOOSE_WRITE_FILE_STR_, CHOOSE_FOLDER_STR_, CHOOSE_DIRECTORY_STR_,
 		DEMO_WINDOW_TITLE_, DEMO_SHOW_, DEMO_WAIT_FOR_INPUT_, DEMO_PEEK_INPUT_, DEMO_INPUT_, DEMO_CLICKED_IN_,
@@ -189,7 +190,9 @@ enum { NO_SYMBOL_,
 		EMPTY_STRVEC_, READ_LINES_FROM_FILE_STRVEC_,
 		FILE_NAMES_STRVEC_, FOLDER_NAMES_STRVEC_, FILE_NAMES_CASE_INSENSITIVE_STRVEC_, FOLDER_NAMES_CASE_INSENSITIVE_STRVEC_,
 		SPLIT_BY_WHITESPACE_STRVEC_, SPLIT_BY_STRVEC_,
-	#define HIGH_FUNCTION_N  SPLIT_BY_STRVEC_
+		LOWER_CASE_STR_, LOWER_CAMEL_CASE_STR_, LOWER_SNAKE_CASE_STR_,
+		UPPER_CASE_STR_, UPPER_CAMEL_CASE_STR_, UPPER_SNAKE_CASE_STR_,
+	#define HIGH_FUNCTION_N  UPPER_SNAKE_CASE_STR_
 
 	/* String functions. */
 	#define LOW_STRING_FUNCTION  LOW_FUNCTION_STR1
@@ -206,7 +209,8 @@ enum { NO_SYMBOL_,
 			INDEX_, INDEX_CASE_INSENSITIVE_, RINDEX_, RINDEX_CASE_INSENSITIVE_,
 			STARTS_WITH_, STARTS_WITH_CASE_INSENSITIVE_, ENDS_WITH_, ENDS_WITH_CASE_INSENSITIVE_,
 			INDEX_REGEX_, RINDEX_REGEX_, EXTRACT_NUMBER_,
-		#define HIGH_FUNCTION_STR2  EXTRACT_NUMBER_
+			MOVE_AND_OR_RENAME_FILE_,
+		#define HIGH_FUNCTION_STR2  MOVE_AND_OR_RENAME_FILE_
 		EXTRACT_WORD_STR_, EXTRACT_LINE_STR_,
 		REPLACE_STR_, REPLACE_REGEX_STR_,
 		FIXED_STR_, PERCENT_STR_, HEXADECIMAL_STR_,
@@ -308,7 +312,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"do", U"do$",
 	U"writeInfo", U"writeInfoLine", U"appendInfo", U"appendInfoLine",
 	U"writeFile", U"writeFileLine", U"appendFile", U"appendFileLine",
-	U"pauseScript", U"exitScript", U"runScript", U"runNotebook",
+	U"pauseScript", U"exitScript", U"runScript", U"runScriptWithForm", U"runNotebook",
 	U"runSystem", U"runSystem$", U"runSystem_nocheck", U"runSubprocess", U"runSubprocess$",
 	U"min", U"min_e", U"min_removeUndefined",
 	U"max", U"max_e", U"max_removeUndefined",
@@ -328,6 +332,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"realvector", U"positivevector", U"integervector", U"naturalvector",
 	U"heading", U"comment", U"endPause",
 	U"lowerCaseAppName$", U"upperCaseAppName$",
+	U"clock",
 	U"appVersion", U"appVersion$", U"appYear", U"appMonth", U"appMonth$", U"appDay",
 	U"chooseReadFile$", U"chooseWriteFile$", U"chooseFolder$", U"chooseDirectory$",
 	U"demoWindowTitle", U"demoShow", U"demoWaitForInput", U"demoPeekInput", U"demoInput", U"demoClickedIn",
@@ -347,6 +352,8 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"empty$#", U"readLinesFromFile$#",
 	U"fileNames$#", U"folderNames$#", U"fileNames_caseInsensitive$#", U"folderNames_caseInsensitive$#",
 	U"splitByWhitespace$#", U"splitBy$#",
+	U"lowerCase$", U"lowerCamelCase$", U"lowerSnakeCase$",
+	U"upperCase$", U"upperCamelCase$", U"upperSnakeCase$",
 
 	// LOW_FUNCTION_STR1
 		U"length", U"number", U"fileReadable", U"folderExists", U"tryToWriteFile", U"tryToAppendFile", U"deleteFile",
@@ -359,6 +366,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 		U"index", U"index_caseInsensitive", U"rindex", U"rindex_caseInsensitive",
 		U"startsWith", U"startsWith_caseInsensitive", U"endsWith", U"endsWith_caseInsensitive",
 		U"index_regex", U"rindex_regex", U"extractNumber",
+		U"moveAndOrRenameFile",
 	// HIGH_FUNCTION_STR2
 	U"extractWord$", U"extractLine$",
 	U"replace$", U"replace_regex$",
@@ -409,7 +417,7 @@ static integer Formula_hasLanguageName (conststring32 f) {
 		);
 	}
 	constexpr integer sentinel = 0;   // has to be different from the numbers 1 .. index.size
-	const integer * const found = std::lower_bound (index.begin(), index.end(), sentinel,
+	const integer *const found = std::lower_bound (index.begin(), index.end(), sentinel,
 		[f] (integer i, integer j) {
 			return str32cmp (
 				i == sentinel ? f : Formula_instructionNames [i],
@@ -1052,7 +1060,7 @@ static void parsePowerFactor () {
 			newparse (NUMBER_); parsenumber (n);
 			newparse (symbol);
 		} else {
-			Melder_fatal (U"Formula:parsePowerFactor (indexed variable): No '['; cannot happen.");
+			Melder_crash (U"Formula:parsePowerFactor (indexed variable): No '['; cannot happen.");
 		}
 		parse [iparse]. content.string = var;
 		return;
@@ -1716,7 +1724,7 @@ static void parsePowerFactor () {
 			//theOptimize = 1;
 			newparse (NUMBER_);
 			parsenumber (0.0);   // initialize the sum
-            const bool isParenthesis = fitArguments ();
+			const bool isParenthesis = fitArguments ();
 			const integer symbol2 = newread;
 			if (symbol2 == NUMERIC_VARIABLE_) {   // an existing variable
 				newparse (VARIABLE_REFERENCE_);
@@ -4413,6 +4421,30 @@ static void do_runScript () {
 	}
 	pushNumber (1);
 }
+static void do_runScriptWithForm () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	const integer numberOfArguments = Melder_iround (narg->number);
+	if (numberOfArguments != 1)
+		Melder_throw (U"The function “runScriptWithForm” requires precisely one argument, namely the file name.");
+	stackPointer -= numberOfArguments;
+	const Stackel fileName = & theStack [stackPointer + 1];
+	Melder_require (fileName->which == Stackel_STRING,
+		U"The first argument to “runScript” should be a string (the file name), not ", fileName->whichText());
+	theLevel += 1;
+	if (theLevel > MAXIMUM_NUMBER_OF_LEVELS) {
+		theLevel -= 1;
+		Melder_throw (U"Cannot call runScriptWithForm() more than ", MAXIMUM_NUMBER_OF_LEVELS, U" levels deep.");
+	}
+	try {
+		praat_runScriptWithForm (fileName->getString());
+		theLevel -= 1;
+	} catch (MelderError) {
+		theLevel -= 1;
+		throw;
+	}
+	pushNumber (1);
+}
 static void do_runNotebook () {
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
@@ -5385,7 +5417,7 @@ static void do_combine_VEC () {
 				for (integer icol = 1; icol <= arg->numericMatrix.ncol; icol ++)
 					result [++ elementIterator] = arg->numericMatrix [irow] [icol];
 		} else {
-			Melder_fatal (U"do_combine_VEC should never arrive here.");
+			Melder_crash (U"do_combine_VEC should never arrive here.");
 		}
 	}
 	pushNumericVector (result.move());
@@ -5431,7 +5463,7 @@ static void do_part_VEC () {
 
 	const integer newSize = last - (first - 1);
 	if (newSize > 0)
-		pushNumericVector (copy_VEC (vec. part (first, last)));
+		pushNumericVector (copy_VEC (vec.part (first, last)));
 	else
 		pushNumericVector (autoVEC ());
 }
@@ -5491,7 +5523,7 @@ static void do_part_MAT () {
 		U"The fifth argument of the function “part##” (the end column) should (after rounding) be at most the number of columns (",
 		numberOfColumns, U"), not ", endColumn, U"."
 	);
-	pushNumericMatrix (copy_MAT (mat. part (startingRow, endRow, startingColumn, endColumn)));
+	pushNumericMatrix (copy_MAT (mat.part (startingRow, endRow, startingColumn, endColumn)));
 }
 static void do_editor () {
 	const Stackel narg = pop;
@@ -5710,6 +5742,96 @@ static void do_splitBy_STRVEC () {
 		U"The second argument of the function “splitBy$#” (the separator) should be a string, not ", string->whichText(), U".");
 	autoSTRVEC result = splitBy_STRVEC (string->getString(), separator->getString());
 	pushStringVector (result.move());
+}
+static void do_lowerCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = lowerCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “lowerCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “lowerCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_lowerCamelCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = lowerCamelCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “lowerCamelCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “lowerCamelCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_lowerSnakeCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = lowerSnakeCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “lowerSnakeCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “lowerSnakeCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_upperCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = upperCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “upperCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “upperCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_upperCamelCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = upperCamelCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “upperCamelCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “upperCamelCase$” requires 1 argument, not ", narg->number, U".");
+	}
+}
+static void do_upperSnakeCase_STR () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	if (narg->number == 1) {
+		const Stackel s = pop;
+		if (s->which == Stackel_STRING) {
+			autostring32 result = upperSnakeCase_STR (s->getString());
+			pushString (result.move());
+		} else {
+			Melder_throw (U"The function “upperSnakeCase$” requires a string, not ", s->whichText(), U".");
+		}
+	} else {
+		Melder_throw (U"The function “upperSnakeCase$” requires 1 argument, not ", narg->number, U".");
+	}
 }
 static void do_numericVectorElement () {
 	InterpreterVariable vector = parse [programPointer]. content.variable;
@@ -6696,8 +6818,14 @@ static void do_fixed_STR () {
 	if (value->which == Stackel_NUMBER && precision->which == Stackel_NUMBER) {
 		autostring32 result = Melder_dup (Melder_fixed (value->number, Melder_iround (precision->number)));
 		pushString (result.move());
+	} else if (value->which == Stackel_NUMERIC_VECTOR && precision->which == Stackel_NUMBER) {
+		autostring32 result = Melder_dup (Melder_fixed (value->numericVector, Melder_iround (precision->number)));
+		pushString (result.move());
+	} else if (value->which == Stackel_NUMERIC_MATRIX && precision->which == Stackel_NUMBER) {
+		autostring32 result = Melder_dup (Melder_fixed (value->numericMatrix, Melder_iround (precision->number)));
+		pushString (result.move());
 	} else {
-		Melder_throw (U"The function “fixed$” requires two numbers (value and precision), not ", value->whichText(), U" and ", precision->whichText(), U".");
+		Melder_throw (U"The function “fixed$” requires a number or a vector or a matrix, and a number (the precision), not ", value->whichText(), U" and ", precision->whichText(), U".");
 	}
 }
 static void do_percent_STR () {
@@ -6729,6 +6857,20 @@ static void do_deleteFile () {
 		pushNumber (1);
 	} else {
 		Melder_throw (U"The function “deleteFile” requires a string, not ", f->whichText(), U".");
+	}
+}
+static void do_moveAndOrRenameFile () {
+	Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
+		U"The function “moveAndOrRenameFile” is not available inside manuals.");
+	const Stackel to = pop, from = pop;
+	if (from->which == Stackel_STRING && to->which == Stackel_STRING) {
+		structMelderFile fromFile { }, toFile { };
+		Melder_relativePathToFile (from->getString(), & fromFile);
+		Melder_relativePathToFile (to->getString(), & toFile);
+		MelderFile_moveAndOrRename (& fromFile, & toFile);
+		pushNumber (1);
+	} else {
+		Melder_throw (U"The function “moveAndOrRenameFile” requires two strings, not ", from->whichText(), U" and ", to->whichText(), U".");
 	}
 }
 static void do_createFolder () {
@@ -7907,6 +8049,12 @@ static void do_upperCaseAppNameStr () {
 		U"The function “upperCaseAppName$” requires 0 arguments, not ", n->number, U".");
 	return pushString (Melder_dup (Melder_upperCaseAppName()));
 }
+static void do_clock () {
+	const Stackel n = pop;
+	Melder_require (n->number == 0,
+		U"The function “clock” requires 0 arguments, not ", n->number, U".");
+	return pushNumber (Melder_clock ());
+}
 static void do_appVersion () {
 	const Stackel n = pop;
 	Melder_require (n->number == 0,
@@ -8828,6 +8976,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case PAUSE_SCRIPT_: { do_pauseScript ();
 } break; case EXIT_SCRIPT_: { do_exitScript ();
 } break; case RUN_SCRIPT_: { do_runScript ();
+} break; case RUN_SCRIPT_WITH_FORM_: { do_runScriptWithForm ();
 } break; case RUN_NOTEBOOK_: { do_runNotebook ();
 } break; case RUN_SYSTEM_: { do_runSystem ();
 } break; case RUN_SYSTEM_STR_: { do_runSystem_STR ();
@@ -8894,6 +9043,12 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case FOLDER_NAMES_CASE_INSENSITIVE_STRVEC_: { do_folderNames_caseInsensitive_STRVEC ();
 } break; case SPLIT_BY_WHITESPACE_STRVEC_: { do_splitByWhitespace_STRVEC ();
 } break; case SPLIT_BY_STRVEC_: { do_splitBy_STRVEC ();
+} break; case LOWER_CASE_STR_: { do_lowerCase_STR ();
+} break; case LOWER_CAMEL_CASE_STR_: { do_lowerCamelCase_STR ();
+} break; case LOWER_SNAKE_CASE_STR_: { do_lowerSnakeCase_STR ();
+} break; case UPPER_CASE_STR_: { do_upperCase_STR ();
+} break; case UPPER_CAMEL_CASE_STR_: { do_upperCamelCase_STR ();
+} break; case UPPER_SNAKE_CASE_STR_: { do_upperSnakeCase_STR ();
 /********** String functions of 1 variable: **********/
 } break; case LENGTH_: { do_length ();
 } break; case STRING_TO_NUMBER_: { do_number ();
@@ -8969,6 +9124,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case PERCENT_STR_: { do_percent_STR ();
 } break; case HEXADECIMAL_STR_: { do_hexadecimal_STR ();
 } break; case DELETE_FILE_: { do_deleteFile ();
+} break; case MOVE_AND_OR_RENAME_FILE_: { do_moveAndOrRenameFile ();
 } break; case CREATE_FOLDER_: { do_createFolder ();
 } break; case CREATE_DIRECTORY_: { do_createDirectory ();   // deprecated 2020
 } break; case SET_WORKING_DIRECTORY_: { do_setWorkingDirectory ();   // deprecated 2020
@@ -9022,6 +9178,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case END_PAUSE_: { do_endPause ();
 } break; case LOWER_CASE_APP_NAME_STR_: { do_lowerCaseAppNameStr ();
 } break; case UPPER_CASE_APP_NAME_STR_: { do_upperCaseAppNameStr ();
+} break; case CLOCK_: { do_clock ();
 } break; case APP_VERSION_: { do_appVersion ();
 } break; case APP_VERSION_STR_: { do_appVersionStr ();
 } break; case APP_YEAR_: { do_appYear ();
@@ -9168,7 +9325,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 			programPointer ++;
 		} // endwhile
 		if (stackPointer != 1)
-			Melder_fatal (U"Formula: stackpointer ends at ", stackPointer, U" instead of 1.");
+			Melder_crash (U"Formula: stackpointer ends at ", stackPointer, U" instead of 1.");
 		/*
 			Move the result from the stack to `result`.
 		*/

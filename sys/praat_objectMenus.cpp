@@ -420,6 +420,21 @@ DO
 	PREFS_END
 }
 
+FORM (SETTINGS__DebugMultithreading, U"Debug multi-threading", U"Debug multi-threading...") {
+	COMMENT (U"These settings determine how fast parallelized")
+	COMMENT (U"procedures are performed on your computer.")
+	BOOLEAN (useMultithreading, U"Use multi-threading", true)
+	INTEGER (maximumNumberOfConcurrentThreads, U"Maximum number of threads", U"0 (= automatic)")
+	INTEGER (minimumNumberOfElementsPerThread, U"Minimum number of frames per thread", U"0 (= automatic)")
+	BOOLEAN (traceThreads, U"Trace threads", false)
+	OK
+DO
+	PREFS
+		MelderThread_debugMultithreading (useMultithreading, maximumNumberOfConcurrentThreads,
+				minimumNumberOfElementsPerThread, traceThreads);
+	PREFS_END
+}
+
 DIRECT (INFO_NONE__listReadableTypesOfObjects) {
 	INFO_NONE
 		Thing_listReadableClasses ();
@@ -469,6 +484,12 @@ DIRECT (INFO_NONE__reportGraphicalProperties) {
 DIRECT (INFO_NONE__reportIntegerProperties) {
 	INFO_NONE
 		praat_reportIntegerProperties ();
+	INFO_NONE_END
+}
+
+DIRECT (INFO_NONE__reportFloatingPointProperties) {
+	INFO_NONE
+		praat_reportFloatingPointProperties ();
 	INFO_NONE_END
 }
 
@@ -865,6 +886,8 @@ void praat_addMenus (GuiWindow window) {
 			nullptr, 0, INFO_NONE__reportMemoryUse);
 	praat_addMenuCommand (U"Objects", U"Technical", U"Report integer properties",
 			nullptr, 0, INFO_NONE__reportIntegerProperties);
+	praat_addMenuCommand (U"Objects", U"Technical", U"Report floating point properties",
+			nullptr, 0, INFO_NONE__reportFloatingPointProperties);
 	praat_addMenuCommand (U"Objects", U"Technical", U"Report system properties",
 			nullptr, 0, INFO_NONE__reportSystemProperties);
 	praat_addMenuCommand (U"Objects", U"Technical", U"Report app properties",
@@ -877,6 +900,9 @@ void praat_addMenus (GuiWindow window) {
 			nullptr, 0, INFO_NONE__reportFontProperties);
 	praat_addMenuCommand (U"Objects", U"Technical", U"Debug...",
 			nullptr, 0, SETTINGS__debug);
+	praat_addMenuCommand (U"Objects", U"Technical", U"Debug multi-threading...",
+			nullptr, 0, SETTINGS__DebugMultithreading);
+
 	praat_addMenuCommand (U"Objects", U"Technical", U"-- api --", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Objects", U"Technical", U"List readable types of objects",
 			nullptr, 0, INFO_NONE__listReadableTypesOfObjects);

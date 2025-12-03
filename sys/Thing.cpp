@@ -1,10 +1,10 @@
 /* Thing.cpp
  *
- * Copyright (C) 1992-2012,2014-2024 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -20,7 +20,7 @@
 #include <time.h>
 #include "Thing.h"
 
-integer theTotalNumberOfThings;
+std::atomic <integer> theTotalNumberOfThings;
 
 void structThing :: v1_info () {
 	MelderInfo_writeLine (U"Object type: ", Thing_className (this));
@@ -30,8 +30,8 @@ void structThing :: v1_info () {
 }
 
 /*
- * Instead of the Thing_implement macro.
- */
+	Instead of the Thing_implement macro.
+*/
 struct structClassInfo theClassInfo_Thing = {
 	U"Thing",
 	nullptr,   // no parent class
@@ -62,7 +62,7 @@ static integer theNumberOfReadableClasses = 0;
 static ClassInfo theReadableClasses [1 + 1000];
 static void _Thing_addOneReadableClass (ClassInfo readableClass) {
 	if (++ theNumberOfReadableClasses > 1000)
-		Melder_fatal (U"(Thing_recognizeClassesByName:) Too many (1001) readable classes.");
+		Melder_crash (U"(Thing_recognizeClassesByName:) Too many (1001) readable classes.");
 	theReadableClasses [theNumberOfReadableClasses] = readableClass;
 	readableClass -> sequentialUniqueIdOfReadableClass = theNumberOfReadableClasses;
 }
@@ -183,7 +183,7 @@ bool Thing_isSubclass (ClassInfo klas, ClassInfo ancestor) {
 
 bool Thing_isa (Thing me, ClassInfo klas) {
 	if (! me)
-		Melder_fatal (U"(Thing_isa:) Found null object.");
+		Melder_crash (U"(Thing_isa:) Found null object.");
 	return Thing_isSubclass (my classInfo, klas);
 }
 
@@ -226,10 +226,10 @@ conststring32 Thing_messageNameAndAddress (Thing me) {
 		ibuffer = 0;
 	if (my name)
 		MelderString_copy (& buffers [ibuffer], my classInfo -> className, U"-",
-			Melder_pointer (me), U"-“", my name.get(), U"”");
+				Melder_pointer (me), U"-“", my name.get(), U"”");
 	else
 		MelderString_copy (& buffers [ibuffer], my classInfo -> className, U"-",
-			Melder_pointer (me));
+				Melder_pointer (me));
 	return buffers [ibuffer].string;
 }
 

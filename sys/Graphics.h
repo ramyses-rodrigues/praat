@@ -2,11 +2,11 @@
 #define _Graphics_h_
 /* Graphics.h
  *
- * Copyright (C) 1992-2005,2007-2023 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2023,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -175,9 +175,9 @@ void Graphics_polyline (Graphics me, integer numberOfPoints, const double *x, co
 void Graphics_polyline_closed (Graphics me, integer numberOfPoints, const double *x, const double *y);
 
 void Graphics_text (Graphics me, double xWC, double yWC, conststring32 txt);
-template <typename... Args>
-void Graphics_text (Graphics me, double xWC, double yWC, const MelderArg& first, Args... rest) {
-	Graphics_text (me, xWC, yWC, Melder_cat (first, rest...));
+template <typename... Arg>
+void Graphics_text (Graphics me, double xWC, double yWC, const Arg... arg) {
+	Graphics_text (me, xWC, yWC, Melder_cat (arg...));
 }
 
 void Graphics_rectangleText_maximalFit (
@@ -210,6 +210,7 @@ void Graphics_image_colour (Graphics me, constmatrixview <MelderColour> const& z
 void Graphics_image8 (Graphics me, constmatrixview <unsigned char> const& z,
 	double x1, double x2, double y1, double y2, uint8 minimum, uint8 maximum);
 void Graphics_imageFromFile (Graphics me, conststring32 relativeFileName, double x1, double x2, double y1, double y2);
+void Graphics_imageFromFile_embedded (Graphics me, conststring32 relativeFileName, double x1, double x2, double y1, double y2);
 void Graphics_line (Graphics me, double x1, double y1, double x2, double y2);
 void Graphics_rectangle (Graphics me, double x1, double x2, double y1, double y2);
 void Graphics_fillRectangle (Graphics me, double x1, double x2, double y1, double y2);
@@ -352,7 +353,7 @@ bool Graphics_stopRecording (Graphics me);
 void Graphics_clearRecording (Graphics me);
 void Graphics_play (Graphics from, Graphics to);
 void Graphics_writeRecordings (Graphics me, FILE *f);
-void Graphics_readRecordings (Graphics me, FILE *f);
+void Graphics_readRecordings (Graphics me, FILE *f, double heightCorrection);
 void Graphics_markGroup (Graphics me);
 void Graphics_undoGroup (Graphics me);
 

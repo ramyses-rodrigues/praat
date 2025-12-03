@@ -32,24 +32,22 @@ namespace MelderTrace {
 	conststring8  _peek32to8  (conststring32 string);
 	conststring16 _peek32to16 (conststring32 string);
 	conststring32 _peek8to32 (conststring8 string8);   // used in the `trace` macro
+
+	inline void _appendOneMessageElement (FILE *f, conststring32 string) {
+		if (string)
+			fprintf (f, "%s", _peek32to8 (string));
+	}
 }
 
-inline void _recursiveTemplate_Melder_trace (FILE *f, const MelderArg& arg) {
-	if (arg._arg)
-		fprintf (f, "%s", MelderTrace::_peek32to8 (arg. _arg));
-}
-template <typename... Args>
-void _recursiveTemplate_Melder_trace (FILE *f, const MelderArg& first, Args... rest) {
-	_recursiveTemplate_Melder_trace (f, first);
-	_recursiveTemplate_Melder_trace (f, rest...);
-}
+extern std::mutex theMelder_trace_mutex;
 
-template <typename... Args>
-void Melder_trace (conststring8 sourceCodeFileName, int lineNumber, conststring8 functionName, const MelderArg& first, Args... rest) {
+template <typename... Arg>
+void Melder_trace (conststring8 sourceCodeFileName, int lineNumber, conststring8 functionName, const Arg... arg) {
+	std::lock_guard lock (theMelder_trace_mutex);
 	if (MelderFile_isNull (& MelderTrace::_file))
 		return;
 	FILE *f = MelderTrace::_open (sourceCodeFileName, lineNumber, functionName);
-	_recursiveTemplate_Melder_trace (f, first, rest...);
+	(  MelderTrace::_appendOneMessageElement (f, MelderArg { arg }. _arg), ...  );
 	MelderTrace::_close (f);
 }
 

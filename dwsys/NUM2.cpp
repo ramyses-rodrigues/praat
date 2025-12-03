@@ -1,6 +1,6 @@
 /* NUM2.cpp
  *
- * Copyright (C) 1993-2024 David Weenink, Paul Boersma 2017,2020
+ * Copyright (C) 1993-2025 David Weenink, Paul Boersma 2017,2020
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +76,14 @@
 #include "gsl_poly.h"
 #include "gsl_cdf.h"
 
+int NUMcompareTwoIntegers (integer& a, integer& b) {
+	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+int NUMcompareTwoDoubles (double& a, double& b) {
+	return a < b ? -1 : a > b ? 1 : 0;
+}
+
 #define SIGN(a,b) ((b < 0) ? -fabs(a) : fabs(a))
 
 struct pdf1_struct {
@@ -122,14 +130,14 @@ void VECsmoothByMovingAverage_preallocated (VECVU const& out, constVECVU const& 
 	}
 }
 
-void VECsmooth_gaussian (VECVU const& out, constVECVU const& in, double sigma, NUMfft_Table fftTable) {
+void VECsmooth_gaussian (VECVU const& out, constVECVU const& in, double sigma, NUMFourierTable fftTable) {
 	Melder_require (out.size == in.size,
 		U"The sizes of the input and output vectors should be equal.");
 	out  <<=  in;
 	VECsmooth_gaussian_inplace (out, sigma, fftTable);
 }
 
-void VECsmooth_gaussian_inplace (VECVU const& in_out, double sigma, NUMfft_Table fftTable) {
+void VECsmooth_gaussian_inplace (VECVU const& in_out, double sigma, NUMFourierTable fftTable) {
 	Melder_require (in_out.size <= fftTable -> n,
 		U"The dimension of the table should at least equal the length of the input vector.");
 	autoVEC smooth = zero_VEC (fftTable -> n);
@@ -145,10 +153,10 @@ void VECsmooth_gaussian_inplace (VECVU const& in_out, double sigma, NUMfft_Table
 	*/
 	const double b = 2.0 * NUMpi * sigma * NUMpi * sigma ;
 	for (integer k = 2; k <= (fftTable -> n + 1) / 2; k ++) {
-		const double f = (k - 1) /  (double) fftTable -> n;
+		const double f = (k - 1) / (double) fftTable -> n;
 		const double weight = exp (- b * f * f);
-		smooth [k * 2 - 2] *= weight; // re
-		smooth [k * 2 - 1] *= weight; // im
+		smooth [k * 2 - 2] *= weight;   // re
+		smooth [k * 2 - 1] *= weight;   // im
 	}
 	if (fftTable -> n % 2 == 0)
 		smooth [fftTable -> n] *= exp (- b * 1 / 2  * 1 / 2);
@@ -163,9 +171,8 @@ void VECsmooth_gaussian_inplace (VECVU const& in_out, double sigma, NUMfft_Table
 
 void VECsmooth_gaussian_inplace (VECVU const& in_out, double sigma) {
 	const integer nfft = Melder_iroundUpToPowerOfTwo (in_out.size);
-	autoNUMfft_Table fftTable;
-	NUMfft_Table_init (& fftTable, nfft);
-	VECsmooth_gaussian_inplace (in_out, sigma, & fftTable);
+	autoNUMFourierTable fftTable = NUMFourierTable_create (nfft);
+	VECsmooth_gaussian_inplace (in_out, sigma, fftTable.get());
 }
 
 autoMAT MATcovarianceFromColumnCentredMatrix (constMATVU const& x, integer ndf) {
@@ -2261,7 +2268,7 @@ void NUMlpc_area_to_lpc2 (double *area, integer n, double *lpc) {
 
 void NUMlpc_lpc_to_rc2 (double *lpc, integer m, double *rc);
 void NUMlpc_lpc_to_rc2 (double *lpc, integer m, double *rc) { // klopt nog niet
-	rc.part(1,m)  <<=  lpc.part (1,m)
+	rc.part (1, m)  <<=  lpc.part (1, m)
 	for (integer j = 2; j <= m; j ++) {
 		integer jb = m + 1 - j;
 		integer mh = (jb + 1) / 2;
@@ -2291,7 +2298,7 @@ void NUMlpc_area_to_rc (double *area, integer m, double *rc) {
 
 void NUMlpc_rc_to_lpc (double *rc, integer m, double *lpc);
 void NUMlpc_rc_to_lpc (double *rc, integer m, double *lpc) {
-	lpc.part (1,m)  <<=  rc.part (1.m)
+	lpc.part (1, m)  <<=  rc.part (1, m)
 	for (integer j = 2; j <= m; j ++) {
 		for (integer k = 1; k <= j / 2; k ++) {
 			double at = lpc [k] + rc [j] * lpc [j - k];

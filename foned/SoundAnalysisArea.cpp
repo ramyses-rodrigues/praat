@@ -1,10 +1,10 @@
 /* SoundAnalysisArea.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -69,7 +69,7 @@ type structSoundAnalysisArea :: dynamic_instancePref_pitch_##setting () { \
 		case kSoundAnalysisArea_pitch_analysisMethod::FILTERED_CROSS_CORRELATION: \
 			return our instancePref_pitch_filteredCC_##setting(); \
 		default: \
-			Melder_fatal (U"Unknown pitch analysis method ", (int) our instancePref_pitch_method(), U"."); \
+			Melder_crash (U"Unknown pitch analysis method ", (int) our instancePref_pitch_method(), U"."); \
 	} \
 }
 DEFINE_dynamic_instancePref_pitch (double, floor)
@@ -93,7 +93,7 @@ double structSoundAnalysisArea :: dynamic_instancePref_pitch_ceilingOrTop () {
 		case kSoundAnalysisArea_pitch_analysisMethod::FILTERED_CROSS_CORRELATION:
 			return our instancePref_pitch_filteredCC_top();
 		default:
-			Melder_fatal (U"Unknown pitch analysis method ", (int) our instancePref_pitch_method(), U".");
+			Melder_crash (U"Unknown pitch analysis method ", (int) our instancePref_pitch_method(), U".");
 	}
 }
 
@@ -104,7 +104,7 @@ static double dynamic_instancePref_pitch_attenuationAtTop (SoundAnalysisArea me)
 		case kSoundAnalysisArea_pitch_analysisMethod::FILTERED_CROSS_CORRELATION:
 			return my instancePref_pitch_filteredCC_attenuationAtTop();
 		default:
-			Melder_fatal (U"Unknown pitch analysis method ", (int) my instancePref_pitch_method(), U".");
+			Melder_crash (U"Unknown pitch analysis method ", (int) my instancePref_pitch_method(), U".");
 	}
 }
 static double periodsPerAnalysisWindow (SoundAnalysisArea me) {
@@ -118,7 +118,7 @@ static double periodsPerAnalysisWindow (SoundAnalysisArea me) {
 		case kSoundAnalysisArea_pitch_analysisMethod::FILTERED_CROSS_CORRELATION:
 			return 1.0;
 		default:
-			Melder_fatal (U"Unknown pitch analysis method ", (int) my instancePref_pitch_method(), U".");
+			Melder_crash (U"Unknown pitch analysis method ", (int) my instancePref_pitch_method(), U".");
 	}
 }
 
@@ -133,16 +133,14 @@ static double periodsPerAnalysisWindow (SoundAnalysisArea me) {
 		- If a tryToCompute<Analysis>() function fails, the <Analysis> should be null;
 		  this is how tryToCompute<Analysis>() signals failure.
 */
-static autoSound extractSound (SoundAnalysisArea me, double tmin, double tmax) {
+static autoSound extractSoundOrNull (SoundAnalysisArea me, double tmin, double tmax) {
 	autoSound sound;
 	if (my longSound()) {
-		Melder_clipLeft (my longSound() -> xmin, & tmin);
-		Melder_clipRight (& tmax, my longSound() -> xmax);
-		sound = LongSound_extractPart (my longSound(), tmin, tmax, true);
+		if (Function_intersectRangeWithDomain (my longSound(), & tmin, & tmax))
+			sound = LongSound_extractPart (my longSound(), tmin, tmax, true);
 	} else if (my sound()) {
-		Melder_clipLeft (my sound() -> xmin, & tmin);
-		Melder_clipRight (& tmax, my sound() -> xmax);
-		sound = Sound_extractPart (my sound(), tmin, tmax, kSound_windowShape::RECTANGULAR, 1.0, true);
+		if (Function_intersectRangeWithDomain (my sound(), & tmin, & tmax))
+			sound = Sound_extractPart (my sound(), tmin, tmax, kSound_windowShape::RECTANGULAR, 1.0, true);
 	}
 	return sound;
 }
@@ -151,8 +149,10 @@ static void tryToComputeSpectrogram (SoundAnalysisArea me) {
 	const double margin = ( my instancePref_spectrogram_windowShape() == kSound_to_Spectrogram_windowShape::GAUSSIAN ?
 			my instancePref_spectrogram_windowLength() : 0.5 * my instancePref_spectrogram_windowLength() );
 	try {
-		autoSound sound = extractSound (me, my startWindow() - margin, my endWindow() + margin);
-		my d_spectrogram = Sound_to_Spectrogram (sound.get(),
+		autoSound sound = extractSoundOrNull (me, my startWindow() - margin, my endWindow() + margin);
+		if (! sound)
+			return;
+		my d_spectrogram = Sound_to_Spectrogram_e (sound.get(),
 			my instancePref_spectrogram_windowLength(),
 			my instancePref_spectrogram_viewTo(),
 			(my endWindow() - my startWindow()) / my instancePref_spectrogram_timeSteps(),
@@ -170,7 +170,9 @@ static void tryToComputePitch (SoundAnalysisArea me) {
 	autoMelderProgressOff progress;
 	const double margin = ( my dynamic_instancePref_pitch_veryAccurate() ? 3.0 : 1.5 ) / my dynamic_instancePref_pitch_floor();
 	try {
-		autoSound sound = extractSound (me, my startWindow() - margin, my endWindow() + margin);
+		autoSound sound = extractSoundOrNull (me, my startWindow() - margin, my endWindow() + margin);
+		if (! sound)
+			return;
 		const double pitchTimeStep = (
 			my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::FIXED_ ? my instancePref_fixedTimeStep() :
 			my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::VIEW_DEPENDENT ? (my endWindow() - my startWindow()) / my instancePref_numberOfTimeStepsPerView() :
@@ -211,7 +213,7 @@ static void tryToComputePitch (SoundAnalysisArea me) {
 				my instancePref_pitch_filteredCC_voicedUnvoicedCost()
 			);
 		else
-			Melder_fatal (U"Unknown pitch method ", (int) my instancePref_pitch_method(), U".");
+			Melder_crash (U"Unknown pitch method ", (int) my instancePref_pitch_method(), U".");
 		my d_pitch -> xmin = my startWindow();
 		my d_pitch -> xmax = my endWindow();
 	} catch (MelderError) {
@@ -223,7 +225,9 @@ static void tryToComputeIntensity (SoundAnalysisArea me) {
 	autoMelderProgressOff progress;
 	const double margin = 3.2 / my dynamic_instancePref_pitch_floor();
 	try {
-		autoSound sound = extractSound (me, my startWindow() - margin, my endWindow() + margin);
+		autoSound sound = extractSoundOrNull (me, my startWindow() - margin, my endWindow() + margin);
+		if (! sound)
+			return;
 		my d_intensity = Sound_to_Intensity (sound.get(), my dynamic_instancePref_pitch_floor(),
 			my endWindow() - my startWindow() > my instancePref_longestAnalysis() ? (my endWindow() - my startWindow()) / 100 : 0.0,
 			my instancePref_intensity_subtractMeanPressure()
@@ -240,12 +244,14 @@ static void tryToComputeFormants (SoundAnalysisArea me) {
 	const double margin = my instancePref_formant_windowLength();
 	try {
 		autoSound sound = ( my endWindow() - my startWindow() > my instancePref_longestAnalysis() ?
-			extractSound (me,
+			extractSoundOrNull (me,
 				0.5 * (my startWindow() + my endWindow() - my instancePref_longestAnalysis()) - margin,
 				0.5 * (my startWindow() + my endWindow() + my instancePref_longestAnalysis()) + margin
 			) :
-			extractSound (me, my startWindow() - margin, my endWindow() + margin)
+			extractSoundOrNull (me, my startWindow() - margin, my endWindow() + margin)
 		);
+		if (! sound)
+			return;
 		const double formantTimeStep = (
 			my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::FIXED_ ? my instancePref_fixedTimeStep() :
 			my instancePref_timeStepStrategy() == kSoundAnalysisArea_timeStepStrategy::VIEW_DEPENDENT ? (my endWindow() - my startWindow()) / my instancePref_numberOfTimeStepsPerView() :
@@ -268,7 +274,9 @@ static void tryToComputePulses (SoundAnalysisArea me) {
 	if (my d_pitch) {
 		autoMelderProgressOff progress;
 		try {
-			autoSound sound = extractSound (me, my startWindow(), my endWindow());
+			autoSound sound = extractSoundOrNull (me, my startWindow(), my endWindow());
+			if (! sound)
+				return;
 			my d_pulses = Sound_Pitch_to_PointProcess_cc (sound.get(), my d_pitch.get());
 		} catch (MelderError) {
 			my d_pulses. reset();   // signal a failure
@@ -1052,7 +1060,9 @@ static void CONVERT_DATA_TO_ONE__ViewSpectralSlice (SoundAnalysisArea me, EDITOR
 			my instancePref_spectrogram_windowShape() == kSound_to_Spectrogram_windowShape::GAUSSIAN ? my endSelection() + my instancePref_spectrogram_windowLength() :
 			my endSelection() + my instancePref_spectrogram_windowLength() / 2 : my endSelection()
 		);
-		autoSound sound = extractSound (me, start, finish);
+		autoSound sound = extractSoundOrNull (me, start, finish);
+		if (! sound)
+			return;
 		Sound_multiplyByWindow (sound.get(),
 			my instancePref_spectrogram_windowShape() == kSound_to_Spectrogram_windowShape::SQUARE ? kSound_windowShape::RECTANGULAR :
 			my instancePref_spectrogram_windowShape() == kSound_to_Spectrogram_windowShape::HAMMING ? kSound_windowShape::HAMMING :
@@ -2389,7 +2399,9 @@ static void INFO_DATA__voiceReport (SoundAnalysisArea me, EDITOR_ARGS) {
 		double tmin, tmax;
 		const int part = makeQueriable (me, false, & tmin, & tmax);
 		SoundAnalysisArea_haveVisiblePulses (me);
-		autoSound sound = extractSound (me, tmin, tmax);
+		autoSound sound = extractSoundOrNull (me, tmin, tmax);
+		if (! sound)
+			return;
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"-- Voice report for ", my name.get(), U" --\nDate: ", Melder_peek8to32 (ctime (& today)));
 		if (my instancePref_pitch_method() != kSoundAnalysisArea_pitch_analysisMethod::RAW_CROSS_CORRELATION) {
@@ -2696,14 +2708,16 @@ void structSoundAnalysisArea :: v_createMenus () {
 }
 
 void structSoundAnalysisArea :: v_updateMenuItems () {
-	GuiMenuItem_check (pitchFilteredAutocorrelationToggle,
-			our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: FILTERED_AUTOCORRELATION);
-	GuiMenuItem_check (pitchRawCrossCorrelationToggle,
-			our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: RAW_CROSS_CORRELATION);
-	GuiMenuItem_check (pitchRawAutocorrelationToggle,
-			our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: RAW_AUTOCORRELATION);
-	GuiMenuItem_check (pitchFilteredCrossCorrelationToggle,
-			our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: FILTERED_CROSS_CORRELATION);
+	if (our pitchFilteredAutocorrelationToggle) {
+		GuiMenuItem_check (pitchFilteredAutocorrelationToggle,
+				our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: FILTERED_AUTOCORRELATION);
+		GuiMenuItem_check (pitchRawCrossCorrelationToggle,
+				our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: RAW_CROSS_CORRELATION);
+		GuiMenuItem_check (pitchRawAutocorrelationToggle,
+				our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: RAW_AUTOCORRELATION);
+		GuiMenuItem_check (pitchFilteredCrossCorrelationToggle,
+				our instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod :: FILTERED_CROSS_CORRELATION);
+	}
 }
 
 #pragma mark - SoundAnalysisArea Drawing
@@ -2723,12 +2737,15 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 	const double pitchCeiling_overt = Function_convertToNonlogarithmic (Thing_dummyObject (Pitch),
 			pitchCeiling_hidden, Pitch_LEVEL_FREQUENCY, (int) pitchUnit);
 	const double pitchViewFrom = my dynamic_instancePref_pitch_viewFrom(), pitchViewTo = my dynamic_instancePref_pitch_viewTo();
-	const double pitchViewFrom_overt = ( pitchViewFrom < pitchViewTo ? pitchViewFrom : pitchFloor_overt );
+	const bool verticalScaleIsLogarithmic = Function_isUnitLogarithmic (Thing_dummyObject (Pitch), Pitch_LEVEL_FREQUENCY, (int) pitchUnit);
+	const double pitchViewFrom_overt = (
+		pitchViewFrom >= pitchViewTo ? pitchFloor_overt :
+		pitchViewFrom == 0.0 && verticalScaleIsLogarithmic ? pitchViewTo / 1000.0 :
+		pitchViewFrom
+	);
 	const double pitchViewTo_overt = ( pitchViewFrom < pitchViewTo ? pitchViewTo : pitchCeiling_overt );
-	const double pitchViewFrom_hidden = Function_isUnitLogarithmic (Thing_dummyObject (Pitch),
-			Pitch_LEVEL_FREQUENCY, (int) pitchUnit) ? log10 (pitchViewFrom_overt) : pitchViewFrom_overt;
-	const double pitchViewTo_hidden = Function_isUnitLogarithmic (Thing_dummyObject (Pitch),
-			Pitch_LEVEL_FREQUENCY, (int) pitchUnit) ? log10 (pitchViewTo_overt) : pitchViewTo_overt;
+	const double pitchViewFrom_hidden = ( verticalScaleIsLogarithmic ? log10 (pitchViewFrom_overt) : pitchViewFrom_overt );
+	const double pitchViewTo_hidden = ( verticalScaleIsLogarithmic ? log10 (pitchViewTo_overt) : pitchViewTo_overt );
 
 	if (my endWindow() - my startWindow() > my instancePref_longestAnalysis()) {
 		Graphics_setWindow (my graphics(), 0.0, 1.0, 0.0, 1.0);
@@ -2736,7 +2753,7 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 		Graphics_setFontSize (my graphics(), 10);
 		Graphics_setTextAlignment (my graphics(), Graphics_CENTRE, Graphics_HALF);
 		Graphics_text (my graphics(), 0.5, 0.67,   U"(To see the analyses, zoom in to at most ", Melder_half (my instancePref_longestAnalysis()), U" seconds,");
-		Graphics_text (my graphics(), 0.5, 0.33,   U"or raise the \"longest analysis\" setting with \"Show analyses\" in the Analyses menu.)");
+		Graphics_text (my graphics(), 0.5, 0.33,   U"or raise the “longest analysis” setting with “Show analyses” in the Analyses menu.)");
 		Graphics_setFontSize (my graphics(), 12);
 		return;
 	}

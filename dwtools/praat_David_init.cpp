@@ -1,10 +1,10 @@
 /* praat_David_init.cpp
  *
- * Copyright (C) 1993-2023 David Weenink, 2015,2023,2024 Paul Boersma
+ * Copyright (C) 1993-2025 David Weenink, 2015,2023-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -108,7 +108,7 @@
 #include "Polygon_extensions.h"
 #include "Polynomial_to_Spectrum.h"
 #include "Roots_to_Spectrum.h"
-#include "SampledToSampledWorkspace.h"
+#include "SampledIntoSampled.h"
 #include "Sound_and_Spectrum_dft.h"
 #include "Sound_extensions.h"
 #include "Sound_and_TextGrid_extensions.h"
@@ -211,21 +211,6 @@ DO
 	QUERY_ONE_FOR_REAL_END (U" Hz")
 }
 
-
-/********************** BandFilterSpectrogram *******************************************/
-
-FORM (GRAPHICS_EACH__BandFilterSpectrogram_drawFrequencyScale, U"", U"") {
-	REAL (fromFrequency, U"left Horizontal frequency range (Hz)", U"0.0")
-	REAL (toFrequency, U"right Horizontal frequency range (Hz)", U"0.0")
-	REAL (yFromFrequency, U"left Vertical frequency range (mel)", U"0.0")
-	REAL (yToFrequency, U"right Vertical frequency range (mel)", U"0.0")
-	BOOLEAN (garnish, U"Garnish", true)
-	OK
-DO
-	GRAPHICS_EACH (BandFilterSpectrogram)
-		BandFilterSpectrogram_drawFrequencyScale (me, GRAPHICS, fromFrequency, toFrequency, yFromFrequency, yToFrequency, garnish);
-	GRAPHICS_EACH_END
-}
 
 /********************** BarkFilter *******************************************/
 
@@ -390,13 +375,13 @@ DIRECT (CONVERT_TWO_TO_ONE__Categories_join) {
 
 DIRECT (CONVERT_EACH_TO_ONE__Categories_permuteItems) {
 	CONVERT_EACH_TO_ONE (Categories)
-		autoCollection result = Collection_permuteItems (reinterpret_cast<Collection> (me));
+		autoCollection result = Collection_permuteItems (reinterpret_cast <Collection> (me));
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_perm")
 }
 
 DIRECT (MODIFY_EACH__Categories_permuteItems_inplace) {
 	MODIFY_EACH (Categories)
-		Collection_permuteItems_inplace (reinterpret_cast<Collection> (me));
+		Collection_permuteItems_inplace (reinterpret_cast <Collection> (me));
 	MODIFY_EACH_END
 }
 
@@ -2699,6 +2684,32 @@ DO
 	GRAPHICS_EACH_END
 }
 
+FORM (GRAPHICS_EACH__MelSpectrogram_drawFrequencyScale, U"", U"") {
+	REAL (fromFrequency, U"left Horizontal frequency range (Hz)", U"0.0")
+	REAL (toFrequency, U"right Horizontal frequency range (Hz)", U"0.0")
+	REAL (yFromFrequency, U"left Vertical frequency range (mel)", U"0.0")
+	REAL (yToFrequency, U"right Vertical frequency range (mel)", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true)
+	OK
+DO
+	GRAPHICS_EACH (MelSpectrogram)
+		BandFilterSpectrogram_drawFrequencyScale (me, GRAPHICS, fromFrequency, toFrequency, yFromFrequency, yToFrequency, garnish);
+	GRAPHICS_EACH_END
+}
+
+FORM (GRAPHICS_EACH__BarkSpectrogram_drawFrequencyScale, U"", U"") {
+	REAL (fromFrequency, U"left Horizontal frequency range (Hz)", U"0.0")
+	REAL (toFrequency, U"right Horizontal frequency range (Hz)", U"0.0")
+	REAL (yFromFrequency, U"left Vertical frequency range (bark)", U"0.0")
+	REAL (yToFrequency, U"right Vertical frequency range (bark)", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true)
+	OK
+DO
+	GRAPHICS_EACH (MelSpectrogram)
+		BandFilterSpectrogram_drawFrequencyScale (me, GRAPHICS, fromFrequency, toFrequency, yFromFrequency, yToFrequency, garnish);
+	GRAPHICS_EACH_END
+}
+
 FORM (GRAPHICS_EACH__MelSpectrogram_paintImage, U"MelSpectrogram: Paint image", U"MelSpectrogram: Paint image...") {
 	praat_TimeFunction_RANGE (fromTime, toTime)
 	REAL (fromFrequency, U"left Frequency range (mel)", U"0.0")
@@ -4609,6 +4620,15 @@ DIRECT (HELP__Permutation_help) {
 	HELP (U"Permutation")
 }
 
+FORM (GRAPHICS_EACH__Permutation_drawAsLine, U"", nullptr) {
+	BOOLEAN (garnish, U"Garnish", true)
+	OK
+DO
+	GRAPHICS_EACH (Permutation)
+		Permutation_drawAsLine (me, GRAPHICS, garnish);
+	GRAPHICS_EACH_END
+}
+
 FORM (CREATE_ONE__Permutation_create, U"Create Permutation", U"Create Permutation...") {
 	WORD (name, U"Name", U"p")
 	NATURAL (numberOfElements, U"Number of elements", U"10")
@@ -4617,6 +4637,16 @@ FORM (CREATE_ONE__Permutation_create, U"Create Permutation", U"Create Permutatio
 DO
 	CREATE_ONE
 		autoPermutation result = Permutation_create (numberOfElements, identity);
+	CREATE_ONE_END (name)
+}
+
+FORM (CREATE_ONE__Permutation_createSimplePermutation, U"Permutation: Create simple Permutation", U"") {
+	WORD (name, U"Name", U"p")
+	INTEGERVECTOR (numbers, U"The Permutation", WHITESPACE_SEPARATED_, U"3 1 2")
+	OK
+DO
+	CREATE_ONE
+		autoPermutation result = Permutation_createSimplePermutation (numbers);
 	CREATE_ONE_END (name)
 }
 
@@ -4641,6 +4671,27 @@ DIRECT (QUERY_ONE_FOR_REAL_VECTOR__Permutation_listValues) {
 		for (integer i = 1; i <= my numberOfElements; i++)
 			result [i] = my p [i];
 	QUERY_ONE_FOR_REAL_VECTOR_END
+}
+
+DIRECT (QUERY_ONE_FOR_INTEGER__Permutation_getNumberOfInversions) {
+	QUERY_ONE_FOR_INTEGER (Permutation)
+		const integer result = Permutation_getNumberOfInversions (me);
+	QUERY_ONE_FOR_INTEGER_END (U" (inversions)")
+}
+
+FORM (QUERY_ONE_FOR_MATRIX__Permutation_listRandomInversions, U"Permutation: Get random inversions", U"Permutation: Get random inversions...") {
+	NATURAL (maxNumberOfInversions, U"max. number of inversions", U"1")
+	OK
+DO
+	QUERY_ONE_FOR_MATRIX (Permutation)
+		autoMAT result = Permutation_getRandomInversions (me, maxNumberOfInversions);
+	QUERY_ONE_FOR_MATRIX_END
+}
+
+DIRECT (QUERY_ONE_FOR_MATRIX__Permutation_listAllInversions) {
+	QUERY_ONE_FOR_MATRIX (Permutation)
+		autoMAT result = Permutation_getAllInversions (me);
+	QUERY_ONE_FOR_MATRIX_END
 }
 
 FORM (QUERY_ONE_FOR_INTEGER__Permutation_getIndexAtValue, U"Permutation: Get index", U"Permutation: Get index...") {
@@ -5333,59 +5384,6 @@ DIRECT (MODIFY_FIRST_OF_ONE_AND_ONE__Roots_Polynomial_polish) {
 }
 
 /*****************************************************************************/
-	
-
-
-FORM (SETTINGS__SampledDataAnalysisSettings, U"Sampled data analysis settings", U"Sampled data analysis settings...") {
-	COMMENT (U"This setting determines how fast your analyses will be performed on your computer.")
-	
-	BOOLEAN (useMultithreading, U"Use multi-threading", true)
-	COMMENT (SampledToSampledWorkspace_getNumberOfConcurrentThreadsAvailableInfo ());
-	NATURAL (numberOfConcurrentThreadsToUse, U"Number of threads to use",
-		Melder_integer (SampledToSampledWorkspace_getNumberOfConcurrentThreadsAvailable ()));
-	COMMENT (U"The minimum number of frames to be analysed in a thread:")
-	INTEGER (minimumNumberOfFramesPerThread, U"Min. frames / thread",
-		Melder_integer (SampledToSampledWorkspace_getMinimumNumberOfFramesPerThread ()));
-	COMMENT (U"The maximum number of frames to be analysed in a thread,")
-	COMMENT (U"where a value of 0 means no upper limit.")
-	INTEGER (maximumNumberOfFramesPerThread, U"Max. frames / thread",
-		Melder_integer (SampledToSampledWorkspace_getMaximumNumberOfFramesPerThread ()));
-	OK
-DO
-	PREFS
-		SampledToSampledWorkspace_setMultiThreading (useMultithreading);
-		SampledToSampledWorkspace_setNumberOfConcurrentThreadsToUse (numberOfConcurrentThreadsToUse);
-		SampledToSampledWorkspace_setMinimumNumberOfFramesPerThread (minimumNumberOfFramesPerThread);
-		SampledToSampledWorkspace_setMaximumNumberOfFramesPerThread (maximumNumberOfFramesPerThread);
-		Melder_require (!useMultithreading || maximumNumberOfFramesPerThread == 0 ||
-			maximumNumberOfFramesPerThread >= minimumNumberOfFramesPerThread,
-			U"The minimum number of frames per thread should not exceed the maximum number of frames per thread.");
-	PREFS_END
-}
-
-
-DIRECT (INFO_NONE__Praat_ReportFloatingPointProperties) {
-	INFO_NONE
-		if (! NUMfpp)
-			NUMmachar ();
-
-		MelderInfo_open ();
-		MelderInfo_writeLine (U"Double precision floating point properties of this machine,");
-		MelderInfo_writeLine (U"as calculated by algorithms from the Binary Linear Algebra System (BLAS)");
-		MelderInfo_writeLine (U"Radix: ", NUMfpp -> base);
-		MelderInfo_writeLine (U"Number of digits in mantissa: ", NUMfpp -> t);
-		MelderInfo_writeLine (U"Smallest exponent before (gradual) underflow (expmin): ", NUMfpp -> emin);
-		MelderInfo_writeLine (U"Largest exponent before overflow (expmax): ", NUMfpp -> emax);
-		MelderInfo_writeLine (U"Does rounding occur in addition: ", (NUMfpp -> rnd == 1 ? U"yes" : U"no"));
-		MelderInfo_writeLine (U"Quantization step (d): ", NUMfpp -> prec);
-		MelderInfo_writeLine (U"Quantization error (eps = d/2): ", NUMfpp -> eps);
-		MelderInfo_writeLine (U"Underflow threshold (= radix ^ (expmin - 1)): ", NUMfpp -> rmin);
-		MelderInfo_writeLine (U"Safe minimum (such that its inverse does not overflow): ", NUMfpp -> sfmin);
-		MelderInfo_writeLine (U"Overflow threshold (= (1 - eps) * radix ^ expmax): ", NUMfpp -> rmax);
-		MelderInfo_writeLine (U"\nA long double is ", sizeof (longdouble), U" bytes");
-		MelderInfo_close ();
-	INFO_NONE_END
-}
 
 FORM (QUERY_NONE_FOR_REAL__Praat_getTukeyQ, U"Get TukeyQ", nullptr) {
 	POSITIVE (criticalValue, U"Critical value", U"2.0")
@@ -8189,7 +8187,7 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
-FORM (CONVERT_EACH_TO_ONE__TextGrid_to_TextGridNavigator_topicSearch, U"TextGrid: To TextGridNavigator (topic search)", nullptr) {
+FORM (CONVERT_EACH_TO_ONE__TextGrid_to_TextGridNavigator_topicSearch, U"TextGrid: To TextGridNavigator (topic only)", nullptr) {
 	NATURAL (tierNumber, U"Tier number", U"1")
 	STRINGARRAY_LINES (4, topicLabels, U"Topic labels", { U"i", U"u", U"e", U"o", U"\\as" })
 	OPTIONMENU_ENUM (kMelder_string, topicCriterion, U"Topic match criterion", kMelder_string::DEFAULT)
@@ -8713,21 +8711,6 @@ static void praat_Eigen_draw_init (ClassInfo klas) {
 			GRAPHICS_EACH__Eigen_drawEigenvector);
 }
 
-static void praat_BandFilterSpectrogram_draw_init (ClassInfo klas);
-static void praat_BandFilterSpectrogram_draw_init (ClassInfo klas) {
-	praat_addAction1 (klas, 0, U"Draw -", nullptr, 0, nullptr);
-//	praat_addAction1 (klas, 0, U"Paint image...", nullptr, praat_DEPTH_1, DO_BandFilterSpectrogram_paintImage);
-//	praat_addAction1 (klas, 0, U"Draw filters...", nullptr, 1, DO_FilterBank_drawFilters);
-//	praat_addAction1 (klas, 0, U"Draw one contour...", nullptr, 1, DO_FilterBank_drawOneContour);
-//	praat_addAction1 (klas, 0, U"Draw contours...", nullptr, 1, DO_FilterBank_drawContours);
-//	praat_addAction1 (klas, 0, U"Paint contours...", nullptr, 1, DO_FilterBank_paintContours);
-//	praat_addAction1 (klas, 0, U"Paint cells...", nullptr, 1, DO_FilterBank_paintCells);
-//	praat_addAction1 (klas, 0, U"Paint surface...", nullptr, 1, DO_FilterBank_paintSurface);
-	praat_addAction1 (klas, 0, U"-- frequency scales --", nullptr, 1, nullptr);
-	praat_addAction1 (klas, 0, U"Draw frequency scale...", nullptr, 1, 
-			GRAPHICS_EACH__BandFilterSpectrogram_drawFrequencyScale);
-}
-
 static void praat_FilterBank_query_init (ClassInfo klas);
 static void praat_FilterBank_query_init (ClassInfo klas) {
 	praat_addAction1 (klas, 0, U"Query -", nullptr, 0, nullptr);
@@ -8958,7 +8941,9 @@ void praat_David_generics_new_init () {
 	);
 
 	praat_addMenuCommand (U"Objects", U"New", U"Create Permutation...", nullptr, 1,
-			CREATE_ONE__Permutation_create);
+						  CREATE_ONE__Permutation_create);
+	praat_addMenuCommand (U"Objects", U"New", U"Create simple Permutation...", nullptr, 1,
+						  CREATE_ONE__Permutation_createSimplePermutation);
 	praat_addMenuCommand (U"Objects", U"New", U"Polynomial", nullptr, 1, nullptr);
 	praat_addMenuCommand (U"Objects", U"New", U"Create Polynomial...", nullptr, 2,
 			CREATE_ONE__Polynomial_create);
@@ -9010,11 +8995,6 @@ void praat_David_init () {
 		trace (U"initializing eSpeak data took ", Melder_fixed (1000 * (Melder_clock () - t), 3), U" milliseconds");
 	}
 	
-	praat_addMenuCommand (U"Objects", U"Settings", U"Sampled data analysis settings...", nullptr, 0,
-			SETTINGS__SampledDataAnalysisSettings);
-
-	praat_addMenuCommand (U"Objects", U"Technical", U"Report floating point properties", U"Report integer properties", 0,
-			INFO_NONE__Praat_ReportFloatingPointProperties);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Get TukeyQ...", 0, GuiMenu_HIDDEN,
 			QUERY_NONE_FOR_REAL__Praat_getTukeyQ);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Get invTukeyQ...", 0, GuiMenu_HIDDEN,
@@ -9034,7 +9014,7 @@ void praat_David_init () {
 	/*
 		The `New/SpeechSynthesizer` commands don't require us to supply the `after` argument,
 		because `praat_David_init()` is called between `praat_uvafon_Artsynth_init()` and `praat_uvafon_gram_init()`.
-		(last checked 20240907)
+		(last checked 2024-09-07)
 	*/
 	praat_addMenuCommand (U"Objects", U"New", U"Text-to-speech synthesis", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Objects", U"New", U"SpeechSynthesizer help", nullptr, 1,
@@ -9141,7 +9121,9 @@ void praat_David_init () {
 
 	praat_addAction1 (classBarkSpectrogram, 0, U"BarkSpectrogram help", nullptr, 0,
 			HELP__BarkSpectrogram_help);
-	praat_BandFilterSpectrogram_draw_init (classBarkSpectrogram);
+	praat_addAction1 (classBarkSpectrogram, 0, U"Draw -", nullptr, 0, nullptr);
+	praat_addAction1 (classBarkSpectrogram, 0, U"Draw frequency scale...", nullptr, 1,
+			GRAPHICS_EACH__BarkSpectrogram_drawFrequencyScale);
 	praat_addAction1 (classBarkSpectrogram, 0, U"Paint image...", nullptr, 1,
 			GRAPHICS_EACH__BarkSpectrogram_paintImage);
 	praat_addAction1 (classBarkSpectrogram, 0, U"Draw Sekey-Hanson auditory filters...", nullptr, 1,
@@ -9840,7 +9822,9 @@ void praat_David_init () {
 
 	praat_addAction1 (classMelSpectrogram, 0, U"MelSpectrogram help", nullptr, 0,
 			HELP__MelSpectrogram_help);
-	praat_BandFilterSpectrogram_draw_init (classMelSpectrogram);
+	praat_addAction1 (classMelSpectrogram, 0, U"Draw -", nullptr, 0, nullptr);
+	praat_addAction1 (classMelSpectrogram, 0, U"Draw frequency scale...", nullptr, 1,
+			GRAPHICS_EACH__MelSpectrogram_drawFrequencyScale);
 	praat_addAction1 (classMelSpectrogram, 0, U"Paint image...", nullptr, 1,
 			GRAPHICS_EACH__MelSpectrogram_paintImage);
 	praat_addAction1 (classMelSpectrogram, 0, U"Draw triangular filter functions...", nullptr, 1,
@@ -10021,6 +10005,8 @@ void praat_David_init () {
 
 	praat_addAction1 (classPermutation, 0, U"Permutation help",
 			nullptr, 0, HELP__Permutation_help);
+	praat_addAction1 (classPermutation, 0, U"Draw as line...",
+					  nullptr, 0, GRAPHICS_EACH__Permutation_drawAsLine);
 	praat_addAction1 (classPermutation, 0, U"Query -", nullptr, 0, nullptr);
 		praat_addAction1 (classPermutation, 1, U"Get number of elements",
 				nullptr, 1, QUERY_ONE_FOR_INTEGER__Permutation_getNumberOfElements);
@@ -10030,7 +10016,13 @@ void praat_David_init () {
 				nullptr, 1, QUERY_ONE_FOR_REAL_VECTOR__Permutation_listValues);
 		praat_addAction1 (classPermutation, 1, U"Get index...",
 				nullptr, 1, QUERY_ONE_FOR_INTEGER__Permutation_getIndexAtValue);
-	praat_addAction1 (classPermutation, 0, U"Modify -", nullptr, 0, nullptr);
+		praat_addAction1 (classPermutation, 1, U"Get number of inversions",
+				nullptr, 1, QUERY_ONE_FOR_INTEGER__Permutation_getNumberOfInversions);
+		praat_addAction1 (classPermutation, 1, U"List random inversions...",
+						  nullptr, 1, QUERY_ONE_FOR_MATRIX__Permutation_listRandomInversions);
+		praat_addAction1 (classPermutation, 1, U"List all inversions",
+						  nullptr, 1, QUERY_ONE_FOR_MATRIX__Permutation_listAllInversions);
+		praat_addAction1 (classPermutation, 0, U"Modify -", nullptr, 0, nullptr);
 		praat_addAction1 (classPermutation, 0, U"Permute randomly (in-place)...",
 				nullptr, 1, MODIFY__Permutation_permuteRandomlyInplace);
 		praat_addAction1 (classPermutation, 1, U"Sort",
@@ -10685,4 +10677,4 @@ void praat_David_init () {
 	INCLUDE_LIBRARY (praat_BSS_init)
 }
 
-/* End of file praat_David.cpp */
+/* End of file praat_David_init.cpp */

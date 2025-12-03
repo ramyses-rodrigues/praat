@@ -1,10 +1,10 @@
 /* melder_ftoa.cpp
  *
- * Copyright (C) 1992-2008,2010-2012,2014-2024 Paul Boersma
+ * Copyright (C) 1992-2008,2010-2012,2014-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -59,14 +59,14 @@ const char * Melder8_integer (int64 value) {
 				formatString = "%I64d";
 				snprintf (tryBuffer,MAXIMUM_NUMERIC_STRING_LENGTH+1, formatString, 1000000000000LL);
 				if (! strequ (tryBuffer, "1000000000000"))
-					Melder_fatal (U"Found no way to print 64-bit integers on this machine.");
+					Melder_crash (U"Found no way to print 64-bit integers on this machine.");
 			}
 		}
 		const int n = snprintf (buffers8 [ibuffer],MAXIMUM_NUMERIC_STRING_LENGTH+1, formatString, value);
 		Melder_assert (n > 0);
 		Melder_assert (n <= MAXIMUM_NUMERIC_STRING_LENGTH);
 	} else {
-		Melder_fatal (U"Neither long nor long long is 8 bytes on this machine.");
+		Melder_crash (U"Neither long nor long long is 8 bytes on this machine.");
 	}
 	return buffers8 [ibuffer];
 }
@@ -493,6 +493,17 @@ conststring32 Melder_VEC (constVECVU const& value, const bool horizontal) {
 			MelderString_append (string, value [i], horizontal ? U' ' : U'\n');
 	return string -> string;
 }
+conststring32 Melder_fixed (constVECVU const& value, integer precision, const bool horizontal) {
+	if (++ iTensorBuffer == NUMBER_OF_TENSOR_BUFFERS)
+		iTensorBuffer = 0;
+	MelderString *string = & theTensorBuffers [iTensorBuffer];
+	MelderString_empty (string);
+	if (! NUMisEmpty (value))
+		for (integer i = 1; i <= value.size; i ++)
+			MelderString_append (string, Melder_fixed (value [i], precision), horizontal ? U' ' : U'\n');
+	return string -> string;
+}
+
 conststring32 Melder_MAT (constMATVU const& value) {
 	if (++ iTensorBuffer == NUMBER_OF_TENSOR_BUFFERS)
 		iTensorBuffer = 0;
@@ -511,6 +522,25 @@ conststring32 Melder_MAT (constMATVU const& value) {
 	}
 	return string -> string;
 }
+conststring32 Melder_fixed (constMATVU const& value, integer precision) {
+	if (++ iTensorBuffer == NUMBER_OF_TENSOR_BUFFERS)
+		iTensorBuffer = 0;
+	MelderString *string = & theTensorBuffers [iTensorBuffer];
+	MelderString_empty (string);
+	if (! NUMisEmpty (value)) {
+		for (integer irow = 1; irow <= value.nrow; irow ++) {
+			for (integer icol = 1; icol <= value.ncol; icol ++) {
+				MelderString_append (string, Melder_fixed (value [irow] [icol], precision));
+				if (icol < value.ncol)
+					MelderString_appendCharacter (string, U' ');
+			}
+			if (irow < value.nrow)
+				MelderString_appendCharacter (string, U'\n');
+		}
+	}
+	return string -> string;
+}
+
 conststring32 Melder_STRVEC (constSTRVEC const& value) {
 	if (++ iTensorBuffer == NUMBER_OF_TENSOR_BUFFERS)
 		iTensorBuffer = 0;

@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -313,8 +313,8 @@ void OTGrammar_sort (OTGrammar me) {
 			/*
 				Sort primarily by disharmony.
 			*/
-			if (ci -> disharmony > cj -> disharmony)
-				return true;
+			if (ci -> disharmony > cj -> disharmony)   // already in descending order?
+				return true;   // yes, already in descending order
 			if (ci -> disharmony < cj -> disharmony)
 				return false;
 			/*
@@ -326,9 +326,9 @@ void OTGrammar_sort (OTGrammar me) {
 	for (integer icons = 1; icons <= my numberOfConstraints; icons ++) {
 		OTGrammarConstraint constraint = & my constraints [my index [icons]];
 		constraint -> tiedToTheLeft = ( icons > 1 &&
-			my constraints [my index [icons - 1]]. disharmony == constraint -> disharmony );
+				my constraints [my index [icons - 1]]. disharmony == constraint -> disharmony );
 		constraint -> tiedToTheRight = ( icons < my numberOfConstraints &&
-			my constraints [my index [icons + 1]]. disharmony == constraint -> disharmony );
+				my constraints [my index [icons + 1]]. disharmony == constraint -> disharmony );
 	}
 }
 
@@ -336,7 +336,7 @@ void OTGrammar_newDisharmonies (OTGrammar me, double spreading) {
 	for (integer icons = 1; icons <= my numberOfConstraints; icons ++) {
 		OTGrammarConstraint constraint = & my constraints [icons];
 		constraint -> disharmony = constraint -> ranking + NUMrandomGauss (0, spreading)
-			/*NUMrandomUniform (-spreading, spreading)*/;
+				/*NUMrandomUniform (-spreading, spreading)*/;
 	}
 	OTGrammar_sort (me);
 }
@@ -366,7 +366,7 @@ static void _OTGrammar_fillInHarmonies (OTGrammar me, integer itab) {
 		{
 			for (integer icons = 1; icons <= my numberOfConstraints; icons ++)
 				disharmony += exp (my constraints [icons]. disharmony) * marks [icons];
-		} else if (my decisionStrategy == kOTGrammar_decisionStrategy::LINEAR_OT) {
+		} else if (my decisionStrategy == kOTGrammar_decisionStrategy::LINEAR_OT || my decisionStrategy == kOTGrammar_decisionStrategy::NONNEGATIVE_MAXIMUM_ENTROPY) {
 			for (integer icons = 1; icons <= my numberOfConstraints; icons ++)
 				if (my constraints [icons]. disharmony > 0.0)
 					disharmony += my constraints [icons]. disharmony * marks [icons];
@@ -376,7 +376,7 @@ static void _OTGrammar_fillInHarmonies (OTGrammar me, integer itab) {
 				disharmony += constraintDisharmony * marks [icons];
 			}
 		} else {
-			Melder_fatal (U"_OTGrammar_fillInHarmonies: unimplemented decision strategy.");
+			Melder_crash (U"_OTGrammar_fillInHarmonies: unimplemented decision strategy.");
 		}
 		candidate -> harmony = - (double) disharmony;
 	}
@@ -419,7 +419,7 @@ int OTGrammar_compareCandidates (OTGrammar me, integer itab1, integer icand1, in
 			return -1;   // candidate 1 is better than candidate 2
 		if (disharmony1 > disharmony2)
 			return +1;   // candidate 2 is better than candidate 1
-	} else if (my decisionStrategy == kOTGrammar_decisionStrategy::LINEAR_OT) {
+	} else if (my decisionStrategy == kOTGrammar_decisionStrategy::LINEAR_OT || my decisionStrategy == kOTGrammar_decisionStrategy::NONNEGATIVE_MAXIMUM_ENTROPY) {
 		double disharmony1 = 0.0, disharmony2 = 0.0;
 		for (integer icons = 1; icons <= my numberOfConstraints; icons ++) {
 			if (my constraints [icons]. disharmony > 0.0) {
@@ -455,7 +455,7 @@ int OTGrammar_compareCandidates (OTGrammar me, integer itab1, integer icand1, in
 		if (disharmony1 > disharmony2)
 			return +1;   // candidate 2 is better than candidate 1
 	} else
-		Melder_fatal (U"Unimplemented decision strategy.");
+		Melder_crash (U"Unimplemented decision strategy.");
 	return 0;   // the two total disharmonies are equal
 }
 
@@ -487,7 +487,8 @@ static void _OTGrammar_fillInProbabilities (OTGrammar me, integer itab) {
 integer OTGrammar_getWinner (OTGrammar me, integer itab) {
 	integer icand_best = 1;
 	if (my decisionStrategy == kOTGrammar_decisionStrategy::MAXIMUM_ENTROPY ||
-		my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_MAXIMUM_ENTROPY)
+		my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_MAXIMUM_ENTROPY ||
+		my decisionStrategy == kOTGrammar_decisionStrategy::NONNEGATIVE_MAXIMUM_ENTROPY)
 	{
 		_OTGrammar_fillInHarmonies (me, itab);
 		_OTGrammar_fillInProbabilities (me, itab);
@@ -527,7 +528,8 @@ integer OTGrammar_getWinner (OTGrammar me, integer itab) {
 
 integer OTGrammar_getNumberOfOptimalCandidates (OTGrammar me, integer itab) {
 	if (my decisionStrategy == kOTGrammar_decisionStrategy::MAXIMUM_ENTROPY ||
-		my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_MAXIMUM_ENTROPY) return 1;
+		my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_MAXIMUM_ENTROPY ||
+		my decisionStrategy == kOTGrammar_decisionStrategy::NONNEGATIVE_MAXIMUM_ENTROPY) return 1;
 	integer icand_best = 1, numberOfBestCandidates = 1;
 	for (integer icand = 2; icand <= my tableaus [itab]. numberOfCandidates; icand ++) {
 		int comparison = OTGrammar_compareCandidates (me, itab, icand, itab, icand_best);
@@ -1248,14 +1250,15 @@ static void OTGrammar_modifyRankings (OTGrammar me, integer itab, integer iwinne
 	try {
 		OTGrammarTableau tableau = & my tableaus [itab];
 		OTGrammarCandidate winner = & tableau -> candidates [iwinner], adult = & tableau -> candidates [iadult];
-		double step = learningStep (plasticity, relativePlasticityNoise);
+		const double step = learningStep (plasticity, relativePlasticityNoise);
 		bool multiplyStepByNumberOfViolations =
 			my decisionStrategy == kOTGrammar_decisionStrategy::HARMONIC_GRAMMAR ||
 			my decisionStrategy == kOTGrammar_decisionStrategy::LINEAR_OT ||
 			my decisionStrategy == kOTGrammar_decisionStrategy::MAXIMUM_ENTROPY ||
 			my decisionStrategy == kOTGrammar_decisionStrategy::POSITIVE_HG ||
 			my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_HG ||
-			my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_MAXIMUM_ENTROPY;
+			my decisionStrategy == kOTGrammar_decisionStrategy::EXPONENTIAL_MAXIMUM_ENTROPY ||
+			my decisionStrategy == kOTGrammar_decisionStrategy::NONNEGATIVE_MAXIMUM_ENTROPY;
 		if (Melder_debug != 0) {
 			/*
 			 * Perhaps override the standard update rule.
@@ -2473,7 +2476,7 @@ void OTGrammar_removeConstraint (OTGrammar me, conststring32 constraintName) {
 static void OTGrammarTableau_removeCandidate_unstripped (OTGrammarTableau me, integer candidateNumber) {
 	Melder_assert (candidateNumber >= 1);
 	if (candidateNumber > my numberOfCandidates)
-		Melder_fatal (U"icand ", candidateNumber, U", ncand ", my numberOfCandidates);
+		Melder_crash (U"icand ", candidateNumber, U", ncand ", my numberOfCandidates);
 
 	my candidates [candidateNumber]. destroy ();
 	Melder_assert (! my candidates [candidateNumber]. output);   // check leak

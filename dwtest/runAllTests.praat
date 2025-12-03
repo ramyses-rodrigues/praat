@@ -1,5 +1,6 @@
 # dwtest/runAllTests.praat
 # 2024-12-01 writing settings to UTF-8 for Praat 7
+# 2025-08-16 make more reproducible
 
 #
 # Some tests require standard settings for the text input encoding:
@@ -25,11 +26,25 @@ for itest to ntests
 	test$ = Get string: itest
 	appendInfoLine: test$
 	report_before$ = Report memory use
+	#
+	# The following two lines aim at making the test reproducible.
+	# That is, the test should give the same result on different
+	# computers and different platforms and at different times.
+	# The random seed is allowed to change with the Praat release;
+	# just run all the tests if you change the random seed,
+	# even if there was no change in the Praat source code.
+	# This is because the success of some precision tests
+	# has been reported (by maintainers) to depend on the random state.
+	# Also make sure that the random seed is the same
+	# for the other two "runAlltests" scripts.
+	#
 	random_initializeWithSeedUnsafelyButPredictably (5489)
+	Debug multi-threading: "yes", 8, 0, "no"
 	runScript: test$
-	random_initializeSafelyAndUnpredictably()
 	@check_memory: report_before$, "   "
 endfor
+random_initializeSafelyAndUnpredictably()
+Debug multi-threading: "yes", 0, 0, "no"
 
 procedure check_memory: .report_before$, .preprint$
 	.m$[1] = "Strings: "
@@ -46,7 +61,7 @@ procedure check_memory: .report_before$, .preprint$
 endproc
 removeObject: tests
 
-writeInfoLine: "                 ALL PRAAT TESTS WENT OK"
+appendInfoLine: "                 ALL PRAAT TESTS WENT OK"
 appendInfoLine: ""
 line$ [5] = "        #####          #####        #####   #####"
 line$ [8] = "        #####          #####        #######"

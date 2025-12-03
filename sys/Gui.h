@@ -134,7 +134,11 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 		- (void) magnifyBy: (double) step;
 	@end
 	@interface GuiCocoaScrolledWindow : NSScrollView <GuiCocoaAny> @end
-	@interface GuiCocoaShell : NSWindow <GuiCocoaAny> @end
+	@interface GuiCocoaShell : NSWindow <GuiCocoaAny>
+		- (void) setDistinctiveBackGround;   // slightly darker than Tahoe's background, in order to still see text widgets
+	@end
+	@interface GuiCocoaShellDelegate : NSObject <NSWindowDelegate>
+	@end
 	@interface GuiCocoaTextField : NSTextField <GuiCocoaAny> @end
 	@interface GuiCocoaTextView : NSTextView <GuiCocoaAny, NSTextViewDelegate> @end
 #elif motif
@@ -365,7 +369,7 @@ Thing_define (GuiShell, GuiForm) {
 int GuiShell_getShellWidth  (GuiShell me);   // needed because GuiControl_getWidth yields the width of the inner form
 int GuiShell_getShellHeight (GuiShell me);
 void GuiShell_setTitle (GuiShell me, conststring32 title /* cattable */);
-void GuiShell_drain (GuiShell me);   // force display of update regions (forces the handling of an expose event)
+void GuiShell_drain (GuiShell me, bool waitUntilItHasHappened, bool allowOtherEvents);   // force display of update regions (forces the handling of an expose event)
 
 /********** GuiButton **********/
 

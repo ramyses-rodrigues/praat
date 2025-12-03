@@ -448,25 +448,25 @@ struct CollectionOf : structDaata {
 
 
 	void v1_copy (Daata data_to) const override {   // copies all the items
-		_CollectionOfDaata_v1_copy (reinterpret_cast<const _CollectionOfDaata*> (this), reinterpret_cast<_CollectionOfDaata*> (data_to));
+		_CollectionOfDaata_v1_copy (reinterpret_cast <const _CollectionOfDaata*> (this), reinterpret_cast<_CollectionOfDaata*> (data_to));
 	}
 	bool v1_equal (Daata data2) override {   // compares 'my item [i]' with 'thy item [i]', i = 1..size
-		return _CollectionOfDaata_v1_equal (reinterpret_cast<_CollectionOfDaata*> (this), reinterpret_cast<_CollectionOfDaata*> (data2));
+		return _CollectionOfDaata_v1_equal (reinterpret_cast <_CollectionOfDaata*> (this), reinterpret_cast<_CollectionOfDaata*> (data2));
 	}
 	bool v1_canWriteAsEncoding (int outputEncoding) override {
-		return _CollectionOfDaata_v1_canWriteAsEncoding (reinterpret_cast<_CollectionOfDaata*> (this), outputEncoding);
+		return _CollectionOfDaata_v1_canWriteAsEncoding (reinterpret_cast <_CollectionOfDaata*> (this), outputEncoding);
 	}
 	void v1_writeText (MelderFile openFile) override {
-		_CollectionOfDaata_v1_writeText (reinterpret_cast<_CollectionOfDaata*> (this), openFile);
+		_CollectionOfDaata_v1_writeText (reinterpret_cast <_CollectionOfDaata*> (this), openFile);
 	}
 	void v1_readText (MelderReadText text, int formatVersion) override {
-		_CollectionOfDaata_v1_readText (reinterpret_cast<_CollectionOfDaata*> (this), text, formatVersion);
+		_CollectionOfDaata_v1_readText (reinterpret_cast <_CollectionOfDaata*> (this), text, formatVersion);
 	}
 	void v1_writeBinary (FILE *f) override {
-		_CollectionOfDaata_v1_writeBinary (reinterpret_cast<_CollectionOfDaata*> (this), f);
+		_CollectionOfDaata_v1_writeBinary (reinterpret_cast <_CollectionOfDaata*> (this), f);
 	}
 	void v1_readBinary (FILE *f, int formatVersion) override {
-		_CollectionOfDaata_v1_readBinary (reinterpret_cast<_CollectionOfDaata*> (this), f, formatVersion);
+		_CollectionOfDaata_v1_readBinary (reinterpret_cast <_CollectionOfDaata*> (this), f, formatVersion);
 	}
 	Data_Description v_description () override {
 		return & theCollectionOfDaata_v_description [0];

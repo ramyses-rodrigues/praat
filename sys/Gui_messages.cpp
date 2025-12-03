@@ -5,7 +5,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -31,6 +31,8 @@
 #include "Script.h"
 #include "Notebook.h"
 #include "GuiTrust.h"
+
+//#include <QuartzCore/CoreAnimation.h>
 
 /********** Exported variable. **********/
 
@@ -82,18 +84,6 @@ static bool waitWhileProgress (double progress, conststring32 message, GuiDialog
 		}
 	#elif cocoa
 		(void) cancelButton;   // the Interrupt button has its own callback
-		while (NSEvent *nsEvent = [NSApp
-			nextEventMatchingMask: NSAnyEventMask
-			untilDate: [NSDate distantPast]
-			inMode: NSDefaultRunLoopMode
-			dequeue: YES
-			])
-		{
-			NSUInteger nsEventType = [nsEvent type];
-			if (nsEventType == NSKeyDown)
-				NSBeep ();
-			[[nsEvent window]  sendEvent: nsEvent];
-		}
 	#endif
 	if (progress >= 1.0) {
 		GuiThing_hide (dia);
@@ -131,6 +121,8 @@ static bool waitWhileProgress (double progress, conststring32 message, GuiDialog
 		#elif cocoa
 			GuiProgressBar_setValue (scale, progress);
 			//[scale -> d_cocoaProgressBar   displayIfNeeded];
+			//[CATransaction flush];
+			GuiShell_drain (scale -> d_shell, true, true);
 			if (theProgressCancelled) {
 				theProgressCancelled = false;
 				return false;
@@ -190,13 +182,13 @@ static void _Melder_dia_init (GuiDialog *dia, GuiProgressBar *scale, GuiLabel *l
 }
 
 static void gui_progress (double progress, conststring32 message) {
-	static clock_t lastTime;
+	static double lastTime;
 	static GuiDialog dia = nullptr;
 	static GuiProgressBar scale = nullptr;
 	static GuiLabel label1 = nullptr, label2 = nullptr;
-	clock_t now = clock ();
+	const double now = Melder_clock ();
 	if (progress <= 0.0 || progress >= 1.0 ||
-		now - lastTime > CLOCKS_PER_SEC / 4)   // this time step must be much longer than the null-event waiting time
+		now - lastTime > 0.25)   // this time step must be much longer than the null-event waiting time
 	{
 		if (! dia)
 			_Melder_dia_init (& dia, & scale, & label1, & label2, & theProgressCancelButton, false);
@@ -215,15 +207,15 @@ static void gui_drawingarea_cb_expose (Thing /* boss */, GuiDrawingArea_ExposeEv
 }
 
 static void * gui_monitor (double progress, conststring32 message) {
-	static clock_t lastTime;
+	static double lastTime;
 	static GuiDialog dia = nullptr;
 	static GuiProgressBar scale = nullptr;
 	static GuiDrawingArea drawingArea = nullptr;
 	static GuiButton cancelButton = nullptr;
 	static GuiLabel label1 = nullptr, label2 = nullptr;
-	clock_t now = clock ();
+	const double now = Melder_clock ();
 	if (progress <= 0.0 || progress >= 1.0 ||
-		now - lastTime > CLOCKS_PER_SEC / 4)   // this time step must be much longer than the null-event waiting time
+		now - lastTime > 0.25)   // this time step must be much longer than the null-event waiting time
 	{
 		if (! dia) {
 			_Melder_dia_init (& dia, & scale, & label1, & label2, & cancelButton, true);
@@ -313,7 +305,7 @@ static void * gui_monitor (double progress, conststring32 message) {
 #define theMessageFund_SIZE  100'000
 static char * theMessageFund = nullptr;
 
-static void gui_fatal (conststring32 message) {
+static void gui_crash (conststring32 message) {
 	free (theMessageFund);
 	Melder_casual (U"PRAAT CRASH MESSAGE:\n", message, U"\n(END OF PRAAT CRASH MESSAGE)");
 	#if gtk
@@ -443,7 +435,7 @@ void Gui_injectMessageProcs (GuiWindow parent) {
 	theMessageFund = (char *) malloc (theMessageFund_SIZE);
 	assert (theMessageFund);
 	Melder_topShell = parent;
-	Melder_setCrashProc (gui_fatal);
+	Melder_setCrashProc (gui_crash);
 	Melder_setErrorProc (gui_error);
 	Melder_setWarningProc (gui_warning);
 	Melder_setProgressProc (gui_progress);

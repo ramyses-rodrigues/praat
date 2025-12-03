@@ -2,11 +2,11 @@
 #define _melder_cat_h_
 /* melder_cat.h
  *
- * Copyright (C) 1992-2018,2020 Paul Boersma
+ * Copyright (C) 1992-2018,2020,2024,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -24,11 +24,11 @@ namespace MelderCat {
 	extern int _bufferNumber;
 }
 
-template <typename... Args>
-conststring32 Melder_cat (Args... args) {
+template <typename... Arg>
+conststring32 Melder_cat (const Arg... arg) {
 	if (++ MelderCat::_bufferNumber == MelderCat::_k_NUMBER_OF_BUFFERS)
 		MelderCat::_bufferNumber = 0;
-	MelderString_copy (& MelderCat::_buffers [MelderCat::_bufferNumber], args...);
+	MelderString_copy (& MelderCat::_buffers [MelderCat::_bufferNumber], arg...);
 	return MelderCat::_buffers [MelderCat::_bufferNumber].string;
 }
 

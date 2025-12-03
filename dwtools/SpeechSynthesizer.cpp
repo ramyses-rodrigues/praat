@@ -1,10 +1,10 @@
 /* SpeechSynthesizer.cpp
  *
- * Copyright (C) 2011-2023 David Weenink, 2012,2013,2015-2024 Paul Boersma
+ * Copyright (C) 2011-2023 David Weenink, 2012,2013,2015-2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -768,7 +768,7 @@ static conststring32 get_wordAfterPrecursor_u8 (constvector<unsigned char> const
 		2. Get the words after 'precursor' (skip leading and trailing whitespace).
 	*/
 	autoMelderString regex;
-	const conststring32 text = Melder_peek8to32 (reinterpret_cast<const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
+	const conststring32 text = Melder_peek8to32 (reinterpret_cast <const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
 	MelderString_append (& regex, U"^\\s*", precursor, U"\\s+");
 	char32 *p = nullptr;
 	const char32 *pmatch = strstr_regexp (text, regex.string);
@@ -793,7 +793,7 @@ static conststring32 get_stringAfterPrecursor_u8 (constvector<unsigned char> con
 		2. Get the words after 'precursor' (skip leading and trailing whitespace).
 	*/
 	autoMelderString regex;
-	const conststring32 text = Melder_peek8to32 (reinterpret_cast<const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
+	const conststring32 text = Melder_peek8to32 (reinterpret_cast <const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
 	//const conststring32 text = Melder_peek8to32 ((const char *) & (text8.cells[1]));
 	MelderString_append (& regex, U"^\\s*", precursor, U"\\s+");
 	char32 *p = nullptr;
@@ -912,7 +912,7 @@ void classSpeechSynthesizer_initClass () {
 			theSpeechSynthesizerVoiceNames = list.get();
 		}
 	} catch (MelderError) {
-		Melder_fatal (U"eSpeak-Praat initialization not performed.");
+		Melder_crash (U"eSpeak-Praat initialization not performed.");
 	}
 }
 

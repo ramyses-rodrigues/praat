@@ -5,7 +5,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -232,7 +232,8 @@ Thing_implement (GuiMenu, GuiThing, 0);
 			Something crazy:
 
 			The OS will be sending this opening message, even when the files were specified on the command line.
-			If the number of command line options besides --open or --send is odd, then all specified files will be sent here;
+			If the number of command line options besides --open or --send or --send-or-form is odd,
+			then all specified files will be sent here;
 			if the number is even, then all specified files minus the first will be sent here.
 
 			Fortunately, the automatic file-opening message is sent between
@@ -241,7 +242,7 @@ Thing_implement (GuiMenu, GuiThing, 0);
 		(void) sender;
 		trace (U"application (", Melder_pointer (self), U", ", Melder_pointer (sender), U") open files: ", [fileNames count]);
 		trace (U"application is running: ", [NSApp isRunning]);
-		const bool filesArrivedHereFromTheCommandLine = ! praatP.hasFinishedLaunching && (praatP.foundTheOpenSwitch || praatP.foundTheSendSwitch);
+		const bool filesArrivedHereFromTheCommandLine = ! praatP.hasFinishedLaunching && (praatP.foundTheOpenSwitch || praatP.foundTheSendSwitch || praatP.foundTheSendOrFormSwitch);
 		if (filesArrivedHereFromTheCommandLine)
 			return;   // otherwise, those files will be opened twice
 		for (NSUInteger i = 1; i <= [fileNames count]; i ++) {
@@ -258,6 +259,19 @@ Thing_implement (GuiMenu, GuiThing, 0);
 		}
 		if (theFinishedOpeningDocumentsCallback)
 			theFinishedOpeningDocumentsCallback ();
+	}
+	- (BOOL) applicationSupportsSecureRestorableState: (NSApplication *) app
+	{
+		return true;   // implementing this function silences a warning at start-up
+	}
+	- (BOOL) restoreWindowWithIdentifier: (NSUserInterfaceItemIdentifier) identifier
+		state: (NSCoder *) state
+		completionHandler: (void (^)(NSWindow *, NSError *)) completionHandler
+	{
+		//TRACE
+		trace (U"restoring window “", Melder_peek8to32 ([identifier UTF8String]), U"”");
+		completionHandler (nil, nil);
+		return false;   // do nothing (implementing this function silences a warning at start-up)
 	}
 	@end
 #endif
@@ -405,26 +419,26 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 		_GuiObject_setUserData (my d_widget, me.get());
 	#elif cocoa
 		if (! theMenuBar) {
-			integer numberOfMenus = uinteger_to_integer ([[[NSApp mainMenu] itemArray] count]);
+			integer numberOfMenus = uinteger_to_integer_a ([[[NSApp mainMenu] itemArray] count]);
 			trace (U"Number of menus: ", numberOfMenus);
 			[NSApp   setDelegate: NSApp];   // the app is its own delegate
 			theMenuBar = [[NSMenu alloc] init];
 			[NSApp   setMainMenu: theMenuBar];
 		}
 		my d_cocoaMenu = [[GuiCocoaMenu alloc]
-			initWithTitle: (NSString *) Melder_peek32toCfstring (title)];
+				initWithTitle: (NSString *) Melder_peek32toCfstring (title)];
 		my d_widget = my d_cocoaMenu;
 		[my d_cocoaMenu   setUserData: me.get()];
 		[my d_cocoaMenu   setAutoenablesItems: NO];
 		if (! window) {
 			/*
-				Install the menu in the main OS X menu bar along the top of the screen.
+				Install the menu in the main macOS menu bar along the top of the screen.
 				This is done by creating a menu item for the main menu bar,
 				and during applicationWillFinishLaunching installing that item.
 			*/
-            NSString *itemTitle = (NSString *) Melder_peek32toCfstring (title);
+			NSString *itemTitle = (NSString *) Melder_peek32toCfstring (title);
 			my d_cocoaMenuItem = [[GuiCocoaMenuItem alloc]
-				initWithTitle: itemTitle   action: nullptr   keyEquivalent: @""];
+					initWithTitle: itemTitle   action: nullptr   keyEquivalent: @""];
 
 			[my d_cocoaMenuItem   setSubmenu: my d_cocoaMenu];   // the item will retain the menu...
 			[my d_cocoaMenu   release];   // ... so we can release the menu already (before even returning it!)
@@ -440,21 +454,21 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 				window -> d_menuBarWidth = -1;
 			const integer width = 18 + 7 * Melder_length (title), height = 35 /*25*/;
 			integer x = window -> d_menuBarWidth, y = parentHeight + 1 - height;
-            NSUInteger resizingMask = NSViewMinYMargin;
+			NSUInteger resizingMask = NSViewMinYMargin;
 			if (Melder_equ (title, U"Help")) {
 				x = parentWidth + 1 - width;
-                resizingMask |= NSViewMinXMargin;
+				resizingMask |= NSViewMinXMargin;
 			} else {
 				window -> d_menuBarWidth += width - 1;
 			}
 			NSRect rect = { { (CGFloat) x, (CGFloat) y }, { (CGFloat) width, (CGFloat) height } };
 			my d_cocoaMenuButton = [[GuiCocoaMenuButton alloc]
-				initWithFrame: rect   pullsDown: YES];
+					initWithFrame: rect   pullsDown: YES];
 			[my d_cocoaMenuButton   setAutoenablesItems: NO];
 			[my d_cocoaMenuButton   setBezelStyle: NSShadowlessSquareBezelStyle];
 			[my d_cocoaMenuButton   setImagePosition: NSImageAbove];   // this centers the text
 			//[nsPopupButton setBordered: NO];
-            [my d_cocoaMenuButton   setAutoresizingMask: resizingMask]; // stick to top
+            [my d_cocoaMenuButton   setAutoresizingMask: resizingMask];   // stick to top
 			if (flags & GuiMenu_INSENSITIVE)
 				[my d_cocoaMenuButton   setEnabled: NO];
 
@@ -524,7 +538,8 @@ GuiMenu GuiMenu_createInMenu (GuiMenu supermenu, conststring32 title, uint32 fla
 		NSMenuItem *item = [[NSMenuItem alloc]
 			initWithTitle: (NSString *) Melder_peek32toCfstring (title)
 			action: nullptr
-			keyEquivalent: @""];
+			keyEquivalent: @""
+		];
 		trace (U"adding the item to its supermenu ", Melder_pointer (supermenu));
 		[supermenu -> d_cocoaMenu   addItem: item];   // the menu will retain the item...
 		trace (U"release the item");
@@ -622,8 +637,8 @@ GuiMenu GuiMenu_createInForm (GuiForm form, int left, int right, int top, int bo
 		[my d_cocoaMenuButton   setImagePosition: NSImageAbove];   // this centers the text
 		[[my d_cocoaMenuButton cell]   setArrowPosition: NSPopUpNoArrow /*NSPopUpArrowAtBottom*/];
 
-        NSString *menuTitle = (NSString*) Melder_peek32toCfstring (neatTitle.string);
-        my d_widget = my d_cocoaMenu = [[GuiCocoaMenu alloc] initWithTitle: menuTitle];
+		NSString *menuTitle = (NSString*) Melder_peek32toCfstring (neatTitle.string);
+		my d_widget = my d_cocoaMenu = [[GuiCocoaMenu alloc] initWithTitle: menuTitle];
 		[my d_cocoaMenu   setAutoenablesItems: NO];
 		/*
 			Apparently, Cocoa swallows title setting only if there is already a menu with a dummy item.

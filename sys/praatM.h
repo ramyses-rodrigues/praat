@@ -6,7 +6,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -424,7 +424,7 @@
 	extern "C" void proc (UiForm sendingForm, integer, structStackel args [], conststring32 sendingString, \
 			Interpreter interpreter, conststring32 invokingButtonTitle, bool, void *okClosure, Editor optionalEditor); \
 	void proc (UiForm _sendingForm_, integer _narg_, Stackel _args_, conststring32 _sendingString_, \
-			Interpreter _interpreter_, conststring32 _invokingButtonTitle_, bool, void *_okClosure_, Editor _optionalEditor_) \
+			[[maybe_unused]] Interpreter _interpreter_, conststring32 _invokingButtonTitle_, bool, void *_okClosure_, Editor _optionalEditor_) \
 	{ \
 		{ static autoUiForm _dia_; \
 		if (! _dia_) \
@@ -1031,6 +1031,7 @@
 	} \
 	if (history) \
 		praat_new (history.move(), my name.get()); \
+	praat_dataChanged (me);   /* No exception: data fully changed. */ \
 	MODIFY_END__
 
 #define MODIFY_FIRST_OF_ONE_AND_ONE_AND_ONE(klas1,klas2,klas3)  \

@@ -16,17 +16,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- djmw 20030613 Latest modification
- djmw 20040414 Forms texts.
- djmw 20060428 Latest modification
- djmw 20061218 Changed to Melder_information<x> format.
- djmw 20070902 Melder_error<1...>
- djmw 20071011 REQUIRE requires L"".
- djmw 20080313 Cepstrum_formula
- djmw 20100212 Analysis window length is now "Window length"
-*/
-
 #include "Cepstrumc.h"
 #include "Cepstrogram.h"
 #include "Cepstrum_and_Spectrum.h"
@@ -49,6 +38,7 @@
 #include "NUM2.h"
 #include "PowerCepstrum.h"
 #include "PowerCepstrogram.h"
+#include "Sound_to_PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
 #include "Sound_to_Formant_mt.h"
 #include "Sound_and_Cepstrum.h"
@@ -429,12 +419,12 @@ FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getPeak, U"PowerCepstrum: Get peak", U"P
 	OK
 DO
 	QUERY_ONE_FOR_REAL (PowerCepstrum)
-		double result;
-		PowerCepstrum_getMaximumAndQuefrency (me, fromPitch, toPitch, peakInterpolationType, & result, nullptr);
+		double result, quefrency;
+		PowerCepstrum_getMaximumAndQuefrency_pitch (me, fromPitch, toPitch, peakInterpolationType, result, quefrency);
 	QUERY_ONE_FOR_REAL_END (U" dB")
 }
 
-FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getPeakInQuefrencyInterval, U"", nullptr) {
+FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getPeakInQuefrencyInterval, U"PowerCepstrum: Get peak in quefrency interval", nullptr) {
 	REAL (fromQuefrency, U"left Quefrency interval (s)", U"0.0033 (= 300 Hz)")
 	REAL (toQuefrency, U"right Quefrency interval (s)", U"0.01667 (= 60 Hz)")
 	CHOICE_ENUM (kCepstrum_peakInterpolation, peakInterpolationType,
@@ -443,7 +433,7 @@ FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getPeakInQuefrencyInterval, U"", nullptr
 DO
 	QUERY_ONE_FOR_REAL (PowerCepstrum)
 		double result, quefrency;
-		PowerCepstrum_getMaximumAndQuefrency (me, fromQuefrency, toQuefrency, peakInterpolationType, & result, & quefrency);
+		PowerCepstrum_getMaximumAndQuefrency_q (me, fromQuefrency, toQuefrency, peakInterpolationType, result, quefrency);
 	QUERY_ONE_FOR_REAL_END (U" dB (quefrency=", quefrency, U" s; f=", 1.0 / quefrency, U" Hz).")
 }
 
@@ -455,8 +445,8 @@ FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getQuefrencyOfPeak, U"PowerCepstrum: Get
 	OK
 DO
 	QUERY_ONE_FOR_REAL (PowerCepstrum)
-		double result;
-		PowerCepstrum_getMaximumAndQuefrency (me, fromPitch, toPitch, peakInterpolationType, nullptr, & result);
+		double result, peakdB;
+		PowerCepstrum_getMaximumAndQuefrency_pitch (me, fromPitch, toPitch, peakInterpolationType, peakdB, result);
 		const double f = 1.0 / result;
 	QUERY_ONE_FOR_REAL_END (U" seconds (f = ", f, U" Hz)")
 }
@@ -521,7 +511,7 @@ FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getPeakProminence_hillenbrand, U"PowerCe
 DO
 	QUERY_ONE_FOR_REAL (PowerCepstrum)
 		double qpeak;
-		const double result = PowerCepstrum_getPeakProminence_hillenbrand (me, fromPitch, toPitch, & qpeak);
+		const double result = PowerCepstrum_getPeakProminence_hillenbrand (me, fromPitch, toPitch, qpeak);
 	QUERY_ONE_FOR_REAL_END (U" dB; quefrency=", qpeak, U" s (f=", 1.0 / qpeak, U" Hz).")
 }
 
@@ -562,7 +552,7 @@ DO
 	QUERY_ONE_FOR_REAL (PowerCepstrum)
 		double result =	PowerCepstrum_getTrendLineValue (me, quefrency, fromQuefrency_trendLine, toQuefrency_trendLine,
 			lineType, fitMethod);
-	QUERY_ONE_FOR_REAL_END (U" dB (quefrency = ", quefrency, U" s")
+	QUERY_ONE_FOR_REAL_END (U" dB (quefrency = ", quefrency, U" s)")
 }
 
 FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getValueInBin, U"PowerCepstrum: Get value in bin", nullptr) {
@@ -588,7 +578,7 @@ DO
 	QUERY_ONE_FOR_REAL (PowerCepstrum)
 		double qpeak;
 		const double result = PowerCepstrum_getPeakProminence (me, fromPitch, toPitch,
-				peakInterpolationType, fromQuefrency_trendLine, toQuefrency_trendLine, lineType, fitMethod, & qpeak);
+				peakInterpolationType, fromQuefrency_trendLine, toQuefrency_trendLine, lineType, fitMethod, qpeak);
 	QUERY_ONE_FOR_REAL_END (U" dB; quefrency=", qpeak, U" s (f=", 1.0 / qpeak, U" Hz).");
 }
 
@@ -640,6 +630,15 @@ DO
 DIRECT (CONVERT_EACH_TO_ONE__Cepstrum_to_Spectrum) {
 	CONVERT_EACH_TO_ONE (Cepstrum)
 		autoSpectrum result = Cepstrum_to_Spectrum (me);
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
+
+FORM (CONVERT_EACH_TO_ONE__PowerCepstrum_to_Spectrum, U"PowerCepstrum: To Spectrum", nullptr) {
+	BOOLEAN (randomPhases, U"Random phases", true)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (PowerCepstrum)
+		autoSpectrum result = PowerCepstrum_to_Spectrum (me, randomPhases);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -719,7 +718,7 @@ DIRECT (QUERY_ONE_FOR_REAL__PowerCepstrogram_getQuefrencyStep) {
 
 FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_subtractTrend, U"PowerCepstrogram: Subtract trend", nullptr) {
 	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05)")
+	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
 	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
@@ -731,7 +730,7 @@ DO
 
 FORM (MODIFY_EACH__PowerCepstrogram_subtractTrend_inplace, U"PowerCepstrogram: Subtract trend (in-place)", nullptr) {
 	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05)")
+	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
 	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
@@ -857,6 +856,24 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_cpp");
 }
 
+FORM (NEW__PowerCepstrogram_to_Table_CPPvalues, U"PowerCepstrogram: To Table (CPP values)", U"PowerCepstrogram: To Table (CPP values)...") {
+	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
+	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
+	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
+			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
+	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (PowerCepstrogram)
+	autoTable result = PowerCepstrogram_to_Table_CPPvalues (me, fromPitch, toPitch, tolerance, 
+		peakInterpolationType, fromQuefrency_trendLine, toQuefrency_trendLine, lineType, fitMethod
+	);
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_cpp");
+}
 FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_Table_hillenbrand, U"PowerCepstrogram: To Table (hillenbrand)", U"PowerCepstrogram: To Table (peak prominences)...") {
 	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
 	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
@@ -1238,7 +1255,7 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_Formant_robust, U"Sound: To Formant (robust)
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Sound)
-		autoFormant result = Sound_to_Formant_robust_mt (me, timeStep, maximumNumberOfFormants, formantCeiling, windowLength, 
+		autoFormant result = Sound_to_Formant_robust (me, timeStep, maximumNumberOfFormants, formantCeiling, windowLength, 
 				preEmphasisFrequency, 50.0, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, 0.0, true);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
@@ -1331,7 +1348,7 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_LPC_autocorrelation, U"Sound: To LPC (autoco
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH_TO_ONE (Sound)
-		autoLPC result = Sound_to_LPC_autocorrelation (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
+		autoLPC result = Sound_to_LPC_auto (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -1345,7 +1362,7 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_LPC_covariance, U"Sound: To LPC (covariance)
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH_TO_ONE (Sound)
-		autoLPC result = Sound_to_LPC_covariance (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
+		autoLPC result = Sound_to_LPC_covar (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -1393,7 +1410,7 @@ DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH_TO_ONE (Sound)
 		autoLPC result = Sound_to_LPC_robust (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency, 
-				numberOfStandardDeviations, maximumNumberOfIterations, tolerance, true);
+			 numberOfStandardDeviations, maximumNumberOfIterations, tolerance, true);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -1539,7 +1556,8 @@ FORM (CONVERT_ONE_AND_ONE_TO_ONE__LPC_Sound_to_LPC_robust, U"Robust LPC analysis
 	OK
 DO
 	CONVERT_ONE_AND_ONE_TO_ONE (LPC, Sound)
-		autoLPC result = LPC_and_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, locationVariable);
+		autoLPC result = LPC_and_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations,
+			maximumNumberOfIterations, tolerance, locationVariable);
 	CONVERT_ONE_AND_ONE_TO_ONE_END (my name.get(), U"_r");
 }
 
@@ -1801,6 +1819,8 @@ void praat_uvafon_LPC_init () {
 			CONVERT_EACH_TO_ONE__PowerCepstrum_smooth);
 	praat_addAction1 (classCepstrum, 0, U"To Spectrum", nullptr, GuiMenu_HIDDEN,
 			CONVERT_EACH_TO_ONE__Cepstrum_to_Spectrum);
+	praat_addAction1 (classPowerCepstrum, 0, U"To Spectrum...", nullptr, GuiMenu_HIDDEN,
+			CONVERT_EACH_TO_ONE__PowerCepstrum_to_Spectrum);
 	praat_addAction1 (classPowerCepstrum, 0, U"To Matrix", nullptr, 0, 
 			CONVERT_EACH_TO_ONE__PowerCepstrum_to_Matrix);
 
@@ -1813,6 +1833,8 @@ void praat_uvafon_LPC_init () {
 				nullptr, 1, LIST__PowerCepstrogram_listCPP);
 		praat_addAction1 (classPowerCepstrogram, 0, U"To Table (cepstral peak prominences)...",
 				nullptr, 1, NEW__PowerCepstrogram_to_Table_CPP);
+		praat_addAction1 (classPowerCepstrogram, 0, U"To Table (CPP values)...",
+				nullptr, 1, NEW__PowerCepstrogram_to_Table_CPPvalues);
 	praat_addAction1 (classPowerCepstrogram, 0, U"To Table (hillenbrand)...", nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN,
 			CONVERT_EACH_TO_ONE__PowerCepstrogram_to_Table_hillenbrand);
 	praat_addAction1 (classPowerCepstrogram, 1, U"Query -", nullptr, 0, nullptr);

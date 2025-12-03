@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -43,8 +43,9 @@ extern const char * ipaSerifRegularPS [];
 	static HFONT fonts [1 + (int) kGraphics_resolution::MAX] [1 + kGraphics_font_JAPANESE] [1+win_MAXIMUM_FONT_SIZE] [1 + Graphics_BOLD_ITALIC];
 	static int win_size2isize (int size) { return size > win_MAXIMUM_FONT_SIZE ? win_MAXIMUM_FONT_SIZE : size; }
 	static int win_isize2size (int isize) { return isize; }
+	static bool hasDoulos, hasCharis, hasCharis7;
 #elif quartz
-	static bool hasTimes, hasHelvetica, hasCourier, hasPalatino, hasDoulos, hasCharis, hasIpaSerif;
+	static bool hasTimes, hasHelvetica, hasCourier, hasPalatino, hasDoulos, hasCharis, hasIpaSerif, hasCharis7;
 	#define mac_MAXIMUM_FONT_SIZE  500
 	static CTFontRef theScreenFonts [1 + kGraphics_font_DINGBATS] [1+mac_MAXIMUM_FONT_SIZE] [1 + Graphics_BOLD_ITALIC];
 #endif
@@ -55,15 +56,14 @@ extern const char * ipaSerifRegularPS [];
 	#else
 		#define FONT_TYPE_TYPE  unsigned long int
 	#endif
-	static bool charisAvailable = false, doulosAvailable = false;
 	static int CALLBACK fontFuncEx_charis (const LOGFONTW *oldLogFont, const TEXTMETRICW *oldTextMetric, FONT_TYPE_TYPE fontType, LPARAM lparam) {
 		const LPENUMLOGFONTW logFont = (LPENUMLOGFONTW) oldLogFont; (void) oldTextMetric; (void) fontType; (void) lparam;
-		charisAvailable = true;
+		hasCharis = true;
 		return 1;
 	}
 	static int CALLBACK fontFuncEx_doulos (const LOGFONTW *oldLogFont, const TEXTMETRICW *oldTextMetric, FONT_TYPE_TYPE fontType, LPARAM lparam) {
 		const LPENUMLOGFONTW logFont = (LPENUMLOGFONTW) oldLogFont; (void) oldTextMetric; (void) fontType; (void) lparam;
-		doulosAvailable = true;
+		hasDoulos = true;
 		return 1;
 	}
 	static HFONT loadFont (GraphicsScreen me, int font, int size, int style) {
@@ -96,16 +96,22 @@ extern const char * ipaSerifRegularPS [];
 			LOGFONTW logFont;
 			logFont. lfCharSet = DEFAULT_CHARSET;
 			logFont. lfPitchAndFamily = 0;
-			wcscpy (logFont. lfFaceName, L"Charis SIL");
+			wcscpy (logFont. lfFaceName, L"Charis");   // try Charis 7
 			EnumFontFamiliesExW (my d_gdiGraphicsContext, & logFont, fontFuncEx_charis, 0, 0);
+			if (hasCharis) {
+				hasCharis7 = true;
+			} else {
+				wcscpy (logFont. lfFaceName, L"Charis SIL");   // try Charis 6
+				EnumFontFamiliesExW (my d_gdiGraphicsContext, & logFont, fontFuncEx_charis, 0, 0);
+			}
 			wcscpy (logFont. lfFaceName, L"Doulos SIL");
 			EnumFontFamiliesExW (my d_gdiGraphicsContext, & logFont, fontFuncEx_doulos, 0, 0);
 			ipaInited = true;
-			if (! charisAvailable && ! doulosAvailable) {
+			if (! hasCharis && ! hasDoulos) {
 				/* BUG: The next warning may cause reentry of drawing (on window exposure) and lead to crash. Some code must be non-reentrant !! */
 				Melder_warning (U"The phonetic font is not available.\n"
 					"Several characters may not look correct.\n"
-					"You can download phonetics fonts via www.praat.org "
+					"You can download phonetics fonts via praat.org "
 					"(go to the download page for Windows)."
 				);
 			}
@@ -116,7 +122,10 @@ extern const char * ipaSerifRegularPS [];
 			font == (int) kGraphics_font::COURIER   ? L"Courier New" :
 			font == (int) kGraphics_font::PALATINO  ? L"Book Antiqua" :
 			font == kGraphics_font_SYMBOL    ? L"Symbol" :
-			font == kGraphics_font_IPATIMES  ? ( doulosAvailable && style == 0 ? L"Doulos SIL" : charisAvailable ? L"Charis SIL" : L"Times New Roman" ) :
+			font == kGraphics_font_IPATIMES  ? ( hasDoulos && style == 0 ? L"Doulos SIL"
+			                                     : hasCharis ? ( hasCharis7 ? L"Charis" : L"Charis SIL" )
+			                                     : L"Times New Roman"
+			                                   ) :
 			font == kGraphics_font_DINGBATS  ? L"Wingdings" :
 			font == kGraphics_font_CHINESE   ? L"SimSun" :
 			font == kGraphics_font_JAPANESE  ? L"MS UI Gothic" :
@@ -175,11 +184,11 @@ inline static bool isDiacritic (Longchar_Info info, int font) {
 	
 	This is not good enough for Praat. We need more control over the shape
 	of phonetic characters. We therefore advise the use of Doulos SIL,
-	which is Times-like, or Charis SIL, which is Palatino-like.
+	which is Times-like, or Charis, which is Palatino-like.
 	For true continuity between non-phonetic and phonetic characters it is
 	mandatory that the exact same font is used for both types of characters,
 	so we use Doulos SIL to replace Times even for non-phonetic characters,
-	and Charis SIL to replace Palatino even for non-phonetic characters.
+	and Charis to replace Palatino even for non-phonetic characters.
 	A technical issue that makes this even more important is that diacritics
 	can look really weird if at the beginning of a Praat font stretch:
 	a "b" followed by a ring below will not be aligned correctly if they
@@ -596,20 +605,28 @@ static conststring32 quartz_getFontName (int font, int style) {
 			if (Melder_debug == 900)
 				return U"DG Meta Serif Science";
 			else
-				return style == 0 ? U"Palatino"
-				: style == Graphics_BOLD ? U"Palatino Bold"
-				: style == Graphics_ITALIC ? U"Palatino Italic"
-				: U"Palatino Bold Italic";
+				return
+					style == 0 ? U"Palatino"
+					: style == Graphics_BOLD ? U"Palatino Bold"
+					: style == Graphics_ITALIC ? U"Palatino Italic"
+					: U"Palatino Bold Italic";
 		case kGraphics_font_SYMBOL:
 			return U"Symbol";
 		case kGraphics_font_IPATIMES:
 			return U"Doulos SIL";
 		case kGraphics_font_IPAPALATINO:
-			return
-				style == 0 ? U"Charis SIL"
-				: style == Graphics_BOLD ? U"Charis SIL Bold"
-				: style == Graphics_ITALIC ? U"Charis SIL Italic"
-				: U"Charis SIL Bold Italic";
+			if (hasCharis7)
+				return
+					style == 0 ? U"Charis"
+					: style == Graphics_BOLD ? U"Charis Bold"
+					: style == Graphics_ITALIC ? U"Charis Italic"
+					: U"Charis Bold Italic";
+			else
+				return
+					style == 0 ? U"Charis SIL"
+					: style == Graphics_BOLD ? U"Charis SIL Bold"
+					: style == Graphics_ITALIC ? U"Charis SIL Italic"
+					: U"Charis SIL Bold Italic";
 		case kGraphics_font_CHEROKEE:
 			return U"Plantagenet Cherokee";
 		case kGraphics_font_DINGBATS:
@@ -1967,7 +1984,7 @@ static void nonrecorded_Graphics_text (Graphics me, double xWC, double yWC, cons
 		autostring32 linesToDraw = Melder_dup_f (text);
 		const char32 *p = & linesToDraw [0];
 		for (;;) {
-			char32 * const newline = str32chr (p, U'\n');
+			char32 *const newline = str32chr (p, U'\n');
 			if (newline)
 				*newline = U'\0';
 			nonrecorded_Graphics_text (me, xWC, yWC, p);   // recurse
@@ -2203,7 +2220,11 @@ double Graphics_textWidth_ps (Graphics me, conststring32 txt, bool useSilipaPS) 
 		if (! hasPalatino)
 			hasPalatino = [fontNames containsObject: @"Book Antiqua"];
 		hasDoulos = [fontNames containsObject: @"Doulos SIL"];
-		hasCharis = [fontNames containsObject: @"Charis SIL"];
+		hasCharis = [fontNames containsObject: @"Charis"];   // Charis 7?
+		if (hasCharis)
+			hasCharis7 = true;
+		else
+			hasCharis = [fontNames containsObject: @"Charis SIL"];   // Charis 6?
 		hasIpaSerif = hasDoulos || hasCharis;
 		inited = true;
 		return true;

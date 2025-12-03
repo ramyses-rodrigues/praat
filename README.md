@@ -38,24 +38,24 @@ Praat allows you to perform several statistical techniques, among which
 multidimensional scaling, principal component analysis, and discriminant analysis.
 
 For more information, consult the extensive manual in Praat (under Help),
-and the website [praat.org](http://praat.org), which has Praat tutorials in several languages.
+and the website [praat.org](https://praat.org), which has Praat tutorials in several languages.
 
 ## 1. Binary executables
 
-While the [Praat website](https://www.fon.hum.uva.nl/praat) contains the latest executable for all platforms that we support
-(or used to support), the [releases on GitHub](https://github.com/praat/praat/releases) contain many older executables as well.
+While the [Praat website](https://praat.org) contains the latest executable for all platforms that we support
+(or used to support), the [releases on GitHub](https://github.com/praat/praat.github.io/releases) contain many older executables as well.
 
 The meaning of the names of binary files available on GitHub is as follows (editions that currently receive updates are in bold):
 
 ### 1.1. Windows binaries
 - **`praatXXXX_win-arm64.zip`: zipped executable for ARM64 Windows (11 and higher)**
-- **`praatXXXX_win-intel64.zip`: zipped executable for Intel64 Windows (7 and higher)**
+- **`praatXXXX_win-intel64.zip`: zipped executable for Intel64/AMD64 Windows (7 and higher)**
 - **`praatXXXX_win-intel32.zip`: zipped executable for Intel32 Windows (7 and higher)**
-- `praatXXXX_win64.zip`: zipped executable for 64-bit Intel Windows (XP and higher, or 7 and higher)
-- `praatXXXX_win32.zip`: zipped executable for 32-bit Intel Windows (XP and higher, or 7 and higher)
-- `praatconXXXX_win64.zip`: zipped executable for 64-bit Intel Windows, console edition
-- `praatconXXXX_win32.zip`: zipped executable for 32-bit Intel Windows, console edition
-- `praatconXXXX_win32sit.exe`: self-extracting StuffIt archive with executable for 32-bit Intel Windows, console edition
+- `praatXXXX_win64.zip`: zipped executable for Intel64/AMD64 Windows (XP and higher, or 7 and higher)
+- `praatXXXX_win32.zip`: zipped executable for Intel32 Windows (XP and higher, or 7 and higher)
+- `praatconXXXX_win64.zip`: zipped executable for Intel64/AMD64 Windows, console edition
+- `praatconXXXX_win32.zip`: zipped executable for Intel32 Windows, console edition
+- `praatconXXXX_win32sit.exe`: self-extracting StuffIt archive with executable for Intel32 Windows, console edition
 - `praatXXXX_win98.zip`: zipped executable for Windows 98
 - `praatXXXX_win98sit.exe`: self-extracting StuffIt archive with executable for Windows 98
 
@@ -79,21 +79,21 @@ The meaning of the names of binary files available on GitHub is as follows (edit
 - **`praatXXXX_linux-s390x.tar.gz`: gzipped tarred executable for s390x Linux (GTK 3)**
 - **`praatXXXX_linux-arm64-barren.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI, sound and graphics**
 - **`praatXXXX_linux-arm64.tar.gz`: gzipped tarred executable for ARM64 Linux (GTK 3)**
-- **`praatXXXX_linux-intel64-barren.tar.gz`: gzipped tarred executable for Intel64 Linux, without GUI, sound and graphics**
-- **`praatXXXX_linux-intel64.tar.gz`: gzipped tarred executable for Intel64 Linux (GTK 3)**
+- **`praatXXXX_linux-intel64-barren.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux, without GUI, sound and graphics**
+- **`praatXXXX_linux-intel64.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux (GTK 3)**
 - `praatXXXX_linux-arm64-nogui.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI and sound but with graphics (Cairo and Pango)
-- `praatXXXX_linux-intel64-nogui.tar.gz`: gzipped tarred executable for Intel64 Linux, without GUI and sound but with graphics (Cairo and Pango)
-- `praatXXXX_linux64barren.tar.gz`: gzipped tarred executable for 64-bit Intel Linux, without GUI, sound and graphics
-- `praatXXXX_linux64nogui.tar.gz`: gzipped tarred executable for 64-bit Intel Linux, without GUI and sound but with graphics (Cairo and Pango)
-- `praatXXXX_linux64.tar.gz`: gzipped tarred executable for 64-bit Intel Linux (GTK 2 or 3)
-- `praatXXXX_linux32.tar.gz`: gzipped tarred executable for 32-bit Intel Linux (GTK 2)
-- `praatXXXX_linux_motif64.tar.gz`: gzipped tarred executable for 64-bit Intel Linux (Motif)
-- `praatXXXX_linux_motif32.tar.gz`: gzipped tarred executable for 32-bit Intel Linux (Motif)
+- `praatXXXX_linux-intel64-nogui.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux, without GUI and sound but with graphics (Cairo and Pango)
+- `praatXXXX_linux64barren.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux, without GUI, sound and graphics
+- `praatXXXX_linux64nogui.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux, without GUI and sound but with graphics (Cairo and Pango)
+- `praatXXXX_linux64.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux (GTK 2 or 3)
+- `praatXXXX_linux32.tar.gz`: gzipped tarred executable for Intel32 Linux (GTK 2)
+- `praatXXXX_linux_motif64.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux (Motif)
+- `praatXXXX_linux_motif32.tar.gz`: gzipped tarred executable for Intel32 Linux (Motif)
 
 ### 1.4. Chromebook binaries
 - **`praatXXXX_chrome-arm64.tar.gz`: gzipped tarred executable for Linux on ARM64 Chromebooks (GTK 3)**
-- **`praatXXXX_chrome-intel64.tar.gz`: gzipped tarred executable for Intel64 Linux on Intel64 Chromebooks (GTK 3)**
-- `praatXXXX_chrome64.tar.gz`: gzipped tarred executable for 64-bit Linux on Intel64 Chromebooks (GTK 2 or 3)
+- **`praatXXXX_chrome-intel64.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux on Intel64/AMD64 Chromebooks (GTK 3)**
+- `praatXXXX_chrome64.tar.gz`: gzipped tarred executable for 64-bit Linux on Intel64/AMD64 Chromebooks (GTK 2 or 3)
 
 ### 1.5. Raspberry Pi binaries
 - **`praatXXXX_rpi-armv7.tar.gz`: gzipped tarred executable for (32-bit) ARMv7 Linux on the Raspberry Pi 4B (GTK 3)**
@@ -114,17 +114,18 @@ You need the Praat source code only in the following cases:
 e.g. Linux for some non-Intel computers, FreeBSD, HP-UX, SGI, or SPARC Solaris.
 
 Before trying to dive into Praat’s source code, you should be familiar with the working of the Praat program
-and with writing Praat scripts. The Praat program can be downloaded from https://www.fon.hum.uva.nl/praat,
-a place where you can also get to by just typing http://praat.org.
+and with writing Praat scripts. The Praat program can be downloaded from
+https://praat.org or https://www.fon.hum.uva.nl/praat.
 
 ### 2.1. License
 
 Most of the source code of Praat is distributed on GitHub under the General Public License,
-[version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) or later.
+[version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) or later,
+or [version 3](https://praat.org/manual/General_Public_License__version_3.html) or later.
 However, as Praat includes software written by others,
 the whole of Praat is distributed under the General Public License,
-[version 3](https://www.fon.hum.uva.nl/praat/manual/General_Public_License__version_3.html) or later.
-See [Acknowledgments](https://www.fon.hum.uva.nl/praat/manual/Acknowledgments.html) for details on the licenses
+[version 3](https://praat.org/manual/General_Public_License__version_3.html) or later.
+See [Acknowledgments](https://praat.org/manual/Acknowledgments.html) for details on the licenses
 of software libraries by others that are included in Praat.
 Of course, any improvements in the Praat source code are welcomed by the authors.
 
@@ -138,7 +139,7 @@ or fork ("clone") the praat/praat repository at any later change.
 
 First make sure that the source code can be compiled as is.
 Then add your own buttons by editing `main/main_Praat.cpp` or `fon/praat_Fon.cpp`.
-Consult the manual page on [Programming](http://www.fon.hum.uva.nl/praat/manual/Programming_with_Praat.html).
+Consult the manual page on [Programming](https://praat.org/manual/Programming_with_Praat.html).
 
 ### 2.4. The programming language
 
@@ -177,10 +178,10 @@ and of the Praat scripting language is tested as follows:
 
 On Windows, Praat is **built** through the makefiles provided in Praat’s source tree.
 
-One could use Cygwin or MSYS2. As we like to provide not only an Intel64 and Intel32 edition,
+One could use Cygwin or MSYS2. As we like to provide not only an Intel64/AMD64 and Intel32 edition,
 but an ARM64 edition as well, and Cygwin has no toolchains for ARM64, we work with MSYS2 instead.
 
-After installing MSYS2, we see that a `mingw64` toolchain (for Praat’s Intel64 edition)
+After installing MSYS2, we see that a `mingw64` toolchain (for Praat’s Intel64/AMD64 edition)
 and a `mingw32` toolchain (for Praat’s Intel32 edition) are already available.
 Make sure you have installed at least `make`, `gcc`, `g++` and `pkg-config` to make those work.
 To also install a `clangarm64` toolchain (for Praat’s ARM64 edition),
@@ -188,7 +189,9 @@ run `clangarm64.exe` to get a `clangarm64` shell. In that shell, run `pacman -Su
 `pacman -S mingw-w64-clang-aarch64-clang` to install the build tools package.
 In the same way you can create a `clang64` toolchain and a `clang32` toolchain
 (`pacman -S mingw-w64-clang-x86_64-clang` and `pacman -S mingw-w64-i686-clang`),
-which are good alternatives to the .
+which are good alternatives to `mingw64` and `mingw32`;
+in 2025, MSYS2 ended support for Intel32, so you may have to use `mingw32` for that,
+unless you have an old Intel32 toolchain lying around.
 
 Ramyses: para instalar o toolchain mingw64:
 1. install MSYS2 do site MSYS2 (https://www.msys2.org/#installation)
@@ -209,7 +212,7 @@ If you now want to build Praat’s ARM64 edition, start the shell `clangarm64` a
     cp makefiles/makefile.defs.msys-clang ./makefile.defs
     make -j12
 
-If you want to build Praat’s Intel64 edition, start the shell `clang64` and type
+If you want to build Praat’s Intel64/AMD64 edition, start the shell `clang64` and type
 
     cd ~/praats-intel64
     cp makefiles/makefile.defs.msys-clang ./makefile.defs
@@ -233,8 +236,8 @@ or start the shell `mingw32` and type
     cp makefiles/makefile.defs.msys-mingw32 ./makefile.defs
     make -j12
 
-(With Cygwin, you would install the Devel package mingw64-x86_64-gcc-g++
-for Praat’s Intel64 edition and mingw64-i686-gcc-g++ for Praat’s Intel32 edition,
+(With Cygwin, you would install the Devel package `mingw64-x86_64-gcc-g++`
+for Praat’s Intel64/AMD64 edition and `mingw64-i686-gcc-g++` for Praat’s Intel32 edition,
 plus perhaps `make` and `pkg-config` if you dont’t have those yet.)
 
 **Code-signing.** From version 6.4.25 on, we have signed the three Praat executables
@@ -245,7 +248,7 @@ on Windows 11. Early testing shows that the signature is seen by SmartScreen,
 but that SmartScreen can still block Praat, so that users still have to
 click “Run Anyway” (or “Unblock” under Properties).
 It seems that the card reader for this certificate cannot be used yet for code-signing on ARM64 Windows
-or on MacOS Sonoma/Sequoia, so for the moment we have to fall back on an obsolete Intel64 Windows 10 machine
+or on MacOS Sonoma/Sequoia, so for the moment we have to fall back on an obsolete Intel64/AMD64 Windows 10 machine
 and are looking for a more robust solution.
 
 **Testing** on multiple platform versions can be done with virtual machines
@@ -256,9 +259,9 @@ On an ARM64 Mac with Parallels Desktop, you can test only on Windows 11.
 ### 3.2. Compiling for Macintosh
 
 To **build** Praat on the Mac, extract the *praatXXXX_xcodeproj.zip* file
-from [Praat’s latest release](https://github.com/praat/praat/releases)
+from [Praat’s latest release](https://github.com/praat/praat.github.io/releases)
 into the folder that contains `sys`, `fon`, `dwtools` and so on (e.g. `~/Dropbox/Praats/src`).
-Then open the project `praat.xcodeproj` in Xcode 15.1 (or perhaps later, but not in Xcode 15.0),
+Then open the project `praat.xcodeproj` in Xcode 16.3 (or later),
 and edit the Intermediate and Product build paths to something that suits you
 (Xcode -> Settings... -> Locations -> Derived Data -> Advanced... -> Custom -> Absolute,
 then type something after Products, e.g. `~/Dropbox/Praats/bin/macos`,
@@ -281,7 +284,7 @@ try the target `praat_mac_a` (static) or `praat_mac_so` (dynamic).
 
 **Notarization.** If you want others to be able to use your Mac app,
 you will probably have to not only *sign* the executable, but also *notarize* it. To this end,
-do Xcode (version 15) -> Product -> Archive -> Distribute App -> Developer ID -> Upload ->
+do Xcode (version 16) -> Product -> Archive -> Distribute App -> Developer ID -> Upload ->
 Automatically manage signing -> Upload -> ...wait... (“Package Approved”) ...wait...
 (“Ready to distribute”) -> Export Notarized App). If your Praat.app was built into
 `~/Dropbox/Praats/bin/macos/Configuration64`, then you can save the notarized
@@ -290,12 +293,12 @@ Automatically manage signing -> Upload -> ...wait... (“Package Approved”) ..
 Praat.app that was already there. If on the way you receive an error
 “App Store Connect Operation Error -- You must first sign the relevant contracts online”,
 or “Couldn’t communicate with a helper application“,
-or just a crash (happens with Xcode 15.0),
 you will have to log in to `developer.apple.com` and do Review Agreement -> Agree;
-you may then also have to go (or log in) to App Store Connect, then Agreements, Tax, and Banking
+you may then also have to either wait for a couple of minutes,
+and or go (or log in) to App Store Connect, then Agreements, Tax, and Banking
 -> Paid Apps -> View or Terms (even if you have no paid apps).
 
-**Testing** on multiple Intel64 platform versions can be done on older Intel64 Macs,
+**Testing** on multiple Intel64/AMD64 platform versions can be done on older Intel64 Macs,
 using virtual machines with Parallels Desktop. For instance, a 2013 Macbook Pro can handle
 OS X 10.11 El Capitan, 10.12 Sierra, 10.13 High Sierra, macOS 10.14 Mojave, 10.15 Catalina,
 and macOS 11 Big Sur, while a 2018 Macbook Pro can handle macOS 10.14 Mojave, 10.15 Catalina,
@@ -323,7 +326,7 @@ install the necessary build tools as well as some graphics and sound packages:
 To set up your source tree for Linux, go to Praat's sources directory (where the folders `fon` and `sys` are)
 and type one of the four following commands:
 
-    # on Ubuntu command line (Intel64 or ARM64 processor)
+    # on Ubuntu command line (Intel64/AMD64 or ARM64 processor)
     # either:
         cp makefiles/makefile.defs.linux.pulse-clang ./makefile.defs
     # or:
@@ -350,7 +353,7 @@ gthread-2.0, rt, glib-2.0, asound, jack).
 When compiling Praat on an external supercomputer or so, you will not have sound.
 If you do have `libgtk-3-dev` (and its dependencies), do
 
-    # on Ubuntu command line (Intel64 or ARM64 processor)
+    # on Ubuntu command line (Intel64/AMD64 or ARM64 processor)
     cp makefiles/makefile.defs.linux.silent ./makefile.defs
 
 Then type `make -j12` or so to build the program. If your Unix isn’t Linux,
@@ -361,7 +364,7 @@ freetype, fontconfig, gobject-2.0, gmodule-2.0, gthread-2.0, rt, glib-2.0).
 When compiling Praat for use as a server for commands from your web pages,
 you may not need sound, a GUI, amd graphics. In that case, do
 
-    # on Ubuntu command line (Intel64 or ARM64 processor)
+    # on Ubuntu command line (Intel64/AMD64 or ARM64 processor)
     # either:
         cp makefiles/makefile.defs.linux.barren-clang ./makefile.defs
     # or:
@@ -373,7 +376,7 @@ you may not need sound, a GUI, amd graphics. In that case, do
 which creates the executable `praat_barren`. Then type `make` or `make -j15` to build the program.
 If your Unix isn’t Linux, you may have to edit the library names in the makefile.
 
-The above works exactly the same for Intel64 and ARM64 processors, with the same makefiles.
+The above works exactly the same for Intel64/AMD64 and ARM64 processors, with the same makefiles.
 
 **Testing** on multiple platform versions can be done with virtual machines
 for e.g. Ubuntu 20.04, Ubuntu 22.04, Fedora 35, Fedora 37, Mint 20.2,
@@ -400,7 +403,7 @@ We hope that our example will be useful to you.
 Your source code folders, such as `fon` and `sys`,
 will reside in a folder like `~/Dropbox/Praats/src`,
 where you also put `praat.xcodeproj`, as described above in 3.2.
-On our 2023 Mac with Xcode 15.1, building Praat with Command-B or Command-R,
+On our 2023 Mac with Xcode 16.3, building Praat with Command-B or Command-R,
 after cleaning the build folder with Shift-Command-K,
 takes only 56 seconds for the ARM64 part and Intel64 part together (optimization level O3).
 
@@ -431,7 +434,7 @@ add the following definitions into `/home/yourname/.bashrc` (i.e. in your MSYS2 
 so that `bash` will automatically execute them whenever you start your
 MSYS shell or Cygwin terminal (you will need to have installed `rsync` and `make`).
 On our 2023 Mac, the ARM64 edition will be the default,
-but the Intel64 and Intel32 versions will also be available;
+but the Intel64/AMD64 and Intel32 versions will also be available;
 as the same `.bashrc` file is shared among all three editions,
 we use the environment variable `MSYSTEM` to differentiate between the three:
 
@@ -462,7 +465,7 @@ The cycle from editing Praat on the Mac to running the new version on Windows th
 2. type `praat-run` on your Windows 11 (under Parallels Desktop on your Mac) in one of the three MSYS2 shells.
 
 On our 2023 Mac, the three builds cost 86 seconds for ARM64,
-212 seconds for Intel64 (under emulation), and 390 seconds for Intel32 (also under emulation).
+212 seconds for Intel64/AMD64 (under emulation), and 390 seconds for Intel32 (also under emulation).
 
 ### 4.3. Linux development set-up
 
@@ -477,7 +480,7 @@ Your MacOS home folder (i.e. `/Users/yourname`) is now visible on the Ubuntu des
 as `Home`, and from the `Terminal` you can access it as `/media/psf/Home`.
 
 However, on an ARM64 Mac this procedure with Parallels Desktop works only for the ARM64 edition.
-With OrbStack we can instead create the Intel64 edition as well
+With OrbStack we can instead create the Intel64/AMD64 edition as well
 (and building the ARM64 edition is also faster). Your Mac home folder is known
 simply as `/Users/yourname` or so.
 
@@ -508,7 +511,7 @@ in your OrbStack window (or into your `.bashrc` file), followed by `praat` into 
 the Praat-for-Linux Objects and Picture windows will then show up on your Mac screen.
 
 On our 2023 Mac, building Praat this way from scratch takes 42 seconds for the ARM64 edition
-and 130 seconds (under emulation) for the Intel64 edition (optimization level O3).
+and 130 seconds (under emulation) for the Intel64/AMD64 edition (optimization level O3).
 
 To build `praat_barren`, create a folder `praatsb`, and define
 
@@ -548,7 +551,7 @@ a forbidding 27 minutes.
 
 So we choose to build Praat on Ubuntu (under Parallels Desktop on an Intel64 Mac),
 because building the Intel Chrome64 edition on OrbStack Ubuntu 20.04 takes only
-63 seconds (ARM64) or 215 seconds (Intel64). If you have the Linux set-up described in 4.3,
+63 seconds (ARM64) or 215 seconds (Intel64/AMD64). If you have the Linux set-up described in 4.3,
 you can do this with the `praatc-build` command.
 
 Next, you need a way to get the executable `praat` from Mac/Ubuntu to your Chromebook.
@@ -747,7 +750,7 @@ namely to the folder `~/Dropbox/Praats/bin/linux_intel64` or `~/Dropbox/Praats/b
 (which will contain only `praat`).
 On Ubuntu you can define
 
-    # in MSYS2 Intel64 Ubuntu:~/.bash_aliases
+    # in MSYS2 Intel64/AMD64 Ubuntu:~/.bash_aliases
     alias praat-dist="praat-build && rsync -t ~/praats/praat /Users/yourname/Dropbox/Praats/bin/linux-intel64"
     alias praatb-dist="praatb-build && rsync -t ~/praatsb/praat_barren /Users/yourname/Dropbox/Praats/bin/linux-intel64"
     alias praatc-dist="praatc-build && rsync -t ~/praatsc/praat /Users/yourname/Dropbox/Praats/bin/chrome-intel64"

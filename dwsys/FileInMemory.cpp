@@ -1,10 +1,10 @@
 /* FileInMemory.cpp
  *
- * Copyright (C) 2012-2021 David Weenink, 2017,2024 Paul Boersma
+ * Copyright (C) 2012-2021 David Weenink, 2017,2024,2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -467,8 +467,8 @@ int FileInMemory_fgetc (FileInMemory me) {
 size_t FileInMemory_fread (void *void_buffer, size_t elementSize_unsigned, size_t numberOfElementsThatShouldBeRead_unsigned, FileInMemory me) {
 	Melder_assert (me);
 	Melder_assert (my isOpen);
-	const integer elementSize = uinteger_to_integer (elementSize_unsigned);
-	const integer numberOfElementsThatShouldBeRead = uinteger_to_integer (numberOfElementsThatShouldBeRead_unsigned);
+	const integer elementSize = uinteger_to_integer_a (elementSize_unsigned);
+	const integer numberOfElementsThatShouldBeRead = uinteger_to_integer_a (numberOfElementsThatShouldBeRead_unsigned);
 	const double numberOfBytesThatShouldBeRead_real = (double) elementSize * (double) numberOfElementsThatShouldBeRead;
 	integer numberOfBytesThatShouldBeRead;
 	if (numberOfBytesThatShouldBeRead_real > (double) INTEGER_MAX) {
@@ -522,7 +522,7 @@ size_t FileInMemory_fread (void *void_buffer, size_t elementSize_unsigned, size_
 	}
 	my d_position += numberOfBytesCopied;
 	Melder_assert (my d_position <= my d_numberOfBytes);
-	return integer_to_uinteger (numberOfElementsThatWillBeRead);
+	return integer_to_uinteger_a (numberOfElementsThatWillBeRead);
 }
 
 /*
@@ -759,7 +759,7 @@ autoStrings FileInMemorySet_to_Strings_path (FileInMemorySet me) {
 
 /*
 	The following test is meant to be called only from `test/dwsys/FileInMemory.praat`,
-	because that is where the subfolder `examples\FileInMemory` resides,
+	because that is where the subfolder `examples/FileInMemory` resides,
 	which contains the files that are tested.
 
 	If the files aren't there yet, they can be created by setting `WRITE` to true
@@ -1215,7 +1215,7 @@ static void testOneFile (
 	}
 }
 
-void test_FileInMemory_io (void) {
+void test_FileInMemory_io () {
 	try {
 		/*
 			Clean up the rubbish left over from any previous failed call.
