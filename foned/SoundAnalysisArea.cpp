@@ -2141,11 +2141,11 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 	// extrai sound visível e reamostra	
 	const double margin = my instancePref_formant_windowLength();
 	autoSound snd = ( my endWindow() - my startWindow() > my instancePref_longestAnalysis() ?
-			extractSound (me,
+			extractSoundOrNull (me,
 				0.5 * (my startWindow() + my endWindow() - my instancePref_longestAnalysis()) - margin,
 				0.5 * (my startWindow() + my endWindow() + my instancePref_longestAnalysis()) + margin
 			) :
-			extractSound (me, my startWindow() - margin, my endWindow() + margin)
+			extractSoundOrNull (me, my startWindow() - margin, my endWindow() + margin)
 		);
 	
 	// reamostra

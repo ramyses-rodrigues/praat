@@ -3364,6 +3364,11 @@ static LRESULT CALLBACK windowProc (
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
+		
+		/*Ramyses - arrastar e soltar*/
+		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);
+
+		
 		case WM_USER:   // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
 		case WM_APP:
 		{
