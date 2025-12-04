@@ -1034,8 +1034,8 @@ static autostring32 theFindString, theReplaceString;
 static void do_replace (TextGridArea me) {
 	if (! theReplaceString)   // e.g. when the user does "Replace again" before having done any "Replace"
 		return;
-	do_find (me); //procura a próxima ocorrência da string armazenada na variável my findString e seleciona
-	autostring32 selection = GuiText_getSelection (my functionEditor() -> textArea);
+	// do_find (me); //procura a próxima ocorrência da string armazenada na variável my findString e seleciona
+	autostring32 selection = GuiText_getSelection (my functionEditor() -> textArea); // obtém seleção de texto atual
 	if (! Melder_equ (selection.get(), theFindString.get())) {
 		do_find (me);
 		return;
@@ -1062,12 +1062,12 @@ static void menu_cb_replace (TextGridArea me, EDITOR_ARGS) {
 		TEXTFIELD (replaceString, U"Replace with", U"", 5)
 	EDITOR_OK
 		if (theFindString)
-			SET_STRING (findString, theFindString.get());
+			SET_STRING (findString, theFindString.get());			
 		if (theReplaceString)
-			SET_STRING (replaceString, theReplaceString.get());
+			SET_STRING (replaceString, theReplaceString.get());			
 	EDITOR_DO
 		theFindString = Melder_dup (findString);
-		my findString = Melder_dup (findString);
+		my findString = Melder_dup (theFindString.get());
 		theReplaceString = Melder_dup (replaceString);
 		do_replace (me);
 	EDITOR_END
