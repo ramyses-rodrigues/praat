@@ -313,7 +313,7 @@ static void charSize (Graphics anyGraphics, _Graphics_widechar *lc) {
 			const int smallSize = (3 * normalSize + 2) / 4;
 			/* 
 				Ramyses: retirando BUG de fechamento (crash) do Praat após mensagem de não encontrar fonte
-			  removido da linha 310 "int font = ..." para "font = ..."
+			  removido da linha 310 "int font = ..." para "font = 0"
 			*/
 			int font = 0;
 			if (info -> alphabet)

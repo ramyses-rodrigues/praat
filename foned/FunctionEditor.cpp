@@ -934,16 +934,16 @@ static void Save_TextGrid_to_Disk (TextGrid tg, MelderFile fileName) {
 	//lastSavedDir = MelderFolder_getParentFolder()
 
 	autostring32 outfile = GuiFileSelect_getOutfileName(nullptr, U"Salvar TextGrid", fileName->path); 
-	//customSaveFiletoDisk(U"Salvar TextGrid", fileName->path);
 	
 	if (! outfile)
 		return; // usuário cancelou a operação
 	
 	Melder_pathToFile (outfile.get(), &lastSavedfile);   // atualiza lastSavedfile
 	Melder_information(lastSavedfile.path);
-	// Data_writeToTextFile (tg, fileName);		
+	Data_writeToTextFile (tg, fileName);		
 }
 
+// Ramyses: callback do botão SAVE: 
 static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
 		
 	for (int iArea = 0; iArea < FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iArea ++ ) {					

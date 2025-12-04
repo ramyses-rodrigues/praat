@@ -1013,7 +1013,6 @@ static void do_find (TextGridArea me) {
 			findInTier (me);
 	}
 }
-
 static void menu_cb_Find (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Find text", nullptr)
 		TEXTFIELD (findString, U"Text", U"", 3)
@@ -1026,6 +1025,59 @@ static void menu_cb_Find (TextGridArea me, EDITOR_ARGS) {
 static void menu_cb_FindAgain (TextGridArea me, EDITOR_ARGS) {
 	do_find (me);
 }
+
+/* Ramyses: função replace e replace again para o textGrid.
+TODO: função Replace All
+*/
+
+static autostring32 theFindString, theReplaceString;
+static void do_replace (TextGridArea me) {
+	if (! theReplaceString)   // e.g. when the user does "Replace again" before having done any "Replace"
+		return;
+	do_find (me); //procura a próxima ocorrência da string armazenada na variável my findString e seleciona
+	autostring32 selection = GuiText_getSelection (my functionEditor() -> textArea);
+	if (! Melder_equ (selection.get(), theFindString.get())) {
+		do_find (me);
+		return;
+	}
+	integer left, right;
+	autostring32 label = GuiText_getStringAndSelectionPosition (my functionEditor() -> textArea, & left, & right);
+	// GuiText_setSelection (my functionEditor() -> textArea, left, left + Melder_length (theFindString.get()));
+	GuiText_replace (my functionEditor() -> textArea, left, right, theReplaceString.get());
+	GuiText_setSelection (my functionEditor() -> textArea, left, left + Melder_length (theReplaceString.get()));
+	
+	#ifdef _WIN32
+		GuiThing_show (me->functionEditor()->windowForm);
+	#endif
+}
+
+static void menu_cb_replace (TextGridArea me, EDITOR_ARGS) {
+	EDITOR_FORM (U"Find", nullptr)
+		COMMENT (U"This is a \"slow\" find-and-replace method;")
+		COMMENT (U"if the selected text is identical to the Find string,")
+		COMMENT (U"the selected text will be replaced by the Replace string;")
+		COMMENT (U"otherwise, the next occurrence of the Find string will be selected.")
+		COMMENT (U"So you typically need two clicks on Apply to get a text replaced.")
+		TEXTFIELD (findString, U"Find", U"", 5)
+		TEXTFIELD (replaceString, U"Replace with", U"", 5)
+	EDITOR_OK
+		if (theFindString)
+			SET_STRING (findString, theFindString.get());
+		if (theReplaceString)
+			SET_STRING (replaceString, theReplaceString.get());
+	EDITOR_DO
+		theFindString = Melder_dup (findString);
+		my findString = Melder_dup (findString);
+		theReplaceString = Melder_dup (replaceString);
+		do_replace (me);
+	EDITOR_END
+}
+
+static void menu_cb_replaceAgain (TextGridArea me, EDITOR_ARGS) {
+	do_replace (me);
+}
+/* ---------------------------------------------------- */
+
 void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 	#ifndef macintosh
 		if (our editable()) {
@@ -1043,6 +1095,9 @@ void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 	FunctionAreaMenu_addCommand (menu, U"-- search --", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (menu, U"Find...", 'F', menu_cb_Find, this);
 	FunctionAreaMenu_addCommand (menu, U"Find again", 'G', menu_cb_FindAgain, this);
+	// Ramyses: adiciona comando no menus replace e replace again
+	FunctionAreaMenu_addCommand (menu, U"Replace...", 'R', menu_cb_replace, this);
+	FunctionAreaMenu_addCommand (menu, U"Replace again", GuiMenu_HIDDEN, menu_cb_replaceAgain, this);
 }
 
 
