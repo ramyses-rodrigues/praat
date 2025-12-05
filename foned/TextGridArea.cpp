@@ -1027,6 +1027,10 @@ static void menu_cb_FindAgain (TextGridArea me, EDITOR_ARGS) {
 }
 
 /* Ramyses: função replace e replace again para o textGrid.
+primeiro busca e seleciona a string a ser substituída,
+se a string selecionada for igual à string buscada, substitui pela string de substituição
+se não for igual, apenas seleciona a próxima ocorrência da string buscada.
+
 TODO: função Replace All
 */
 
@@ -1034,15 +1038,15 @@ static autostring32 theFindString, theReplaceString;
 static void do_replace (TextGridArea me) {
 	if (! theReplaceString)   // e.g. when the user does "Replace again" before having done any "Replace"
 		return;
-	// do_find (me); //procura a próxima ocorrência da string armazenada na variável my findString e seleciona
+	
 	autostring32 selection = GuiText_getSelection (my functionEditor() -> textArea); // obtém seleção de texto atual
+	// Se a seleção atual for diferente da string que se busca, executa um do_find(), seleciona e retorna
 	if (! Melder_equ (selection.get(), theFindString.get())) {
 		do_find (me);
 		return;
 	}
 	integer left, right;
 	autostring32 label = GuiText_getStringAndSelectionPosition (my functionEditor() -> textArea, & left, & right);
-	// GuiText_setSelection (my functionEditor() -> textArea, left, left + Melder_length (theFindString.get()));
 	GuiText_replace (my functionEditor() -> textArea, left, right, theReplaceString.get());
 	GuiText_setSelection (my functionEditor() -> textArea, left, left + Melder_length (theReplaceString.get()));
 	
@@ -1097,7 +1101,7 @@ void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 	FunctionAreaMenu_addCommand (menu, U"Find again", 'G', menu_cb_FindAgain, this);
 	// Ramyses: adiciona comando no menus replace e replace again
 	FunctionAreaMenu_addCommand (menu, U"Replace...", 'R', menu_cb_replace, this);
-	FunctionAreaMenu_addCommand (menu, U"Replace again", GuiMenu_HIDDEN, menu_cb_replaceAgain, this);
+	FunctionAreaMenu_addCommand (menu, U"Replace again", GuiMenu_F4 | GuiMenu_DEPTH_1, menu_cb_replaceAgain, this);
 }
 
 
