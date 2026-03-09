@@ -25,7 +25,7 @@
 #include "Sound_to_Formant.h"
 
 
-/* Ramyses - LPC to spectrum*/
+/* Ramyses - headres contendo objetos e funções para LPC to spectrum*/
 #include "LPC_and_Formant.h"
 #include "LPC_to_Spectrum.h"
 #include "Formant_extensions.h"

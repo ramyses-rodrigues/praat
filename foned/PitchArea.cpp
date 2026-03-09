@@ -130,16 +130,19 @@ void structPitchArea :: v_createMenus () {
 	FunctionAreaMenu_addCommand (menu, U"Path finder...", 0,
 			menu_cb_pathFinder, this);
 	FunctionAreaMenu_addCommand (menu, U"- Modify selected part of pitch:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Unvoice", 0,
+	// Ramyses: Tecla de atalho DEL para "Unvoice"
+	FunctionAreaMenu_addCommand (menu, U"Unvoice", GuiMenu_DELETE,
 			menu_cb_voiceless, this);
 	FunctionAreaMenu_addCommand (menu, U"-- up and down --", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Octave up", 0,
+	// Ramyses: Tecla de atalho ALT + SETA UP para "Octave Up"
+	FunctionAreaMenu_addCommand (menu, U"Octave up", GuiMenu_UP_ARROW | GuiMenu_OPTION,
 			menu_cb_octaveUp, this);
 	FunctionAreaMenu_addCommand (menu, U"Fifth up", 0,
 			menu_cb_fifthUp, this);
 	FunctionAreaMenu_addCommand (menu, U"Fifth down", 0,
 			menu_cb_fifthDown, this);
-	FunctionAreaMenu_addCommand (menu, U"Octave down", 0,
+	// Ramyses: Tecla de atalho ALT + SETA DOWN para "OCtave Down"
+	FunctionAreaMenu_addCommand (menu, U"Octave down", GuiMenu_DOWN_ARROW | GuiMenu_OPTION,
 			menu_cb_octaveDown, this);
 }
 
