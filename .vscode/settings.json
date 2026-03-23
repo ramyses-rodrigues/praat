@@ -2,12 +2,12 @@
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     "makefile.launchConfigurations": [
         {
-            "cwd": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat",
+            "cwd": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat\\praat",
             "binaryPath": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat\\praat\\Praat_Mod_Debug.exe",
             "binaryArgs": []
         },
         {
-            "cwd": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\praat",
+            "cwd": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\praat\\praat",
             "binaryPath": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\praat\\praat\\Praat_Mod_Debug.exe",
             "binaryArgs": []
         }
@@ -91,5 +91,6 @@
     "githubPullRequests.ignoredPullRequestBranches": [
         "master"
     ],
-    "makefile.makefilePath": "Makefile"
+    "makefile.makefilePath": "Makefile",
+    "makefile.makePath": "C:\\msys64\\ucrt64\\bin\\mingw32-make.exe"
 }
