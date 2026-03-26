@@ -1555,7 +1555,7 @@ static void gui_drawingarea_cb_mouse (FunctionEditor me, GuiDrawingArea_MouseEve
 		my viewDataAsWorldByFraction ();
 		double x_world, y_fraction;
 		Graphics_DCtoWC (my graphics.get(), event -> x, event -> y, & x_world, & y_fraction);
-		my v_distributeAreas ();
+ 		my v_distributeAreas ();
 		my v_mouseInWideDataView (event, x_world, y_fraction);   // this can change the selection, but not (yet?) the window (last checked 2023-02-13)
 		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_selectionMarksChanged()
 		FunctionEditor_selectionMarksChanged (me);
