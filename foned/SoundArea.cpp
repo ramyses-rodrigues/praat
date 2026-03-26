@@ -294,7 +294,11 @@ bool structSoundArea :: v_mouse (GuiDrawingArea_MouseEvent event, double x_world
 				}
 			}
 		}
-	}
+		// Ramyses - Reproduzir a partir do ponto de clique do mouse, quando em reprodução (duringPlay = true) x_word é o mouseTime
+		if (our functionEditor()->duringPlay) {
+			our functionEditor()->v_play (x_world, our functionEditor()->endWindow);
+		}
+	}	
 	return FunctionEditor_defaultMouseInWideDataView (our functionEditor(), event, x_world);
 }
 
