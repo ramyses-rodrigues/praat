@@ -3001,11 +3001,6 @@ static void on_lbuttonDown (HWND window, BOOL doubleClick, int x, int y, UINT fl
 		if (MEMBER (me, DrawingArea)) {
 			SetCapture (window);
 			_GuiWinDrawingArea_handleMouse (me, structGuiDrawingArea_MouseEvent::Phase::CLICK, x, y);
-
-			// Ramyses - callback do duplo clique no objeto da lista
-			//GuiList_setDoubleClickCallback (praatList_objects, gui_cb_list_ondoubleclick, praatList_objects->d_parent); 
-			//GuiDrawingArea_MouseEvent
-
 		} else
 			FORWARD_WM_LBUTTONDOWN (window, doubleClick, x, y, flags, DefWindowProc);
 	} else
