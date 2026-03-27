@@ -2875,6 +2875,38 @@ static GuiObject findItem (GuiObject menu, int id) {
 	}
 	return NULL;
 }
+// Ramyses - callback do duplo clique no objeto da lista
+// headers praat.h e praat_script para ter acesso às variáveis do Praat, funções e script. Uso também para o cb on_dropFiles
+
+#include "praat.h"
+#include "praat_script.h"
+static void cb_list_ondoubleclick(UINT codeNotify) {
+	//Melder_assert (event -> list == praatList_objects);	
+	// GuiList list = theCurrentPraatObjects -> list;
+	// theCurrentPraatObjects -> totalSelection = 0;
+	// praat => functionEditor()->duringPlay) {
+	// 		our functionEditor()->v_play (x_world, our functionEditor()->endWindow);
+	// autoINTVEC selected = GuiList_getSelectedPositions (praatList_objects);
+	int selectedItem = -1;
+	bool isSound = false;
+	for (integer iselected = 1; iselected <= theCurrentPraatObjects -> n; iselected ++) {
+		if (theCurrentPraatObjects->list[iselected].isSelected)
+			
+			try {
+				isSound = !Melder_cmp(theCurrentPraatObjects->list[iselected].object->classInfo->className, U"Sound"); 
+				if (isSound) // 	selectedItem = iselected;
+					bool status = praat_executeCommand (nullptr, U"Play");			
+				}
+			catch (MelderError) {
+				Melder_information(U"Ocorreu um erro, ", 
+					U"É objeto Sound? ", isSound,
+					U"Item selecionado, ", theCurrentPraatObjects->list[iselected].object->classInfo->className,
+					U"Resultado da comparação: ", Melder_cmp(theCurrentPraatObjects->list[iselected].object->classInfo->className, U"Sound"),
+					U"\nQuantidade de objetos na lista: ", theCurrentPraatObjects -> n,
+					U"\nTotal de objetos selecionados: ", theCurrentPraatObjects -> totalSelection);
+			}		
+	}	
+}
 static void on_command (
         HWND window, int id, HWND controlWindow, UINT codeNotify) {
 	GuiObject parent = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
@@ -2910,6 +2942,12 @@ static void on_command (
 					if (codeNotify == LBN_SELCHANGE) {
 						_GuiWinList_handleClick (control);
 					} else
+					// Ramyses: fazer a listbox responder ao duplo clique
+					if (codeNotify == LBN_DBLCLK) {
+						cb_list_ondoubleclick(codeNotify);
+						//Melder_information(U"Teste duplo clique com sucesso. Código notify: ", codeNotify);
+					}
+					else
 						FORWARD_WM_COMMAND (window, id, controlWindow,
 						        codeNotify, DefWindowProc);
 					break;
@@ -2963,6 +3001,11 @@ static void on_lbuttonDown (HWND window, BOOL doubleClick, int x, int y, UINT fl
 		if (MEMBER (me, DrawingArea)) {
 			SetCapture (window);
 			_GuiWinDrawingArea_handleMouse (me, structGuiDrawingArea_MouseEvent::Phase::CLICK, x, y);
+
+			// Ramyses - callback do duplo clique no objeto da lista
+			//GuiList_setDoubleClickCallback (praatList_objects, gui_cb_list_ondoubleclick, praatList_objects->d_parent); 
+			//GuiDrawingArea_MouseEvent
+
 		} else
 			FORWARD_WM_LBUTTONDOWN (window, doubleClick, x, y, flags, DefWindowProc);
 	} else
@@ -3228,58 +3271,30 @@ a) arquivo motifEmulator.cpp, linha 3247
     função LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
     adicionado manipulador de evento WM_DROPFILES, chamando callback on_dropFiles()
 	adicionada propriedade de estilo na função createWindowEx respectivo
-
-	Confirmar o BUG que está ocorrendo com o uso de MelderString nessa parte do código...
-	será que falta carregar algum header antes???
-	ver um modo de usar conststring32 como em outras partes desse arquivo
-
-	O uso dessas funções abaixo parece ser a fonte do BUG, mas apenas se usar nesse estágio do programa 
-		Talvez porque a autoMeldeString automaticamente chama MelderString_free
-		// uso de autoMelderString, que se destroi automaticmente, chamando uma das funções abaixo
-		// MelderString_free(strFiles32);
-		// MelderString_free(&command);
-		// MelderString_free(&showString32);
-
-headers adicionados para acesso ás funções:
+	
+headers adicionados para acesso ás funções e variáveis globais do Praat:
 praat.h
 praat_script.h
 
 */
-#include "praat.h"
-#include "praat_script.h"
-using namespace std;
-
 static void on_dropFiles (HWND window, HDROP hDrop) {
-	// DragQueryFile() takes a LPWSTR for the name so we need a TCHAR string
-	TCHAR szName[MAX_PATH];
-	// GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
-
-	// Here we cast the wParam as a HDROP handle to pass into the next functions
-	// HDROP hDrop = (HDROP)wParam;
-
+	
 	// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF
 	// in the second parameter then it returns the count of how many filers were
 	// drag and dropped.  Otherwise, the function fills in the szName string
 	// array with the current file being queried.
-	const int count = DragQueryFile (hDrop, 0xFFFFFFFF, szName, MAX_PATH);
+	const int count = DragQueryFile (hDrop, 0xFFFFFFFF, nullptr, MAX_PATH);
 
 	// varre todos os arquivos para exibição
-	// usar MelderString no lugar de autoMelderString tira o BUG?
+	TCHAR szName[MAX_PATH];
 	MelderString MelderstrFiles32[count], MeldershowString32;
 	for (int i = 0; i < count; i++) {
 		DragQueryFile (hDrop, i, szName, MAX_PATH);
-				
-		// strFiles32[i] = szName;
-		// showString32.append(to_wstring(i + 1) + L" - \n");
-		// showString32.append(strFiles32[i]);
-
 		MelderstrFiles32[i].string = (char32*) Melder_peekWto32(szName);
 		MelderString_append(& MeldershowString32, Melder_integer(i + 1), U" - ", MelderstrFiles32[i].string, U"\n");		
 	} 
 
-	// MessageBoxW(window, showstringW.c_str(), L"Arquivos recebidos", 0);
 	Melder_warning (U"Arquivos recebidos: \n", MeldershowString32.string);
-	// Melder_warning (U"Arquivos recebidos: \n", showString32.c_str());	
 	
 	// Agora, carrega todos os arquivos na lista de objetos do praat
 	for (int i = 0; i < count; i++) {
@@ -3289,99 +3304,68 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		bool status = FALSE;
 
 		Melder_pathToFile (MelderstrFiles32[i].string, file);
+		
 		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-		MelderString_append (&command, U"Read from file... ", file->path);
-		status = praat_executeCommand (nullptr, command.string);		
+		// MelderString_append (&command, U"Read from file... ", file->path);
+		// status = praat_executeCommand (nullptr, command.string);		
+		
+		/* outra forma de criar objeto e colocar na lista de objetos da janela principal */
+		autoDaata result = Data_readFromFile (file);
+		// //cria objeto e coloca na lista, com nome base do arquivo
+		praat_newWithFile (result.move (), file, file->path);   // result nulifies here
 		praat_updateSelection(); // executado dentro de praat_executeCommand(...)
 
-		// UpdateWindow(FindWindow( NULL, Melder_peek32toW (U"Praat Objects")));		
-		UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));
-		
-		// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
-		// autoDaata result = Data_readFromFile (file);
-		// //cria objeto e coloca na lista, com nome base do arquivo
-		// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
-		
-		
-		/* debug */
-		bool dbg = false;
-		if (dbg) {
-			command.string = U"Info";
-			status = praat_executeCommand (nullptr, command.string);
-		}		
+		UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));			
 	}
 
 	// Finally, we destroy the HDROP handle so the extra memory
 	// allocated by the application is released.
 	DragFinish (hDrop);
-
-		//// outra forma de debug Info:
-		// int idObject = 0;
-		// // copiado de praat_objectMenus.cpp (função INFO_Info)
-		// for (int IOBJECT = 1; IOBJECT <= theCurrentPraatObjects->n; IOBJECT++)
-		// 	if (theCurrentPraatObjects->list[IOBJECT].isSelected)
-		// 		idObject = IOBJECT;
-
-		// if (idObject > 0) {
-		// 	Thing_infoWithIdAndFile (
-		// 	        theCurrentPraatObjects->list[idObject].object, idObject,
-		// 	        &theCurrentPraatObjects->list[idObject].file);
-		// }
-
-		// conststring32 filename = MelderFile_name (file);
-		// abre uma janela Praat Info:
-		// Melder_clearInfo ();
-		// MelderInfo_open ();
-		// MelderInfo_writeLine (U"Object name: ", filename);
-		// MelderInfo_writeLine (U"Object Class name: ",
-		// result->classInfo->className); 
-		// if (! MelderFile_isNull (file))
-		// 	MelderInfo_writeLine (U"Associated file: ", Melder_fileToPath
-		// (file)); MelderInfo_writeLine(U"File path: ", file->path);
-		// result->v1_info ();
-		// MelderInfo_close ();	
 }
 
-static LRESULT CALLBACK windowProc (
-        HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
-	switch (message) {
-		HANDLE_MSG (window, WM_CLOSE, on_close);
+static LRESULT CALLBACK windowProc(
+	HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+		HANDLE_MSG(window, WM_CLOSE, on_close);
 		HANDLE_MSG (window, WM_COMMAND, on_command);
-		HANDLE_MSG (window, WM_DESTROY, on_destroy);
-		HANDLE_MSG (window, WM_LBUTTONDOWN, on_lbuttonDown);
-		HANDLE_MSG (window, WM_LBUTTONDBLCLK, on_lbuttonDown);   // double-click counts as two clicks
-		HANDLE_MSG (window, WM_LBUTTONUP, on_lbuttonUp);
-		HANDLE_MSG (window, WM_MOUSEMOVE, on_mouseMove);
-		HANDLE_MSG (window, WM_PAINT, on_paint);
-		HANDLE_MSG (window, WM_HSCROLL, on_hscroll);
-		HANDLE_MSG (window, WM_VSCROLL, on_vscroll);
-		HANDLE_MSG (window, WM_MOUSEWHEEL, on_verticalWheel);
+		HANDLE_MSG(window, WM_DESTROY, on_destroy);
+		HANDLE_MSG(window, WM_LBUTTONDBLCLK, on_lbuttonDown); // double-click counts as two clicks
+		HANDLE_MSG(window, WM_LBUTTONDOWN, on_lbuttonDown);
+		HANDLE_MSG(window, WM_LBUTTONUP, on_lbuttonUp);
+		HANDLE_MSG(window, WM_MOUSEMOVE, on_mouseMove);
+		HANDLE_MSG(window, WM_PAINT, on_paint);
+		HANDLE_MSG(window, WM_HSCROLL, on_hscroll);
+		HANDLE_MSG(window, WM_VSCROLL, on_vscroll);
+		HANDLE_MSG(window, WM_MOUSEWHEEL, on_verticalWheel);
 		// HANDLE_MSG (window, WM_MOUSEHWHEEL, on_horizontalWheel);
-		HANDLE_MSG (window, WM_SIZE, on_size);
-		HANDLE_MSG (window, WM_KEYDOWN, on_key);
-		HANDLE_MSG (window, WM_CHAR, on_char);
-		HANDLE_MSG (window, WM_MOVE, on_move);
-		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
-		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
-		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
-		
-		/*Ramyses - arrastar e soltar*/
-		HANDLE_MSG (window, WM_DROPFILES, on_dropFiles);
+		HANDLE_MSG(window, WM_SIZE, on_size);
+		HANDLE_MSG(window, WM_KEYDOWN, on_key);
+		HANDLE_MSG(window, WM_CHAR, on_char);
+		HANDLE_MSG(window, WM_MOVE, on_move);
+		HANDLE_MSG(window, WM_CTLCOLORBTN, on_ctlColorBtn);
+		HANDLE_MSG(window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
+		HANDLE_MSG(window, WM_ACTIVATE, on_activate);
 
-		
-		case WM_USER:   // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
+		/*Ramyses - arrastar e soltar*/
+		HANDLE_MSG(window, WM_DROPFILES, on_dropFiles);
+
+		case WM_USER: // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
 		case WM_APP:
 		{
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);
 			SetForegroundWindow (window);*/
-			//TRACE
-			trace (U"app message ", message);
-			return theUserMessageCallback ? theUserMessageCallback () : 1;
+			// TRACE
+			trace(U"app message ", message);
+			return theUserMessageCallback ? theUserMessageCallback() : 1;
 		}
-		default: return DefWindowProc (window, message, wParam, lParam);
-	}
+		default:
+			return DefWindowProc(window, message, wParam, lParam);
+		}
 }
-void motif_win_setUserMessageCallback (int (*userMessageCallback) (void)) {
+void motif_win_setUserMessageCallback(int (*userMessageCallback)(void))
+{
 	theUserMessageCallback = userMessageCallback;
 }
 
