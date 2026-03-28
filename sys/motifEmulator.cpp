@@ -2945,7 +2945,6 @@ static void on_command (
 					// Ramyses: fazer a listbox responder ao duplo clique
 					if (codeNotify == LBN_DBLCLK) {
 						cb_list_ondoubleclick(codeNotify);
-						//Melder_information(U"Teste duplo clique com sucesso. Código notify: ", codeNotify);
 					}
 					else
 						FORWARD_WM_COMMAND (window, id, controlWindow,
@@ -3273,7 +3272,14 @@ praat_script.h
 
 */
 static void on_dropFiles (HWND window, HDROP hDrop) {
-	
+	// PostMessage(
+    // (HWND) hWndControl,   // handle to destination control
+    // (UINT) WM_DROPFILES,  // message ID
+    // (WPARAM) wParam,      // = (WPARAM) (HDROP) hDrop;
+    // (LPARAM) lParam		// not used, MUST be zero
+
+	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+	if (me) {	
 	// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF
 	// in the second parameter then it returns the count of how many filers were
 	// drag and dropped.  Otherwise, the function fills in the szName string
@@ -3299,16 +3305,16 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		bool status = FALSE;
 
 		Melder_pathToFile (MelderstrFiles32[i].string, file);
-		
+		MelderString_empty (&command);
 		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-		// MelderString_append (&command, U"Read from file... ", file->path);
-		// status = praat_executeCommand (nullptr, command.string);		
+		MelderString_append (&command, U"Read from file... ", file->path);
+		status = praat_executeCommand (nullptr, command.string);		
 		
-		/* outra forma de criar objeto e colocar na lista de objetos da janela principal */
-		autoDaata result = Data_readFromFile (file);
-		// //cria objeto e coloca na lista, com nome base do arquivo
-		praat_newWithFile (result.move (), file, file->path);   // result nulifies here
-		praat_updateSelection(); // executado dentro de praat_executeCommand(...)
+		// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
+		// autoDaata result = Data_readFromFile (file);
+		// // //cria objeto e coloca na lista, com nome base do arquivo
+		// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
+		// praat_updateSelection(); // executado dentro de praat_executeCommand(...)
 
 		UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));			
 	}
@@ -3316,6 +3322,8 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	// Finally, we destroy the HDROP handle so the extra memory
 	// allocated by the application is released.
 	DragFinish (hDrop);
+} else
+	FORWARD_WM_DROPFILES (window, hDrop, DefWindowProc);
 }
 
 static LRESULT CALLBACK windowProc(
