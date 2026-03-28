@@ -3280,48 +3280,48 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {	
-	// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF
-	// in the second parameter then it returns the count of how many filers were
-	// drag and dropped.  Otherwise, the function fills in the szName string
-	// array with the current file being queried.
-	const int count = DragQueryFile (hDrop, 0xFFFFFFFF, nullptr, MAX_PATH);
+		// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF
+		// in the second parameter then it returns the count of how many filers were
+		// drag and dropped.  Otherwise, the function fills in the szName string
+		// array with the current file being queried.
+		const int count = DragQueryFile (hDrop, 0xFFFFFFFF, nullptr, MAX_PATH);
 
-	// varre todos os arquivos para exibição
-	TCHAR szName[MAX_PATH];
-	MelderString MelderstrFiles32[count], MeldershowString32;
-	for (int i = 0; i < count; i++) {
-		DragQueryFile (hDrop, i, szName, MAX_PATH);
-		MelderstrFiles32[i].string = (char32*) Melder_peekWto32(szName);
-		MelderString_append(& MeldershowString32, Melder_integer(i + 1), U" - ", MelderstrFiles32[i].string, U"\n");		
-	} 
+		// varre todos os arquivos para exibição
+		TCHAR szName[MAX_PATH];
+		MelderString MelderstrFiles32[count], MeldershowString32;
+		for (int i = 0; i < count; i++) {
+			DragQueryFile (hDrop, i, szName, MAX_PATH);
+			MelderstrFiles32[i].string = (char32*) Melder_peekWto32(szName);
+			MelderString_append(& MeldershowString32, Melder_integer(i + 1), U" - ", MelderstrFiles32[i].string, U"\n");		
+		} 
 
-	Melder_warning (U"Arquivos recebidos: \n", MeldershowString32.string);
-	
-	// Agora, carrega todos os arquivos na lista de objetos do praat
-	for (int i = 0; i < count; i++) {
-		structMelderFile fileS;     // aloca memória
-		MelderFile file = &fileS;   // cria ponteiro para a struct
-		MelderString command = {};
-		bool status = FALSE;
-
-		Melder_pathToFile (MelderstrFiles32[i].string, file);
-		MelderString_empty (&command);
-		// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-		MelderString_append (&command, U"Read from file... ", file->path);
-		status = praat_executeCommand (nullptr, command.string);		
+		Melder_warning (U"Arquivos recebidos: \n", MeldershowString32.string);
 		
-		// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
-		// autoDaata result = Data_readFromFile (file);
-		// // //cria objeto e coloca na lista, com nome base do arquivo
-		// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
-		// praat_updateSelection(); // executado dentro de praat_executeCommand(...)
+		// Agora, carrega todos os arquivos na lista de objetos do praat
+		for (int i = 0; i < count; i++) {
+			structMelderFile fileS;     // aloca memória
+			MelderFile file = &fileS;   // cria ponteiro para a struct
+			MelderString command = {};
+			bool status = FALSE;
 
-		UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));			
-	}
+			Melder_pathToFile (MelderstrFiles32[i].string, file);
+			MelderString_empty (&command);
+			// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
+			MelderString_append (&command, U"Read from file... ", file->path);
+			status = praat_executeCommand (nullptr, command.string);		
+			
+			// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
+			// autoDaata result = Data_readFromFile (file);
+			// // //cria objeto e coloca na lista, com nome base do arquivo
+			// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
+			// praat_updateSelection(); // executado dentro de praat_executeCommand(...)
 
-	// Finally, we destroy the HDROP handle so the extra memory
-	// allocated by the application is released.
-	DragFinish (hDrop);
+			UpdateWindow(FindWindow(Melder_32toW (theApplicationClassName).transfer (), NULL ));			
+		}
+
+		// Finally, we destroy the HDROP handle so the extra memory
+		// allocated by the application is released.
+		DragFinish (hDrop);
 } else
 	FORWARD_WM_DROPFILES (window, hDrop, DefWindowProc);
 }
