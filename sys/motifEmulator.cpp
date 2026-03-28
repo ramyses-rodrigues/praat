@@ -2892,11 +2892,16 @@ static void cb_list_ondoubleclick(UINT codeNotify) {
 	for (integer iselected = 1; iselected <= theCurrentPraatObjects -> n; iselected ++) {
 		if (theCurrentPraatObjects->list[iselected].isSelected)			
 			try {
-				isSound = !Melder_cmp(theCurrentPraatObjects->list[iselected].object->classInfo->className, U"Sound"); 
-				if (isSound) // 	selectedItem = iselected;
+				ClassInfo classInfo = theCurrentPraatObjects->list[iselected].object->classInfo;
+				isSound = !Melder_cmp(classInfo -> className, U"Sound"); 
+				if (isSound) {// 	selectedItem = iselected;
 					if (!praat_executeCommand (nullptr, U"Play")) {
 						Melder_warning (U"Não foi possível reproduzir o arquivo. Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-					};								
+					} else {
+						Melder_information(U"Reproduzindo o arquivo de áudio selecionado.");
+					}
+				} else
+					Melder_warning (U"Não é possível reproduzir um objeto ", classInfo -> className, U".");
 				}
 			catch (MelderError) {
 				Melder_information(U"Ocorreu um erro, ", 
