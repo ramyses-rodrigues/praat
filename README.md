@@ -195,13 +195,13 @@ unless you have an old Intel32 toolchain lying around.
 
 Ramyses: para instalar o toolchain mingw64:
 1. instalar MSYS2 do site (https://www.msys2.org/#installation)
-2. instalar pacote "pacman -S mingw-w64-ucrt-x86_64-gcc" ou `$ pacman -S mingw-w64-x86_64-gcc `
-3. instalar make: "$ pacman -S make" 
+2. instalar pacote "pacman -S mingw-w64-ucrt-x86_64-gcc" ou "$ pacman -S mingw-w64-x86_64-gcc"
+3. instalar make: "pacman -S mingw-w64-ucrt-x86_64-make" ou "pacman -S make"
 4. instalar gdb: "pacman -S mingw-w64-ucrt-x86_64-gdb" ou "$ pacman -S mingw-w64-x86_64-gdb"
 5. atualizar Msys2: "pacman -Suy"
 6. configurar a extensão Makefile, inserindo o caminho do compilador e make no Path do windows
 
-Os arquivos baixados pelo Pacman serão armazenados na pasta "\msys2\mingw64\bin" ou "\msys2\ucrt64\bin".
+Os arquivos baixados pelo Pacman serão armazenados na pasta "\msys2\ucrt64\bin" ou "\msys2\mingw64\bin".
 
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
 perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,
