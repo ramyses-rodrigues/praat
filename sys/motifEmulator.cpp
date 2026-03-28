@@ -3301,14 +3301,18 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 		for (int i = 0; i < count; i++) {
 			structMelderFile fileS;     // aloca memória
 			MelderFile file = &fileS;   // cria ponteiro para a struct
-			MelderString command = {};
+			MelderString command = {};  // para construir o comando de leitura do arquivo, usando a função praat_executeCommand() e o script de comandos do praat (praat_script.h)
 			bool status = FALSE;
 
 			Melder_pathToFile (MelderstrFiles32[i].string, file);
 			MelderString_empty (&command);
 			// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
 			MelderString_append (&command, U"Read from file... ", file->path);
-			status = praat_executeCommand (nullptr, command.string);		
+			
+			if (!praat_executeCommand (nullptr, command.string)) {
+				Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+				continue; // pula para o próximo arquivo	
+			};		
 			
 			// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
 			// autoDaata result = Data_readFromFile (file);
