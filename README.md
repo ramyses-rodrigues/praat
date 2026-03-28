@@ -195,13 +195,16 @@ unless you have an old Intel32 toolchain lying around.
 
 Ramyses: para instalar o toolchain mingw64:
 1. instalar MSYS2 do site (https://www.msys2.org/#installation)
-2. instalar pacote "pacman -S mingw-w64-ucrt-x86_64-gcc" ou "$ pacman -S mingw-w64-x86_64-gcc"
-3. instalar make: "pacman -S mingw-w64-ucrt-x86_64-make" ou "pacman -S make"
-4. instalar gdb: "pacman -S mingw-w64-ucrt-x86_64-gdb" ou "$ pacman -S mingw-w64-x86_64-gdb"
+2. instalar pacote "pacman -S mingw-w64-ucrt-x86_64-gcc" (ou "$ pacman -S mingw-w64-x86_64-gcc")
+3. instalar make: "pacman -S mingw-w64-ucrt-x86_64-make" ( ou "pacman -S make")
+4. instalar gdb: "pacman -S mingw-w64-ucrt-x86_64-gdb" (ou "$ pacman -S mingw-w64-x86_64-gdb")
 5. atualizar Msys2: "pacman -Suy"
-6. configurar a extensão Makefile, inserindo o caminho do compilador e make no Path do windows
+6. configurar a extensão Makefile, inserindo o caminho do arquivo Makefile;
+7. configurar a extensão Makefile, inserindo o caminho do executável MAKE : Apontar para o arquivo "C:\msys64\ucrt64\bin\mingw32-make.exe"
+8. Configurar o Path do windows com os caminhos: "\msys2\ucrt64\bin" (onde estão os executáveis do compilador - g++.exe, gdb.exe e gcc.exe) e "\msys2\usr\bin" (onde estão os arquivos do coreutils (touch.exe) do msys2).
+9. O arquivo makefile.defs já está editado para usar com o msys2 (File: makefile.defs.msys-mingw64)
 
-Os arquivos baixados pelo Pacman serão armazenados na pasta "\msys2\ucrt64\bin" ou "\msys2\mingw64\bin".
+Usando a biblioteca UCRT64, os arquivos baixados pelo Pacman serão armazenados na pasta  ou "\msys2\mingw64\bin".
 
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
 perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,

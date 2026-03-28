@@ -2890,12 +2890,13 @@ static void cb_list_ondoubleclick(UINT codeNotify) {
 	int selectedItem = -1;
 	bool isSound = false;
 	for (integer iselected = 1; iselected <= theCurrentPraatObjects -> n; iselected ++) {
-		if (theCurrentPraatObjects->list[iselected].isSelected)
-			
+		if (theCurrentPraatObjects->list[iselected].isSelected)			
 			try {
 				isSound = !Melder_cmp(theCurrentPraatObjects->list[iselected].object->classInfo->className, U"Sound"); 
 				if (isSound) // 	selectedItem = iselected;
-					bool status = praat_executeCommand (nullptr, U"Play");			
+					if (!praat_executeCommand (nullptr, U"Play")) {
+						Melder_warning (U"Não foi possível reproduzir o arquivo. Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+					};								
 				}
 			catch (MelderError) {
 				Melder_information(U"Ocorreu um erro, ", 
