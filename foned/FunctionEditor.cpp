@@ -484,6 +484,7 @@ static void gui_drawingarea_cb_zoomVerticalWhell (FunctionEditor me, GuiDrawingA
 	if (! my graphics)
 		return;   // could be the case in the very beginning
 	const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // step
+	
 	// centraliza posição do cursor ou da seleção
 	const double startW = my startWindow;
 	const double endW = my endWindow;
@@ -494,7 +495,7 @@ static void gui_drawingarea_cb_zoomVerticalWhell (FunctionEditor me, GuiDrawingA
 	const double shift =  selCenter - wCenter;
 	const bool shifted = ( shift != 0.0 );
 
-	//const double mousePos = GetMouseMovePointsEx();
+	// const double mousePos = GetMouseMovePointsEx();
 
 	if (shifted) {
 		my startWindow += shift;
@@ -513,10 +514,12 @@ static void gui_drawingarea_cb_zoom (FunctionEditor me, GuiDrawingArea_ZoomEvent
 		return;   // could be the case in the very beginning
 	// // código original:
 	// const double enlargement = exp (-0.02 * (event -> delta>0.0?+1:-1) * sqrt (fabs (event -> delta)));   // 2 percent per step
-	// zoom_by (me, enlargement);
+	// zoom_by (me, enlargement);	
 
-	/* Ramyses: função de zoom com roda do mouse, centralizando seleção antes do zoom*/
-	gui_drawingarea_cb_zoomVerticalWhell ( me, event);	
+	/* Ramyses: função de zoom com roda do mouse, centralizando seleção antes do zoom */
+	// a função zoom_by (me, enlargement) já faz o zoom, mas sempre em relação ao centro da janela
+	// Logo, colocar o curor no centro da janela antes de aplicar o zoom:
+	gui_drawingarea_cb_zoomVerticalWhell ( me, event );	
 }
 
 void structFunctionEditor :: v_prefs_addFields (EditorCommand cmd) {

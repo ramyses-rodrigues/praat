@@ -2883,6 +2883,11 @@ static GuiObject findItem (GuiObject menu, int id) {
 static void cb_list_ondoubleclick(GuiObject widget) {
 	//Melder_assert (event -> list == praatList_objects);	
 	GuiList me = (GuiList) widget -> userData;
+	// debug
+	Melder_information(	U"Objeto: ", me ->classInfo -> className, 
+						U"\nItem selecionado: ", GuiList_getSelectedPositions (me).size,
+						U"\nQuantidade de objetos na lista: ", theCurrentPraatObjects -> n,
+						U"\nTotal de objetos selecionados: ", theCurrentPraatObjects -> totalSelection);
 	// theCurrentPraatObjects -> totalSelection = 0;
 	// praat => functionEditor()->duringPlay) {
 	// 		our functionEditor()->v_play (x_world, our functionEditor()->endWindow);
@@ -3098,8 +3103,8 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 			   com a tecla Ctrl, de +- 25 %
 			*/
 			if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-						on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			// senão, varre buscando por todos os objetos filhos...
+				on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// senão, varre buscando por todos os objetos filhos e chama callbacks específicos...
 			else for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
 					if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL) {
 						if (shiftKeyPressed)
