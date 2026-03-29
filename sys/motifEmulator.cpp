@@ -2880,9 +2880,9 @@ static GuiObject findItem (GuiObject menu, int id) {
 
 #include "praat.h"
 #include "praat_script.h"
-static void cb_list_ondoubleclick(HWND controlwindow) {
+static void cb_list_ondoubleclick(GuiObject widget) {
 	//Melder_assert (event -> list == praatList_objects);	
-	GuiList list = (GuiList) theCurrentPraatObjects -> list;
+	GuiList me = (GuiList) widget -> userData;
 	// theCurrentPraatObjects -> totalSelection = 0;
 	// praat => functionEditor()->duringPlay) {
 	// 		our functionEditor()->v_play (x_world, our functionEditor()->endWindow);
@@ -2951,7 +2951,7 @@ static void on_command (
 					} else
 					// Ramyses: fazer a listbox responder ao duplo clique
 					if (codeNotify == LBN_DBLCLK) {
-						cb_list_ondoubleclick(controlWindow);
+						cb_list_ondoubleclick(control);
 					}
 					else
 						FORWARD_WM_COMMAND (window, id, controlWindow,
