@@ -2880,9 +2880,9 @@ static GuiObject findItem (GuiObject menu, int id) {
 
 #include "praat.h"
 #include "praat_script.h"
-static void cb_list_ondoubleclick(UINT codeNotify) {
+static void cb_list_ondoubleclick(HWND controlwindow) {
 	//Melder_assert (event -> list == praatList_objects);	
-	// GuiList list = theCurrentPraatObjects -> list;
+	GuiList list = (GuiList) theCurrentPraatObjects -> list;
 	// theCurrentPraatObjects -> totalSelection = 0;
 	// praat => functionEditor()->duringPlay) {
 	// 		our functionEditor()->v_play (x_world, our functionEditor()->endWindow);
@@ -2892,13 +2892,14 @@ static void cb_list_ondoubleclick(UINT codeNotify) {
 	for (integer iselected = 1; iselected <= theCurrentPraatObjects -> n; iselected ++) {
 		if (theCurrentPraatObjects->list[iselected].isSelected)			
 			try {
+				// verifica se o item selecionado é um objeto Sound, e se for, executa o comando Play
 				ClassInfo classInfo = theCurrentPraatObjects->list[iselected].object->classInfo;
 				isSound = !Melder_cmp(classInfo -> className, U"Sound"); 
 				if (isSound) {// 	selectedItem = iselected;
 					if (!praat_executeCommand (nullptr, U"Play")) {
 						Melder_warning (U"Não foi possível reproduzir o arquivo. Verifique se o formato do arquivo é suportado e se o caminho está correto.");
 					} else {
-						Melder_information(U"Reproduzindo o arquivo de áudio selecionado.");
+						//Melder_information(U"Reproduzindo o arquivo de áudio selecionado.");
 					}
 				} else
 					Melder_warning (U"Não é possível reproduzir um objeto ", classInfo -> className, U".");
@@ -2950,7 +2951,7 @@ static void on_command (
 					} else
 					// Ramyses: fazer a listbox responder ao duplo clique
 					if (codeNotify == LBN_DBLCLK) {
-						cb_list_ondoubleclick(codeNotify);
+						cb_list_ondoubleclick(controlWindow);
 					}
 					else
 						FORWARD_WM_COMMAND (window, id, controlWindow,
@@ -3313,12 +3314,18 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 			Melder_pathToFile (MelderstrFiles32[i].string, file);
 			MelderString_empty (&command);
 			// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-			MelderString_append (&command, U"Read from file... ", file->path);
 			
-			if (!praat_executeCommand (nullptr, command.string)) {
-				Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-				continue; // pula para o próximo arquivo	
-			};		
+			
+			MelderString_append (&command, U"Read from file... ", file->path);			
+			try {
+				if (!praat_executeCommand (nullptr, command.string)) {
+					Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+					continue; // pula para o próximo arquivo	
+				};	
+			} catch (MelderError) {
+				Melder_warning (U"Erro ao construir o comando para ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+				continue; // pula para o próximo arquivo
+			}	
 			
 			// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
 			// autoDaata result = Data_readFromFile (file);
