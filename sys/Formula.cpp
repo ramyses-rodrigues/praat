@@ -1,6 +1,6 @@
 /* Formula.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include "DemoEditor.h"
 
 static Interpreter theInterpreter;
-static autoInterpreter theLocalInterpreter;
+static autoInterpreterStack theLocalInterpreterStack;
 static Daata theSource;
 static conststring32 theExpression;
 static int theLevel = 1;
@@ -114,7 +114,7 @@ enum { NO_SYMBOL_,
 		HERTZ_TO_BARK_, BARK_TO_HERTZ_, PHON_TO_DIFFERENCE_LIMENS_, DIFFERENCE_LIMENS_TO_PHON_,
 		HERTZ_TO_MEL_, MEL_TO_HERTZ_, HERTZ_TO_SEMITONES_, SEMITONES_TO_HERTZ_,
 		ERB_, HERTZ_TO_ERB_, ERB_TO_HERTZ_,
-		SUM_, MEAN_, STDEV_, CENTER_,
+		SUM_, MEAN_, STDEV_, CENTER_, RANDOM_IMAX_,
 		EVALUATE_, EVALUATE_NOCHECK_, EVALUATE_STR_, EVALUATE_NOCHECK_STR_,
 		STRING_STR_, VERTICAL_STR_, NUMBERS_VEC_, SLEEP_, UNICODE_, UNICODE_STR_,
 	#define HIGH_FUNCTION_1  UNICODE_STR_
@@ -294,7 +294,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"hertzToBark", U"barkToHertz", U"phonToDifferenceLimens", U"differenceLimensToPhon",
 	U"hertzToMel", U"melToHertz", U"hertzToSemitones", U"semitonesToHertz",
 	U"erb", U"hertzToErb", U"erbToHertz",
-	U"sum", U"mean", U"stdev", U"center",
+	U"sum", U"mean", U"stdev", U"center", U"randomImax",
 	U"evaluate", U"evaluate_nocheck", U"evaluate$", U"evaluate_nocheck$",
 	U"string$", U"vertical$", U"numbers#", U"sleep", U"unicode", U"unicode$",
 	U"arctan2", U"randomUniform", U"randomInteger", U"randomGauss", U"randomBinomial",
@@ -2304,11 +2304,20 @@ static void Formula_print (FormulaInstruction f) {
 }
 
 void Formula_compile (Interpreter interpreter, Daata data, conststring32 expression, int expressionType, bool optimize) {
+	if (interpreter)
+		Melder_assert (interpreter -> owningInterpreterStack);
 	theInterpreter = interpreter;
 	if (! theInterpreter) {
-		if (! theLocalInterpreter)
-			theLocalInterpreter = Interpreter_create ();
-		theInterpreter = theLocalInterpreter.get();
+		if (! theLocalInterpreterStack) {
+			theLocalInterpreterStack = InterpreterStack_create (nullptr);
+			theLocalInterpreterStack -> interpreters [1] = Interpreter_createFromEnvironment (
+				theLocalInterpreterStack.get(),
+				Editor (nullptr),
+				MelderFile (nullptr)
+			);
+		}
+		theInterpreter = theLocalInterpreterStack -> interpreters [1].get();
+		theInterpreter -> owningInterpreterStack = theLocalInterpreterStack.get();
 		theInterpreter -> variablesMap. clear ();
 	}
 	theSource = data;
@@ -3853,6 +3862,14 @@ static void do_center () {
 		Melder_throw (U"Cannot compute the center of ", x->whichText(), U".");
 	}
 }
+static void do_randomImax () {
+	const Stackel x = pop;
+	if (x->which == Stackel_NUMERIC_VECTOR) {
+		pushNumber (NUMrandomImax (x->numericVector));
+	} else {
+		Melder_throw (U"Cannot compute a random imax of ", x->whichText(), U".");
+	}
+}
 static void do_function_dd_d (double (*f) (double, double)) {
 	const Stackel y = pop, x = pop;
 	if (x->which == Stackel_NUMBER && y->which == Stackel_NUMBER) {
@@ -4208,7 +4225,9 @@ static void do_writeInfoLine () {
 	MelderInfo_drain ();
 	pushNumber (1);
 }
+
 static void do_appendInfo () {
+	MELDER_ASSERT_NONREENTRANT
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
 	const integer numberOfArguments = Melder_iround (narg->number);
@@ -4218,6 +4237,7 @@ static void do_appendInfo () {
 	pushNumber (1);
 }
 static void do_appendInfoLine () {
+	MELDER_ASSERT_NONREENTRANT
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
 	const integer numberOfArguments = Melder_iround (narg->number);
@@ -4356,9 +4376,7 @@ static void do_pauseScript () {
 		}
 		const Editor optionalPauseWindowOwningEditor = theInterpreter -> optionalDynamicEnvironmentEditor();
 		const GuiWindow parentShell = ( optionalPauseWindowOwningEditor ? optionalPauseWindowOwningEditor -> windowForm : theCurrentPraatApplication -> topShell );
-		UiPause_begin (parentShell, optionalPauseWindowOwningEditor, U"stop or continue", theInterpreter);
-		UiPause_comment (numberOfArguments == 0 ? U"..." : buffer.string);
-		UiPause_end (1, 1, 0, U"Continue", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, theInterpreter);
+		UiPause_pauseScript (parentShell, optionalPauseWindowOwningEditor, theInterpreter, numberOfArguments == 0 ? U"..." : buffer.string);
 	}
 	pushNumber (1);
 }
@@ -4407,13 +4425,14 @@ static void do_runScript () {
 	Melder_require (fileName->which == Stackel_STRING,
 		U"The first argument to “runScript” should be a string (the file name), not ", fileName->whichText());
 	theLevel += 1;
-	if (theLevel > MAXIMUM_NUMBER_OF_LEVELS) {
+	if (theLevel > MAXIMUM_NUMBER_OF_LEVELS) {   // TODO: remove
 		theLevel -= 1;
-		Melder_throw (U"Cannot call runScript() more than ", MAXIMUM_NUMBER_OF_LEVELS, U" levels deep.");
+		//Melder_throw (U"Cannot call runScript() more than ", MAXIMUM_NUMBER_OF_LEVELS, U" levels deep.");
 	}
 	try {
 		const Editor optionalNewInterpreterOwningWindow = theInterpreter -> optionalDynamicEnvironmentEditor();
-		praat_runScript (fileName->getString(), numberOfArguments - 1, & theStack [stackPointer + 1], optionalNewInterpreterOwningWindow);
+		Melder_assert (theInterpreter -> owningInterpreterStack);
+		praat_runScript (theInterpreter -> owningInterpreterStack, fileName->getString(), numberOfArguments - 1, & theStack [stackPointer + 1], optionalNewInterpreterOwningWindow);
 		theLevel -= 1;
 	} catch (MelderError) {
 		theLevel -= 1;
@@ -4462,7 +4481,8 @@ static void do_runNotebook () {
 	}
 	try {
 		const Editor optionalNewInterpreterOwningWindow = theInterpreter -> optionalDynamicEnvironmentEditor();
-		praat_runNotebook (fileName->getString(), numberOfArguments - 1, & theStack [stackPointer + 1], optionalNewInterpreterOwningWindow);
+		Melder_assert (theInterpreter -> owningInterpreterStack);
+		praat_runNotebook (theInterpreter -> owningInterpreterStack, fileName->getString(), numberOfArguments - 1, & theStack [stackPointer + 1], optionalNewInterpreterOwningWindow);
 		theLevel -= 1;
 	} catch (MelderError) {
 		theLevel -= 1;
@@ -6903,8 +6923,13 @@ static void do_setWorkingDirectory () {
 	const Stackel f = pop;
 	if (f->which == Stackel_STRING) {
 		structMelderFolder folder { };
-		Melder_pathToFolder (f->getString(), & folder);
+		Melder_relativePathToFolder (f->getString(), & folder);
 		Melder_setCurrentFolder (& folder);
+		MelderFolder_copy (& folder, & theInterpreter -> workingDirectory);
+		Melder_assert (MelderFolder_equal (Melder_peekWorkingDirectory(), & theInterpreter -> workingDirectory));
+		//TRACE
+		trace (U"Set the working directory to ", Melder_peekWorkingDirectory());
+		trace (U"Set the working directory of interpreter ", Melder_pointer (theInterpreter), U" to ", & theInterpreter -> workingDirectory);
 		pushNumber (1);
 	} else {
 		Melder_throw (U"The function “setWorkingDirectory” requires a string, not ", f->whichText(), U".");
@@ -7791,8 +7816,13 @@ static void do_realvector () {
 		U"The function “realvector” requires 3 or 4 arguments (an optional number of lines, a label text, a format, and a default value), not ", n->number, U".");
 	integer numberOfLines = 7;   // the default
 	const Stackel defaultValue = pop;
-	Melder_require (defaultValue->which == Stackel_STRING,
-		U"The last argument of “realvector” (the default value) should be a string, not ", defaultValue->whichText(), U".");
+	conststring32 defaultString;
+	if (defaultValue->which == Stackel_STRING)
+		defaultString = defaultValue->getString();
+	else if (defaultValue->which == Stackel_NUMERIC_VECTOR)
+		defaultString = Melder_VEC (defaultValue->numericVector, true);
+	else
+		Melder_throw (U"The last argument of “realvector” (the default value) should be a string or a numeric vector, not ", defaultValue->whichText(), U".");
 	const Stackel _format = pop;
 	Melder_require (_format->which == Stackel_STRING,
 		U"The penultimate argument of “realvector” (the format) should be a string, not ", _format->whichText(), U".");
@@ -7808,7 +7838,7 @@ static void do_realvector () {
 			U"The first argument of “realvector” (the number of lines) should be a number, not ", _numberOfLines->whichText(), U".");
 		numberOfLines = Melder_iround (_numberOfLines->number);
 	}
-	UiPause_realvector (label->getString(), format, defaultValue->getString(), numberOfLines);
+	UiPause_realvector (label->getString(), format, defaultString, numberOfLines);
 	pushNumber (1);
 }
 static void do_positivevector () {
@@ -7819,8 +7849,13 @@ static void do_positivevector () {
 		U"The function “positivevector” requires 3 or 4 arguments (an optional number of lines, a label text, a format, and a default value), not ", n->number, U".");
 	integer numberOfLines = 7;   // the default
 	const Stackel defaultValue = pop;
-	Melder_require (defaultValue->which == Stackel_STRING,
-		U"The last argument of “positivevector” (the default value) should be a string, not ", defaultValue->whichText(), U".");
+	conststring32 defaultString;
+	if (defaultValue->which == Stackel_STRING)
+		defaultString = defaultValue->getString();
+	else if (defaultValue->which == Stackel_NUMERIC_VECTOR)
+		defaultString = Melder_VEC (defaultValue->numericVector, true);
+	else
+		Melder_throw (U"The last argument of “positivevector” (the default value) should be a string or a numeric vector, not ", defaultValue->whichText(), U".");
 	const Stackel _format = pop;
 	Melder_require (_format->which == Stackel_STRING,
 		U"The penultimate argument of “positivevector” (the format) should be a string, not ", _format->whichText(), U".");
@@ -7836,7 +7871,7 @@ static void do_positivevector () {
 			U"The first argument of “positivevector” (the number of lines) should be a number, not ", _numberOfLines->whichText(), U".");
 		numberOfLines = Melder_iround (_numberOfLines->number);
 	}
-	UiPause_positivevector (label->getString(), format, defaultValue->getString(), numberOfLines);
+	UiPause_positivevector (label->getString(), format, defaultString, numberOfLines);
 	pushNumber (1);
 }
 static void do_integervector () {
@@ -7847,8 +7882,13 @@ static void do_integervector () {
 		U"The function “integervector” requires 3 or 4 arguments (an optional number of lines, a label text, a format, and a default value), not ", n->number, U".");
 	integer numberOfLines = 7;   // the default
 	const Stackel defaultValue = pop;
-	Melder_require (defaultValue->which == Stackel_STRING,
-		U"The last argument of “integervector” (the default value) should be a string, not ", defaultValue->whichText(), U".");
+	conststring32 defaultString;
+	if (defaultValue->which == Stackel_STRING)
+		defaultString = defaultValue->getString();
+	else if (defaultValue->which == Stackel_NUMERIC_VECTOR)
+		defaultString = Melder_VEC (defaultValue->numericVector, true);
+	else
+		Melder_throw (U"The last argument of “integervector” (the default value) should be a string or a numeric vector, not ", defaultValue->whichText(), U".");
 	const Stackel _format = pop;
 	Melder_require (_format->which == Stackel_STRING,
 		U"The penultimate argument of “integervector” (the format) should be a string, not ", _format->whichText(), U".");
@@ -7864,7 +7904,7 @@ static void do_integervector () {
 			U"The first argument of “integervector” (the number of lines) should be a number, not ", _numberOfLines->whichText(), U".");
 		numberOfLines = Melder_iround (_numberOfLines->number);
 	}
-	UiPause_integervector (label->getString(), format, defaultValue->getString(), numberOfLines);
+	UiPause_integervector (label->getString(), format, defaultString, numberOfLines);
 	pushNumber (1);
 }
 static void do_naturalvector () {
@@ -7875,8 +7915,13 @@ static void do_naturalvector () {
 		U"The function “naturalvector” requires 3 or 4 arguments (an optional number of lines, a label text, a format, and a default value), not ", n->number, U".");
 	integer numberOfLines = 7;   // the default
 	const Stackel defaultValue = pop;
-	Melder_require (defaultValue->which == Stackel_STRING,
-		U"The last argument of “naturalvector” (the default value) should be a string, not ", defaultValue->whichText(), U".");
+	conststring32 defaultString;
+	if (defaultValue->which == Stackel_STRING)
+		defaultString = defaultValue->getString();
+	else if (defaultValue->which == Stackel_NUMERIC_VECTOR)
+		defaultString = Melder_VEC (defaultValue->numericVector, true);
+	else
+		Melder_throw (U"The last argument of “naturalector” (the default value) should be a string or a numeric vector, not ", defaultValue->whichText(), U".");
 	const Stackel _format = pop;
 	Melder_require (_format->which == Stackel_STRING,
 		U"The penultimate argument of “naturalvector” (the format) should be a string, not ", _format->whichText(), U".");
@@ -7892,7 +7937,7 @@ static void do_naturalvector () {
 			U"The first argument of “naturalvector” (the number of lines) should be a number, not ", _numberOfLines->whichText(), U".");
 		numberOfLines = Melder_iround (_numberOfLines->number);
 	}
-	UiPause_naturalvector (label->getString(), format, defaultValue->getString(), numberOfLines);
+	UiPause_naturalvector (label->getString(), format, defaultString, numberOfLines);
 	pushNumber (1);
 }
 static void do_boolean () {
@@ -8928,6 +8973,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case MEAN_: { do_mean ();
 } break; case STDEV_: { do_stdev ();
 } break; case CENTER_: { do_center ();
+} break; case RANDOM_IMAX_: { do_randomImax ();
 } break; case EVALUATE_: { do_evaluate ();
 } break; case EVALUATE_NOCHECK_: { do_evaluate_nocheck ();
 } break; case EVALUATE_STR_: { do_evaluate_STR ();

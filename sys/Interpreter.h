@@ -2,11 +2,11 @@
 #define _Interpreter_h_
 /* Interpreter.h
  *
- * Copyright (C) 1993-2018,2020-2024 Paul Boersma
+ * Copyright (C) 1993-2018,2020-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -34,7 +34,6 @@ Thing_define (InterpreterVariable, SimpleString) {
 };
 
 #define Interpreter_MAXNUM_PARAMETERS  400
-#define Interpreter_MAXNUM_LABELS  1000
 #define Interpreter_MAX_CALL_DEPTH  50
 
 #define Interpreter_MAX_LABEL_LENGTH  99
@@ -46,6 +45,7 @@ Thing_declare (UiField);
 Thing_declare (Editor);
 Thing_declare (Script);
 Thing_declare (Notebook);
+Thing_declare (InterpreterStack);
 
 enum class kInterpreter_ReturnType {
 	VOID_ = 0,   // don't change; this is how it is automatically zero-initialized in structInterpreter
@@ -77,6 +77,8 @@ conststring32 kInterpreter_ReturnType_errorMessage (kInterpreter_ReturnType retu
 Thing_define (Interpreter, Thing) {
 	Script scriptReference;
 	Notebook notebookReference;
+	InterpreterStack owningInterpreterStack;
+	bool isHalted, isInSecondPass;
 
 	struct EditorEnvironment {
 		ClassInfo _optionalClass;
@@ -154,21 +156,31 @@ Thing_define (Interpreter, Thing) {
 		our _dynamicEditorEnvironment. _optionalInstance = nullptr;
 	}
 
-	int numberOfParameters, numberOfLabels, callDepth;
+	autostring32 text;
+	structMelderFile file;
+	structMelderFolder workingDirectory;
+
+	int numberOfParameters, callDepth;
 	int types [1+Interpreter_MAXNUM_PARAMETERS], numbersOfLines [1+Interpreter_MAXNUM_PARAMETERS];
 	char32 parameters [1+Interpreter_MAXNUM_PARAMETERS] [1+Interpreter_MAX_PARAMETER_LENGTH];
 	char32 formats [1+Interpreter_MAXNUM_PARAMETERS] [1+Interpreter_MAX_FORMAT_LENGTH];
 	autostring32 arguments [1+Interpreter_MAXNUM_PARAMETERS];
 	char32 choiceArguments [1+Interpreter_MAXNUM_PARAMETERS] [100];
-	char32 labelNames [1+Interpreter_MAXNUM_LABELS] [1+Interpreter_MAX_LABEL_LENGTH];
-	integer labelLines [1+Interpreter_MAXNUM_LABELS];
+	autoSTRVEC labelNames;
+	autoINTVEC labelLines;
+	autoSTRVEC procedureNames;
+	autoINTVEC procedureStartLines;
 	autostring32 dialogTitle;
-	char32 procedureNames [1+Interpreter_MAX_CALL_DEPTH] [100];
+	char32 procedureStackNames [1+Interpreter_MAX_CALL_DEPTH] [100];
 	std::unordered_map <std::u32string, autoInterpreterVariable> variablesMap;
 	bool running, stopped;
+	integer callStack [1 + Interpreter_MAX_CALL_DEPTH];
+	bool fromif, fromendfor;
 
 	autovector <mutablestring32> lines;   // not autostringvector, because the elements are reference copies
 	integer lineNumber = 0;
+	integer assertErrorLineNumber = 0;
+	autoMelderString assertErrorString;
 
 	kInterpreter_ReturnType returnType;   // automatically initialized as kInterpreter_ReturnType::VOID_
 	bool returnedBoolean;
@@ -182,8 +194,11 @@ Thing_define (Interpreter, Thing) {
 		override;
 };
 
-autoInterpreter Interpreter_create ();
-autoInterpreter Interpreter_createFromEnvironment (Editor optionalInterpreterOwningEditor);
+autoInterpreter Interpreter_createFromEnvironment (
+	InterpreterStack owner,
+	Editor optionalEditor,
+	MelderFile optionalFile
+);
 
 void Interpreters_undangleEnvironment (Editor environment) noexcept;
 
@@ -199,8 +214,9 @@ void Interpreter_getArgumentsFromDialog (Interpreter me, UiForm dialog);
 void Interpreter_getArgumentsFromString (Interpreter me, conststring32 arguments);
 void Interpreter_getArgumentsFromArgs (Interpreter me, integer nargs, Stackel args);
 void Interpreter_getArgumentsFromCommandLine (Interpreter me, integer argc, char **argv);
-void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables);   // destroys 'text'
+void Interpreter_run (Interpreter me, autostring32 text, const bool reuseVariables);   // messes up 'text'
 void Interpreter_stop (Interpreter me);   // can be called from any procedure called deep-down by the interpreter; will stop before next line
+void Interpreter_resume (Interpreter me);
 
 void Interpreter_voidExpression (Interpreter me, conststring32 expression);
 void Interpreter_numericExpression (Interpreter me, conststring32 expression, double *p_value);
@@ -212,6 +228,38 @@ void Interpreter_anyExpression (Interpreter me, conststring32 expression, Formul
 
 InterpreterVariable Interpreter_hasVariable (Interpreter me, conststring32 key);
 InterpreterVariable Interpreter_lookUpVariable (Interpreter me, conststring32 key);
+
+constexpr integer InterpreterStack_MAXIMUM_NUMBER_OF_LEVELS = 20;
+
+Thing_define (InterpreterStack, Thing) {
+	Editor optionalInterpreterStackOwningEditor;   // TODO: remove
+	autoInterpreter interpreters [1 + InterpreterStack_MAXIMUM_NUMBER_OF_LEVELS] { };
+	integer currentLevel = 0;
+
+	Interpreter current_0 () {
+		return our interpreters [our currentLevel].get();
+	}
+	Interpreter current_e () {
+		Interpreter interpreterReference = our interpreters [our currentLevel].get();
+		Melder_require (interpreterReference,
+			U"Interpreter at level ", our currentLevel, U" does not exist.");
+		return interpreterReference;
+	}
+	Interpreter current_a () {
+		Interpreter interpreterReference = our interpreters [our currentLevel].get();
+		Melder_assert (interpreterReference);
+		return interpreterReference;
+	}
+	void emptyAll ();
+	void runDown (autoInterpreter interpreter, autostring32 text, const bool reuseVariables);
+	void haltAll ();
+	void resumeFromTop ();
+	void resumeNextLevelInSecondPass ();
+};
+
+autoInterpreterStack InterpreterStack_create (Editor optionalInterpreterStackOwningEditor);
+
+extern structInterpreterStack theInterpreterStack;   // TODO: remove
 
 /* End of file Interpreter.h */
 #endif

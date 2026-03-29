@@ -1,5 +1,5 @@
 # editorScripts.praat
-# Paul Boersma, 5 March 2023
+# Paul Boersma, 5 February 2026
 
 exitScript: "Use only “Run selection”."
 
@@ -69,6 +69,7 @@ editor: textGrid
 #
 # This tests whether a script without “Close” returns to the Objects window correctly.
 
+Erase all
 sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
 textGrid = To TextGrid: "Mary John Bell", "bell"
 selectObject: sound, textGrid
@@ -85,6 +86,7 @@ Draw: 0.0, 0.0, "yes", "yes", "yes"
 #
 # This tests whether a script without “endeditor” returns to the Objects window correctly.
 
+Erase all
 sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
 textGrid = To TextGrid: "Mary John Bell", "bell"
 selectObject: sound, textGrid
@@ -98,8 +100,6 @@ Draw: 0.0, 0.0, "yes", "yes", "yes"
 # From Objects to editor: with “pauseScript”.
 #
 # Try to run the following twice.
-#
-# During the pause, try to close the window (or remove the Sound).
 
 sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
 textGrid = To TextGrid: "Mary John Bell", "bell"
@@ -107,9 +107,36 @@ selectObject: sound, textGrid
 View & Edit
 editor: textGrid
 	Select: 0.3, 0.7
-	asserterror Cannot continue after pause, because the TextGridEditor has been closed.
+	pauseScript: "Just continue."
+	Zoom: 0.3, 0.7
+endeditor
+removeObject: sound, textGrid
+
+sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
+textGrid = To TextGrid: "Mary John Bell", "bell"
+selectObject: sound, textGrid
+View & Edit
+editor: textGrid
+	Select: 0.3, 0.7
+	beginPause: "Just continue."
+	clicked = endPause: "Next", 1
+	Zoom: 0.3, 0.7
+endeditor
+removeObject: sound, textGrid
+
+# The same, but during the pause, try to close the window (or remove the Sound).
+
+sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
+textGrid = To TextGrid: "Mary John Bell", "bell"
+selectObject: sound, textGrid
+View & Edit
+editor: textGrid
+	Select: 0.3, 0.7
 	pauseScript: "Close the editor window, then continue."
+	asserterror Command “Zoom:” not available for current selection.
 	Zoom: 0.3, 0.7
+
+# or this one:
 
 sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
 textGrid = To TextGrid: "Mary John Bell", "bell"
@@ -117,8 +144,8 @@ selectObject: sound, textGrid
 View & Edit
 editor: textGrid
 	Select: 0.3, 0.7
-	asserterror Cannot continue after pause, because the TextGridEditor has been closed.
 	pause Close the editor window, then continue.
+	asserterror Command “Zoom:” not available for current selection.
 	Zoom: 0.3, 0.7
 
 # Entirely by hand:
@@ -127,7 +154,7 @@ editor: textGrid
 # 2. Choose View & Edit
 # 3. Choose New editor script: check title
 # 4. Type something: check change in title
-# 5. Remove the Sound: editor closes, title changes, and Run menu becomes insensitive
+# 5. Remove the Sound: sound editor closes, script editor closes
 
 # Entirely by hand:
 
@@ -135,7 +162,7 @@ editor: textGrid
 # 2. Choose View & Edit
 # 3. Choose New editor script: check title
 # 4. Type something: check change in title
-# 5. Close the editor: title changes, and Run menu becomes insensitive
+# 5. Close the sound editor: script editor closes
 
 # Entirely by hand:
 
@@ -208,11 +235,12 @@ Select: 0.5, 0.6
 # During the pause, try to close the window (or remove the Sound).
 
 Select: 0.3, 0.7
-asserterror Cannot continue after pause, because the SoundEditor has been closed.
+;asserterror Cannot continue after pause, because the SoundEditor has been closed.
 pauseScript: "Close the editor window, then continue."
 Zoom: 0.5, 0.6
+# TODO: this crashes
 
 Select: 0.3, 0.7
-asserterror Cannot continue after pause, because the SoundEditor has been closed.
+;asserterror Cannot continue after pause, because the SoundEditor has been closed.
 pause Close the editor window, then continue.
 Zoom: 0.5, 0.6

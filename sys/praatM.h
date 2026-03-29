@@ -325,6 +325,9 @@
 			enumeratedVariable = enumeratedValue; /* just for typechecking */ \
 			UiForm_setOption (_dia_.get(), (int *) & enumeratedVariable, (int) enumeratedValue - (int) EnumeratedType::MIN + 1);
 
+#define SET_LIST(integerVariable, stringVariable, strings, defaultValue)  \
+			UiForm_setList (_dia_.get(), & integerVariable, & stringVariable, strings, defaultValue);
+
 #define DO  \
 			UiForm_do (_dia_.get(), _isModified_); \
 		} else if (! _sendingForm_) { \
@@ -947,6 +950,12 @@
 	} else \
 		Melder_information (constSTRVEC (result.get())); \
 	QUERY_END__
+
+#define QUERY_ONE_AND_ONE_FOR_STRING(klas1,klas2)  \
+	FIND_ONE_AND_ONE (klas1, klas2)
+#define QUERY_ONE_AND_ONE_FOR_STRING_END \
+	QUERY_FOR_STRING_END__
+
 
 /*
 	MODIFY

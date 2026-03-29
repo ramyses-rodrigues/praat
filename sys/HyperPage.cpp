@@ -1,6 +1,6 @@
 /* HyperPage.cpp
  *
- * Copyright (C) 1996-2025 Paul Boersma
+ * Copyright (C) 1996-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -587,7 +587,7 @@ void HyperPage_script (HyperPage me, double width_inches, double height_inches, 
 				if (! MelderFolder_isNull (& my rootDirectory))
 					Melder_setCurrentFolder (& my rootDirectory);
 				try {
-					//Interpreter_run (interpreter, text.get(), false);   // BUG: implement
+					//Interpreter_run (interpreter, text.move(), false);   // BUG: implement
 				} catch (MelderError) {
 					Melder_clearError ();
 				}
@@ -877,6 +877,26 @@ static void gui_button_cb_forth (HyperPage me, GuiButtonEvent /* event */) {
 	do_forth (me);
 }
 
+static void menu_cb_previousPage (HyperPage me, EDITOR_ARGS) {
+	HyperPage_goToPage_number (me, my v_getCurrentPageNumber () > 1 ?
+			my v_getCurrentPageNumber () - 1 : my v_getNumberOfPages ());
+}
+
+static void gui_button_cb_previousPage (HyperPage me, GuiButtonEvent /* event */) {
+	HyperPage_goToPage_number (me, my v_getCurrentPageNumber () > 1 ?
+			my v_getCurrentPageNumber () - 1 : my v_getNumberOfPages ());
+}
+
+static void menu_cb_nextPage (HyperPage me, EDITOR_ARGS) {
+	const integer currentPageNumber = my v_getCurrentPageNumber ();
+	HyperPage_goToPage_number (me, currentPageNumber < my v_getNumberOfPages () ? currentPageNumber + 1 : 1);
+}
+
+static void gui_button_cb_nextPage (HyperPage me, GuiButtonEvent /* event */) {
+	const integer currentPageNumber = my v_getCurrentPageNumber ();
+	HyperPage_goToPage_number (me, currentPageNumber < my v_getNumberOfPages () ? currentPageNumber + 1 : 1);
+}
+
 void structHyperPage :: v_createMenus () {
 	HyperPage_Parent :: v_createMenus ();
 
@@ -889,8 +909,21 @@ void structHyperPage :: v_createMenus () {
 
 	if (our v_hasHistory ()) {
 		Editor_addMenu (this, U"Go to", 0);
-		Editor_addCommand (this, U"Go to", U"Back", GuiMenu_OPTION | GuiMenu_LEFT_ARROW, menu_cb_back);
-		Editor_addCommand (this, U"Go to", U"Forward", GuiMenu_OPTION | GuiMenu_RIGHT_ARROW, menu_cb_forth);
+		#ifdef _WIN32
+			Editor_addCommand (this, U"Go to", U"Back", GuiMenu_COMMAND | GuiMenu_LEFT_ARROW, menu_cb_back);   // TODO: this actually captures the Alt key; why?
+			Editor_addCommand (this, U"Go to", U"Forward", GuiMenu_COMMAND | GuiMenu_RIGHT_ARROW, menu_cb_forth);
+		#else
+			Editor_addCommand (this, U"Go to", U"Back", GuiMenu_OPTION | GuiMenu_LEFT_ARROW, menu_cb_back);
+			Editor_addCommand (this, U"Go to", U"Forward", GuiMenu_OPTION | GuiMenu_RIGHT_ARROW, menu_cb_forth);
+		#endif
+		Editor_addCommand (this, U"Go to", U"-- browse --", 0, nullptr);
+		#ifdef _WIN32
+			Editor_addCommand (this, U"Go to", U"Previous page", GuiMenu_COMMAND | GuiMenu_SHIFT | GuiMenu_LEFT_ARROW, menu_cb_previousPage);
+			Editor_addCommand (this, U"Go to", U"Next page", GuiMenu_COMMAND | GuiMenu_SHIFT | GuiMenu_RIGHT_ARROW, menu_cb_nextPage);
+		#else
+			Editor_addCommand (this, U"Go to", U"Previous page", GuiMenu_COMMAND | GuiMenu_LEFT_ARROW, menu_cb_previousPage);
+			Editor_addCommand (this, U"Go to", U"Next page", GuiMenu_COMMAND | GuiMenu_RIGHT_ARROW, menu_cb_nextPage);
+		#endif
 		Editor_addCommand (this, U"Go to", U"-- page --", 0, nullptr);
 		Editor_addCommand (this, U"Go to", U"Page up", GuiMenu_PAGE_UP, menu_cb_pageUp);
 		Editor_addCommand (this, U"Go to", U"Page down", GuiMenu_PAGE_DOWN, menu_cb_pageDown);
@@ -920,16 +953,6 @@ static void gui_drawingarea_cb_resize (HyperPage me, GuiDrawingArea_ResizeEvent 
 			PAGE_HEIGHT - event -> height / resolution, PAGE_HEIGHT);
 	//updateVerticalScrollBar (me);
 	//Graphics_updateWs (my graphics.get());
-}
-
-static void gui_button_cb_previousPage (HyperPage me, GuiButtonEvent /* event */) {
-	HyperPage_goToPage_number (me, my v_getCurrentPageNumber () > 1 ?
-			my v_getCurrentPageNumber () - 1 : my v_getNumberOfPages ());
-}
-
-static void gui_button_cb_nextPage (HyperPage me, GuiButtonEvent /* event */) {
-	const integer currentPageNumber = my v_getCurrentPageNumber ();
-	HyperPage_goToPage_number (me, currentPageNumber < my v_getNumberOfPages () ? currentPageNumber + 1 : 1);
 }
 
 void structHyperPage :: v_createChildren () {

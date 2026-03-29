@@ -1,6 +1,6 @@
 /* manual_functions.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ void manual_functions_init (ManPages me) {
 MAN_PAGES_BEGIN R"~~~(
 ################################################################################
 "Functions"
-© Paul Boersma 2022-2024
+© Paul Boersma 2022-2026
 
 A growing list of functions that you can use in @formulas and @scripting...
 
@@ -67,7 +67,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`arctanh##` (%`matrix##`) – inverse hyperbolic tangent of each cell of %`matrix##`
 , @`assert` %`condition` – condition checking
 , @`asserterror` %`message$` – testing that a certain error occurs
-, @`asynchronous` – let the script continue while the sound is playing
+, @`asynchronous` – let the script continue while the sound is playing or a subprocess is running
 , @`backslashTrigraphsToUnicode$` (%`string$`) – convert e.g. \bsct to \ct
 , @`barkToHertz` (%`x`) – from Bark-rate to acoustic frequency
 , @`besselI` (%`n`, %`x`) – modified Bessel function of the first kind, %I__%n_
@@ -248,6 +248,7 @@ A growing list of functions that you can use in @formulas and @scripting...
 , @`randomGauss##` (%`nrow`, %`ncol`, %`mu`, %`sigma`) – %`nrow` \xx %`ncol` independent normally distributed random numbers
 , @`randomGauss##` (%`matrix##`, %`mu`, %`sigma`) – duplicate %`matrix##`,
 	and replace all cells with independent normally distributed random numbers
+, @`randomImax` (%`vector#`) – sample from an array of relative probabilities
 , @`randomInteger` (%`min`, %`max`) – uniformly distributed integer random deviate
 , @`randomInteger#` (%`n`, %`min`, %`max`) – %`n` independent uniformly distributed random integers
 , @`randomInteger#` (%`vector#`, %`min`, %`max`) – duplicate %`vector#`,
@@ -943,9 +944,9 @@ as well as the text of the assertion (i.e. “`a < 10`”).
 
 ################################################################################
 "`asserterror`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2026
 
-A keyword that can be used in @Scripting, to test whether an expected erroe message is indeed generated.
+A keyword that can be used in @Scripting, to test whether an expected error message is indeed generated.
 
 Examples
 ========
@@ -998,11 +999,19 @@ In this case a different error message than the expected error message occurs, a
 
 ################################################################################
 "`asynchronous`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2026
 
 A keyword that can be used in @Scripting, to let a script continue while a sound is playing:
 {;
 	\#{asynchronous} \@{Sound: ||Play}
+}
+or to let a script continue while a subprocess is running:
+{;
+	\#{asynchronous} \`{runSubprocess}: “C://apps/videoViewer.exe”, “hello.wav”
+}
+or
+{;
+	\#{asynchronous} \`{runSystem}: “C://apps/videoViewer.exe hello.wav”
 }
 
 ################################################################################
@@ -3839,6 +3848,44 @@ This is shorthand for doing
 	\#{randomGauss##} (\`{numberOfRows} (\%{model##}), \`{numberOfColumns} (\%{model##}), \%{mu}, \%{sigma})
 }
 ################################################################################
+"`randomImax`"
+© Paul Boersma 2026
+
+A function that can be used in @@Formulas@.
+
+Syntax and semantics
+====================
+#`randomImax` (%`distribution#`)
+: sample from an array of relative probabilities.
+
+Example
+=======
+The following draws the outcome 1 one half of the time, the outcome 2 one sixth of the time, and the outcome 3 one third of the time:
+{
+	for i to 20
+		outcome = \#{randomImax} ({ 3.0, 1.0, 2.0 })
+		\`{appendInfoLine}: outcome
+	endfor
+}
+All elements of the vector have to be non-negative:
+{
+	\`{asserterror} Element 2 is less than zero; cannot interpret as a probability.
+	a = \#{randomImax} ({ 3.0, -1.0, 2.0 })
+}
+Some elements of the vector may be zero. The following draws the outcome 1 60 percent of the time, and the outcome 3 40 percent of the time:
+{
+	for i to 20
+		outcome = \#{randomImax} ({ 3.0, 0.0, 2.0 })
+		\`{appendInfoLine}: outcome
+	endfor
+}
+Not all elements of the vector can be zero:
+{
+	\`{asserterror} Cannot interpret a zero vector as probabilities.
+	a = \#{randomImax} ({ 0.0, 0.0, 0.0 })
+}
+
+################################################################################
 "`randomInteger`"
 © Paul Boersma 2023
 
@@ -4344,7 +4391,7 @@ For details and examples, see @@Scripting 6.1. Arguments to the script@.
 
 ################################################################################
 "`runSubprocess`"
-© Paul Boersma 2023
+© Paul Boersma 2023,2026
 
 A function that can be used in @Scripting.
 
@@ -4354,7 +4401,32 @@ Syntax and semantics
 : run the program given by the (relative or absolute) %`executableFilePath$`,
 with optional arguments given in “`...`”.
 
-For details and examples, see @@Scripting 6.5. Calling system commands@.
+If the subprocess fails in its execution, #`runSubprocess` will report
+the subprocess’ error message and stop the script.
+
+Examples
+========
+{;
+	\`{writeInfoLine}: “start”
+	\#{runSubprocess}: “C:\\Windows\Notepad.exe”
+	\`{appendInfoLine}: “end”
+}
+This script will write “start” into the Info window, then start up `Notepad.exe`,
+wait until you close `Notepad`, and only then write “end” into the Info window.
+That is, the subprocess is run %synchronously.
+
+You can use @`asynchronous` in combination with #`runSubprocess`:
+{;
+	\`{writeInfoLine}: “start”
+	\#`{asynchronous} \#{runSubprocess}: “C:\\Windows\Notepad.exe”
+	\`{appendInfoLine}: “end”
+}
+This script will write “start” into the Info window, then start up `Notepad.exe`,
+and then immediately write “end” into the Info window.
+Whatever you subsequently do in `Notepad` (including closing that app) will have no influence on your script
+or on Praat in general.
+
+For some more details and examples, see @@Scripting 6.5. Calling system commands@.
 
 ################################################################################
 "`runSubprocess$`"

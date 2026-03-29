@@ -146,9 +146,9 @@ void structPowerCepstrumWorkspace :: getPeakAndPosition () {
 	Matrix thee = asdBs.get();
 	double peakdBR, peakQuefrencyR;
 	Vector_getMaximumAndX_twoSideApproach ((Vector) thee, qminPeakSearch, qmaxPeakSearch,
-		1, peakInterpolationType, false, & peakdB, & peakQuefrency);
+			1, peakInterpolationType, false, & peakdB, & peakQuefrency);
 	Vector_getMaximumAndX_twoSideApproach ((Vector) thee, qminPeakSearch, qmaxPeakSearch,
-		1, peakInterpolationType, true, & peakdBR, & peakQuefrencyR);
+			1, peakInterpolationType, true, & peakdBR, & peakQuefrencyR);
 	const integer index = Sampled_xToIndex (thee, peakQuefrency), indexR = Sampled_xToIndex(thee, peakQuefrencyR);
 	if (index != indexR && (indexR - index) <= 5) {
 		double indexm = 0.5 * (index + indexR);
@@ -273,7 +273,7 @@ void structPowerCepstrumWorkspace :: initWorkspace (constPowerCepstrum me, doubl
 	x = raw_VEC (numberOfPoints);
 	y = raw_VEC (numberOfPoints);
 	asdBs = Matrix_create (powerCepstrum -> xmin, powerCepstrum -> xmax, powerCepstrum -> nx, powerCepstrum -> dx, powerCepstrum -> x1,
-		powerCepstrum -> ymin, powerCepstrum -> ymax, powerCepstrum -> ny, powerCepstrum -> dy, powerCepstrum ->y1);
+			powerCepstrum -> ymin, powerCepstrum -> ymax, powerCepstrum -> ny, powerCepstrum -> dy, powerCepstrum ->y1);
 	maximumNumberOfRhamonics = 15;
 	rhamonics = raw_MAT (maximumNumberOfRhamonics, 5_integer);
 	slopeSelector = SlopeSelector_create (x.get(), y.get()); // only reference to the x and y vectors
@@ -296,7 +296,7 @@ autoPowerCepstrumWorkspace PowerCepstrumWorkspace_create (constPowerCepstrum pow
 		my initWorkspace (powerCepstrum, qminFit, qmaxFit,	trendLineType, fitMethod);
 		return me;
 	} catch (MelderError) {
-		Melder_throw (U"Cannot create PowerCepstrumWorkspace");
+		Melder_throw (U"Cannot create PowerCepstrumWorkspace.");
 	}
 	
 }
@@ -317,10 +317,13 @@ void PowerCepstrum_draw (constPowerCepstrum me, Graphics g, double qmin, double 
 	Cepstrum_draw (me, g, qmin, qmax, dBminimum, dBmaximum, true, garnish);
 }
 
-void PowerCepstrum_fitTrendLine (PowerCepstrum me, double qstartFit, double qendFit, double *out_slope, double *out_intercept, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod) {
+void PowerCepstrum_fitTrendLine (PowerCepstrum me, double qstartFit, double qendFit, double *out_slope, double *out_intercept,
+	kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
+{
+	Function_intersectRangeWithDomain (me, & qstartFit, & qendFit);
 	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qstartFit, qendFit, lineType, fitMethod);
 	workspace -> getSlopeAndIntercept ();
-	if (out_slope) 
+	if (out_slope)
 		*out_slope = workspace -> slope;
 	if (out_intercept)
 		*out_intercept = workspace -> intercept;
@@ -330,6 +333,7 @@ void PowerCepstrum_drawTrendLine (PowerCepstrum me, Graphics g, double qmin, dou
 	double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
 {
 	Function_unidirectionalAutowindow (me, & qmin, & qmax);
+	Function_intersectRangeWithDomain (me, & qstartFit, & qendFit);
 	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qstartFit, qendFit, lineType, fitMethod);
 	workspace -> getSlopeAndIntercept ();
 
@@ -383,7 +387,9 @@ void PowerCepstrum_drawTrendLine (PowerCepstrum me, Graphics g, double qmin, dou
 	Graphics_unsetInner (g);
 }
 
-double PowerCepstrum_getTrendLineValue (PowerCepstrum me, double quefrency, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod) {
+double PowerCepstrum_getTrendLineValue (PowerCepstrum me, double quefrency, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
+{
+	Function_intersectRangeWithDomain (me, & qstartFit, & qendFit);
 	double trenddb = undefined;
 	if (quefrency >= my xmin && quefrency <= my xmax) {
 		autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qstartFit, qendFit, lineType, fitMethod);
@@ -392,7 +398,9 @@ double PowerCepstrum_getTrendLineValue (PowerCepstrum me, double quefrency, doub
 	return trenddb;
 }
 
-void PowerCepstrum_subtractTrend_inplace (mutablePowerCepstrum me, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod) {
+void PowerCepstrum_subtractTrend_inplace (mutablePowerCepstrum me, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
+{
+	Function_intersectRangeWithDomain (me, & qstartFit, & qendFit);
 	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qstartFit, qendFit, lineType, fitMethod);
 	workspace -> subtractTrend ();
 }
@@ -490,6 +498,7 @@ void PowerCepstrum_getMaximumAndQuefrency_q (PowerCepstrum me, double qminPeakSe
 		kVector_peakInterpolation :: PARABOLIC : (peakInterpolationType == kCepstrum_peakInterpolation :: CUBIC ?
 		kVector_peakInterpolation :: CUBIC : kVector_peakInterpolation :: NONE)
 	);
+	Function_intersectRangeWithDomain (me, & qminPeakSearch,  & qmaxPeakSearch);
 	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
 	workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, interpolation);
 	workspace -> getPeakAndPosition ();
@@ -502,7 +511,7 @@ void PowerCepstrum_getMaximumAndQuefrency_pitch (PowerCepstrum me, double pitchF
 	kVector_peakInterpolation peakInterpolationType, double& peakdB, double& quefrency)
 {
 	const double qminPeakSearch = 1.0 / pitchCeiling;
-	const double qmaxPeakSearch = 1.0 / pitchFloor;
+	const double qmaxPeakSearch = std::min (my xmax, 1.0 / pitchFloor);
 	
 	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qminPeakSearch, qmaxPeakSearch, kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
 	workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
@@ -514,9 +523,9 @@ void PowerCepstrum_getMaximumAndQuefrency_pitch (PowerCepstrum me, double pitchF
 autoTable PowerCepstrum_tabulateRhamonics (PowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType) {
 	try {
 		const double qminPeakSearch = 1.0 / pitchCeiling;
-		const double qmaxPeakSearch = 1.0 / pitchFloor;
+		const double qmaxPeakSearch = std::min (my xmax, 1.0 / pitchFloor);
 		autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qminPeakSearch, qmaxPeakSearch,
-			kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+				kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
 
 		workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, peakInterpolationType);
 		workspace -> getRhamonicPeaks (qminPeakSearch, qmaxPeakSearch);
@@ -536,10 +545,10 @@ autoTable PowerCepstrum_tabulateRhamonics (PowerCepstrum me, double pitchFloor, 
 
 static autoMAT PowerCepstrum_getRhamonicsPower (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth) {
 	try {
-		const double qminPeakSearch = 1.0 / pitchCeiling;
-		const double qmaxPeakSearch = 1.0 / pitchFloor;
+		const double qminPeakSearch = 1.0 /pitchCeiling;
+		const double qmaxPeakSearch = std::min (my xmax, 1.0 / pitchFloor);
 		autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qminPeakSearch, qmaxPeakSearch,
-			kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+				kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
 		workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, kVector_peakInterpolation :: CUBIC);
 		workspace -> getRhamonicsPower (qminPeakSearch, qmaxPeakSearch, f0fractionalWidth);
 		autoMAT result = copy_MAT (workspace -> rhamonics.get());
@@ -550,10 +559,10 @@ static autoMAT PowerCepstrum_getRhamonicsPower (PowerCepstrum me, double pitchFl
 }
 
 double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth) {
-	const double qminPeakSearch = 1.0 / pitchCeiling;
-	const double qmaxPeakSearch = 1.0 / pitchFloor;
-	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me,qminPeakSearch, qmaxPeakSearch, 
-		kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
+	const double qminPeakSearch = 1.0 /pitchCeiling;
+	const double qmaxPeakSearch = std::min (my xmax, 1.0 / pitchFloor);
+	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me,qminPeakSearch, qmaxPeakSearch,
+			kCepstrum_trendType::LINEAR, kCepstrum_trendFit::ROBUST_FAST);
 	workspace -> initPeakSearchPart (qminPeakSearch, qmaxPeakSearch, kVector_peakInterpolation :: CUBIC);
 	const double rnr = workspace -> getRNR (qminPeakSearch, qmaxPeakSearch, f0fractionalWidth);
 	return rnr;
@@ -561,20 +570,23 @@ double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCe
 
 double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pitchFloor, double pitchCeiling, double& qpeak) {
 	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, 0.001, my xmax, kCepstrum_trendType::LINEAR,
-		kCepstrum_trendFit::LEAST_SQUARES);
-	const double qmaxPeakSearch = 1.0 / pitchFloor, qminPeakSearch = 1.0 /pitchCeiling;
+			kCepstrum_trendFit::LEAST_SQUARES);
+	const double qminPeakSearch = 1.0 /pitchCeiling;
+	const double qmaxPeakSearch = std::min (my xmax, 1.0 / pitchFloor);
 	workspace -> initPeakSearchPart (qminPeakSearch,qmaxPeakSearch, kVector_peakInterpolation :: NONE);
 	workspace -> getCPP ();
 	qpeak = workspace -> peakQuefrency;
 	return workspace -> cpp;
 }
 
-double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling, 
+double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling,
 	kVector_peakInterpolation peakInterpolationType, double qstartFit, double qendFit, 
 	kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod, double& qpeak)
 {
-	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me,qstartFit, qendFit, trendLineType, fitMethod);
-	const double qmaxPeakSearch = 1.0 / pitchFloor, qminPeakSearch = 1.0 /pitchCeiling;
+	Function_intersectRangeWithDomain (me, & qstartFit, & qendFit);
+	autoPowerCepstrumWorkspace workspace = PowerCepstrumWorkspace_create (me, qstartFit, qendFit, trendLineType, fitMethod);
+	const double qminPeakSearch = 1.0 /pitchCeiling;
+	const double qmaxPeakSearch = std::min (my xmax, 1.0 / pitchFloor);
 	workspace -> initPeakSearchPart (qminPeakSearch,qmaxPeakSearch, peakInterpolationType);
 	workspace -> getCPP ();
 	qpeak = workspace -> peakQuefrency;

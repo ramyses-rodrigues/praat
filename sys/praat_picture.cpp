@@ -27,6 +27,8 @@
 #include "GuiP.h"
 #include "DemoEditor.h"
 
+#pragma mark - Saved settings
+
 static bool praat_mouseSelectsInnerViewport;
 
 void praat_picture_prefs () {
@@ -35,13 +37,13 @@ void praat_picture_prefs () {
 	Preferences_addBool (U"Picture.mouseSelectsInnerViewport", & praat_mouseSelectsInnerViewport, false);
 }
 
-/***** static variable *****/
+#pragma mark - Singletons
 
 static autoPicture praat_picture;
 
 /********** CALLBACKS OF THE PICTURE MENUS **********/
 
-/***** "Font" MENU: font part *****/
+#pragma mark - Font menu: font part
 
 static GuiMenuItem praatButton_fonts [1 + (int) kGraphics_font::MAX];
 
@@ -52,6 +54,7 @@ static void updateFontMenu () {
 			GuiMenuItem_check (praatButton_fonts [i], (int) theCurrentPraatPicture -> font == i);
 	}
 }
+static void GRAPHICS_NONE__Times ();
 DIRECT (GRAPHICS_NONE__Times) {
 	GRAPHICS_NONE
 		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font = kGraphics_font::TIMES);
@@ -81,7 +84,7 @@ DIRECT (GRAPHICS_NONE__Courier) {
 		updateFontMenu ();
 }
 
-/***** "Font" MENU: size part *****/
+#pragma mark - Font menu: size part
 
 static GuiMenuItem praatButton_10, praatButton_12, praatButton_14, praatButton_18, praatButton_24;
 
@@ -160,11 +163,11 @@ DO
 		autoPraatPictureOpen picture;
 		Graphics_setFontSize (GRAPHICS, praat_size = fontSize);
 	}
-	Picture_setSelection (praat_picture, x1NDC, x2NDC, y1NDC, y2NDC);
+	Picture_setSelection (praat_picture.get(), x1NDC, x2NDC, y1NDC, y2NDC);
 	updateSizeMenu ();
 }*/
 
-/***** "Select" MENU *****/
+#pragma mark - Select menu
 
 static GuiMenuItem praatButton_innerViewport, praatButton_outerViewport;
 
@@ -345,7 +348,7 @@ DO
 	END_NO_NEW_DATA
 }
 
-/***** "Pen" MENU *****/
+#pragma mark - Pen menu
 
 static GuiMenuItem praatButton_lines [4];
 static GuiMenuItem praatButton_black, praatButton_white, praatButton_red, praatButton_green, praatButton_blue,
@@ -475,7 +478,7 @@ DO
 		updatePenMenu ();
 }
 
-/***** "File" MENU *****/
+#pragma mark - File menu
 
 FORM_READ (GRAPHICS_Picture_readFromPraatPictureFile, U"Read picture from praat picture file", nullptr, false) {
 	Picture_readFromPraatPictureFile (praat_picture.get(), file);
@@ -631,7 +634,7 @@ FORM_SAVE (GRAPHICS_Picture_writeToWindowsMetafile, U"Save as Windows metafile",
 }
 #endif
 
-/***** "Edit" MENU *****/
+#pragma mark - Edit menu
 
 DIRECT (GRAPHICS_Undo) {
 	Graphics_undoGroup (GRAPHICS);
@@ -655,7 +658,7 @@ DIRECT (GRAPHICS_Erase_all) {
 	END_NO_NEW_DATA
 }
 
-/***** "World" MENU *****/
+#pragma mark - World menu
 
 FORM (GRAPHICS_Text, U"Praat picture: Text", U"Text...") {
 	REAL (horizontalPosition, U"Horizontal position", U"0.0")
@@ -1029,6 +1032,21 @@ FORM (GRAPHICS_InsertPictureFromFile, U"Praat picture: Insert picture from file"
 DO
 	GRAPHICS_NONE
 		Graphics_setInner (GRAPHICS);
+		Graphics_imageFromFile (GRAPHICS, fileName, fromX, toX, fromY, toY);
+		Graphics_unsetInner (GRAPHICS);
+	GRAPHICS_NONE_END
+}
+
+FORM (GRAPHICS_InsertPictureFromFile_embedded, U"Praat picture: Insert picture from file (embedded)", U"Insert picture from file (embedded)...") {
+	INFILE (fileName, U"File name", U"~/Desktop/paul.jpg")
+	REAL (fromX, U"From x", U"0.0")
+	REAL (toX, U"To x", U"1.0")
+	REAL (fromY, U"From y", U"0.0")
+	REAL (toY, U"To y", U"1.0")
+	OK
+DO
+	GRAPHICS_NONE
+		Graphics_setInner (GRAPHICS);
 		Graphics_imageFromFile_embedded (GRAPHICS, fileName, fromX, toX, fromY, toY);
 		Graphics_unsetInner (GRAPHICS);
 	GRAPHICS_NONE_END
@@ -1056,7 +1074,7 @@ DO
 	GRAPHICS_NONE_END
 }
 
-// MARK: Margins
+#pragma mark - Margins menu
 
 DIRECT (GRAPHICS_DrawInnerBox) {
 	GRAPHICS_NONE
@@ -1534,6 +1552,8 @@ DO
 	QUERY_GRAPHICS_FOR_REAL_END (U" mm")
 }
 
+#pragma mark - Help menu
+
 DIRECT (HELP_PraatIntro_picture) { HELP (U"Intro") }
 DIRECT (HELP_SearchManual_Picture) { Melder_search (); END_WITH_NEW_DATA }
 DIRECT (HELP_PictureWindowHelp) { HELP (U"Picture window") }
@@ -1612,7 +1632,7 @@ DIRECT (GRAPHICS_Picture_settings_report) {
 	INFO_NONE_END
 }
 
-/**********   **********/
+#pragma mark - Event callbacks
 
 static void cb_selectionChanged (Picture p, void * /* closure */,
 	double selx1, double selx2, double sely1, double sely2)
@@ -1647,7 +1667,7 @@ static void cb_selectionChanged (Picture p, void * /* closure */,
 	}
 }
 
-/***** Public functions. *****/
+#pragma mark - Public functions
 
 static GuiWindow thePictureWindow;
 
@@ -1900,6 +1920,7 @@ void praat_picture_init (bool showPictureWindowAtStartUp) {
 	praat_addMenuCommand (U"Picture", U"World", U"Paint circle (mm)...", nullptr, 0, GRAPHICS_PaintCircle_mm);
 	praat_addMenuCommand (U"Picture", U"World", U"-- picture --", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Picture", U"World", U"Insert picture from file...", nullptr, 0, GRAPHICS_InsertPictureFromFile);
+	praat_addMenuCommand (U"Picture", U"World", U"Insert picture from file (embedded)...", nullptr, 0, GRAPHICS_InsertPictureFromFile_embedded);
 	praat_addMenuCommand (U"Picture", U"World", U"-- axes --", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Picture", U"World", U"Axes...", nullptr, 0, GRAPHICS_Axes);
 	praat_addMenuCommand (U"Picture", U"World", U"Measure", nullptr, 0, nullptr);

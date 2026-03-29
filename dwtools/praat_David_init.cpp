@@ -1,6 +1,6 @@
 /* praat_David_init.cpp
  *
- * Copyright (C) 1993-2025 David Weenink, 2015,2023-2025 Paul Boersma
+ * Copyright (C) 1993-2025 David Weenink, 2015,2023-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,7 +108,6 @@
 #include "Polygon_extensions.h"
 #include "Polynomial_to_Spectrum.h"
 #include "Roots_to_Spectrum.h"
-#include "SampledIntoSampled.h"
 #include "Sound_and_Spectrum_dft.h"
 #include "Sound_extensions.h"
 #include "Sound_and_TextGrid_extensions.h"
@@ -1245,7 +1244,7 @@ DO
 		Melder_require (eigenvalueNumber <= my eigen -> numberOfEigenvalues, 
 			U"Eigenvalue number should be smaller than ", my eigen -> numberOfEigenvalues + 1);
 		const double result = my eigen -> eigenvalues [eigenvalueNumber];
-	QUERY_ONE_FOR_REAL_END (U" (eigenvalue [)", eigenvalueNumber, U"])")
+	QUERY_ONE_FOR_REAL_END (U" (eigenvalue [", eigenvalueNumber, U"])")
 }
 
 FORM (QUERY_ONE_FOR_REAL__Discriminant_getSumOfEigenvalues, U"Discriminant:Get sum of eigenvalues", U"Eigen: Get sum of eigenvalues...") {
@@ -2288,12 +2287,26 @@ DO
 	QUERY_ONE_FOR_REAL_END (U" (eigenvalue [", eigenvalueNumber, U"])")
 }
 
-FORM (QUERY_ONE_FOR_REAL__Eigen_getSumOfEigenvalues, U"Eigen:Get sum of eigenvalues", U"Eigen: Get sum of eigenvalues...") {
-	INTEGER (fromEigenvalue, U"left Eigenvalue range",  U"0")
-	INTEGER (toEigenvalue, U"right Eigenvalue range", U"0")
+DIRECT (QUERY_ONE_FOR_REAL_VECTOR__Eigen_listEigenvalues) {
+	QUERY_ONE_FOR_REAL_VECTOR (Eigen)
+		autoVEC result = Eigen_listEigenvalues (me);
+	QUERY_ONE_FOR_REAL_VECTOR_END
+}
+
+DIRECT (QUERY_ONE_FOR_REAL_VECTOR__Eigen_listEigenvalues_imag) {
+	QUERY_ONE_FOR_REAL_VECTOR (Eigen)
+		autoVEC result = Eigen_listEigenvalues_imag (me);
+	QUERY_ONE_FOR_REAL_VECTOR_END
+}
+
+FORM (QUERY_ONE_FOR_REAL__Eigen_getSumOfEigenvalues, U"Eigen: Get sum of eigenvalues", U"Eigen: Get sum of eigenvalues...") {
+	INTEGER (fromEigenvalue, U"left Eigenvalue range",  U"1")
+	INTEGER (toEigenvalue, U"right Eigenvalue range", U"0 (=all)")
 	OK
 DO
 	QUERY_ONE_FOR_REAL (Eigen)
+		if (toEigenvalue == 0)
+			toEigenvalue = my numberOfEigenvalues;
 		const double result = Eigen_getSumOfEigenvalues (me, fromEigenvalue, toEigenvalue);
 	QUERY_ONE_FOR_REAL_END (U" (sum of eigenvalues [", fromEigenvalue, U"..", toEigenvalue, U"])")
 }
@@ -2308,7 +2321,41 @@ DO
 	QUERY_ONE_FOR_REAL_END (U" (eigenvector [", eigenvectorNumber, U"] element [", elementNumber, U"])")
 }
 
-FORM (MODIFY_Eigen_invertEigenvector, U"Eigen: Invert eigenvector", nullptr) {
+FORM (QUERY_ONE_FOR_REAL_VECTOR__Eigen_getEigenvector, U"Eigen: Get eigenvector", U"Eigen: Get eigenvector...") {
+	NATURAL (eigenvectorNumber, U"Eigenvector number", U"1")
+	OK
+DO
+	QUERY_ONE_FOR_REAL_VECTOR (Eigen)
+		autoVEC result = Eigen_getEigenvector (me, eigenvectorNumber);
+	QUERY_ONE_FOR_REAL_VECTOR_END
+}
+
+FORM (QUERY_ONE_FOR_REAL_VECTOR__Eigen_getEigenvector_imag, U"Eigen: Get eigenvector (imag)", U"Eigen: Get eigenvector...") {
+	NATURAL (eigenvectorNumber, U"Eigenvector number", U"1")
+	OK
+DO
+	QUERY_ONE_FOR_REAL_VECTOR (Eigen)
+		autoVEC result = Eigen_getEigenvector_imag (me, eigenvectorNumber);
+	QUERY_ONE_FOR_REAL_VECTOR_END
+}
+
+DIRECT (QUERY_ONE_FOR_BOOLEAN__Eigen_areAllEigenvaluesReal) {
+	QUERY_ONE_FOR_BOOLEAN (Eigen)
+		const integer result = Eigen_areAllEigenvaluesReal (me);
+	QUERY_ONE_FOR_BOOLEAN_END (result ? U" (all eigenvalues are real)" : U" (not all eigenvalues are real)")
+}
+
+FORM (MODIFY__Eigen_sort, U"Eigen: Sort...", U"Eigen: Sort...") {
+	COMMENT (U"Sort eigenvalues and corresponding eigenvectors")
+	BOOLEAN (sortAscending, U"Sort ascending", true)
+	OK
+DO
+	MODIFY_EACH (Eigen)
+		Eigen_sort_special (me, sortAscending);
+	MODIFY_EACH_END
+}
+
+FORM (MODIFY__Eigen_invertEigenvector, U"Eigen: Invert eigenvector", nullptr) {
 	NATURAL (eigenvectorNumber, U"Eigenvector number", U"1")
 	OK
 DO
@@ -2317,7 +2364,7 @@ DO
 	MODIFY_EACH_END
 }
 
-DIRECT (MODIFY_ALL_Eigens_alignEigenvectors) {
+DIRECT (MODIFY_ALL__Eigens_alignEigenvectors) {
 	MODIFY_ALL (Eigen)
 		Eigens_alignEigenvectors (& list);
 	MODIFY_ALL_END
@@ -3585,13 +3632,6 @@ DO
 	QUERY_ONE_FOR_REAL_END (U" (norm with power = ", power, U")")
 }
 
-/*
-DIRECT (COMPVEC_Matrix_listEigenvalues) {
-	NUMCOMPVEC_ONE (Matrix)
-		autoCOMPVEC result = Matrix_listEigenvalues (me);
-	NUMCOMPVEC_ONE_END (U"")
-}*/
-
 FORM (MODIFY_Matrix_scale, U"Matrix: Scale", nullptr) {
 	COMMENT (U"self[row, col] := self[row, col] / `Scale factor'")
 	CHOICE (scaleMethod, U"Scale factor", 1)
@@ -3680,6 +3720,17 @@ DIRECT (CONVERT_EACH_TO_ONE__Matrix_to_ActivationList) {
 DIRECT (CONVERT_EACH_TO_ONE__Matrix_to_Eigen) {
 	CONVERT_EACH_TO_ONE (Matrix)
 		autoEigen result = Matrix_to_Eigen (me);
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
+
+FORM (CONVERT_EACH_TO_ONE__Matrix_to_Eigen_special, U"Matrix: To Eigen", U"Matrix: To Eigen") {
+	OPTIONMENU_ENUM (kMAT_TYPE, matType, U"Matrix type", kMAT_TYPE::SYMMETRIC)
+	INTEGER (numberOfEigenvalues, U"Number of eigenvalues", U"0 (=all)")
+	BOOLEAN (sortAscending, U"Sort ascending", 0)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Matrix)
+		autoEigen result = Matrix_to_Eigen_special (me, matType, numberOfEigenvalues, sortAscending);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -5678,7 +5729,7 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
-FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity, U"Sound: To TextGrid (speech activity)", U"Sound: To TextGrid (speech activity)...") {
+FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity, U"Sound: To TextGrid (speech activity, LTSF)", U"Sound: To TextGrid (speech activity, LTSF)...") {
 	REAL (timeStep, U"Time step (s)", U"0.0 (= auto)")
 	POSITIVE (longtermWindow, U"Long term window (s)", U"0.3")
 	POSITIVE (shorttermWindow, U"Short term window (s)", U"0.1")
@@ -5693,8 +5744,8 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity, U"Sound: To TextGri
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Sound)
-		autoTextGrid result = Sound_to_TextGrid_speechActivity_lsfm (me, timeStep, longtermWindow, shorttermWindow,
-			fmin, fmax, flatnessThreshold, nonspeechThreshold_dB, minimumNonspeechDuration, minimumSpeechDuration, 
+		autoTextGrid result = Sound_to_TextGrid_speechActivity_ltsf (me, timeStep, longtermWindow, shorttermWindow,
+			fmin, fmax, flatnessThreshold, nonspeechThreshold_dB, minimumNonspeechDuration, minimumSpeechDuration,
 			nonspeechLabel, speechLabel
 		);
 	CONVERT_EACH_TO_ONE_END (my name.get())
@@ -8936,8 +8987,7 @@ void praat_David_generics_new_init () {
 
 	Thing_recognizeClassesByName (
 		classPermutation,
-		classPolynomial, classLegendreSeries, classChebyshevSeries, classMSpline, classISpline,
-		nullptr
+		classPolynomial, classLegendreSeries, classChebyshevSeries, classMSpline, classISpline
 	);
 
 	praat_addMenuCommand (U"Objects", U"New", U"Create Permutation...", nullptr, 1,
@@ -8979,7 +9029,8 @@ void praat_David_init () {
 		classMelFilter, classMelSpectrogram, classNavigationContext,
 		classPatternList, classPCA, classRoots,
 		classSimpleString, classStringsIndex, classSpeechSynthesizer, classSPINET, classSSCP,
-		classSVD, classTextGridNavigator, classTextGridTierNavigator, nullptr);
+		classSVD, classTextGridNavigator, classTextGridTierNavigator
+	);
 
 	Thing_recognizeClassByOtherName (classExcitationList, U"Excitations");
 	Thing_recognizeClassByOtherName (classActivationList, U"Activation");
@@ -9397,7 +9448,7 @@ void praat_David_init () {
 	praat_addAction1 (classDiscriminant, 1, U"Invert eigenvector...", nullptr, 1,
 			MODIFY_Discriminant_invertEigenvector);
 	praat_addAction1 (classDiscriminant, 0, U"Align eigenvectors", nullptr, 1,
-			MODIFY_ALL_Eigens_alignEigenvectors);
+			MODIFY_ALL__Eigens_alignEigenvectors);
 
 	praat_addAction1 (classDiscriminant, 0, U"Extract -", nullptr, 0, 0);
 		praat_addAction1 (classDiscriminant, 0, U"Extract pooled within-groups SSCP", nullptr, 1,
@@ -9559,9 +9610,9 @@ void praat_David_init () {
 			HELP__EditCostsTable_help);
 	praat_addAction1 (classEditCostsTable, 0, U"Query -", nullptr, 0, nullptr);
 	praat_addAction1 (classEditCostsTable, 1, U"Get target index...", nullptr, 1, 
-		QUERY_ONE_FOR_INTEGER__EditCostsTable_getTargetIndex);
+			QUERY_ONE_FOR_INTEGER__EditCostsTable_getTargetIndex);
 	praat_addAction1 (classEditCostsTable, 1, U"Get source index...", nullptr, 1,
-		QUERY_ONE_FOR_INTEGER__EditCostsTable_getSourceIndex);
+			QUERY_ONE_FOR_INTEGER__EditCostsTable_getSourceIndex);
 	praat_addAction1 (classEditCostsTable, 1, U"Get insertion costs...", nullptr, 1,
 			QUERY_ONE_FOR_REAL__EditCostsTable_getInsertionCosts);
 	praat_addAction1 (classEditCostsTable, 1, U"Get insertion cost...", nullptr, GuiMenu_DEPRECATED_2017,
@@ -9628,6 +9679,8 @@ void praat_David_init () {
 			QUERY_ONE_FOR_INTEGER__Eigen_getNumberOfEigenvalues);
 		praat_addAction1 (classEigen, 1, U"Get eigenvalue...", nullptr, 1, 
 				QUERY_ONE_FOR_REAL__Eigen_getEigenvalue);
+		praat_addAction1 (classEigen, 1, U"List eigenvalues", nullptr, 1, 
+				QUERY_ONE_FOR_REAL_VECTOR__Eigen_listEigenvalues);
 		praat_addAction1 (classEigen, 1, U"Get sum of eigenvalues...", nullptr, 1,
 				QUERY_ONE_FOR_REAL__Eigen_getSumOfEigenvalues);
 	praat_addAction1 (classEigen, 1, U"-- eigenvectors --", nullptr, 1, 0);
@@ -9637,9 +9690,20 @@ void praat_David_init () {
 			QUERY_ONE_FOR_INTEGER__Eigen_getEigenvectorDimension);
 		praat_addAction1 (classEigen, 1, U"Get eigenvector element...", nullptr, 1,
 				QUERY_ONE_FOR_REAL__Eigen_getEigenvectorElement);
+		praat_addAction1 (classEigen, 1, U"Get eigenvector...", nullptr, 1,
+				QUERY_ONE_FOR_REAL_VECTOR__Eigen_getEigenvector);
+		praat_addAction1 (classEigen, 1, U"-- imaginary part --", nullptr, 1, nullptr);
+		praat_addAction1 (classEigen, 1, U"Are all eigenvalues real?", nullptr, 1,
+				QUERY_ONE_FOR_BOOLEAN__Eigen_areAllEigenvaluesReal);
+		praat_addAction1 (classEigen, 1, U"Get eigenvector (imag)...", nullptr, 1,
+				QUERY_ONE_FOR_REAL_VECTOR__Eigen_getEigenvector_imag);
+		praat_addAction1 (classEigen, 1, U"List eigenvalues (imag)", nullptr, 1,
+				QUERY_ONE_FOR_REAL_VECTOR__Eigen_listEigenvalues_imag);
 	praat_addAction1 (classEigen, 0, U"Modify -", nullptr, 0, nullptr);
+		praat_addAction1 (classEigen, 1, U"Sort...", nullptr, 1,
+				MODIFY__Eigen_sort);
 		praat_addAction1 (classEigen, 1, U"Invert eigenvector...", nullptr, 1,
-				MODIFY_Eigen_invertEigenvector);
+				MODIFY__Eigen_invertEigenvector);
 	praat_addAction1 (classExcitation, 0, U"Synthesize", U"To Formant...", 0, 0);
 	praat_addAction1 (classExcitation, 0, U"To ExcitationList", U"Synthesize", 0,
 			COMBINE_ALL_TO_ONE__Excitations_to_ExcitationList);
@@ -9802,8 +9866,10 @@ void praat_David_init () {
 			U"To VocalTract", 1, CONVERT_EACH_TO_ONE__Matrix_to_PatternList);
 	praat_addAction1 (classMatrix, 0, U"To ActivationList || To Activation",
 			U"To PatternList...", 1, CONVERT_EACH_TO_ONE__Matrix_to_ActivationList);
-	praat_addAction1 (classMatrix, 0, U"To Eigen", U"Eigen", GuiMenu_HIDDEN,
+	praat_addAction1 (classMatrix, 0, U"To Eigen", U"Eigen", GuiMenu_DEPRECATED_2026,
 			CONVERT_EACH_TO_ONE__Matrix_to_Eigen);
+	praat_addAction1 (classMatrix, 0, U"To Eigen (special)...", U"Eigen", GuiMenu_HIDDEN,
+			CONVERT_EACH_TO_ONE__Matrix_to_Eigen_special);
 	praat_addAction1 (classMatrix, 0, U"To SVD", U"To Eigen", GuiMenu_HIDDEN,
 			CONVERT_EACH_TO_ONE__Matrix_to_SVD);
 	praat_addAction1 (classMatrix, 0, U"To NMF (m.u.)...", U"To SVD", GuiMenu_HIDDEN,
@@ -9957,7 +10023,7 @@ void praat_David_init () {
 	praat_addAction1 (classPCA, 1, U"Invert eigenvector...", nullptr, 1,
 			MODIFY_PCA_invertEigenvector);
 	praat_addAction1 (classPCA, 0, U"Align eigenvectors", nullptr, 1,
-			MODIFY_ALL_Eigens_alignEigenvectors);
+			MODIFY_ALL__Eigens_alignEigenvectors);
 	praat_addAction1 (classPCA, 0, U"Extract -", nullptr, 0, 0);
 		praat_addAction1 (classPCA, 0, U"Extract eigenvector...", nullptr, 1,
 				CONVERT_EACH_TO_ONE__PCA_extractEigenvector);
@@ -10144,7 +10210,7 @@ void praat_David_init () {
 			GRAPHICS_EACH__Roots_draw);
 	praat_addAction1 (classRoots, 1, U"Query -", nullptr, 0, nullptr);
 	praat_addAction1 (classRoots, 1, U"Get number of roots", nullptr, 1,
-		QUERY_ONE_FOR_INTEGER__Roots_getNumberOfRoots);
+			QUERY_ONE_FOR_INTEGER__Roots_getNumberOfRoots);
 	praat_addAction1 (classRoots, 1, U"-- roots --", nullptr, 1, 0);
 	praat_addAction1 (classRoots, 1, U"Get root...", nullptr, 1,
 			COMPLEX_Roots_getRoot);
@@ -10164,7 +10230,7 @@ void praat_David_init () {
 
 	praat_addAction1 (classSound, 0, U"To TextGrid (silences)...", U"To IntervalTier", 1,
 			CONVERT_EACH_TO_ONE__Sound_to_TextGrid_detectSilences);
-	praat_addAction1 (classSound, 0, U"To TextGrid (speech activity)... || To TextGrid (voice activity)...", U"To IntervalTier", 1,
+	praat_addAction1 (classSound, 0, U"To TextGrid (speech activity, LTSF)... || To TextGrid (speech activity)... || To TextGrid (voice activity)...", U"To IntervalTier", 1,
 			CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity);
 	praat_addAction1 (classSound, 0, U"To TextGrid (high, mid, low)...", U"To IntervalTier", GuiMenu_HIDDEN | GuiMenu_DEPTH_1,
 			CONVERT_EACH_TO_ONE__Sound_to_TextGrid_highMidLowIntervals);
@@ -10367,9 +10433,9 @@ void praat_David_init () {
 			HELP__SVD_help);
 	praat_addAction1 (classSVD, 0, U"Query -", nullptr, 0, nullptr);
 	praat_addAction1 (classSVD, 1, U"Get number of rows", nullptr, 1, 
-		QUERY_ONE_FOR_INTEGER__SVD_getNumberOfRows);
+			QUERY_ONE_FOR_INTEGER__SVD_getNumberOfRows);
 	praat_addAction1 (classSVD, 1, U"Get number of columns", nullptr, 1,
-		QUERY_ONE_FOR_INTEGER__SVD_getNumberOfColumns);
+			QUERY_ONE_FOR_INTEGER__SVD_getNumberOfColumns);
 	praat_addAction1 (classSVD, 1, U"Get rank", nullptr, 1,
 			QUERY_ONE_FOR_REAL__SVD_getRank);
 	praat_addAction1 (classSVD, 1, U"Get condition number", nullptr, 1,
@@ -10382,7 +10448,7 @@ void praat_David_init () {
 	praat_addAction1 (classSVD, 1, U"Get sum of singular values (fraction)...", nullptr, 1,
 			QUERY_ONE_FOR_REAL__SVD_getSumOfSingularValuesAsFractionOfTotal);
 	praat_addAction1 (classSVD, 1, U"Get minimum number of singular values...", nullptr, 1,
-		QUERY_ONE_FOR_INTEGER__SVD_getMinimumNumberOfSingularValues);
+			QUERY_ONE_FOR_INTEGER__SVD_getMinimumNumberOfSingularValues);
 	praat_addAction1 (classSVD, 1, U"Get shrinkage parameter...", nullptr, 1,
 			QUERY_ONE_FOR_REAL__SVD_getShrinkageParameter);	
 	praat_addAction1 (classSVD, 1, U"Get effective degrees of freedom...", nullptr, 1,
@@ -10477,15 +10543,15 @@ void praat_David_init () {
 			CONVERT_EACH_TO_ONE__Table_to_StringsIndex_column);
 	praat_addAction1 (classTableOfReal, 0, U"Multivariate tests -", U"Get column stdev (label)...", 1, nullptr);
 		praat_addAction1 (classTableOfReal, 1, U"Report multivariate normality...", U"Multivariate tests -",
-			GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportMultivariateNormality);
+				GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportMultivariateNormality);
 		praat_addAction1 (classTableOfReal, 1, U"Report covariance sphericity...", U"Report multivariate normality...",
-			GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportSphericityOfCovariance);
+				GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportSphericityOfCovariance);
 		praat_addAction1 (classTableOfReal, 1, U"Report covariance compound symmetry...",  U"Report covariance sphericity...",
-			GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportCompoundSymmetryOfCovariance);
+				GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportCompoundSymmetryOfCovariance);
 		praat_addAction1 (classTableOfReal, 1, U"Report covariance identity...",  U"Report covariance compound symmetry...",
-			GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportCovarianceIdentity);
+				GuiMenu_DEPTH_2, INFO_ONE__TableOfReal_reportCovarianceIdentity);
 		praat_addAction1 (classTableOfReal, 2, U"Report equality of covariances...",  U"Report covariance identity...",
-			GuiMenu_DEPTH_2, INFO_TWO__TableOfReal_reportEqualityOfCovariances);
+				GuiMenu_DEPTH_2, INFO_TWO__TableOfReal_reportEqualityOfCovariances);
 	praat_addAction1 (classTableOfReal, 0, U"Append columns", U"Append", 1, 
 			COMBINE_ALL_LISTED_TO_ONE__TableOfReal_appendColumns);
 	praat_addAction1 (classTableOfReal, 0, U"Multivariate statistics -", nullptr, 0, nullptr);
@@ -10609,50 +10675,50 @@ void praat_David_init () {
 	praat_addAction1 (classTextGridNavigator, 0, U"Query -", nullptr, 0, nullptr);
 		praat_TimeFunction_query_init (classTextGridNavigator); 
 		praat_addAction1 (classTextGridNavigator, 1, U"Get start time...", nullptr, 1,
-			QUERY_ONE_FOR_REAL__TextGridNavigator_getStartTime);
+				QUERY_ONE_FOR_REAL__TextGridNavigator_getStartTime);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get label...", nullptr, 1,
-			QUERY_ONE_FOR_STRING__TextGridNavigator_getLabel);
+				QUERY_ONE_FOR_STRING__TextGridNavigator_getLabel);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get end time...", nullptr, 1,
-			QUERY_ONE_FOR_REAL__TextGridNavigator_getEndTime);
+				QUERY_ONE_FOR_REAL__TextGridNavigator_getEndTime);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get index...", nullptr, 1,
-			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getIndex);
+				QUERY_ONE_FOR_INTEGER__TextGridNavigator_getIndex);
 		praat_addAction1 (classTextGridNavigator, 1, U"-- number of matches --", nullptr, 1, nullptr);
 		praat_addAction1 (classTextGridNavigator, 1, U"List indices...", nullptr, 1,
-			QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listIndices);
+				QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listIndices);
 		praat_addAction1 (classTextGridNavigator, 1, U"List start times...", nullptr, 1,
-			QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listStartTimes);
+				QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listStartTimes);
 		praat_addAction1 (classTextGridNavigator, 1, U"List labels...", nullptr, 1,
-			QUERY_ONE_FOR_STRING_ARRAY__TextGridNavigator_listLabels);
+				QUERY_ONE_FOR_STRING_ARRAY__TextGridNavigator_listLabels);
 		praat_addAction1 (classTextGridNavigator, 1, U"List end times...", nullptr, 1,
-			QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listEndTimes);
+				QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listEndTimes);
 		praat_addAction1 (classTextGridNavigator, 1, U"List domains...", nullptr, 1,
-			QUERY_ONE_FOR_MATRIX__TextGridNavigator_listDomains);
+				QUERY_ONE_FOR_MATRIX__TextGridNavigator_listDomains);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get number of matches", nullptr, 1,
-			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfMatches);
+				QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfMatches);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get number of Topic matches...", nullptr, 1,
-			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfTopicMatches);
+				QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfTopicMatches);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get number of Before matches...", nullptr, 1,
-			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfBeforeMatches);
+				QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfBeforeMatches);
 		praat_addAction1 (classTextGridNavigator, 1, U"Get number of After matches...", nullptr, 1,
-			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfAfterMatches);
+				QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfAfterMatches);
 	praat_addAction1 (classTextGridNavigator, 0, U"Modify -", nullptr, 0, nullptr);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify Topic match criterion...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyTopicCriterion);
+				MODIFY_EACH__TextGridNavigator_modifyTopicCriterion);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify Before match criterion...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyBeforeCriterion);
+				MODIFY_EACH__TextGridNavigator_modifyBeforeCriterion);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify After match criterion...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyAfterCriterion);
+				MODIFY_EACH__TextGridNavigator_modifyAfterCriterion);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify combination criterion...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyCombinationCriterion);
+				MODIFY_EACH__TextGridNavigator_modifyCombinationCriterion);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify match domain...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyMatchDomain);
+				MODIFY_EACH__TextGridNavigator_modifyMatchDomain);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify match domain alignment...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyMatchDomainAlignment);
+				MODIFY_EACH__TextGridNavigator_modifyMatchDomainAlignment);
 		praat_addAction1 (classTextGridNavigator, 0, U"-- search range extensions --", nullptr, 1, nullptr);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify Before range...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyBeforeRange);
+				MODIFY_EACH__TextGridNavigator_modifyBeforeRange);
 		praat_addAction1 (classTextGridNavigator, 0, U"Modify After range...", nullptr, 1,
-			MODIFY_EACH__TextGridNavigator_modifyAfterRange);
+				MODIFY_EACH__TextGridNavigator_modifyAfterRange);
 
 	praat_addAction2 (classTextGridNavigator, 1, classNavigationContext, 1, U"Replace navigation context...", nullptr, 0,
 			MODIFY_FIRST_OF_ONE_AND_ONE__TextGridNavigator_replaceNavigationContext);

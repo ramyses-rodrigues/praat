@@ -1,6 +1,6 @@
 /* FileInMemory.cpp
  *
- * Copyright (C) 2012-2021 David Weenink, 2017,2024,2025 Paul Boersma
+ * Copyright (C) 2012-2021 David Weenink, 2017,2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,12 +97,39 @@ void FileInMemory_showAsCode (FileInMemory me, conststring32 name, integer numbe
 	if (numberOfBytesPerLine < 1)
 		numberOfBytesPerLine = 20;
 
-	MelderInfo_write (U"\t\tstatic uint8 ", name, U"_data[", my d_numberOfBytes+1, U"] = {");
+	MelderInfo_write (U"\t\tstatic unsigned char ", name, U"_data[", my d_numberOfBytes+1, U"] = \n\"");
 	for (integer i = 1; i <= my d_numberOfBytes; i ++) {
 		const unsigned char number = my d_data [i];
-		MelderInfo_write (( i % numberOfBytesPerLine == 1 ? U"\n\t\t\t" : U"" ), number, U",");
+		const unsigned char nextNumber = ( i < my d_numberOfBytes ? my d_data [i + 1] : '\0' );
+		if (i % numberOfBytesPerLine == 1 && i > 1)
+			MelderInfo_write (U"\"\n\"");
+		if (number >= 127)
+			MelderInfo_write (U"\\", number / 64, (number % 64) / 8, number % 8);
+		else if (number >= 32) {
+			if (number == '\"')
+				MelderInfo_write (U"\\\"");   // two characters: \" ...
+			else if (number == '\\')
+				MelderInfo_write (U"\\\\");   // two characters: \\ ...
+			else {
+				char32 buffer [2] = { number, U'\0' };
+				MelderInfo_write (buffer);
+			}
+		} else if (number >= 14) {
+			if (nextNumber >= '0' && nextNumber <= '7' && i % numberOfBytesPerLine != 0)
+				MelderInfo_write (U"\\0", number / 8, number % 8);
+			else
+				MelderInfo_write (U"\\", number / 8, number % 8);
+		} else if (number >= 7) {
+			static char32 escapes [7] [3] = { U"\\a", U"\\b", U"\\t", U"\\n", U"\\v", U"\\f", U"\\r" };
+			MelderInfo_write (escapes [number - 7]);
+		} else {
+			if (nextNumber >= '0' && nextNumber <= '7' && i % numberOfBytesPerLine != 0)
+				MelderInfo_write (U"\\00", number);
+			else
+				MelderInfo_write (U"\\", number);
+		}
 	}
-	MelderInfo_writeLine (U"0};");
+	MelderInfo_writeLine (U"\"\n\t\t;");
 	MelderInfo_write (U"\t\tautoFileInMemory ", name, U" = FileInMemory_createWithData (");
 	MelderInfo_writeLine (my d_numberOfBytes, U", ", name, U"_data, true, U\"", my string.get(), U"\");");
 }

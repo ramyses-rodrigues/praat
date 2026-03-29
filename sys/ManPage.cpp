@@ -1,6 +1,6 @@
 /* ManPage.cpp
  *
- * Copyright (C) 1996-2011,2016,2023-2025 Paul Boersma
+ * Copyright (C) 1996-2011,2016,2023-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,16 +32,6 @@ static void manualInfoProc (conststring32 infoText) {
 			// FIXME: this overrides a growing info buffer, which is an O(N^2) algorithm if in a loop
 }
 
-static void collectProcedures (ManPage me, MelderString *procedures) {
-	for (integer ipar = 1; ipar <= my paragraphs.size; ipar ++) {
-		ManPage_Paragraph paragraph = & my paragraphs [ipar];
-		if (paragraph -> type == kManPage_type::SCRIPT) {
-			if (Melder_startsWith (paragraph -> text, U"\tprocedure ") && Melder_endsWith (paragraph -> text, U"\tendproc\n"))
-				MelderString_append (procedures, paragraph -> text);
-		}
-	}
-}
-
 void ManPage_runAllChunksToCache (ManPage me, Interpreter optionalInterpreterReference,
 	const kGraphics_font font, const double fontSize,
 	PraatApplication praatApplication, PraatObjects praatObjects, PraatPicture praatPicture,
@@ -60,21 +50,26 @@ void ManPage_runAllChunksToCache (ManPage me, Interpreter optionalInterpreterRef
 	void praat_actions_show ();   // TODO: integrate this better
 	praat_actions_show ();   // we have to set the `executable` flags to false, in the global variable `theActions`
 
-	Interpreter interpreterReference;
-	autoInterpreter interpreter;
-	if (optionalInterpreterReference) {
-		interpreterReference = optionalInterpreterReference;
-	} else {
-		interpreter = Interpreter_create ();
-		interpreterReference = interpreter.get();
-	}
+	#if 1
+		autoInterpreterStack interpreterStack = InterpreterStack_create (Editor (nullptr));   // BUG: overwrites existing stack, which is optionalInterpreterReference's owner
+		interpreterStack -> interpreters [1] = Interpreter_createFromEnvironment (interpreterStack.get(), Editor (nullptr), MelderFile (nullptr));
+	#else
+		Interpreter interpreterReference;
+		autoInterpreterStack interpreterStack;
+		if (optionalInterpreterReference) {
+			interpreterReference = optionalInterpreterReference;
+		} else {
+			interpreterStack = InterpreterStack_create (Editor (nullptr));
+			interpreterStack -> interpreters [1] = Interpreter_createFromEnvironment (interpreterStack.get(), Editor (nullptr));
+			interpreterReference = interpreterStack -> interpreters [1].get();
+		}
+	#endif
+
 	/*
 		When this page is drawn for the first time,
 		all the script parts have to be run,
 		so that the outputs of drawing and info can be cached.
 	*/
-	autoMelderString procedures;
-	collectProcedures (me, & procedures);
 	integer chunkNumber = 0;
 	bool anErrorHasOccurred = false;
 	autostring32 theErrorThatOccurred;
@@ -152,8 +147,13 @@ void ManPage_runAllChunksToCache (ManPage me, Interpreter optionalInterpreterRef
 			try {
 				autoMelderString program;
 				MelderString_append (& program, paragraph -> text);
-				MelderString_append (& program, procedures.string);
-				Interpreter_run (interpreterReference, program.string, chunkNumber > 1);
+				for (integer jpar = 1; jpar <= my paragraphs.size; jpar ++) if (jpar != ipar) {
+					ManPage_Paragraph otherParagraph = & my paragraphs [jpar];
+					if (otherParagraph -> type == kManPage_type::SCRIPT)
+						if (Melder_startsWith (otherParagraph -> text, U"\tprocedure ") && Melder_endsWith (otherParagraph -> text, U"\tendproc\n"))
+							MelderString_append (& program, otherParagraph -> text);
+				}
+				interpreterStack -> runDown (autoInterpreter(), Melder_dup (program.string), chunkNumber > 1);
 			} catch (MelderError) {
 				anErrorHasOccurred = true;
 				errorChunk = chunkNumber;

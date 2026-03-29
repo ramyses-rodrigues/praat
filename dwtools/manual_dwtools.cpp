@@ -1,6 +1,6 @@
 /* manual_dwtools.cpp
  *
- * Copyright (C) 1993-2024 David Weenink, 2025 Paul Boersma
+ * Copyright (C) 1993-2026 David Weenink, 2025 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2181,10 +2181,16 @@ INTRO (U"A command available in the dynamic menu if an @@EditDistanceTable@ and 
 NORMAL (U"New accumulated cost values will be calculated and a new path based on these values will be calculated.")
 MAN_END
 
-MAN_BEGIN (U"Eigen", U"djmw", 19981102)
-INTRO (U"One of the @@types of objects@ in Praat.")
-NORMAL (U"An object of type Eigen represents the eigen structure of "
-	"a matrix whose eigenvalues and eigenvectors are real.")
+MAN_BEGIN (U"Eigen", U"djmw", 20260317)
+INTRO (U"One of the @@types of objects@ in Praat. "
+	"An object of type #Eigen represents the eigen structure of a square matrix, i.e. it contains "
+	"the eigenvalues and their corresponding eigenvectors.")
+NORMAL (U"If the eigenvalues are real, which is mostly the case, the eigenvalues and their corresponding eigenvectors "
+	"are always sorted. The default sorting order is descending, i.e. from large to small. The sorting order can be "
+	"changed to ascending order by using the @@Eigen: Sort...|Sort@ command. ")
+NORMAL (U"For complex eigenvalues there is no preferred sorting order. However, because "
+	"complex eigenvalues always occur in pairs with equal real and opposite imaginary parts, i.e. %a + %i %b and %a - %i %b, "
+	"the one with positive imaginary value always occurs first. ")
 ENTRY (U"Inside an Eigen")
 NORMAL (U"With @Inspect you will see the following attributes:")
 TERM (U"%numberOfEigenvalues")
@@ -2192,9 +2198,15 @@ DEFINITION (U"the number of eigenvalues and eigenvectors")
 TERM (U"%dimension")
 DEFINITION (U"the dimension of an eigenvector.")
 TERM (U"%eigenvalues[1..%numberOfEigenvalues]")
-DEFINITION (U"the real eigenvalues.")
+DEFINITION (U"the real part of the eigenvalues.")
 TERM (U"%eigenvectors[1..%numberOfEigenvalues] [1..%dimension]")
-DEFINITION (U"the real eigenvectors, stored by row.")
+DEFINITION (U"the real parts of the eigenvectors, stored by row.")
+TERM (U"%onlyReals")
+DEFINITION (U"is %true if all eigenvalues are real and %false if not.")
+TERM (U"%eigenvalues\\_ im[1..%numberOfEigenvalues]")
+DEFINITION (U"the imaginary part of the eigenvalues.")
+TERM (U"%eigenvectors\\_ im[1..%numberOfEigenvalues] [1..%dimension]")
+DEFINITION (U"the imaginary parts of the eigenvectors, stored by row.")
 MAN_END
 
 MAN_BEGIN (U"Eigen: Draw eigenvalues...", U"djmw", 20040407)
@@ -2251,14 +2263,26 @@ NORMAL (U"The contribution is defined as:")
 EQUATION (U"\\Si__%i=%from..%to_ %%eigenvalue[i]% / \\Si__%i=1..%numberOfEigenvalues_ %%eigenvalue[i]%")
 MAN_END
 
-MAN_BEGIN (U"Eigen: Get eigenvalue...", U"djmw", 20040225)
-INTRO (U"A command to query the selected @Eigen for the %i^^th^ "
-	"eigenvalue.")
+MAN_BEGIN (U"Eigen: Get eigenvalue...", U"djmw", 20260228)
+INTRO (U"A command to query the selected @Eigen for one of its eigenvalues.")
 MAN_END
 
 MAN_BEGIN (U"Eigen: Get eigenvector element...", U"djmw", 20040225)
 INTRO (U"A command to query the selected @Eigen for the %j^^th^ element of the "
 	"%i^^th^ eigenvector.")
+MAN_END
+
+MAN_BEGIN (U"Eigen: Get eigenvector...", U"djmw", 20260228)
+INTRO (U"A command to query the selected @Eigen for one of its eigenvectors.")
+MAN_END
+
+MAN_BEGIN (U"Eigen: Sort...", U"djmw", 20260317)
+INTRO (U"A command to sort the eigenvalues and corresponding eigenvectors of the selected @Eigen.")
+NORMAL (U"If some of the eigenvalues are complex this command is ineffective.")
+ENTRY (U"Settings")
+TERM (U"##Sort ascending")
+DEFINITION (U"determines the sorting order: if %true the sorting is in ascending order, "
+	"if %false the sorting is in descending order.")
 MAN_END
 
 MAN_BEGIN (U"Eigen: Extract eigenvector...", U"djmw", 20160617)
@@ -2607,7 +2631,7 @@ CODE (U"0x0C: int (4 bytes)")
 CODE (U"0x0D: float (4 bytes)")
 CODE (U"0x0E: double (8 bytes)")
 NORMAL (U"The fourth byte codes the number of dimensions of the vector/matrix: 1 for vectors, 2 for matrices....")
-NORMAL (U"The sizes in each dimension are 4-byte integers (big endian, like in most non-Intel processors).")
+NORMAL (U"The sizes in each dimension are 4-byte integers (big-endian, like in most non-Intel processors).")
 NORMAL (U"The data is stored like in a C array, i.e. the index in the last dimension changes the fastest.")
 ENTRY (U"Behaviour")
 NORMAL (U"If the storage format indicates that there are more than 2 dimensions, the resulting Matrix accumulates dimensions 2 and higher in the columns. For example, with three dimensions of size n1, n2 and n3, respectively, the resulting Matrix object will have n1 rows and %%n2\\xxn3% columns.")
@@ -4440,7 +4464,13 @@ NORMAL (U"First a copy of the sound is @@Sound: Filter (pass Hann band)...|bandp
 	"Finally the silent and sounding intervals are determined @@Intensity: To TextGrid (silences)...|from the intensity curve@.")
 MAN_END
 
-MAN_BEGIN (U"Sound: To TextGrid (speech activity)...", U"djmw", 20231209)
+MAN_BEGIN (U"Sound: To TextGrid (speech activity)...", U"djmw", 20260313)
+INTRO (U"An old command; the same as @@Sound: To TextGrid (speech activity, LTSF)...@.")
+NORMAL (U"The name changed in Praat 6.4.62, because there is also @@Sound: To TextGrid (speech activity, Silero)...@.")
+MAN_END
+
+
+MAN_BEGIN (U"Sound: To TextGrid (speech activity, LTSF)...", U"djmw", 20231209)
 INTRO (U"A command that creates a @@TextGrid@ for the selected @@Sound@ in which the non-speech intervals and the "
 	"intervals with speech activity are marked. The discrimination between the two is based on a spectral flatness measure.")
 NORMAL (U"Speech activity detection, in the technical literature often referred to as voice activity detection, "
@@ -4769,7 +4799,7 @@ DEFINITION (U"the number of neighbouring frequency points that are used in the c
 MAN_END
 
 MAN_BEGIN (U"SpeechSynthesizer", U"djmw", 20190811)
-INTRO (U"The SpeechSynthesizer is one of the @@types of objects@ in Praat. It creates a speech sound from text. The actual text-to-speech synthesis is performed by the @@eSpeak|eSpeak NG@ speech synthsizer and therefore our SpeechSynthsizer is merely an interface to Espeak.")
+INTRO (U"The SpeechSynthesizer is one of the @@types of objects@ in Praat. It creates a speech sound from text. The actual text-to-speech synthesis is performed by the @@eSpeak|eSpeak NG@ speech synthesizer and therefore our SpeechSynthesizer is merely an interface to Espeak.")
 ENTRY (U"Commands")
 NORMAL (U"Creation:")
 LIST_ITEM (U"\\bu @@Create SpeechSynthesizer...@")
@@ -6599,6 +6629,11 @@ NORMAL (U"H. Sakoe & S. Chiba (1978): \"Dynamic programming algorithm optimizati
 	"%%Transactions on ASSP% #26: 43\\--49.")
 MAN_END
 
+MAN_BEGIN (U"Sanchez (2012)", U"djmw", 20260219)
+	NORMAL (U"C.A. Sanchez (2012): \"mtpsd documentation.\" "
+	"%%https://github.com/cantonios/mtpsd/.")
+MAN_END
+
 MAN_BEGIN (U"Sandwell (1987)", U"djmw", 20170915)
 NORMAL (U"D.T. Sandwell (1987): \"Biharmonic spline interpolation of GEOS-3 and SEASAT altimeter data.\", "
 		"%%Geophysica Research Letters% #14: 139\\--142.")
@@ -6623,6 +6658,12 @@ MAN_BEGIN (U"Slaney (1993)", U"djmw", 19980712)
 NORMAL (U"M. Slaney (1993): \"An efficient implementation of the "
 	"Patterson-Holdsworth auditory filterbank.\" "
 	"%%Apple Computer Technical Report% #35, 41 pages.")
+MAN_END
+
+MAN_BEGIN (U"Slapian (1977)", U"djmw", 20260219)
+NORMAL (U"D. Slapian (1977): \"Program to compute discrete prolate spheroidal wave functions, "
+	"sequences, and eigenvalues.\" "
+	"%%Technical Report% TM 77-1218-8, Bell Telephone Laboratories.")
 MAN_END
 
 MAN_BEGIN (U"Ten Berge (1991)", U"djmw", 20191221)

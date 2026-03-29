@@ -12,6 +12,68 @@
 What's new?
 </b></font></table></table>
 <p>Latest changes in Praat.</p>
+<p><b>6.4.62</b> (13 March 2026)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; <a href="Sound__To_TextGrid__speech_activity__Silero____.html">Sound: To TextGrid (speech activity, Silero)...</a>: &#8220;voice activity detection&#8221; by AI.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; TextGrid window: fixed a bug from 2013 or earlier that could cause Praat to crash during interval alignment.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Fixed a bug that caused Praat to crash if a notebook was run twice.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Linux: support horizontal scrolling in three ways (two-finger swiping on the touchpad; left and right tilting of the mouse&#8217;s scroll wheel; turning the mouse&#8217;s scroll wheel while keeping the Shift key pressed).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Linux: support zooming by turning the mouse&#8217;s scroll wheel while keeping the Ctrl key pressed).</dd>
+</dl>
+<p><b>6.4.61</b> (28 February 2026)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; <b>Transcribe interval</b> (via automatic speech recognition): better word alignment via Whisper&#8217;s built-in DTW.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; <b>Transcribe interval</b> (via automatic speech recognition): option for silence removal (via an additionally installed AI model).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Windows: Ctrl+Alt+Letter menu shortcuts have become Ctrl+Shift+Letter, because that&#8217;s the way it&#8217;s nowadays done in e.g. browsers and NotePad, and because Ctrl+Alt+Letter combinations can stand for actual Alt-GR characters on some keyboards. On the Mac we still use Option+Command+Letter. Note that on most Windows keyboards the Ctrl and Alt keys are adjacent, as are the Option and Command keys on most Mac keyboards.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Manual: menu shortcuts for <b>Previous page</b> and <b>Next page</b>.</dd>
+</dl>
+<p><b>6.4.60</b> (10 February 2026)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: fixed an interaction between pause windows and <a href="_exitScript_.html"><b><code><font size=+1>exitScript</font></code></b></a>.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: turned cases of multiple identical procedure names into once-warnings instead of errors.</dd>
+</dl>
+<p><b>6.4.59</b> (5 February 2026)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Made nested scripts with pause windows and/or Demo window work again.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Fixed a bug by which SpeechRecognizer creation could make Praat crash on some platforms.</dd>
+</dl>
+<p><b>6.4.58</b> (25 January 2026, supersedes versions 6.4.52 through 6.4.57)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; MacOS Tahoe: support making menu choices or turning windows to full screen if a script is paused (by the Demo window or the Pause window), as on earlier MacOS versions and on Windows and Linux.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Windows: support horizontal scrolling in three ways (two-finger swiping on the touchpad; left and right tilting of the mouse&#8217;s scroll wheel; turning the mouse&#8217;s scroll wheel while keeping the Shift key pressed).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Windows: better dotted or dashed thick lines. </dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; <a href="Sound__To_PowerCepstrogram___.html">Sound: To PowerCepstrogram...</a> now averages the power over channels instead of taking only channel 1.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Opening TIFF files with <a href="Read_from_file___.html">Read from file...</a>, as well as <a href="Insert_picture_from_file___.html">Insert picture from file...</a>: rid a bug that would show monochrome TIFF files in four vertical stripes.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Mac and Linux: made <a href="Insert_picture_from_file___.html">Insert picture from file...</a> work for PDF files again (bug since 6.4.28).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Backslash trigraph for apico-postalveolars: s&#803; (<code><font size=+1>s\.v</font></code>), following <a href="Ladefoged___Maddieson__1996_.html">Ladefoged & Maddieson (1996)</a>, who wanted to distinguish them from the more extreme retroflexes, i.e. apico-palatals such as &#642; (<code><font size=+1>\s.</font></code>).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Linux: prevented a crash when a &#8220;barren&#8221; edition tried to run <code><font size=+1>runAllTests_batch.praat</font></code>.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: <a href="_runSubprocess_.html"><b><code><font size=+1>runSubprocess</font></code></b></a> and <a href="_runSystem_.html"><b><code><font size=+1>runSystem</font></code></b></a> now support <a href="_asynchronous_.html"><b><code><font size=+1>asynchronous</font></code></b></a>, with which you can spawn a subprocess without waiting for it to finish. </dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: <a href="_randomImax_.html"><b><code><font size=+1>randomImax</font></code></b></a>.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: in pause forms, allow vector expressions as defaults in vector fields.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: syntax check against duplicate procedure names.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: no longer any limits on the number of labels and procedures.</dd>
+</dl>
+<p><b>6.4.51</b> (30 December 2025)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Windows: switch back to the faster version (version 6.4.50 was deliberately slower, so as to support Windows 7 and 8.1 for the last time).</dd>
+</dl>
+<p><b>6.4.50</b> (29 December 2025)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; A bit of speech recognition via Whisper.cpp (adapted to Praat by Anastasia Shchupak), such as <b>Transcribe interval</b> in the TextGrid window. This works after you install one or more Whisper-cpp models, such as <code><font size=+1>ggml-base.bin</font></code> (from <code><font size=+1>https://huggingface.co/ggerganov/whisper.cpp</font></code>) in the <code><font size=+1>models</font></code> subfolder of the <a href="preferences_folder.html">preferences folder</a>.</dd>
+</dl>
+<p><b>6.4.49</b> (23 December 2025)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Open without error messages or warnings Kay files that have one sample too few or too many.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Linux: the standard Linux edition now runs equally well on Ubuntu, Fedora, Debian and Centos.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; EditDistanceTable: made readable and writable.</dd>
+</dl>
+<p><b>6.4.48</b> (9 December 2025)</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Linux audio: recognize JACK devices (next to the already recongized ALSA devices).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Linux fonts: support for the Charis 7 font, as on macOS and Windows.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; OTGrammar: non-negative maximum entropy learning.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Debug option at start-up from command line, e.g. <code><font size=+1>--debug=58</font></code>.</dd>
+</dl>
 <p><b>6.4.47</b> (7 November 2025)</p>
 <dl>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; <b>Sound: To LPC...</b>: channel averaging by default.</dd>
@@ -150,7 +212,7 @@ What's new?
 <p><b>6.4.24</b> (1 December 2024)</p>
 <dl>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; FormantPath: fixed bug with sampling frequency.</dd>
-<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Formant measurements: fixed bugs in &#8221;autocorrelation&#8221; and &#8220;robust&#8221; methods.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Formant measurements: fixed bugs in &#8220;autocorrelation&#8221; and &#8220;robust&#8221; methods.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Manual: better support for screens taller than 15 inches.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: support for subtraction and unary minus for tensors.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&#8226; Scripting: removed <code><font size=+1>sendsocket</font></code>.</dd>
@@ -319,7 +381,7 @@ What's new?
 </dl>
 <hr>
 <address>
-	<p>© Paul Boersma 1995–2025</p>
+	<p>© Paul Boersma 1995–2026</p>
 </address>
 </body>
 </html>

@@ -1,10 +1,10 @@
 /* NotebookEditor.cpp
  *
- * Copyright (C) 2023,2024 Paul Boersma
+ * Copyright (C) 2023,2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -62,7 +62,7 @@ void structNotebookEditor :: v_nameChanged () {
 }
 
 void structNotebookEditor :: v_goAway () {
-	if (our interpreter -> running)
+	if (our interpreterStack -> interpreters [1] && our interpreterStack -> interpreters [1] -> running)
 		Melder_flushError (U"Cannot close the NotebookEditor while the notebook is running or paused.\n"
 				"Please close or continue the pause, trust or demo window.");
 	else
@@ -78,7 +78,8 @@ static void args_ok (UiForm sendingForm, integer /* narg */, Stackel /* args */,
 		MelderFile_setDefaultDir (& my file);
 	Melder_includeIncludeFiles (& text, true);
 
-	Interpreter_getArgumentsFromDialog (my interpreter.get(), sendingForm);
+	Melder_assert (my interpreterStack -> interpreters [1]);
+	Interpreter_getArgumentsFromDialog (my interpreterStack -> interpreters [1].get(), sendingForm);
 
 	autoPraatBackground background;
 	if (! MelderFile_isNull (& my file))
@@ -87,25 +88,33 @@ static void args_ok (UiForm sendingForm, integer /* narg */, Stackel /* args */,
 	autoMelderReadText readText = MelderReadText_createFromText (text.move());
 	autoManPages manPages = ManPages_createFromText (readText.get(), & my file);   // readText can release, because manPages duplicates (last checked 2023-03-25)
 	ManPage firstPage = manPages -> pages.at [1];
-	autoManual manual = Manual_create (firstPage -> title.get(), my interpreter.get(), manPages.releaseToAmbiguousOwner(), true, true);
+	autoManual manual = Manual_create (firstPage -> title.get(), my interpreterStack -> interpreters [1].get(), manPages.releaseToAmbiguousOwner(), true, true);
 	manual.releaseToUser ();
 }
 
 static void menu_cb_run (NotebookEditor me, EDITOR_ARGS) {
-	if (my interpreter -> running)
+	if (my interpreterStack -> interpreters [1] && my interpreterStack -> interpreters [1] -> running)
 		Melder_throw (U"The notebook is already running (paused). Please close or continue the pause, trust or demo window.");
+	//Melder_assert (! my interpreterStack -> interpreters [1]);   // TRICKY
+	my interpreterStack -> interpreters [1] = Interpreter_createFromEnvironment (
+		my interpreterStack.get(),
+		Editor (nullptr),
+		& my file
+	);
+	TRACE
+	trace (U"File: ", & my file);
 	integer startOfSelection, endOfSelection;
 	autostring32 text = GuiText_getStringAndSelectionPosition (my textWidget, & startOfSelection, & endOfSelection);
 	if (Melder_startsWith (text.get(), U"\"")) {
 		if (! MelderFile_isNull (& my file))
 			MelderFile_setDefaultDir (& my file);
 		Melder_includeIncludeFiles (& text, true);
-		const integer npar = Interpreter_readParameters (my interpreter.get(), text.get());
+		const integer npar = Interpreter_readParameters (my interpreterStack -> interpreters [1].get(), text.get());
 		if (npar != 0) {
 			/*
 				Pop up a dialog box for querying the arguments.
 			*/
-			my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, nullptr, nullptr, args_ok, me, false);
+			my argsDialog = Interpreter_createForm (my interpreterStack -> interpreters [1].get(), my windowForm, nullptr, nullptr, args_ok, me, false);
 			UiForm_do (my argsDialog.get(), false);
 		} else {
 			autoPraatBackground background;
@@ -115,7 +124,7 @@ static void menu_cb_run (NotebookEditor me, EDITOR_ARGS) {
 			autoMelderReadText readText = MelderReadText_createFromText (text.move());
 			autoManPages manPages = ManPages_createFromText (readText.get(), & my file);   // readText can release, because manPages duplicates (last checked 2023-03-25)
 			ManPage firstPage = manPages -> pages.at [1];
-			autoManual manual = Manual_create (firstPage -> title.get(), my interpreter.get(), manPages.releaseToAmbiguousOwner(), true, true);
+			autoManual manual = Manual_create (firstPage -> title.get(), my interpreterStack -> interpreters [1].get(), manPages.releaseToAmbiguousOwner(), true, true);
 			manual.releaseToUser ();
 		}
 	} else if (str32str (text.get(), U"\n####################")) {
@@ -125,15 +134,15 @@ static void menu_cb_run (NotebookEditor me, EDITOR_ARGS) {
 		integer startingPage = ManPages_addPagesFromNotebookReader (you.get(), readText.get(), startOfSelection, endOfSelection);
 		Melder_clip (1_integer, & startingPage, your pages.size);
 		ManPage firstPage = your pages.at [startingPage];
-		autoManual manual = Manual_create (firstPage -> title.get(), my interpreter.get(), you.releaseToAmbiguousOwner(), true, true);
+		autoManual manual = Manual_create (firstPage -> title.get(), my interpreterStack -> interpreters [1].get(), you.releaseToAmbiguousOwner(), true, true);
 		manual.releaseToUser ();
 	} else
 		Melder_throw (U"A Praat notebook should either start with a title between straight double quotes (\"\"), "
-			"or contain multiple such pieces separated by \"####################\" (or longer) lines on all sides.");
+				"or contain multiple such pieces separated by \"####################\" (or longer) lines on all sides.");
 }
 
 static void menu_cb_runChunk (NotebookEditor me, EDITOR_ARGS) {
-	if (my interpreter -> running)
+	if (my interpreterStack -> interpreters [1] && my interpreterStack -> interpreters [1] -> running)
 		Melder_throw (U"The notebook is already running (paused). Please close or continue the pause, trust or demo window.");
 	autostring32 text = GuiText_getSelection (my textWidget);   // TODO: replace with chunk
 	if (! text)
@@ -143,8 +152,14 @@ static void menu_cb_runChunk (NotebookEditor me, EDITOR_ARGS) {
 	Melder_includeIncludeFiles (& text);
 	autoPraatBackground background;
 	if (! MelderFile_isNull (& my file))
-		MelderFile_setDefaultDir (& my file);
-	Interpreter_run (my interpreter.get(), text.get(), true);
+		MelderFile_setDefaultDir (& my file);   // TODO: probably wrong
+	autoInterpreter interpreter = Interpreter_createFromEnvironment (
+		my interpreterStack.get(),
+		Editor (nullptr),
+		MelderFile (nullptr)   // TODO: probably wrong
+	);
+	my interpreterStack -> emptyAll ();
+	my interpreterStack -> runDown (interpreter.move(), text.move(), true);
 }
 
 static void menu_cb_expandIncludeFiles (NotebookEditor me, EDITOR_ARGS) {
@@ -184,7 +199,7 @@ void structNotebookEditor :: v_createMenuItems_help (EditorMenu menu) {
 
 void NotebookEditor_init (NotebookEditor me, conststring32 initialText) {
 	TextEditor_init (me, initialText);
-	my interpreter = Interpreter_createFromEnvironment (nullptr);
+	my interpreterStack = InterpreterStack_create (Editor (nullptr));
 	theReferencesToAllOpenNotebookEditors. addItem_ref (me);
 }
 

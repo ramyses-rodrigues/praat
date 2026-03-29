@@ -1,0 +1,32 @@
+# File: makefile.defs.msys-mingw64-clang
+
+# System: clang on Windows under MSYS2
+# Paul Boersma, 29 December 2025
+
+# This is the makefile for building a Windows edition of Praat within
+# one of the three MSYS2-CLANG shells: CLANGARM64, CLANG64 and CLANG32.
+
+CC = clang
+CXX = clang++
+LINK = clang++
+
+COMMONFLAGS = -municode -D_FILE_OFFSET_BITS=64 \
+	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
+	-O3
+# Probably implicit: -m64 -mwin32 -march=... -mtune=generic
+
+CFLAGS = -std=gnu99 $(COMMONFLAGS)
+
+# gnu++17 instead of c++17 is necessary to define M_PI in external code
+CXXFLAGS = -std=gnu++17 $(COMMONFLAGS) -Wshadow
+
+EXECUTABLE = Praat.exe
+
+LIBS = -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool \
+	-static-libstdc++ -static-libgcc -mwindows -static -lwinpthread
+
+AR = ar
+RANLIB = ranlib
+WINDRES = windres
+ICON = praat_win.o
+MAIN_ICON = main/praat_win.o

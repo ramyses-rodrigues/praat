@@ -1,6 +1,6 @@
 /* ScriptEditor.cpp
  *
- * Copyright (C) 1997-2005,2007-2018,2020-2025 Paul Boersma
+ * Copyright (C) 1997-2005,2007-2018,2020-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "../kar/longchar.h"
 #include "praatP.h"
 #include "EditorM.h"
+#include "UiPause.h"
 
 Thing_implement (ScriptEditor, TextEditor, 0);
 
@@ -77,7 +78,7 @@ void structScriptEditor :: v_nameChanged () {
 }
 
 void structScriptEditor :: v_goAway () {
-	if (our interpreter -> running)
+	if (our interpreterStack -> interpreters [1] && our interpreterStack -> interpreters [1] -> running)
 		Melder_flushError (U"Cannot close the script window while the script is running or paused.\n"
 				"Please close or continue the pause, trust or demo window.");
 	else
@@ -93,16 +94,20 @@ static void args_ok (UiForm sendingForm, integer /* narg */, Stackel /* args */,
 		MelderFile_setDefaultDir (& my file);
 	Melder_includeIncludeFiles (& text);
 
-	Interpreter_getArgumentsFromDialog (my interpreter.get(), sendingForm);
+	Melder_assert (my optionalReferenceToOwningEditor == optionalEditor);   // TODO: if never fires, then redundancy
+	Melder_assert (my interpreterStack);
+	Melder_assert (my interpreterStack -> interpreters [1]);
+	//Melder_assert (interpreter);   // TODO: figure out why this is usually null
+	Interpreter_getArgumentsFromDialog (my interpreterStack -> interpreters [1].get(), sendingForm);
 
 	autoPraatBackground background;
 	if (! MelderFile_isNull (& my file)) {
 		MelderFile_setDefaultDir (& my file);
 		autoScript script = Script_createFromFile (& my file);
 		Script_rememberDuringThisAppSession_move (script.move());
-		my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+		my interpreterStack -> interpreters [1] -> scriptReference = Script_find (MelderFile_peekPath (& my file));
 	}
-	Interpreter_run (my interpreter.get(), text.get(), false);
+	my interpreterStack -> runDown (autoInterpreter(), text.move(), false);
 }
 
 static void args_ok_selectionOnly (UiForm sendingForm, integer /* narg */, Stackel /* args */, conststring32 /* sendingString */,
@@ -116,56 +121,45 @@ static void args_ok_selectionOnly (UiForm sendingForm, integer /* narg */, Stack
 		MelderFile_setDefaultDir (& my file);
 	Melder_includeIncludeFiles (& text);
 
-	Interpreter_getArgumentsFromDialog (my interpreter.get(), sendingForm);
+	Melder_assert (my optionalReferenceToOwningEditor == optionalEditor);   // TODO: if never fires, then redundancy
+	Melder_assert (my interpreterStack);
+	Melder_assert (my interpreterStack -> interpreters [1]);
+	//Melder_assert (interpreter);   // TODO: figure out why this is usually null
+	Interpreter_getArgumentsFromDialog (my interpreterStack -> interpreters [1].get(), sendingForm);
 
 	autoPraatBackground background;
 	if (! MelderFile_isNull (& my file)) {
 		MelderFile_setDefaultDir (& my file);
 		autoScript script = Script_createFromFile (& my file);
 		Script_rememberDuringThisAppSession_move (script.move());
-		my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+		my interpreterStack -> interpreters [1] -> scriptReference = Script_find (MelderFile_peekPath (& my file));
 	}
-	Interpreter_run (my interpreter.get(), text.get(), false);
+	my interpreterStack -> runDown (autoInterpreter(), text.move(), false);
 }
 
-static void menu_cb_run_async (ScriptEditor me) {
+static void menu_cb_run (ScriptEditor me, EDITOR_ARGS) {
+	//UiPause_cleanUp ();   // destroy the previous pause window, because it just might be using the same InterpreterStack, so its Interpreter reference will go stale
+	//if (my interpreter -> running)
+	//	//Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
+	//	Interpreter_stop (my interpreter.get());
 	try {
-		bool isObscured = false;
+		Melder_assert (my interpreterStack);
+		my interpreterStack -> emptyAll ();
+		autoInterpreter interpreter = Interpreter_createFromEnvironment (
+			my interpreterStack.get(),
+			my optionalReferenceToOwningEditor,
+			& my file);
 		autostring32 text = GuiText_getString (my textWidget);
-		trace (U"Running the following script (1):\n", text.get());
 		if (! MelderFile_isNull (& my file))
-			MelderFile_setDefaultDir (& my file);
-		const conststring32 obscuredLabel = U"#!praatObscured";
-		if (Melder_startsWith (text.get(), obscuredLabel)) {
-			const integer obscuredLabelLength = Melder_length (obscuredLabel);
-			const double fileKey_real = Melder_atof (MelderFile_name (& my file));
-			const uint64 fileKey = ( isdefined (fileKey_real) ? uint64 (fileKey_real) : 0 );
-			char32 *restOfText = & text [obscuredLabelLength];
-			uint64 passwordHash = 0;
-			if (*restOfText == U'\n') {
-				restOfText += 1;   // skip newline
-			} else if (*restOfText == U' ') {
-				restOfText ++;
-				char32 *endOfFirstLine = str32chr (restOfText, U'\n');
-				if (! endOfFirstLine)
-					Melder_throw (U"Incomplete script.");
-				*endOfFirstLine = U'\0';
-				passwordHash = NUMhashString (restOfText);
-				restOfText = endOfFirstLine + 1;
-			} else {
-				Melder_throw (U"Unexpected nonspace after #!praatObscured.");
-			}
-			static uint64 nonsecret = UINT64_C (529857089);
-			text = unhex_STR (restOfText, fileKey + nonsecret + passwordHash);
-			isObscured = true;
-		}
+			MelderFile_setDefaultDir (& my file);   // TODO: can be wrong
 		Melder_includeIncludeFiles (& text);
-		const integer npar = Interpreter_readParameters (my interpreter.get(), text.get());
+		const integer npar = Interpreter_readParameters (interpreter.get(), text.get());
 		if (npar != 0) {
 			/*
 				Pop up a dialog box for querying the arguments.
 			*/
-			my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok, me, false);
+			my argsDialog = Interpreter_createForm (interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok, me, false);
+			my interpreterStack -> interpreters [1] = interpreter.move();
 			UiForm_do (my argsDialog.get(), false);
 		} else {
 			autoPraatBackground background;
@@ -173,35 +167,37 @@ static void menu_cb_run_async (ScriptEditor me) {
 				MelderFile_setDefaultDir (& my file);
 				autoScript script = Script_createFromFile (& my file);
 				Script_rememberDuringThisAppSession_move (script.move());
-				my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+				interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
 			}
-			trace (U"Running the following script (2):\n", text.get());
-			Interpreter_run (my interpreter.get(), text.get(), false);
+			Melder_assert (interpreter -> owningInterpreterStack);
+			interpreter -> owningInterpreterStack -> emptyAll ();   // TODO: should we create a new InterpreterStack instead, owned by the script editor?
+			interpreter -> owningInterpreterStack -> runDown (interpreter.move(), text.move(), false);
 		}
 	} catch (MelderError) {
 		Melder_flushError (U"The script didn’t run to its completion.");
 	}
 }
 
-static void menu_cb_run (ScriptEditor me, EDITOR_ARGS) {
-	if (my interpreter -> running)
-		Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
-	#ifdef macintosh
-		dispatch_async (dispatch_get_main_queue (), ^{ menu_cb_run_async (me); });
-	#else
-		menu_cb_run_async (me);
-	#endif
-}
-
-static void menu_cb_runSelection_async (ScriptEditor me) {
+static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
+	//UiPause_cleanUp ();
+	//if (my interpreter -> running)
+	//	//Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
+	//	Interpreter_stop (my interpreter.get());
 	try {
+		Melder_assert (my interpreterStack);
+		my interpreterStack -> emptyAll ();
+		autoInterpreter interpreter = Interpreter_createFromEnvironment (
+			my interpreterStack.get(),
+			my optionalReferenceToOwningEditor,
+			& my file
+		);
 		autostring32 selectedText = GuiText_getSelection (my textWidget);
 		if (! selectedText)
 			Melder_throw (U"No text selected.");
 		if (! MelderFile_isNull (& my file))
 			MelderFile_setDefaultDir (& my file);
 		Melder_includeIncludeFiles (& selectedText);
-		const integer npar = Interpreter_readParameters (my interpreter.get(), selectedText.get());
+		const integer npar = Interpreter_readParameters (interpreter.get(), selectedText.get());
 		/*
 			TODO: check that no two procedures have the same name
 		*/
@@ -238,7 +234,8 @@ static void menu_cb_runSelection_async (ScriptEditor me) {
 			/*
 				Pop up a dialog box for querying the arguments.
 			*/
-			my argsDialog = Interpreter_createForm (my interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok_selectionOnly, me, true);
+			my argsDialog = Interpreter_createForm (interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr, args_ok_selectionOnly, me, true);
+			my interpreterStack -> interpreters [1] = interpreter.move();
 			UiForm_do (my argsDialog.get(), false);
 		} else {
 			autoPraatBackground background;
@@ -246,23 +243,15 @@ static void menu_cb_runSelection_async (ScriptEditor me) {
 				MelderFile_setDefaultDir (& my file);
 				autoScript script = Script_createFromFile (& my file);
 				Script_rememberDuringThisAppSession_move (script.move());
-				my interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
+				interpreter -> scriptReference = Script_find (MelderFile_peekPath (& my file));
 			}
-			Interpreter_run (my interpreter.get(), textPlusProcedures.string, false);
+			Melder_assert (interpreter -> owningInterpreterStack);
+			interpreter -> owningInterpreterStack -> emptyAll ();   // TODO: should we create a new InterpreterStack instead, owned by the script editor?
+			interpreter -> owningInterpreterStack -> runDown (interpreter.move(), Melder_dup (textPlusProcedures.string), false);
 		}
 	} catch (MelderError) {
 		Melder_flushError (U"The script selection didn’t run to its completion.");
 	}
-}
-
-static void menu_cb_runSelection (ScriptEditor me, EDITOR_ARGS) {
-	if (my interpreter -> running)
-		Melder_throw (U"The script is already running (paused). Please close or continue the pause, trust or demo window.");
-	#ifdef macintosh
-		dispatch_async (dispatch_get_main_queue (), ^{ menu_cb_runSelection_async (me); });
-	#else
-		menu_cb_runSelection_async (me);
-	#endif
 }
 
 static void menu_cb_addToMenu (ScriptEditor me, EDITOR_ARGS) {
@@ -417,7 +406,7 @@ void ScriptEditor_init (ScriptEditor me, Editor optionalOwningEditor, conststrin
 		my optionalReferenceToOwningEditor = optionalOwningEditor;
 	}
 	TextEditor_init (me, initialText);
-	my interpreter = Interpreter_createFromEnvironment (optionalOwningEditor);
+	my interpreterStack = InterpreterStack_create (optionalOwningEditor);
 	theReferencesToAllOpenScriptEditors. addItem_ref (me);
 }
 

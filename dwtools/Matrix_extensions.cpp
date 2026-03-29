@@ -1,6 +1,6 @@
 /* Matrix_extensions.cpp
  *
- * Copyright (C) 1993-2023 David Weenink
+ * Copyright (C) 1993-2023, 2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 */
 
 #include "Matrix_extensions.h"
+#include "MAT_numerics.h"
 #include "Eigen.h"
 #include "NUM2.h"
 #include "Permutation.h"
@@ -458,7 +459,7 @@ autoMatrix Matrix_readFromIDXFormatFile (MelderFile file) {
 		The 4-th byte encodes the number of dimensions (indices) of the array: 1 for vectors, 2 for matrices....
 
 		The numbers of elements in each dimension (for a matrix: number of rows and number of columns)
-		are 4-byte integers (MSB first, big endian, as in most non-Intel processors).
+		are 4-byte integers (MSB first, big-endian, as in most non-Intel processors).
 
 		The data is stored like in a C array, i.e. the index in the last dimension changes the fastest.
 
@@ -536,12 +537,20 @@ autoEigen Matrix_to_Eigen (Matrix me) {
 			U"The Matrix should be square.");
 		Melder_require (NUMisSymmetric (my z.get()),
 			U"The Matrix should be symmetric.");
-		autoEigen thee = Eigen_create (my nx, my nx);
-		Eigen_initFromSymmetricMatrix (thee.get(), my z.get());
+		autoEigen thee = Eigen_createFromSquareMAT (my z.get(), kMAT_TYPE::SYMMETRIC, my nx, false);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (U"Cannot create Eigen from Matrix.");
 	}
+}
+
+autoEigen Matrix_to_Eigen_special (Matrix me, kMAT_TYPE matType, integer numberOfEigenvalues, bool sortAcending) {
+	Melder_require (my nx == my ny,
+		U"The number of rows and the number of columns should be equal.");
+	if (numberOfEigenvalues < 1 || numberOfEigenvalues > my ny)
+		numberOfEigenvalues = my ny;
+	autoEigen eigen = Eigen_createFromSquareMAT  (my z.get(), matType, numberOfEigenvalues, sortAcending);
+	return eigen;
 }
 
 void Matrix_Eigen_complex (Matrix me, autoMatrix *out_eigenvectors, autoMatrix *out_eigenvalues) {
@@ -551,58 +560,29 @@ void Matrix_Eigen_complex (Matrix me, autoMatrix *out_eigenvectors, autoMatrix *
 		Melder_require ((out_eigenvectors || out_eigenvalues),
 			U"You should want either eigenvalues or eigenvectors or both to be calculated.");
 		
-		autoCOMPVEC eigenvalues;
-		autoCOMPVEC *p_eigenvalues = ( out_eigenvalues ? & eigenvalues : nullptr );
-		automatrix<dcomplex> eigenvectors;
-		automatrix<dcomplex> *p_eigenvectors = ( out_eigenvectors ? & eigenvectors : nullptr );
-		
-		MAT_getEigenSystemFromGeneralSquareMatrix (my z.get(), p_eigenvalues, p_eigenvectors);
+		autoEigen eigen = Eigen_createFromSquareMAT (my z.get(), kMAT_TYPE::GENERAL, my nx, false);
 	
 		if (out_eigenvectors) {
-			autoMatrix eigenvectorsM = Matrix_createSimple (my ny, 2 * my ny);
-			for (integer ivec = 1; ivec <= eigenvectors.ncol; ivec ++)
+			autoMatrix eigenvectors = Matrix_createSimple (my ny, 2 * my ny);
+			for (integer ivec = 1; ivec <= my ny; ivec ++) {
 				for (long irow = 1; irow <= my ny; irow ++) {
-					eigenvectorsM -> z [irow] [2 * ivec - 1] = eigenvectors [irow] [ivec] .real();
-					eigenvectorsM -> z [irow] [2 * ivec    ] = eigenvectors [irow] [ivec] .imag();
+					eigenvectors -> z [irow] [2 * ivec - 1] = eigen -> eigenvectors [irow] [ivec];
+					eigenvectors -> z [irow] [2 * ivec    ] = eigen -> eigenvectors_im [irow] [ivec];
 				}
-			*out_eigenvectors = eigenvectorsM.move();
+			}
+			*out_eigenvectors = eigenvectors.move();
 		}
 		if (out_eigenvalues) {
-			autoMatrix eigenvaluesM = Matrix_createSimple (my ny, 2);
+			autoMatrix eigenvalues = Matrix_createSimple (my ny, 2);
 			for (long i = 1; i <= my ny; i ++) {
-				eigenvaluesM -> z [i] [1] = eigenvalues [i] .real();
-				eigenvaluesM -> z [i] [2] = eigenvalues [i] .imag();
+				eigenvalues -> z [i] [1] = eigen -> eigenvalues [i];
+				eigenvalues -> z [i] [2] = eigen -> eigenvalues_im [i];
 			}
-			*out_eigenvalues = eigenvaluesM.move();	
+			*out_eigenvalues = eigenvalues.move();	
 		}
 	} catch (MelderError) {
 		Melder_throw (U"Cannot create Eigenvalues from Matrix.");
 	}
-}
-
-autoCOMPVEC Matrix_listEigenvalues (Matrix me) {
-	Melder_require (my nx == my ny,
-		U"The Matrix should be square.");
-	autoCOMPVEC eigenvalues;
-	MAT_getEigenSystemFromGeneralSquareMatrix (my z.get(), & eigenvalues, nullptr);
-	return eigenvalues;
-}
-
-automatrix<dcomplex> Matrix_listEigenvectors (Matrix me) {
-	Melder_require (my nx == my ny,
-		U"The Matrix should be square.");
-	automatrix<dcomplex> eigenvectors;
-	
-	MAT_getEigenSystemFromGeneralSquareMatrix (my z.get(), nullptr,& eigenvectors);
-	integer numberOfEigenvectors = eigenvectors.nrow;
-	automatrix<dcomplex> result = newmatrixraw<dcomplex> (eigenvectors.ncol, eigenvectors.nrow);
-	/*
-		vec's vertical
-	*/
-	for (integer ivec = 1; ivec <= numberOfEigenvectors; ivec ++)
-		for (long irow = 1; irow <= result.nrow; irow ++)
-			result [irow] [ivec] = eigenvectors [ivec] [irow];
-	return result;
 }
 
 autoMatrix SVD_to_Matrix (SVD me, integer from, integer to) {

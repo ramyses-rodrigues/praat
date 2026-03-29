@@ -923,7 +923,7 @@ autoSound Sound_createGammaTone (double minimumTime, double maximumTime, double 
 			const double f = frequency + addition / (NUM2pi * t);
 			if (f > 0 && f < samplingFrequency / 2)
 				my z [1] [i] = pow (t, gamma - 1.0) * exp (- NUM2pi * bandwidth * t) *
-					cos (NUM2pi * frequency * t + addition * log (t) + initialPhase);
+						cos (NUM2pi * frequency * t + addition * log (t) + initialPhase);
 		}
 		if (scaleAmplitudes)
 			Vector_scale (me.get(), 0.99996948);
@@ -1124,20 +1124,21 @@ autoSound Sound_filterByGammaToneFilter (Sound me, double centre_frequency, doub
 Sound Sound_createShepardTone (double minimumTime, double maximumTime, double samplingFrequency,
 	double baseFrequency, double frequencyShiftFraction, double maximumFrequency, double amplitudeRange)
 {
-	Sound me; integer i, j, nComponents = 1 + log2 (maximumFrequency / 2 / baseFrequency);
+	Sound me;
+	integer i, j, nComponents = 1 + log2 (maximumFrequency / 2 / baseFrequency);
 	double lmin = pow (10, - amplitudeRange / 10);
 	double twoPi = NUM2pi, f = baseFrequency * (1 + frequencyShiftFraction);
 	if (nComponents < 2)
 		Melder_warning (U"Sound_createShepardTone: only 1 component.");
 	Melder_casual (U"Sound_createShepardTone: ", nComponents, U" components.");
 	if (! (me = Sound_create2 (minimumTime, maximumTime, samplingFrequency)))
-		return nullptr;
+		return nullptr;   // BUG: pre-2014 error handling
 
 	for (j=1; j <= nComponents; j ++) {
-		double fj = f * pow (2, j-1), wj = twoPi * fj;
-		double amplitude = lmin + (1 - lmin) *
-			(1 - cos (twoPi * log (fj + 1) / log (maximumFrequency + 1))) / 2;
-		for (i=1; i <= my nx; i ++)
+		const double fj = f * pow (2, j-1), wj = twoPi * fj;
+		const double amplitude = lmin + (1 - lmin) *
+				(1 - cos (twoPi * log (fj + 1) / log (maximumFrequency + 1))) / 2;
+		for (i = 1; i <= my nx; i ++)
 			my z [1] [i] += amplitude * sin (wj * (i - 0.5) * my dx);
 	}
 	Vector_scale (me, 0.99996948);
@@ -1557,8 +1558,8 @@ static autoIntensity Spectrogram_to_Intensity_silenceDetection (Spectrogram me) 
 	}
 }
 
-autoTextGrid Sound_to_TextGrid_speechActivity_lsfm (Sound me, double timeStep, double longTermWindow, double shorttimeWindow, double fmin, double fmax, 
-	double lsfmThreshold, double nonspeechThreshold_dB, double minNonspeechDuration, double minSpeechDuration, 
+autoTextGrid Sound_to_TextGrid_speechActivity_ltsf (Sound me, double timeStep, double longTermWindow, double shorttimeWindow, double fmin, double fmax,
+	double ltsfThreshold, double nonspeechThreshold_dB, double minNonspeechDuration, double minSpeechDuration,
 	conststring32 nonspeechLabel, conststring32 speechLabel)
 {
 	try {
@@ -1573,7 +1574,7 @@ autoTextGrid Sound_to_TextGrid_speechActivity_lsfm (Sound me, double timeStep, d
 		const double maximumTimeOversampling = 8.0, maximumFreqOversampling = 8.0;
 		autoSpectrogram spectrogram = Sound_to_Spectrogram_e (me, effectiveAnalysisWidth, fmax, timeStep, minimumFreqStep,
 			kSound_to_Spectrogram_windowShape::HANNING, maximumTimeOversampling, maximumFreqOversampling);
-		autoMatrix lsfmMatrix = Spectrogram_getLongtermSpectralFlatness (spectrogram.get(), longTermWindow, shorttimeWindow, fmin, fmax);
+		autoMatrix ltsfMatrix = Spectrogram_getLongtermSpectralFlatness (spectrogram.get(), longTermWindow, shorttimeWindow, fmin, fmax);
 		autoTextGrid thee = TextGrid_create (my xmin, my xmax, U"VAD", U"");
 		const IntervalTier vadTier = (IntervalTier) thy tiers->at [1];
 		TextInterval_setText (vadTier -> intervals.at [1], speechLabel);
@@ -1582,13 +1583,13 @@ autoTextGrid Sound_to_TextGrid_speechActivity_lsfm (Sound me, double timeStep, d
 		/*
 			Step 1. Find activity intervals
 		*/
-		VEC lsfm = lsfmMatrix -> z.row (1);
+		VEC ltsf = ltsfMatrix -> z.row (1);
 		conststring32 label;
 		integer iinterval = 1;
-		bool activityInterval = ( lsfm [1] < lsfmThreshold );
-		for (integer index = 2; index <= lsfm.size; index ++) {
+		bool activityInterval = ( ltsf [1] < ltsfThreshold );
+		for (integer index = 2; index <= ltsf.size; index ++) {
 			bool addBoundary = false;
-			if (lsfm [index] < lsfmThreshold) {
+			if (ltsf [index] < ltsfThreshold) {
 				if (! activityInterval) {   // start of activity
 					addBoundary = true;
 					activityInterval = true;
@@ -1603,7 +1604,7 @@ autoTextGrid Sound_to_TextGrid_speechActivity_lsfm (Sound me, double timeStep, d
 			}
 
 			if (addBoundary) {
-				const double time = Sampled_indexToX (lsfmMatrix.get(), index);
+				const double time = Sampled_indexToX (ltsfMatrix.get(), index);
 				IntervalTier_addBoundaryUnsorted (vadTier, iinterval, time, label);
 				iinterval ++;
 			}

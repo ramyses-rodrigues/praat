@@ -1,6 +1,6 @@
 /* TextGridArea.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "LongSoundArea.h"   // for drawing TextGrid and Sound, or for aligning TextGrid to Sound
 #include "SoundAnalysisArea.h"   // for drawing TextGrid and Pitch
 #include "EditorM.h"
+#include "SpeechRecognizer.h"
 
 Thing_implement (TextGridArea, FunctionArea, 0);
 
@@ -1511,6 +1512,79 @@ static void menu_cb_AlignmentSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_align_allowSilences (allowSilences);
 	EDITOR_END
 }
+
+static void menu_cb_TranscribeInterval (TextGridArea me, EDITOR_ARGS) {
+	checkTierSelection (me, U"transcribe interval");
+	const AnyTier tier = static_cast <AnyTier> (my textGrid() -> tiers->at [my selectedTier]);
+	if (tier -> classInfo != classIntervalTier)
+		Melder_throw (U"Transcription works only for interval tiers, whereas tier ", my selectedTier, U" is a point tier.\nSelect an interval tier instead.");
+	const integer intervalNumber = getSelectedInterval (me);
+	if (! intervalNumber)
+		Melder_throw (U"Select an interval first");
+	{// scope
+		const autoMelderProgressOff noprogress;
+		FunctionArea_save (me, U"Transcribe interval");
+		TextGrid_Sound_transcribeInterval (my textGrid(), my borrowedSoundArea -> sound(), my selectedTier, intervalNumber,
+				my instancePref_transcribe_model(), my instancePref_transcribe_language(), my instancePref_transcribe_includeWords(),
+				my instancePref_transcribe_useVad(), my instancePref_transcribe_vadThreshold(), my instancePref_transcribe_vadMinNonSpeech(),
+				my instancePref_transcribe_vadMinSpeech(), my instancePref_transcribe_vadPadding());
+	}
+	FunctionArea_broadcastDataChanged (me);
+}
+
+static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
+	EDITOR_FORM (U"Transcription settings", nullptr)
+		HEADING (U"Textgrid...")
+		BOOLEAN (includeWords, U"Include words", my default_transcribe_includeWords())
+		HEADING (U"Speech activity detection...")
+		BOOLEAN (useVad, U"Allow silences", my default_transcribe_useVad())
+		POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", my default_transcribe_vadThreshold())
+		POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", my default_transcribe_vadMinNonSpeech())
+		POSITIVE (minSpeechDuration, U"Min. speech interval (s)", my default_transcribe_vadMinSpeech())
+		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_transcribe_vadPadding())
+		HEADING (U"Transcription...")
+		LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
+		LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+	EDITOR_OK
+		static autoSTRVEC modelNames;
+		modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
+
+		Melder_require (modelNames.size > 0,
+			U"Found no Whisper-cpp models to do speech recognition with.\n"
+			U"You can install them into the subfolders “whispercpp” of the folder “models” in the Praat preferences folder."
+		);
+
+		SET_BOOLEAN (includeWords, my instancePref_transcribe_includeWords())
+		SET_BOOLEAN (useVad, my instancePref_transcribe_useVad())
+		SET_REAL (speechProbabilityThreshold, my instancePref_transcribe_vadThreshold())
+		SET_REAL (minNonSpeechDuration, my instancePref_transcribe_vadMinNonSpeech())
+		SET_REAL (minSpeechDuration, my instancePref_transcribe_vadMinSpeech())
+		SET_REAL (speechPad, my instancePref_transcribe_vadPadding())
+
+		integer prefModel = NUMfindFirst (modelNames.get (), my instancePref_transcribe_model());
+		if (prefModel == 0)
+			prefModel = NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName);
+		SET_INTEGER (modelIndex, prefModel)
+
+		integer prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), my instancePref_transcribe_language());
+		if (prefLanguage == 0)
+			prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName);
+		SET_INTEGER (languageIndex, prefLanguage)
+
+		SET_LIST (modelIndex, modelName, modelNames.get (), prefModel)
+		SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(), prefLanguage)
+	EDITOR_DO
+		my setInstancePref_transcribe_model (modelName);
+		my setInstancePref_transcribe_language (languageName);
+		my setInstancePref_transcribe_includeWords (includeWords);
+		my setInstancePref_transcribe_useVad (useVad);
+		my setInstancePref_transcribe_vadThreshold (speechProbabilityThreshold);
+		my setInstancePref_transcribe_vadMinNonSpeech (minNonSpeechDuration);
+		my setInstancePref_transcribe_vadMinSpeech (minSpeechDuration);
+		my setInstancePref_transcribe_vadPadding (speechPad);
+	EDITOR_END
+}
+
 static void do_insertIntervalOnTier (TextGridArea me, int itier) {
 	try {
 		insertBoundaryOrPoint (me, itier,
@@ -2015,6 +2089,11 @@ void structTextGridArea :: v_createMenus () {
 			FunctionAreaMenu_addCommand (intervalMenu, U"Alignment settings...", 0,
 					menu_cb_AlignmentSettings, this);
 			FunctionAreaMenu_addCommand (intervalMenu, U"-- after align --", 0, nullptr, this);
+			FunctionAreaMenu_addCommand (intervalMenu, U"Transcribe interval", 'T',
+					menu_cb_TranscribeInterval, this);
+			FunctionAreaMenu_addCommand (intervalMenu, U"Transcription settings...", 0,
+					menu_cb_TranscriptionSettings, this);
+			FunctionAreaMenu_addCommand (intervalMenu, U"-- after transcribe --", 0, nullptr, this);
 		}
 		FunctionAreaMenu_addCommand (intervalMenu, U"New interval:", 0, nullptr, this);
 		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 1", GuiMenu_COMMAND | '1' | GuiMenu_DEPTH_1,
@@ -2103,7 +2182,7 @@ void structTextGridArea :: v_createMenus () {
 
 	if (our spellingChecker) {
 		EditorMenu spellMenu = Editor_addMenu (our functionEditor(), U"Spell", 0);
-		FunctionAreaMenu_addCommand (spellMenu, U"Check spelling in tier", GuiMenu_COMMAND | GuiMenu_OPTION | 'L',
+		FunctionAreaMenu_addCommand (spellMenu, U"Check spelling in tier", GuiMenu_COMMAND_EXTRA | 'L',
 				menu_cb_CheckSpelling, this);
 		FunctionAreaMenu_addCommand (spellMenu, U"Check spelling in interval", 0,
 				menu_cb_CheckSpellingInInterval, this);

@@ -1,6 +1,6 @@
 /* manual_whatsnew.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,81 @@ MAN_PAGES_BEGIN
 R"~~~(
 ################################################################################
 "What's new?"
-© Paul Boersma 1995–2025
+© Paul Boersma 1995–2026
 
 Latest changes in Praat.
+
+##6.4.62# (13 March 2026)
+• @@Sound: To TextGrid (speech activity, Silero)...@: “voice activity detection” by AI.
+• TextGrid window: fixed a bug from 2013 or earlier that could cause Praat to crash during interval alignment.
+• Fixed a bug that caused Praat to crash if a notebook was run twice.
+• Linux: support horizontal scrolling in three ways (two-finger swiping on the touchpad;
+  left and right tilting of the mouse’s scroll wheel; turning the mouse’s scroll wheel
+  while keeping the Shift key pressed).
+• Linux: support zooming by turning the mouse’s scroll wheel
+  while keeping the Ctrl key pressed).
+
+##6.4.61# (28 February 2026)
+• ##Transcribe interval# (via automatic speech recognition): better word alignment via Whisper’s built-in DTW.
+• ##Transcribe interval# (via automatic speech recognition): option for silence removal (via an additionally installed AI model).
+• Windows: Ctrl+Alt+Letter menu shortcuts have become Ctrl+Shift+Letter, because that’s the
+  way it’s nowadays done in e.g. browsers and NotePad, and because Ctrl+Alt+Letter combinations
+  can stand for actual Alt-GR characters on some keyboards. On the Mac we still use Option+Command+Letter.
+  Note that on most Windows keyboards the Ctrl and Alt keys are adjacent, as are the Option and Command
+  keys on most Mac keyboards.
+• Manual: menu shortcuts for ##Previous page# and ##Next page#.
+
+##6.4.60# (10 February 2026)
+• Scripting: fixed an interaction between pause windows and @`exitScript`.
+• Scripting: turned cases of multiple identical procedure names into
+  once-warnings instead of errors.
+
+##6.4.59# (5 February 2026)
+• Made nested scripts with pause windows and/or Demo window work again.
+• Fixed a bug by which SpeechRecognizer creation could make Praat crash on some platforms.
+
+##6.4.58# (25 January 2026, supersedes versions 6.4.52 through 6.4.57)
+• MacOS Tahoe: support making menu choices or turning windows to full screen
+  if a script is paused (by the Demo window or the Pause window),
+  as on earlier MacOS versions and on Windows and Linux.
+• Windows: support horizontal scrolling in three ways (two-finger swiping on the touchpad;
+  left and right tilting of the mouse’s scroll wheel; turning the mouse’s scroll wheel
+  while keeping the Shift key pressed).
+• Windows: better dotted or dashed thick lines. 
+• @@Sound: To PowerCepstrogram...@ now averages the power over channels instead of taking only channel 1.
+• Opening TIFF files with @@Read from file...@, as well as @@Insert picture from file...@:
+  rid a bug that would show monochrome TIFF files in four vertical stripes.
+• Mac and Linux: made @@Insert picture from file...@ work for PDF files again (bug since 6.4.28).
+• Backslash trigraph for apico-postalveolars: s\.v (`s\.v`), following @@Ladefoged & Maddieson (1996)@, who wanted to
+  distinguish them from the more extreme retroflexes, i.e. apico-palatals such as \s. (`\s.`).
+• Linux: prevented a crash when a “barren” edition tried to run `runAllTests_batch.praat`.
+• Scripting: @`runSubprocess` and @`runSystem` now support @`asynchronous`, with
+  which you can spawn a subprocess without waiting for it to finish. 
+• Scripting: @`randomImax`.
+• Scripting: in pause forms, allow vector expressions as defaults in vector fields.
+• Scripting: syntax check against duplicate procedure names.
+• Scripting: no longer any limits on the number of labels and procedures.
+
+##6.4.51# (30 December 2025)
+• Windows: switch back to the faster version (version 6.4.50 was deliberately slower,
+  so as to support Windows 7 and 8.1 for the last time).
+
+##6.4.50# (29 December 2025)
+• A bit of speech recognition via Whisper.cpp (adapted to Praat by Anastasia Shchupak),
+  such as ##Transcribe interval# in the TextGrid window. This works after you install
+  one or more Whisper-cpp models, such as `ggml-base.bin` (from
+  `https://huggingface.co/ggerganov/whisper.cpp`) in the `models` subfolder of the @@preferences folder@.
+
+##6.4.49# (23 December 2025)
+• Open without error messages or warnings Kay files that have one sample too few or too many.
+• Linux: the standard Linux edition now runs equally well on Ubuntu, Fedora, Debian and Centos.
+• EditDistanceTable: made readable and writable.
+
+##6.4.48# (9 December 2025)
+• Linux audio: recognize JACK devices (next to the already recongized ALSA devices).
+• Linux fonts: support for the Charis 7 font, as on macOS and Windows.
+• OTGrammar: non-negative maximum entropy learning.
+• Debug option at start-up from command line, e.g. `--debug=58`.
 
 ##6.4.47# (7 November 2025)
 • ##Sound: To LPC...#: channel averaging by default.
@@ -158,7 +230,7 @@ Latest changes in Praat.
 
 ##6.4.24# (1 December 2024)
 • FormantPath: fixed bug with sampling frequency.
-• Formant measurements: fixed bugs in ”autocorrelation” and “robust” methods.
+• Formant measurements: fixed bugs in “autocorrelation” and “robust” methods.
 • Manual: better support for screens taller than 15 inches.
 • Scripting: support for subtraction and unary minus for tensors.
 • Scripting: removed `sendsocket`.

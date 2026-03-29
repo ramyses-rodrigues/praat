@@ -1,10 +1,10 @@
 /* Manual.cpp
  *
- * Copyright (C) 1996-2024 Paul Boersma
+ * Copyright (C) 1996-2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -387,17 +387,17 @@ void structManual :: v_createChildren () {
 	#endif
 	const int height = Machine_getTextHeight (), y = Machine_getMenuBarBottom () + 4;
 	our homeButton = GuiButton_createShown (our windowForm, 104, 168, y, y + height,
-		U"Home", gui_button_cb_home, this, 0);
+			U"Home", gui_button_cb_home, this, 0);
 	if (hasRecordingButtons) {
 		our recordButton = GuiButton_createShown (our windowForm, 4, 79, y+height+8, y+height+8 + height,
-			U"Record", gui_button_cb_record, this, 0);
+				U"Record", gui_button_cb_record, this, 0);
 		our playButton = GuiButton_createShown (our windowForm, 85, 160, y+height+8, y+height+8 + height,
-			U"Play", gui_button_cb_play, this, 0);
+				U"Play", gui_button_cb_play, this, 0);
 		our publishButton = GuiButton_createShown (our windowForm, 166, 166 + 175, y+height+8, y+height+8 + height,
-			U"Copy last played to list", gui_button_cb_publish, this, 0);
+				U"Copy last played to list", gui_button_cb_publish, this, 0);
 	}
 	GuiButton_createShown (our windowForm, 274, 274 + 69, y, y + height,
-		U"Search:", gui_button_cb_search, this, GuiButton_DEFAULT);
+			U"Search:", gui_button_cb_search, this, GuiButton_DEFAULT);
 	our searchText = GuiText_createShown (our windowForm, 274+69 + STRING_SPACING, 452 + STRING_SPACING - 2, y, y + Gui_TEXTFIELD_HEIGHT, 0);
 }
 
@@ -465,6 +465,7 @@ int structManual :: v_goToPage (conststring32 title) {
 		Melder_recordFromFile (& file);
 		return -1;
 	} else if (title [0] == U'\\' && title [1] == U'S' && title [2] == U'C') {
+		static autoInterpreterStack interpreterStack = InterpreterStack_create (Editor (nullptr));
 		autoMelderSetCurrentFolder saveFolder (& our manPages() -> rootDirectory);
 		autoPraatBackground background;
 		try {

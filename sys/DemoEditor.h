@@ -2,11 +2,11 @@
 #define _DemoEditor_h_
 /* DemoEditor.h
  *
- * Copyright (C) 2009-2011,2012,2015-2018,2020,2022,2024 Paul Boersma
+ * Copyright (C) 2009-2011,2012,2015-2018,2020,2022,2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -28,6 +28,7 @@ Thing_define (DemoEditor, Editor) {
 	integer x, y;
 	char32 key;
 	bool waitingForInput, userWantsToClose, fullScreen;
+	Interpreter interpreterReference;
 
 	void v9_destroy () noexcept
 		override;
@@ -77,5 +78,6 @@ void Demo_timer (double duration);
 
 void Demo_saveToPdfFile (MelderFile file);
 
-/* End of file DemoEditor.h */
-#endif
+void Demo_interpreterGoesAway (Interpreter interpreter);
+
+#endif // !_DemoEditor_h_

@@ -26,7 +26,6 @@
 
 #include "PowerCepstrumWorkspace.h"
 #include "Matrix.h"
-#include "SampledFrameIntoSampledFrame.h"
 #include "Sound.h"
 #include "Table.h"
 
@@ -46,39 +45,6 @@ Thing_define (PowerCepstrogram, Matrix) {
 
 */
 
-Thing_define (PowerCepstrogramFrameIntoMatrixFrame, SampledFrameIntoSampledFrame) {
-	
-	constPowerCepstrogram inputPowerCepstrogram;
-	mutableMatrix outputMatrix;
-	autoPowerCepstrum powerCepstrum; // each column of the inputPowerCepstrogram
-	autoPowerCepstrumWorkspace workspace;
-	double qminFit, qmaxFit;
-	double qminPeakSearch, qmaxPeakSearch;
-	kCepstrum_trendType trendLineType;
-	kCepstrum_trendFit fitMethod;
-	kVector_peakInterpolation peakInterpolationType;
-	bool trendSubtracted = false;
-	bool wantSlopeAndIntercept, wantTrendSubtracted, wantPeakAndPosition;
-
-	void initBasicPowerCepstrogramFrameIntoMatrixFrame (constPowerCepstrogram inputPowerCepstrogram, mutableMatrix outputMatrix,
-		double qminFit, double qmaxFit, kCepstrum_trendType trendLineType, kCepstrum_trendFit fitMethod);
-	
-	void initBasicPeakSearch (double qminPeakSearch, double qmaxPeakSearch, kVector_peakInterpolation peakInterpolationType);
-	
-	void copyBasic (constSampledFrameIntoSampledFrame other)
-		override;
-	
-	void initHeap ()
-		override;
-	
-	void getInputFrame (integer iframe)
-			override;
-	bool inputFrameIntoOutputFrame (integer iframe)
-			override;
-	void saveOutputFrame (integer iframe)
-		override;
-};
-
 autoPowerCepstrogram PowerCepstrogram_create (double tmin, double tmax, integer nt, double dt, double t1,
 	double qmin, double qmax, integer nq, double dq, double q1);
 
@@ -87,10 +53,6 @@ void PowerCepstrogram_paint (PowerCepstrogram me, Graphics g, double tmin, doubl
 
 autoPowerCepstrogram PowerCepstrogram_smooth (PowerCepstrogram me, double timeAveragingWindow, double quefrencyAveragingWindow);
 
-autoPowerCepstrogram Sound_to_PowerCepstrogram (Sound me, double pitchFloor, double dt, double maximumFrequency,
-	double preEmphasisFrequency);
-
-autoPowerCepstrogram Sound_to_PowerCepstrogram_hillenbrand (Sound me, double analysisWidth, double dt);
 
 autoTable PowerCepstrogram_to_Table_hillenbrand (PowerCepstrogram me, double pitchFloor, double pitchCeiling);
 

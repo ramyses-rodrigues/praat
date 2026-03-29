@@ -19,6 +19,7 @@
 #include "Pitch_AnyTier_to_PitchTier.h"
 #include "SpectrumEditor.h"
 #include "SpeechSynthesizer.h"
+#include "SpeechRecognizer.h"
 #include "SpellingChecker.h"
 #include "Strings_extensions.h"
 #include "TextGridEditor.h"
@@ -551,6 +552,39 @@ DO
 DIRECT (MODIFY_TextGrid_Sound_scaleTimes) {
 	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
 		Function_scaleXTo (me, your xmin, your xmax);
+	MODIFY_FIRST_OF_ONE_AND_ONE_END
+}
+
+FORM (MODIFY_TextGrid_Sound_transcribeInterval, U"TextGrid & Sound: Transcribe interval", U"TextGrid & Sound: Transcribe interval") {
+	HEADING (U"Textgrid...")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
+	BOOLEAN (includeWords, U"Include words", true)
+	HEADING (U"Speech activity detection...")
+	BOOLEAN (useVad, U"Allow silences", true)
+	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", U"0.5")
+	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", U"0.1")
+	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", U"0.25")
+	POSITIVE (speechPad, U"Padding around speech segments (s)", U"0.03")
+	HEADING (U"Transcription...")
+	LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
+	LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+OK
+	static autoSTRVEC modelNames;
+	modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
+
+	Melder_require (modelNames.size > 0,
+		U"Found no Whisper-cpp models to do speech recognition with.\n"
+		U"You can install them into the subfolders “whispercpp” of the folder “models” in the Praat preferences folder."
+	);
+
+	SET_LIST (modelIndex, modelName, modelNames.get (), NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName))
+	SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(),
+		NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+DO
+	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
+		TextGrid_Sound_transcribeInterval (me, you, tierNumber, intervalNumber, modelName, languageName, includeWords,
+				useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
 	MODIFY_FIRST_OF_ONE_AND_ONE_END
 }
 
@@ -1769,6 +1803,7 @@ praat_addAction1 (classTextGrid, 0, U"Synthesize", nullptr, 0, nullptr);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Modify TextGrid", nullptr, 0, nullptr);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Align interval...", nullptr, 0, MODIFY_TextGrid_Sound_alignInterval);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Scale times", nullptr, 0, MODIFY_TextGrid_Sound_scaleTimes);
+	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Transcribe interval...", nullptr, 0, MODIFY_TextGrid_Sound_transcribeInterval);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Modify Sound", nullptr, 0, nullptr);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Clone time domain", nullptr, 0, MODIFY_TextGrid_Sound_cloneTimeDomain);
 	praat_addAction2 (classSpellingChecker, 1, classWordList, 1, U"Replace WordList", nullptr, 0, MODIFY_SpellingChecker_replaceWordList);

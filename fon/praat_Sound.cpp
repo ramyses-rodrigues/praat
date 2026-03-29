@@ -1,6 +1,6 @@
 /* praat_Sound.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "Sound_and_Spectrogram.h"
 #include "Sound_and_Spectrum.h"
 #include "Sound_extensions.h"
+#include "Sound_and_TextGrid_extensions.h"
 #include "Sound_to_Cochleagram.h"
 #include "Sound_to_Formant.h"
 #include "Sound_to_Harmonicity.h"
@@ -34,6 +35,7 @@
 #include "SpectrumEditor.h"
 #include "TextGrid_Sound.h"
 #include "mp3.h"
+#include "SpeechRecognizer.h"
 
 #include "praat_Sound.h"
 
@@ -99,7 +101,7 @@ DIRECT (HELP__LongSound_help) {
 	HELP (U"LongSound")
 }
 
-FORM_READ (READ1_LongSound_open, U"Open long sound file", nullptr, true) {
+FORM_READ (READ_ONE__LongSound_open, U"Open long sound file", nullptr, true) {
 	READ_ONE
 		autoLongSound result = LongSound_open (file);
 	READ_ONE_END
@@ -1191,7 +1193,7 @@ FORM_READ (READ_MULTIPLE__Sound_readSeparateChannelsFromSoundFile, U"Read separa
 	READ_MULTIPLE_END
 }
 
-FORM_READ (READ1_Sound_readFromRawAlawFile, U"Read Sound from raw Alaw file", nullptr, true) {
+FORM_READ (READ_ONE__Sound_readFromRawAlawFile, U"Read Sound from raw Alaw file", nullptr, true) {
 	READ_ONE
 		autoSound result = Sound_readFromRawAlawFile (file);
 	READ_ONE_END
@@ -1885,6 +1887,24 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
+FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity_silero,
+	U"Sound: To TextGrid (speech activity, Silero)",
+	U"Sound: To TextGrid (speech activity, Silero)...")
+{
+	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", theVadDefaultThresholdStr)
+	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", theVadDefaultMinNonSpeechDurationStr)
+	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", theVadDefaultMinSpeechDurationStr)
+	POSITIVE (speechPad, U"Padding around speech segments (s)", theVadDefaultSpeechPadStr)
+	WORD (nonSpeechLabel, U"Non-speech interval label", theVadDefaultNonSpeechLabel)
+	WORD (speechLabel, U"Speech interval label", theVadDefaultSpeechLabel)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Sound)
+		autoTextGrid result = Sound_to_TextGrid_speechActivity_silero (me, speechProbabilityThreshold,
+				minNonSpeechDuration, minSpeechDuration, speechPad, nonSpeechLabel, speechLabel);
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
+
 DIRECT (CONVERT_EACH_TO_ONE__Sound_to_TextTier) {
 	CONVERT_EACH_TO_ONE (Sound)
 		autoTextTier result = TextTier_create (my xmin, my xmax);
@@ -2238,7 +2258,7 @@ static int publishPlayedProc () {
 /***** buttons *****/
 
 void praat_Sound_init () {
-	Thing_recognizeClassesByName (classSound, classLongSound, classSoundList, classSoundSet, nullptr);
+	Thing_recognizeClassesByName (classSound, classLongSound, classSoundList, classSoundSet);
 
 	Data_recognizeFileType (soundFileRecognizer);
 	Data_recognizeFileType (movieFileRecognizer);
@@ -2278,11 +2298,11 @@ void praat_Sound_init () {
 				CREATE_ONE__Sound_createAsToneComplex);   // alternative COMPATIBILITY <= 2013
 
 	praat_addMenuCommand (U"Objects", U"Open", U"-- read sound --", nullptr, 0, nullptr);
-	praat_addMenuCommand (U"Objects", U"Open", U"Open long sound file...", nullptr, 'L', READ1_LongSound_open);
+	praat_addMenuCommand (U"Objects", U"Open", U"Open long sound file...", nullptr, 'L', READ_ONE__LongSound_open);
 	praat_addMenuCommand (U"Objects", U"Open", U"Read separate channels from sound file... || Read two Sounds from stereo file...", nullptr, 0,
 			READ_MULTIPLE__Sound_readSeparateChannelsFromSoundFile);   // alternative COMPATIBILITY <= 2010
 	praat_addMenuCommand (U"Objects", U"Open", U"Read from special sound file", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound from raw Alaw file...", nullptr, GuiMenu_DEPTH_1, READ1_Sound_readFromRawAlawFile);
+		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound from raw Alaw file...", nullptr, GuiMenu_DEPTH_1, READ_ONE__Sound_readFromRawAlawFile);
 
 	praat_addMenuCommand (U"Objects", U"Goodies", U"-- sound goodies --", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Stop playing sound", nullptr, GuiMenu_ESCAPE,
@@ -2516,6 +2536,8 @@ void praat_Sound_init () {
 		praat_addAction1 (classSound, 0, U"-- to text grid --", nullptr, 1, nullptr);
 		praat_addAction1 (classSound, 0, U"To TextGrid...", nullptr, 1,
 				CONVERT_EACH_TO_ONE__Sound_to_TextGrid);
+		praat_addAction1 (classSound, 0, U"To TextGrid (speech activity, Silero)...", nullptr, 1,
+				CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity_silero);
 		praat_addAction1 (classSound, 0, U"To TextTier", nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN,
 				CONVERT_EACH_TO_ONE__Sound_to_TextTier);
 		praat_addAction1 (classSound, 0, U"To IntervalTier", nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN,

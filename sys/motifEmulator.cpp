@@ -1,6 +1,6 @@
 /* motifEmulator.cpp
  *
- * Copyright (C) 1993-2025 Paul Boersma
+ * Copyright (C) 1993-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1497,7 +1497,7 @@ void XtAddCallback (
 	}
 }
 
-XtWorkProcId GuiAddWorkProc (XtWorkProc workProc, XtPointer closure) {
+XtWorkProcId XtAddWorkProc (XtWorkProc workProc, XtPointer closure) {
 	int i = 1;
 	while (i < 10 && theWorkProcs[i]) i++;
 	Melder_assert (i < 10);
@@ -1512,7 +1512,7 @@ void XtRemoveWorkProc (XtWorkProcId id) {
 	theNumberOfWorkProcs--;
 }
 
-XtIntervalId GuiAddTimeOut (double interval, XtTimerCallbackProc proc, XtPointer closure) {
+XtIntervalId XtAddTimeOut (double interval, XtTimerCallbackProc proc, XtPointer closure) {
 	integer i = 1;
 	while (i < 10 && theTimeOutProcs[i]) i++;
 	Melder_assert (i < 10);
@@ -1942,9 +1942,8 @@ void *GuiWin_initialize1 (conststring32 name) {
 	Melder_sprint (theWindowClassName, 100, U"PraatChildWindow",
 	        PRAAT_WINDOW_CLASS_NUMBER, U" ", name);
 	trace (U"Window class name <<", theWindowClassName, U">>");
-	Melder_sprint (theDrawingAreaClassName, 100, U"PraatDrawingArea",
-	        PRAAT_WINDOW_CLASS_NUMBER, U" ", name);
-	HWND window = FindWindow (Melder_peek32toW (theWindowClassName), NULL);
+	Melder_sprint (theDrawingAreaClassName,100, U"PraatDrawingArea", PRAAT_WINDOW_CLASS_NUMBER, U" ", name);
+	HWND window = FindWindow (Melder_peek32toW (theWindowClassName), NULL);   // or theApplicationClassName?
 	return window;
 }
 void GuiWin_initialize2 (unsigned int argc, char **argv) {
@@ -1973,6 +1972,7 @@ void GuiWin_initialize2 (unsigned int argc, char **argv) {
 	        Melder_32toW (theApplicationClassName).transfer ();
 	RegisterClassEx (&windowClass);
 	InitCommonControls ();
+	EnableMouseInPointer (TRUE);   // from Windows 8 on
 }
 
 void GuiApp_setApplicationShell (GuiObject shell) {
@@ -2543,20 +2543,29 @@ void XtDispatchEvent (XEvent *xevent) {
 	MSG *message = (MSG *) xevent;
 	if (message->message == 0)
 		return;   // null message from PeekMessage during work proc or time out.
-	/*if (message -> message == WM_KEYDOWN || message -> message ==
-	WM_SYSKEYDOWN)
-	{
-	int kar = LOWORD (message -> wParam);
-	int modifiers = 0;
-	GuiObject me = (GuiObject) GetWindowLongPtr (message -> hwnd,
-	GWLP_USERDATA); if (GetKeyState (VK_CONTROL) < 0) modifiers |=
-	_motif_COMMAND_MASK; if (GetKeyState (VK_MENU) < 0) modifiers |=
-	_motif_OPTION_MASK; if (GetKeyState (VK_SHIFT) < 0) modifiers |=
-	_motif_SHIFT_MASK; if(kar>=48)Melder_flushError ("modifiers:%s%s%s\nmessage:
-	%s\nkar: %d", modifiers & _motif_COMMAND_MASK ? " control" : "", modifiers &
-	_motif_OPTION_MASK ? " alt" : "", modifiers & _motif_SHIFT_MASK ? " shift" :
-	"", message -> message == WM_KEYDOWN ? "keydown" : "syskeydown", kar);
-	}*/
+	if (message -> message == WM_APP_WORK_PROC) {
+		auto *container = reinterpret_cast <GuiWinWorkProcWrapper_base *> (message -> lParam);
+		try {
+			container -> run ();
+		} catch (MelderError) {
+			Melder_flushError ();   // no error message should leave the event loop
+		}
+		delete container;   // called even if there was an exception
+		return;
+	}
+/*if (message -> message == WM_KEYDOWN || message -> message == WM_SYSKEYDOWN)
+{
+int kar = LOWORD (message -> wParam);
+int modifiers = 0;
+GuiObject me = (GuiObject) GetWindowLongPtr (message -> hwnd, GWLP_USERDATA);
+if (GetKeyState (VK_CONTROL) < 0) modifiers |= _motif_COMMAND_MASK;
+if (GetKeyState (VK_MENU) < 0) modifiers |= _motif_OPTION_MASK;
+if (GetKeyState (VK_SHIFT) < 0) modifiers |= _motif_SHIFT_MASK;
+if(kar>=48)Melder_flushError ("modifiers:%s%s%s\nmessage: %s\nkar: %d",
+modifiers & _motif_COMMAND_MASK ? " control" : "",
+modifiers & _motif_OPTION_MASK ? " alt" : "",
+modifiers & _motif_SHIFT_MASK ? " shift" : "", message -> message == WM_KEYDOWN ? "keydown" : "syskeydown", kar);
+}*/
 	/*
 	 * Intercept accelerators, which may be function keys or Command
 	 * combinations. Some Alt-GR combinations denote special characters (e.g.
@@ -2822,10 +2831,19 @@ int APIENTRY WinMain (HINSTANCE instance, HINSTANCE /*previousInstance*/,
 	theGui.instance = instance;
 	theGui.commandShow = commandShow;
 	int argc;
-	WCHAR **argvW = CommandLineToArgvW (GetCommandLineW (), &argc);
-	char **argv = Melder_malloc (char *, argc);
-	for (int iarg = 0; iarg < argc; iarg++)
-		argv[iarg] = Melder_32to8 (Melder_peekWto32 (argvW[iarg])).transfer ();
+	WCHAR** argvW = CommandLineToArgvW (GetCommandLineW (), & argc);
+	char** argv = Melder_malloc (char*, argc);
+	for (int iarg = 0; iarg < argc; iarg ++)
+		argv [iarg] = Melder_32to8 (Melder_peekWto32 (argvW [iarg])).transfer();
+	/*
+		It cannot hurt to establish the current thread as the GUI thread,
+		by calling one event-loop function (without further side effects).
+		Perhaps this will help later calls to PostMessage().
+	*/
+	{
+		MSG dummy;
+		PeekMessage (& dummy, nullptr, 0, 0, PM_NOREMOVE);
+	}
 	return main (argc, argv);
 }
 
@@ -3100,75 +3118,6 @@ static void on_vscroll (HWND window, HWND controlWindow, UINT code, int pos) {
 	Usando a roda do mouse com a tecla SHIFT pressionada, zoom de +-2%
 	Usando a roda do mouse com a tecla CTRL pressionada, zoom de +- 25 %
 */
-
-static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int fwKeys) {
-	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
-	if (me) {
-		if (my widgetClass == xmDrawingAreaWidgetClass) {
-
-			const bool controlKeyPressed = (fwKeys & MK_CONTROL);
-			const bool shiftKeyPressed = (fwKeys & MK_SHIFT);
-
-			if (controlKeyPressed)
-				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
-			else if (controlKeyPressed) // zom mais rápido
-				_GuiWinDrawingArea_handleZoom (me, double (zDelta * 5)); // mais taxa de zoom (25%)
-			else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-				on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			else {
-				// debug: lista todas as janelas filhas da janela pai do DrawingArea, para verificar coisas	
-				static MelderString childInfo;
-				MelderString_empty (&childInfo);
-
-				// varre todas as janelas filhas da janela pai do DrawingArea, para verificar se há uma ScrollBar
-				// (sempre presente na janela de SoundEditor, etc) e chama callbacks da ScrollBar vertical, 
-				// que desloca a janela para esquerda/direita.
-
-				for (GuiObject child = my parent->firstChild; child;child = child->nextSibling) {
-					// debug
-					MelderString_append (&childInfo, U"\nChild: ", Melder_pointer (child), U" WidgetClass: ", child->widgetClass);
-										
-					if (child->widgetClass == xmScrollBarWidgetClass)
-						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-					
-					// if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
-					// 	on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-					// else if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
-					// 	on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-				}
-
-				// debug
-				Melder_information(childInfo.string); 
-					
-			}
-		
-			
-			// // verifica se é uma janela de texto, se for, scroll up/down; se for outra janela, scroll left/right
-			// if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-			// 	on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			// // senão, varre buscando por todos os objetos filhos dessa janela e verifica se há 
-			// // uma ScrollBar com orientação HORIZONTAL (sempre presente na janela de functionEditor (), pitchEditor
-			// // SoundEditor, etc) e chama callbacks da ScrollBar horozintal, que desloca a janela para esquerda/direita.
-			// else {
-			// 	for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
-			// 		if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL) {
-			// 			if (shiftKeyPressed)
-			// 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0); // zoom mais preciso (2%)
-			// 			else if (controlKeyPressed) // zom mais rápido
-			// 				_GuiWinDrawingArea_handleZoom (me, double (zDelta * 5)); // mais taxa de zoom (25%)
-			// 			else 							
-			// 				on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			// 		}
-			// 		else if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
-			// 			on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			// 	}			
-		} else
-			FORWARD_WM_MOUSEWHEEL (
-			        window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
-	} else
-		FORWARD_WM_MOUSEWHEEL (
-		        window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
-}
 static void on_mouseWheel (HWND window, int xPos, int yPos, int zDelta, int fwKeys) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
@@ -3407,28 +3356,47 @@ static LRESULT CALLBACK windowProc(
 	{
 		HANDLE_MSG(window, WM_CLOSE, on_close);
 		HANDLE_MSG (window, WM_COMMAND, on_command);
-		HANDLE_MSG(window, WM_DESTROY, on_destroy);
-		HANDLE_MSG(window, WM_LBUTTONDBLCLK, on_lbuttonDown); // double-click counts as two clicks
-		HANDLE_MSG(window, WM_LBUTTONDOWN, on_lbuttonDown);
-		HANDLE_MSG(window, WM_LBUTTONUP, on_lbuttonUp);
-		HANDLE_MSG(window, WM_MOUSEMOVE, on_mouseMove);
-		HANDLE_MSG(window, WM_PAINT, on_paint);
-		HANDLE_MSG(window, WM_HSCROLL, on_hscroll);
-		HANDLE_MSG(window, WM_VSCROLL, on_vscroll);
-		HANDLE_MSG(window, WM_MOUSEWHEEL, on_mouseWheel);
-		// HANDLE_MSG (window, WM_MOUSEHWHEEL, on_horizontalWheel);
-		HANDLE_MSG(window, WM_SIZE, on_size);
-		HANDLE_MSG(window, WM_KEYDOWN, on_key);
-		HANDLE_MSG(window, WM_CHAR, on_char);
-		HANDLE_MSG(window, WM_MOVE, on_move);
-		HANDLE_MSG(window, WM_CTLCOLORBTN, on_ctlColorBtn);
-		HANDLE_MSG(window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
-		HANDLE_MSG(window, WM_ACTIVATE, on_activate);
-
+		HANDLE_MSG (window, WM_DESTROY, on_destroy);
+		HANDLE_MSG (window, WM_LBUTTONDOWN, on_lbuttonDown);
+		HANDLE_MSG (window, WM_LBUTTONDBLCLK, on_lbuttonDown);   // double-click counts as two clicks
+		HANDLE_MSG (window, WM_LBUTTONUP, on_lbuttonUp);
+		HANDLE_MSG (window, WM_MOUSEMOVE, on_mouseMove);
+		HANDLE_MSG (window, WM_PAINT, on_paint);
+		HANDLE_MSG (window, WM_HSCROLL, on_hscroll);
+		HANDLE_MSG (window, WM_VSCROLL, on_vscroll);
+		HANDLE_MSG (window, WM_MOUSEWHEEL, on_mouseWheel);
+		
 		/*Ramyses - arrastar e soltar*/
 		HANDLE_MSG(window, WM_DROPFILES, on_dropFiles);
 
-		case WM_USER: // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
+		HANDLE_MSG (window, WM_SIZE, on_size);
+		HANDLE_MSG (window, WM_KEYDOWN, on_key);
+		HANDLE_MSG (window, WM_CHAR, on_char);
+		HANDLE_MSG (window, WM_MOVE, on_move);
+		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
+		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
+		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
+		case WM_POINTERWHEEL: {   // from Windows 8 on
+			int zDelta = GET_WHEEL_DELTA_WPARAM (wParam);
+			int fwKeys = GET_KEYSTATE_WPARAM (wParam);
+			if (GetKeyState (VK_SHIFT) < 0)
+				fwKeys |= MK_SHIFT;
+			if (GetKeyState (VK_CONTROL) < 0)
+				fwKeys |= MK_CONTROL;
+			POINT point = { GET_X_LPARAM (lParam), GET_Y_LPARAM (lParam) };
+			ScreenToClient (window, & point);
+			on_mouseWheel (window, point.x, point.y, zDelta, fwKeys);
+			return 0;
+		}
+		case WM_POINTERHWHEEL: {   // from Windows 8 on
+			int zDelta = GET_WHEEL_DELTA_WPARAM (wParam);
+			int fwKeys = GET_KEYSTATE_WPARAM (wParam) | MK_SHIFT;
+			POINT point = { GET_X_LPARAM (lParam), GET_Y_LPARAM (lParam) };
+			ScreenToClient (window, & point);
+			on_mouseWheel (window, point.x, point.y, zDelta, fwKeys);
+			return 0;
+		}
+		case WM_USER:   // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
 		case WM_APP:
 		{
 			/*if (IsIconic (window)) ShowWindow (window, SW_RESTORE);

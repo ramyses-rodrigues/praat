@@ -1,10 +1,10 @@
 /* praat_LPC_init.cpp
  *
- * Copyright (C) 1994-2024 David Weenink
+ * Copyright (C) 1994-2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -37,7 +37,6 @@
 #include "LPC_to_Spectrum.h"
 #include "NUM2.h"
 #include "PowerCepstrum.h"
-#include "PowerCepstrogram.h"
 #include "Sound_to_PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
 #include "Sound_to_Formant_mt.h"
@@ -869,11 +868,12 @@ FORM (NEW__PowerCepstrogram_to_Table_CPPvalues, U"PowerCepstrogram: To Table (CP
 	OK
 DO
 	CONVERT_EACH_TO_ONE (PowerCepstrogram)
-	autoTable result = PowerCepstrogram_to_Table_CPPvalues (me, fromPitch, toPitch, tolerance, 
+	autoTable result = PowerCepstrogram_to_Table_CPPvalues (me, fromPitch, toPitch, tolerance,
 		peakInterpolationType, fromQuefrency_trendLine, toQuefrency_trendLine, lineType, fitMethod
 	);
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_cpp");
 }
+
 FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_Table_hillenbrand, U"PowerCepstrogram: To Table (hillenbrand)", U"PowerCepstrogram: To Table (peak prominences)...") {
 	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
 	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
@@ -1152,7 +1152,7 @@ FORM (CONVERT_EACH_TO_ONE__LPC_to_Polynomial_slice, U"LPC: To Polynomial", U"LPC
 	OK
 DO
 	CONVERT_EACH_TO_ONE (LPC)
-		autoPolynomial result = LPC_to_Polynomial (me, time);
+		autoPolynomial result = LPC_to_Polynomial_slice (me, time);
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", NUMnumber_as_stringWithDotReplacedByUnderscore (time))
 }
 
@@ -1604,7 +1604,7 @@ void praat_uvafon_LPC_init () {
 	
 	Data_recognizeFileType (HTKParameterFileRecognizer);
 	
-	Thing_recognizeClassesByName (classCepstrumc, classPowerCepstrum, classCepstrogram, classFormantPath, classFormantPathEditor, classPowerCepstrogram, classLPC, classLFCC, classLineSpectralFrequencies, classMFCC, classVocalTractTier, nullptr);
+	Thing_recognizeClassesByName (classCepstrumc, classPowerCepstrum, classCepstrogram, classFormantPath, classFormantPathEditor, classPowerCepstrogram, classLPC, classLFCC, classLineSpectralFrequencies, classMFCC, classVocalTractTier);
 	
 	structFormantPathArea  :: f_preferences ();
 	structFormantPathEditor  :: f_preferences ();

@@ -2,11 +2,11 @@
 #define _Gui_h_
 /* Gui.h
  *
- * Copyright (C) 1993-2024 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2026 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -184,9 +184,9 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 	 * Declarations of Xt functions.
 	 */
 	void XtAddCallback (GuiObject w, int kind, XtCallbackProc proc, XtPointer closure);
-	XtIntervalId GuiAddTimeOut (uinteger interval,
-		XtTimerCallbackProc timerProc, XtPointer closure);
-	XtWorkProcId GuiAddWorkProc (XtWorkProc workProc, XtPointer closure);
+	XtIntervalId XtAddTimeOut (uinteger interval,
+			XtTimerCallbackProc timerProc, XtPointer closure);
+	XtWorkProcId XtAddWorkProc (XtWorkProc workProc, XtPointer closure);
 	void GuiMainLoop ();
 	void GuiNextEvent (XEvent *event);
 	#define XtCalloc  Melder_calloc
@@ -298,9 +298,83 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 	#define XmToggleButtonSetState XmToggleButtonGadgetSetState
 
 	void motif_win_setUserMessageCallback (int (*userMessageCallback) (void));
+
+	constexpr UINT WM_APP_WORK_PROC = WM_APP + 0x5C;   // like "script"
+	struct GuiWinWorkProcWrapper_base {
+		virtual void run () = 0;
+		virtual ~GuiWinWorkProcWrapper_base () { }
+	};
+	template <typename F>
+	struct GuiWinWorkProcWrapper_derived : GuiWinWorkProcWrapper_base {
+		F function;
+		GuiWinWorkProcWrapper_derived (F&& f): function (std::move (f)) { }
+		void run () override {
+			function ();
+		}
+	};
 #else
 	typedef void *GuiObject;
 #endif
+
+/*
+	`Gui_addWorkProc` can post any lambda to be scheduled during an idle moment in the main event loop.
+
+	Example of usage:
+		autostring32 clickedText = ...;
+		Gui_addWorkProc (
+			[clickedText = std::move (clickedText)] () mutable {   // transfer ownership of clickedText to the lambda
+				try {
+					autoPraatBackground background;
+					Interpreter_resume (thePauseForm_interpreterReference);
+				} catch (MelderError) {
+					if (thePauseForm_clicked == theCancelContinueButton)
+						Melder_throw (U"This happened after you cancelled the pause form.");
+					else
+						Melder_throw (U"This happened after you clicked “", clickedText.get(), U"” in the pause form.");
+				}
+			}
+		);
+ */
+template <typename F>
+static void Gui_addWorkProc (F&& function) {
+	#if gtk
+		auto *functionOnTheHeap = new std::decay_t <F> (std::forward <F> (function));
+		g_idle_add (
+			[] (gpointer closure) -> gboolean {
+				auto *functionOnTheHeapFromClosure = static_cast <std::decay_t <F>*> (closure);
+				try {
+					(*functionOnTheHeapFromClosure) ();
+				} catch (MelderError) {
+					Melder_flushError ();   // no error message should leave the event loop
+				}
+				delete functionOnTheHeapFromClosure;   // called even if there was an exception
+				return G_SOURCE_REMOVE;
+			},
+			functionOnTheHeap
+		);
+	#elif cocoa
+		auto *functionOnTheHeap = new std::decay_t <F> (std::forward <F> (function));
+		CFRunLoopPerformBlock (
+			CFRunLoopGetMain (),
+			kCFRunLoopCommonModes,
+			^{
+				try {
+					(*functionOnTheHeap) ();
+				} catch (MelderError) {
+					Melder_flushError ();   // no error message should leave the event loop
+				}
+				delete functionOnTheHeap;   // called even if there was an exception
+			}
+		);
+		CFRunLoopWakeUp (CFRunLoopGetMain ());
+	#elif motif
+		auto *functionWrapper = new GuiWinWorkProcWrapper_derived <F> (std::forward <F> (function));
+		PostMessage (HWND (nullptr), WM_APP_WORK_PROC, 0, reinterpret_cast <LPARAM> (functionWrapper));
+	#elif defined (NO_GUI)
+	#else
+		#error The function `Gui_addWorkProc`() is not implemented for this platform.
+	#endif
+}
 
 int Gui_getResolution (GuiObject widget);
 void Gui_getWindowPositioningBounds (double *x, double *y, double *width, double *height);
@@ -736,6 +810,11 @@ Thing_define (GuiMenuItem, GuiThing) {
 #define GuiMenu_OPTION  (1 << 24)
 #define GuiMenu_SHIFT  (1 << 25)
 #define GuiMenu_COMMAND  (1 << 26)
+#if cocoa
+	#define GuiMenu_COMMAND_EXTRA  (GuiMenu_OPTION | GuiMenu_COMMAND)   /* standard on the Mac (where the keys are next to each other) */
+#else
+	#define GuiMenu_COMMAND_EXTRA  (GuiMenu_SHIFT | GuiMenu_COMMAND)   /* standard on Windows (where the keys are next to each other, *and* Ctrl-Alt can mean Alt-GR) */
+#endif
 // 1 is the short form of GuiMenu_DEPTH_1
 // 2 is the short form of GuiMenu_DEPTH_2
 // 3 is the short form of GuiMenu_DEPTH_3

@@ -1,5 +1,5 @@
 Praats/external/flac/READ_ME.TXT
-Paul Boersma, 22 June 2025
+Paul Boersma, 29 December 2025
 
 This file describes the adaptations to the FLAC 1.5.0 sources
 that are needed to make them compatible with Praat.
@@ -145,12 +145,7 @@ Before #including any FLAC header files, do
 
 Put #ifdef _WIN32 around flac_share_win_utf8_io.c.
 
-To minimize warnings, o something to
+To minimize warnings, do something to
 	#ifdef HAVE_STDINT_H
 such as replacing it with
 	#if HAVE_STDINT_H
-
-The reverse for
-	#if WORDS_BIGENDIAN
-to
-	#ifdef WORDS_BIGENDIAN

@@ -1,6 +1,6 @@
 /* main_Praat.h
  *
- * Copyright (C) 2024,2025 Paul Boersma
+ * Copyright (C) 2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
 	These things have to be #defines so that they can be used not only in main_Praat.cpp when initializing the app,
 	but also in an automated `praat.plist` (for macOS).
@@ -25,10 +24,10 @@
 	and `Info.plist Preprocessor Prefix File` to `main/main_Praat.h`.
 */
 #define PRAAT_NAME  Praat
-#define PRAAT_VERSION_STR  6.4.47
-#define PRAAT_VERSION_NUM  6447
-#define PRAAT_YEAR  2025
-#define PRAAT_MONTH  11
-#define PRAAT_DAY  7
+#define PRAAT_VERSION_STR  6.4.62
+#define PRAAT_VERSION_NUM  6462
+#define PRAAT_YEAR  2026
+#define PRAAT_MONTH  3
+#define PRAAT_DAY  13
 
 /* End of file main_Praat.h */

@@ -1,6 +1,6 @@
 /* Interpreter.cpp
  *
- * Copyright (C) 1993-2025 Paul Boersma
+ * Copyright (C) 1993-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,13 @@
 #include "Interpreter.h"
 #include "praatP.h"
 #include "praat_script.h"
+#include "UiPause.h"
+#include "DemoEditor.h"
 #include "Formula.h"
 #include "../kar/UnicodeData.h"
 
 #include "../fon/Vector.h"
+#include "../dwsys/NUMsorting.h"
 
 #define Interpreter_WORD 1
 #define Interpreter_SENTENCE 2
@@ -106,26 +109,39 @@ Thing_implement (Interpreter, Thing, 0);
 
 static CollectionOf <structInterpreter> theReferencesToAllLivingInterpreters;
 
+/* global */ structInterpreterStack theInterpreterStack;
+
 void structInterpreter :: v9_destroy () noexcept {
 	theReferencesToAllLivingInterpreters. undangleItem (this);
+	UiPause_interpreterGoesAway (this);
+	Demo_interpreterGoesAway (this);
 	our Interpreter_Parent :: v9_destroy ();
 }
 
-autoInterpreter Interpreter_create () {
+autoInterpreter Interpreter_createFromEnvironment (InterpreterStack interpreterStack, Editor optionalInterpreterOwningEditor, MelderFile optionalFile) {
+	Melder_assert (interpreterStack);
 	try {
 		autoInterpreter me = Thing_new (Interpreter);
+		my owningInterpreterStack = interpreterStack;
+		if (optionalFile) {
+			MelderFile_copy (optionalFile, & my file);
+			/*
+				As for the working directory, put it in canonical form, i.e. don't use only MelderFile_getParentFolder(). TODO: make MelderFile_getParentFolder canonical
+			*/
+			{// scope
+				autoMelderFileSetCurrentFolder folder (& my file);
+				Melder_getCurrentFolder (& my workingDirectory);
+			}
+		} else {
+			Melder_getCurrentFolder (& my workingDirectory);   // last resort; TODO: figure out how useful this is
+		}
+		my setOwningEditorEnvironmentFromOptionalEditor (optionalInterpreterOwningEditor);
 		my variablesMap. max_load_factor (0.65f);
 		theReferencesToAllLivingInterpreters. addItem_ref (me.get());
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"Interpreter not created.");
 	}
-}
-
-autoInterpreter Interpreter_createFromEnvironment (Editor optionalInterpreterOwningEditor) {
-	autoInterpreter interpreter = Interpreter_create ();
-	interpreter -> setOwningEditorEnvironmentFromOptionalEditor (optionalInterpreterOwningEditor);
-	return interpreter;
 }
 
 void Interpreters_undangleEnvironment (Editor environment) noexcept {
@@ -195,8 +211,7 @@ void Melder_includeIncludeFiles (autostring32 *inout_text, bool onlyInCodeChunks
 				Separate out the name of the include file.
 			*/
 			includeFileName = includeLocation + 8;
-			while (Melder_isHorizontalSpace (*includeFileName))
-				includeFileName ++;
+			Melder_skipHorizontalSpace (& includeFileName);
 			tail = includeFileName;
 			while (Melder_staysWithinLine (*tail))
 				tail ++;
@@ -865,7 +880,7 @@ void Interpreter_getArgumentsFromDialog (Interpreter me, UiForm dialog) {
 			{
 				const conststring32 value = UiForm_getString (dialog, parameter);
 				structMelderFile file { };
-				Melder_relativePathToFile (value, & file);   // the working directory should have been set to the script file path
+				Melder_relativePathToFile (value, & file);   // the working directory should have been set to the script file path TODO: check
 				my arguments [ipar] = Melder_dup_f (MelderFile_peekPath (& file));
 				break;
 			}
@@ -1018,8 +1033,7 @@ void Interpreter_getArgumentsFromString (Interpreter me, conststring32 arguments
 		/*
 			Skip spaces until next argument.
 		*/
-		while (Melder_isHorizontalSpace (*arguments))
-			arguments ++;
+		Melder_skipHorizontalSpace (& arguments);
 		/*
 			The argument is everything up to the next space, or, if it starts with a double quote,
 			everything between this quote and the matching double quote;
@@ -1049,8 +1063,7 @@ void Interpreter_getArgumentsFromString (Interpreter me, conststring32 arguments
 		Leading spaces are skipped, but trailing spaces are included.
 	*/
 	if (size > 0) {
-		while (Melder_isHorizontalSpace (*arguments))
-			arguments ++;
+		Melder_skipHorizontalSpace (& arguments);
 		my arguments [size] = Melder_dup_f (arguments);
 	}
 	convertBooleansAndChoicesToNumbersAndRelativeToAbsolutePaths (me, size);
@@ -1140,8 +1153,10 @@ static void Interpreter_addNumericVectorVariable (Interpreter me, conststring32 
 }
 
 InterpreterVariable Interpreter_hasVariable (Interpreter me, conststring32 key) {
-	Melder_assert (key);
-	auto it = my variablesMap. find (key [0] == U'.' ? Melder_cat (my procedureNames [my callDepth], key) : key);
+	Melder_pre (key);
+	conststring32 variableNameIncludingProcedureName =
+			( key [0] == U'.' ? Melder_cat (my procedureStackNames [my callDepth], key) : key );
+	auto it = my variablesMap. find (variableNameIncludingProcedureName);
 	if (it != my variablesMap.end())
 		return it -> second.get();
 	else
@@ -1149,9 +1164,9 @@ InterpreterVariable Interpreter_hasVariable (Interpreter me, conststring32 key) 
 }
 
 InterpreterVariable Interpreter_lookUpVariable (Interpreter me, conststring32 key) {
-	Melder_assert (key);
+	Melder_pre (key);
 	conststring32 variableNameIncludingProcedureName =
-		key [0] == U'.' ? Melder_cat (my procedureNames [my callDepth], key) : key;
+			( key [0] == U'.' ? Melder_cat (my procedureStackNames [my callDepth], key) : key );
 	auto it = my variablesMap. find (variableNameIncludingProcedureName);
 	if (it != my variablesMap.end())
 		return it -> second.get();
@@ -1165,10 +1180,10 @@ InterpreterVariable Interpreter_lookUpVariable (Interpreter me, conststring32 ke
 }
 
 static integer lookupLabel (Interpreter me, conststring32 labelName) {
-	for (integer ilabel = 1; ilabel <= my numberOfLabels; ilabel ++)
-		if (str32equ (labelName, my labelNames [ilabel]))
-			return ilabel;
-	Melder_throw (U"Unknown label \"", labelName, U"\".");
+	const integer position = NUMfindInSorted (my labelNames.get(), labelName);
+	if (position == 0)
+		Melder_throw (U"Unknown label \"", labelName, U"\" (we know of ", my labelNames.size, U" labels).");
+	return position;
 }
 
 static bool isCommand (conststring32 string) {
@@ -1197,8 +1212,8 @@ static bool isCommand (conststring32 string) {
 }
 
 static void parameterToVariable (Interpreter me, int type, conststring32 in_parameter, int ipar) {
+	Melder_pre (type != 0);
 	char32 parameter [200];
-	Melder_assert (type != 0);
 	str32cpy (parameter, in_parameter);
 	if (type >= Interpreter_MINIMUM_TYPE_FOR_NUMERIC_VARIABLE && type <= Interpreter_MAXIMUM_TYPE_FOR_NUMERIC_VARIABLE) {
 		Interpreter_addNumericVariable (me, parameter, Melder_atof (my arguments [ipar].get()));
@@ -1409,8 +1424,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 		We just passed the `@` sign, so we continue by looking for a procedure name at the call site.
 	*/
 	char32 *p = command;
-	while (Melder_isHorizontalSpace (*p))
-		p ++;   // skip whitespace
+	Melder_skipHorizontalSpace (& p);
 	char32 *callName = p;
 	while (Melder_staysWithinInk (*p) && *p != U'(' && *p != U':')
 		p ++;
@@ -1421,8 +1435,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 		*p = U'\0';   // close procedure name
 		if (! parenthesisOrColonFound) {
 			p ++;   // step over first white space
-			while (Melder_isHorizontalSpace (*p))
-				p ++;   // skip more whitespace
+			Melder_skipHorizontalSpace (& p);
 			hasArguments = ( *p != U'\0' );
 			parenthesisOrColonFound = ( *p == U'(' || *p == U':' );
 			if (hasArguments && ! parenthesisOrColonFound)
@@ -1433,11 +1446,10 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 	const integer callLength = Melder_length (callName);
 	integer iline = 1;
 	for (; iline <= lines.size; iline ++) {
-		if (! str32nequ (lines [iline], U"procedure ", 10))
+		if (! str32nequ (lines [iline], U"procedure", 9) || ! Melder_isHorizontalSpace (lines [iline] [9]))
 			continue;
 		char32 *q = lines [iline] + 10;
-		while (Melder_isHorizontalSpace (*q))
-			q ++;   // skip whitespace before procedure name
+		Melder_skipHorizontalSpace (& q);   // skip whitespace before procedure name
 		char32 *const procName = q;
 		while (Melder_staysWithinInk (*q) && *q != U'(' && *q != U':')
 			q ++;
@@ -1449,23 +1461,20 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 			*/
 			if (++ my callDepth > Interpreter_MAX_CALL_DEPTH)
 				Melder_throw (U"Call depth greater than ", Interpreter_MAX_CALL_DEPTH, U".");
-			str32cpy (my procedureNames [my callDepth], callName);
+			str32cpy (my procedureStackNames [my callDepth], callName);
 			const bool parenthesisOrColonFound = ( *q == U'(' || *q == U':' );
 			if (*q)
 				q ++;   // step over parenthesis or colon or first white space
 			if (! parenthesisOrColonFound) {
-				while (Melder_isHorizontalSpace (*q))
-					q ++;   // skip more whitespace
+				Melder_skipHorizontalSpace (& q);
 				if (*q == U'(' || *q == U':')
 					q ++;   // step over parenthesis or colon
 			}
 			while (*q && *q != U')' && *q != U';') {
 				static MelderString argument;
 				MelderString_empty (& argument);
-				while (Melder_isHorizontalSpace (*p))
-					p ++;
-				while (Melder_isHorizontalSpace (*q))
-					q ++;
+				Melder_skipHorizontalSpace (& p);
+				Melder_skipHorizontalSpace (& q);
 				conststring32 parameterName = q;
 				while (Melder_staysWithinInk (*q) && *q != U',' && *q != U')' && *q != U';')
 					q ++;   // collect parameter name
@@ -1608,8 +1617,7 @@ static void Interpreter_do_oldProcedureCall (Interpreter me, char32 *command,
 		Old type of procedure calls, with space separation, unquoted strings, and no array support.
 	*/
 	char32 *p = command;
-	while (Melder_isHorizontalSpace (*p))
-		p ++;   // skip whitespace
+	Melder_skipHorizontalSpace (& p);
 	char32 *callName = p;
 	while (*p != U'\0' && ! Melder_isHorizontalSpace (*p) && *p != U'(' && *p != U':')
 		p ++;
@@ -1623,8 +1631,7 @@ static void Interpreter_do_oldProcedureCall (Interpreter me, char32 *command,
 		if (! str32nequ (lines [iline], U"procedure ", 10))
 			continue;
 		char32 *q = lines [iline] + 10;
-		while (Melder_isHorizontalSpace (*q))
-			q ++;
+		Melder_skipHorizontalSpace (& q);
 		char32 *procName = q;
 		while (*q != U'\0' && ! Melder_isHorizontalSpace (*q) && *q != U'(' && *q != U':')
 			q ++;
@@ -1638,13 +1645,12 @@ static void Interpreter_do_oldProcedureCall (Interpreter me, char32 *command,
 				Melder_throw (U"Call to procedure \"", callName, U"\" has too few arguments.");
 			if (++ my callDepth > Interpreter_MAX_CALL_DEPTH)
 				Melder_throw (U"Call depth greater than ", Interpreter_MAX_CALL_DEPTH, U".");
-			str32cpy (my procedureNames [my callDepth], callName);
+			str32cpy (my procedureStackNames [my callDepth], callName);
 			if (hasParameters) {
 				bool parenthesisOrColonFound = ( *q == U'(' || *q == U':' );
 				q ++;   // step over parenthesis or colon or first white space
 				if (! parenthesisOrColonFound) {
-					while (Melder_isHorizontalSpace (*q))
-						q ++;   // skip more whitespace
+					Melder_skipHorizontalSpace (& q);
 					if (*q == U'(' || *q == U':')
 						q ++;   // step over parenthesis or colon
 				}
@@ -1653,8 +1659,7 @@ static void Interpreter_do_oldProcedureCall (Interpreter me, char32 *command,
 					char32 *par, save;
 					static MelderString arg;
 					MelderString_empty (& arg);
-					while (Melder_isHorizontalSpace (*p))
-						p ++;
+					Melder_skipHorizontalSpace (& p);
 					while (Melder_isHorizontalSpace (*q) || *q == U',' || *q == U')')
 						q ++;
 					par = q;
@@ -1728,7 +1733,8 @@ static void assignToNumericVectorElement (Interpreter me, char32 *& p, const cha
 			if (! inString)
 				depth --;
 		}
-		if (*p == U'"') inString = ! inString;
+		if (*p == U'"')
+			inString = ! inString;
 		p ++;
 	}
 	if (! Melder_staysWithinLine (*p))
@@ -1741,8 +1747,7 @@ static void assignToNumericVectorElement (Interpreter me, char32 *& p, const cha
 		Melder_throw (U"Element index should be numeric.");
 	}
 	p ++;   // step over closing bracket
-	while (Melder_isHorizontalSpace (*p))
-		p ++;
+	Melder_skipHorizontalSpace (& p);
 	int assignmentType = 0;
 	if (*p == U'=') {
 		p ++;   // step over equals sign
@@ -1760,8 +1765,7 @@ static void assignToNumericVectorElement (Interpreter me, char32 *& p, const cha
 		p += 2;   // step over div-gets sign
 	} else
 		Melder_throw (U"Missing '=', '+=', '-=', '*=' or '/=' after vector element ", vectorName, U" [", index.string, U"].");
-	while (Melder_isHorizontalSpace (*p))
-		p ++;   // go to first token after assignment
+	Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 	if (*p == U'\0')
 		Melder_throw (U"Missing expression after vector element ", vectorName, U" [", index.string, U"].");
 	double value;
@@ -1882,8 +1886,7 @@ static void assignToNumericMatrixElement (Interpreter me, char32 *& p, const cha
 		Melder_throw (U"Column number should be numeric.");
 	}
 	p ++;   // step over closing bracket
-	while (Melder_isHorizontalSpace (*p))
-		p ++;
+	Melder_skipHorizontalSpace (& p);
 	int assignmentType = 0;
 	if (*p == U'=') {
 		p ++;   // step over equals sign
@@ -1902,8 +1905,7 @@ static void assignToNumericMatrixElement (Interpreter me, char32 *& p, const cha
 	} else
 		Melder_throw (U"Missing '=', '+=', '-=', '*=' or '/=' after matrix element ", matrixName, U" [",
 			rowFormula.string, U",", columnFormula.string, U"].");
-	while (Melder_isHorizontalSpace (*p))
-		p ++;   // go to first token after assignment
+	Melder_skipHorizontalSpace (&p);   // go to first token after assignment
 	if (*p == U'\0')
 		Melder_throw (U"Missing expression after matrix element ", matrixName, U" [",
 				rowFormula.string, U",", columnFormula.string, U"].");
@@ -1994,13 +1996,11 @@ static void assignToStringArrayElement (Interpreter me, char32 *& p, const char3
 		Melder_throw (U"Element index should be numeric.");
 	}
 	p ++;   // step over closing bracket
-	while (Melder_isHorizontalSpace (*p))
-		p ++;
+	Melder_skipHorizontalSpace (& p);
 	if (*p != U'=')
 		Melder_throw (U"Missing '=' after string vector element ", vectorName, U" [", index.string, U"].");
 	p ++;   // step over equals sign
-	while (Melder_isHorizontalSpace (*p))
-		p ++;   // go to first token after assignment
+	Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 	if (*p == U'\0')
 		Melder_throw (U"Missing expression after string vector element ", vectorName, U" [", index.string, U"].");
 	autostring32 value;
@@ -2032,16 +2032,14 @@ static void assignToStringArrayElement (Interpreter me, char32 *& p, const char3
 	var -> stringArrayValue [indexValue] = value. move();
 }
 
-static void private_Interpreter_initialize (Interpreter me, char32 *text, const bool reuseVariables) {
-	char32 *command = text;
+static void private_Interpreter_initialize (Interpreter me, autostring32 text, const bool reuseVariables) {
+	if (text)
+		my text = text.move();   // otherwise, use my existing text
+	char32 *command = my text.get();
 	autoMelderString command2;
 	integer numberOfLines = 0;
 	bool atLastLine = false;
 	int chopped = 0;
-	/*
-		Start.
-	*/
-	my running = true;
 	/*
 		Count lines and set the newlines to zero.
 	*/
@@ -2056,13 +2054,16 @@ static void private_Interpreter_initialize (Interpreter me, char32 *text, const 
 		command = endOfLine + 1;
 	}
 	/*
-		Remember line starts and labels.
+		Remember line starts, labels and procedures.
 	*/
 	my lines. resize (numberOfLines);
-	command = text;   // reset
+	command = my text.get();   // reset
+	my labelNames. reset();
+	my labelLines. reset();
+	my procedureNames. reset();
+	my procedureStartLines. reset();
 	for (integer lineNumber = 1; lineNumber <= numberOfLines; lineNumber ++, command += Melder_length (command) + 1 + chopped) {
-		while (Melder_isHorizontalSpace (*command))
-			command ++;   // nbsp can occur for scripts copied from the manual
+		Melder_skipHorizontalSpace (& command);   // nbsp can occur for scripts copied from the manual
 		/*
 			Chop trailing spaces?
 		*/
@@ -2078,17 +2079,51 @@ static void private_Interpreter_initialize (Interpreter me, char32 *text, const 
 			}
 		#endif
 		my lines [lineNumber] = command;
-		if (str32nequ (command, U"label ", 6)) {
-			for (integer ilabel = 1; ilabel <= my numberOfLabels; ilabel ++)
-				if (str32equ (command + 6, my labelNames [ilabel]))
-					Melder_throw (U"Duplicate label \"", command + 6, U"\".");
-			if (my numberOfLabels >= Interpreter_MAXNUM_LABELS)
-				Melder_throw (U"Too many labels.");
-			str32ncpy (my labelNames [++ my numberOfLabels], command + 6, Interpreter_MAX_LABEL_LENGTH);
-			my labelNames [my numberOfLabels] [Interpreter_MAX_LABEL_LENGTH] = U'\0';
-			my labelLines [my numberOfLabels] = lineNumber;
+		if (str32nequ (command, U"label", 5) && Melder_isHorizontalSpace (command [5])) {
+			MelderString_empty (& command2);
+			for (integer ichar = 6; ; ichar ++) {
+				if (Melder_isHorizontalSpace (command [ichar]) || command [ichar] == U';' || command [ichar] == U'\0')
+					break;
+				MelderString_appendCharacter (& command2, command [ichar]);
+			}
+			my labelNames. insert (0, command2.string);
+			my labelLines. insert (0, lineNumber);
+		}
+		if (str32nequ (command, U"procedure", 9) && Melder_isHorizontalSpace (command [9])) {
+			MelderString_empty (& command2);
+			for (integer ichar = 10; ; ichar ++) {
+				if (Melder_isHorizontalSpace (command [ichar]) || command [ichar] == U';' || command [ichar] == U':' || command [ichar] == U'\0')
+					break;
+				MelderString_appendCharacter (& command2, command [ichar]);
+			}
+			my procedureNames. insert (0, command2.string);
+			my procedureStartLines. insert (0, lineNumber);
+		}
+		if (str32nequ (command, U"proc", 4) && Melder_isHorizontalSpace (command [4])) {
+			MelderString_empty (& command2);
+			for (integer ichar = 5; ; ichar ++) {
+				if (Melder_isHorizontalSpace (command [ichar]) || command [ichar] == U';' || command [ichar] == U':' || command [ichar] == U'\0')
+					break;
+				MelderString_appendCharacter (& command2, command [ichar]);
+			}
+			my procedureNames. insert (0, command2.string);
+			my procedureStartLines. insert (0, lineNumber);
 		}
 	}
+	NUMsortTogether (my labelNames.get(), my labelLines.get());
+	for (integer ilabel = 1; ilabel < my labelNames.size; ilabel ++)
+		if (str32equ (my labelNames [ilabel].get(), my labelNames [ilabel + 1].get()))
+			Melder_throw (U"Duplicate label \"", my labelNames [ilabel].get(),
+					U"\" on lines ", my labelLines [ilabel], U" and ", my labelLines [ilabel + 1], U".");
+	NUMsortTogether (my procedureNames.get(), my procedureStartLines.get());
+	for (integer iproc = 1; iproc < my procedureNames.size; iproc ++)
+		if (str32equ (my procedureNames [iproc].get(), my procedureNames [iproc + 1].get()))
+			Melder_warning_once (
+				U"Duplicate procedure \"", my procedureNames [iproc].get(),
+				U"\" on lines ", my procedureStartLines [iproc], U" and ", my procedureStartLines [iproc + 1],
+				U". This is probably a bug, for which you may want to contact the author of the script. "
+				U"The script will run, but it is unpredictable which of the two procedure definitions will be chosen."
+			);   // TURNED INTO WARNING 2026, SCHEDULED FOR ERROR 2036
 	/*
 		Connect continuation lines.
 	*/
@@ -2114,7 +2149,7 @@ static void private_Interpreter_initialize (Interpreter me, char32 *text, const 
 				Create variable names as-are and variable names without capitals.
 			*/
 			str32cpy (parameter, my parameters [ipar]);
-			parameterToVariable (me, my types [ipar], parameter, ipar);
+			parameterToVariable (me, my types [ipar], parameter, ipar);   // deprecated 2014? probably works only with parameter substitution
 			if (parameter [0] >= U'A' && parameter [0] <= U'Z') {
 				parameter [0] = Melder_toLowerCase (parameter [0]);
 				parameterToVariable (me, my types [ipar], parameter, ipar);
@@ -2122,6 +2157,18 @@ static void private_Interpreter_initialize (Interpreter me, char32 *text, const 
 		}
 		/*
 			Initialize some variables.
+
+			TODO: turn newline$ and tab$ into constants
+			Time path:
+				1. in 20xx, start asking for trust when assigning to these variables
+				2. ten years later, assigning to these variables becomes an error (with an appropriate warning and recipe for correction),
+				   just as with `pi`, `undefined` and `e`.
+
+			TODO: turn the remainder of these variables into functions
+			Time path:
+				1. in 20xx, add functions to the side
+				2. ten years later, start warning against undefined use of these variables
+				3. another ten years later, undefined us of these variables becomes an error (with an appropriate warning and recipe for correction)
 		*/
 		Interpreter_addStringVariable (me, U"newline$", U"\n");
 		Interpreter_addStringVariable (me, U"tab$", U"\t");
@@ -2130,7 +2177,7 @@ static void private_Interpreter_initialize (Interpreter me, char32 *text, const 
 			structMelderFolder folder { };
 			Melder_getCurrentFolder (& folder);
 			Interpreter_addStringVariable (me, U"defaultDirectory$", MelderFolder_peekPath (& folder));
-			Interpreter_addStringVariable (me, U"preferencesDirectory$", MelderFolder_peekPath (Melder_preferencesFolder()));
+			Interpreter_addStringVariable (me, U"preferencesDirectory$", MelderFolder_peekPath (Melder_preferencesFolder()));   // settingsFolder$()
 			Melder_getHomeDir (& folder);
 			Interpreter_addStringVariable (me, U"homeDirectory$", MelderFolder_peekPath (& folder));
 			Melder_getTempDir (& folder);
@@ -2191,34 +2238,53 @@ static void private_Interpreter_initialize (Interpreter me, char32 *text, const 
 	}
 }
 
-void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
+void Interpreter_run (Interpreter me, autostring32 text, const bool reuseVariables) {
+	try {
+		//TRACE
+		trace (U"enter");
+		private_Interpreter_initialize (me, text.move(), reuseVariables);
+		my lineNumber = 1;
+		my callDepth = 0;
+		my fromif = false;
+		my fromendfor = false;
+		my assertErrorLineNumber = 0;
+		my setDynamicFromOwningEditorEnvironment ();
+		Interpreter_resume (me);
+	} catch (MelderError) {
+		throw;
+	}
+}
+
+void Interpreter_resume (Interpreter me) {
+	/*
+		Start.
+	*/
+	my running = true;
+	my stopped = false;
+	my isHalted = false;
 	bool assertionFailed = false;
+	//TRACE
+	trace (U"resuming at line ", my lineNumber, U" in file ", & my file);
 	try {
 		static MelderString valueString;   // to divert the info
-		static MelderString assertErrorString;
 		autoMelderString command2;
 		autoMelderString buffer;
-		integer assertErrorLineNumber = 0, callStack [1 + Interpreter_MAX_CALL_DEPTH];
-		bool fromif = false, fromendfor = false;
-		int callDepth = 0;
-		my callDepth = 0;
-		private_Interpreter_initialize (me, text, reuseVariables);
+		int callDepth = my callDepth;
 		const integer numberOfLines = my lines.size;
 		/*
 			Execute commands.
 		*/
-		my setDynamicFromOwningEditorEnvironment ();
 		trace (U"going to handle ", numberOfLines, U" lines");
 		//for (integer lineNumber = 1; lineNumber <= numberOfLines; lineNumber ++) {
 			//trace (U"line ", lineNumber, U": ", lines [lineNumber]);
 		//}
-		for (my lineNumber = 1; my lineNumber <= numberOfLines; my lineNumber ++) {
+		for (; my lineNumber <= numberOfLines; my lineNumber ++) {
+			trace (U"considering to handle line ", my lineNumber, U": ", my lines [my lineNumber], U", stopped ", my stopped, U", halted ", my isHalted, U", pass ", 1 + my isInSecondPass);
 			if (my stopped)
 				break;
-			//trace (U"now at line ", lineNumber, U": ", lines [lineNumber]);
-			//for (int lineNumber2 = 1; lineNumber2 <= numberOfLines; lineNumber2 ++) {
-				//trace (U"  line ", lineNumber2, U": ", lines [lineNumber2]);
-			//}
+			if (my isHalted)
+				break;
+			trace (U"going to handle line ", my lineNumber, U": ", my lines [my lineNumber]);
 			constvector <mutablestring32> lines = my lines.get();
 			try {
 				char32 c0;
@@ -2230,7 +2296,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 				/*
 					Substitute variables.
 				*/
-				trace (U"substituting variables");
+				trace (U"preprocessing line ", my lineNumber, U": ", command2.string);
 				for (char32 *p = & command2.string [0]; *p != U'\0'; p ++) if (*p == U'\'') {
 					/*
 						Found a left quote. Search for a matching right quote.
@@ -2277,21 +2343,21 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 						p = q - 1;   // go to before next quote
 					}
 				}
-				trace (U"resume");
+				trace (U"going to parse line ", my lineNumber, U": ", command2.string);
 				c0 = command2.string [0];   // resume in order to allow things like 'c$' = 5
 				if ((! Melder_isLetter (c0) || Melder_isUpperCaseLetter (c0)) && c0 != U'@' &&
 						! (c0 == U'.' && Melder_isLetter (command2.string [1]) && ! Melder_isUpperCaseLetter (command2.string [1])))
 				{
 					(void) praat_executeCommand (me, command2.string);
 				/*
-				 * Interpret control flow and variables.
-				 */
+					Interpret control flow and variables.
+				*/
 				} else switch (c0) {
 					case U'.':
 						fail = true;
 						break;
 					case U'@':
-						Interpreter_do_procedureCall (me, command2.string + 1, lines, my lineNumber, callStack, callDepth);
+						Interpreter_do_procedureCall (me, command2.string + 1, lines, my lineNumber, my callStack, callDepth);
 						break;
 					case U'a':
 						if (str32nequ (command2.string, U"assert ", 7)) {
@@ -2300,11 +2366,13 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							if (value == 0.0 || isundef (value)) {
 								assertionFailed = true;
 								Melder_throw (U"Script assertion fails in line ", my lineNumber,
-									U" (", value == 0.0 ? U"false" : U"undefined", U"):\n   ", command2.string + 7);
+										U" (", value == 0.0 ? U"false" : U"undefined", U"):\n   ", command2.string + 7);
 							}
 						} else if (str32nequ (command2.string, U"asserterror ", 12)) {
-							MelderString_copy (& assertErrorString, command2.string + 12);
-							assertErrorLineNumber = my lineNumber;
+							MelderString_copy (& my assertErrorString, command2.string + 12);
+							//TRACE
+							trace (U"assert error string: <<", my assertErrorString.string, U">>");
+							my assertErrorLineNumber = my lineNumber;
 						} else
 							fail = true;
 						break;
@@ -2313,7 +2381,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 						break;
 					case U'c':
 						if (str32nequ (command2.string, U"call ", 5)) {
-							Interpreter_do_oldProcedureCall (me, command2.string + 5, lines, my lineNumber, callStack, callDepth);
+							Interpreter_do_oldProcedureCall (me, command2.string + 5, lines, my lineNumber, my callStack, callDepth);
 						} else
 							fail = true;
 						break;
@@ -2344,7 +2412,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 								for (iline = my lineNumber - 1; iline > 0; iline --) {
 									char32 *line = lines [iline];
 									if (line [0] == U'f' && line [1] == U'o' && line [2] == U'r' && line [3] == U' ') {
-										if (depth == 0) { my lineNumber = iline - 1; fromendfor = true; break; }   // go before 'for'
+										if (depth == 0) { my lineNumber = iline - 1; my fromendfor = true; break; }   // go before 'for'
 										else depth --;
 									} else if (str32nequ (lines [iline], U"endfor", 6) &&
 											(! Melder_staysWithinInk (lines [iline] [6]) || lines [iline] [6] == U';'))
@@ -2383,7 +2451,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 									Melder_throw (U"Stray text after 'endproc'.");
 								if (callDepth == 0)
 									Melder_throw (U"Unmatched 'endproc'.");
-								my lineNumber = callStack [callDepth --];
+								my lineNumber = my callStack [callDepth --];
 								-- my callDepth;
 							} else fail = true;
 						} else if (str32nequ (command2.string, U"else", 4) &&
@@ -2412,9 +2480,9 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							if (iline > numberOfLines)
 								Melder_throw (U"Unmatched 'else'.");
 						} else if (str32nequ (command2.string, U"elsif ", 6) || str32nequ (command2.string, U"elif ", 5)) {
-							if (fromif) {
+							if (my fromif) {
 								double value;
-								fromif = false;
+								my fromif = false;
 								Interpreter_numericExpression (me, command2.string + 5, & value);
 								if (value == 0.0) {
 									int depth = 0;
@@ -2449,7 +2517,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 											|| (str32nequ (lines [iline], U"elif", 4) && ! Melder_staysWithinInk (lines [iline] [4]))) {
 											if (depth == 0) {
 												my lineNumber = iline - 1;
-												fromif = true;
+												my fromif = true;
 												break;   // go at next 'elsif' or 'elif'
 											}
 										} else if (str32nequ (lines [iline], U"if ", 3)) {
@@ -2517,8 +2585,8 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 								Melder_throw (U"Missing loop variable after \'for\'.");
 							InterpreterVariable var = Interpreter_lookUpVariable (me, varpos);
 							Interpreter_numericExpression (me, topos + 4, & toValue);
-							if (fromendfor) {
-								fromendfor = false;
+							if (my fromendfor) {
+								my fromendfor = false;
 								loopVariable = var -> numericValue + 1.0;
 							} else if (frompos) {
 								*topos = U'\0';
@@ -2640,7 +2708,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 									} else if (str32nequ (lines [iline], U"elsif ", 6) || str32nequ (lines [iline], U"elif ", 5)) {
 										if (depth == 0) {
 											my lineNumber = iline - 1;
-											fromif = true;
+											my fromif = true;
 											break;   // go at 'elsif'
 										}
 									} else if (str32nequ (lines [iline], U"if ", 3)) {
@@ -2682,7 +2750,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 						fail = true;
 						break;
 					case U'p':
-						if (str32nequ (command2.string, U"procedure ", 10)) {
+						if (str32nequ (command2.string, U"procedure", 9) && Melder_isHorizontalSpace (command2.string [9])) {
 							integer iline = my lineNumber + 1;
 							for (; iline <= numberOfLines; iline ++) {
 								if (str32nequ (lines [iline], U"endproc", 7) &&
@@ -2831,15 +2899,13 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							MelderString_copy (& arrayName, command2.string, U"#");
 							*p = U'#';   // put the number sign back
 							p ++;   // step over number sign
-							while (Melder_isHorizontalSpace (*p))
-								p ++;   // go to first token after array name
+							Melder_skipHorizontalSpace (& p);   // go to first token after array name
 							if (*p == U'=') {
 								/*
 									This must be an assignment to a string array variable.
 								*/
 								p ++;   // step over equals sign
-								while (Melder_isHorizontalSpace (*p))
-									p ++;   // go to first token after assignment
+								Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing right-hand expression in assignment to string array ", arrayName.string, U".");
 								if (isCommand (p)) {
@@ -2875,8 +2941,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							trace (U"detected an assignment to a string variable");
 							char32 *endOfVariable = ++ p;
 							char32 *variableName = command2.string;
-							while (Melder_isHorizontalSpace (*p))
-								p ++;   // go to first token after variable name
+							Melder_skipHorizontalSpace (& p);   // go to first token after variable name
 							if (*p == U'[') {
 								/*
 									This must be an assignment to an indexed string variable.
@@ -2921,7 +2986,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 								variableName = indexedVariableName.string;
 								p ++;   // skip closing bracket
 							}
-							while (Melder_isHorizontalSpace (*p)) p ++;   // go to first token after (perhaps indexed) variable name
+							Melder_skipHorizontalSpace (& p);   // go to first token after (perhaps indexed) variable name
 							int typeOfAssignment;   // 0, 1, 2, 3 or 4
 							if (*p == U'=') {
 								typeOfAssignment = 0;   // assignment
@@ -2944,7 +3009,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							} else Melder_throw (U"Missing “=”, “+=”, “<”, or “>” after string variable ", variableName, U".");
 							*endOfVariable = U'\0';
 							p ++;
-							while (Melder_isHorizontalSpace (*p)) p ++;   // go to first token after assignment or I/O symbol
+							Melder_skipHorizontalSpace (& p);   // go to first token after assignment or I/O symbol
 							if (*p == U'\0') {
 								if (typeOfAssignment >= 2)
 									Melder_throw (U"Missing file name after variable ", variableName, U".");
@@ -3029,14 +3094,13 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							MelderString_copy (& matrixName, command2.string, U'#');
 							*p = U'#';   // put the number sign back
 							p ++;   // step over last number sign
-							while (Melder_isHorizontalSpace (*p)) p ++;   // go to first token after matrix name
+							Melder_skipHorizontalSpace (& p);   // go to first token after matrix name
 							if (*p == U'=') {
 								/*
 									This must be an assignment to a matrix variable.
 								*/
 								p ++;   // step over equals sign
-								while (Melder_isHorizontalSpace (*p))
-									p ++;   // go to first token after assignment
+								Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing right-hand expression in assignment to matrix ", matrixName.string, U".");
 								if (isCommand (p)) {
@@ -3122,7 +3186,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 									This must be a formula assignment to a matrix variable.
 								*/
 								p ++;   // step over tilde
-								while (Melder_isHorizontalSpace (*p)) p ++;   // go to first token after assignment
+								Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing formula expression for matrix ", matrixName.string, U".");
 								InterpreterVariable var = Interpreter_hasVariable (me, matrixName.string);
@@ -3151,8 +3215,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							MelderString_copy (& vectorName, command2.string, U"#");
 							*p = U'#';   // put the number sign back
 							p ++;   // step over number sign
-							while (Melder_isHorizontalSpace (*p))
-								p ++;   // go to first token after array name
+							Melder_skipHorizontalSpace (& p);   // go to first token after array name
 							if (*p == U'=') {
 								/*
 									This must be an assignment to a vector variable.
@@ -3166,8 +3229,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 									interpreter_assignToVector# = interpreter_assignToVector# + 5
 								@*/
 								p ++;   // step over equals sign
-								while (Melder_isHorizontalSpace (*p))
-									p ++;   // go to first token after assignment
+								Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing right-hand expression in assignment to vector ", vectorName.string, U".");
 								if (isCommand (p)) {
@@ -3261,8 +3323,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 									This must be a formula assignment to a vector variable.
 								*/
 								p ++;   // step over tilde
-								while (Melder_isHorizontalSpace (*p))
-									p ++;   // go to first token after assignment
+								Melder_skipHorizontalSpace (& p);   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing formula expression for vector ", vectorName.string, U".");
 								InterpreterVariable var = Interpreter_hasVariable (me, vectorName.string);
@@ -3297,7 +3358,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							continue;   // next line
 						}
 						char32 *endOfVariable = p;
-						while (Melder_isHorizontalSpace (*p)) p ++;
+						Melder_skipHorizontalSpace (& p);
 						if (*p == U'=' || ((*p == U'+' || *p == U'-' || *p == U'*' || *p == U'/') && p [1] == U'=')) {
 							/*
 								This must be an assignment (though: "echo = ..." ???)
@@ -3347,8 +3408,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							}
 							variableName = indexedVariableName.string;
 							p ++;   // skip closing bracket
-							while (Melder_isHorizontalSpace (*p))
-								p ++;
+							Melder_skipHorizontalSpace (& p);
 							if (*p == U'=' || ((*p == U'+' || *p == U'-' || *p == U'*' || *p == U'/') && p [1] == U'=')) {
 								typeOfAssignment = ( *p == U'+' ? 1 : *p == U'-' ? 2 : *p == U'*' ? 3 : *p == U'/' ? 4 : 0 );
 							}
@@ -3360,8 +3420,7 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 							continue;   // next line
 						}
 						p += ( typeOfAssignment == 0 ? 1 : 2 );
-						while (Melder_isHorizontalSpace (*p))
-							p ++;
+						Melder_skipHorizontalSpace (& p);
 						if (*p == U'\0')
 							Melder_throw (U"Missing expression after variable ", variableName, U".");
 						/*
@@ -3438,60 +3497,77 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 						}
 					}
 				} // endif fail
-				if (assertErrorLineNumber != 0 && assertErrorLineNumber != my lineNumber) {
-					const integer save_assertErrorLineNumber = assertErrorLineNumber;
-					assertErrorLineNumber = 0;
+				if (my assertErrorLineNumber != 0 && my assertErrorLineNumber != my lineNumber) {
+					const integer save_assertErrorLineNumber = my assertErrorLineNumber;
+					my assertErrorLineNumber = 0;
 					Melder_throw (U"Script assertion fails in line ", save_assertErrorLineNumber,
-							U": error « ", assertErrorString.string, U" » not raised. Instead: no error.");
-					
+							U": error « ", my assertErrorString.string, U" » not raised. Instead: no error.");
+
 				}
 			} catch (MelderError) {
 				//	Melder_casual (U"Error: << ", Melder_getError(),
-				//		U" >>\nassertErrorLineNumber: ", assertErrorLineNumber,
+				//		U" >>\nassertErrorLineNumber: ", my assertErrorLineNumber,
 				//		U"\nlineNumber: ", lineNumber,
 				//		U"\nAssert error string: << ", assertErrorString.string,
 				//		U" >>\n"
 				//	);
 				if (Melder_hasCrash ())
 					throw;
-				if (assertErrorLineNumber == 0) {
+				if (my assertErrorLineNumber == 0) {
 					throw;
-				} else if (assertErrorLineNumber != my lineNumber) {
-					if (str32str (Melder_getError (), assertErrorString.string)) {
+				} else if (my assertErrorLineNumber != my lineNumber) {
+					if (str32str (Melder_getError (), my assertErrorString.string)) {
 						Melder_clearError ();
-						assertErrorLineNumber = 0;
+						my assertErrorLineNumber = 0;
 					} else {
 						autostring32 errorCopy_nothrow = Melder_dup_f (Melder_getError ());
 						Melder_clearError ();
-						Melder_throw (U"Script assertion fails in line ", assertErrorLineNumber,
-							U": error « ", assertErrorString.string, U" » not raised. Instead:\n",
-							errorCopy_nothrow.get());
+						Melder_throw (U"Script assertion fails in line ", my assertErrorLineNumber,
+							U": error « ", my assertErrorString.string, U" » not raised. Instead:\n",
+							errorCopy_nothrow.get()
+						);
 					}
 				}
 			}
 		} // endfor lineNumber
-		my numberOfLabels = 0;
-		my running = false;
-		my stopped = false;
+		if (! my isHalted) {
+			//my numberOfLabels = 0;
+			my running = false;
+			my stopped = false;
+		}
 	} catch (MelderError) {
+		//TRACE
+		trace (U"catch");
+		trace (U"catch ", Melder_pointer (me));
+		trace (U"catch at line number ", my lineNumber);
+		trace (U"catch with stack ", Melder_pointer (my owningInterpreterStack));
+		trace (U"catch in file ", & my file);
+		trace (U"catch at level ", my owningInterpreterStack -> currentLevel);
+		trace (U"catch at stack interpreter ", Melder_pointer (my owningInterpreterStack -> current_0 ()));
 		if (my lineNumber > 0) {
 			const bool normalExplicitExit = str32nequ (my lines [my lineNumber], U"exit ", 5) || Melder_hasError (U"Script exited.");
 			if (! normalExplicitExit && ! assertionFailed) {   // don't show the message twice!
 				while (my lines [my lineNumber] [0] == U'\0') {   // did this use to be a continuation line?
 					my lineNumber --;
+					trace (U"line number lowered to ", my lineNumber);
 					Melder_assert (my lineNumber > 0);   // originally empty lines that stayed empty should not generate errors
 				}
 				Melder_appendError (U"Script line ", my lineNumber, U" not performed or completed:\n« ", my lines [my lineNumber], U" »");
 			}
 		}
-		my numberOfLabels = 0;
+		//my numberOfLabels = 0;
 		my running = false;
 		my stopped = false;
+		//my isHalted = false;   // TODO: needed?
+		trace (U"catch: has finished...", Melder_pointer (my owningInterpreterStack));
+		trace (U"catch: ... has finished");
 		if (Melder_hasCrash ()) {
+			my owningInterpreterStack -> currentLevel -= 1;   // TODO: encapsulate
 			throw;
 		} else if (str32equ (Melder_getError (), U"\nScript exited.\n")) {
 			Melder_clearError ();
 		} else {
+			my owningInterpreterStack -> currentLevel -= 1;   // TODO: encapsulate
 			throw;
 		}
 	}
@@ -3500,6 +3576,8 @@ void Interpreter_run (Interpreter me, char32 *text, const bool reuseVariables) {
 void Interpreter_stop (Interpreter me) {
 //Melder_casual (U"Interpreter_stop in: ", Melder_pointer (me));
 	my stopped = true;
+	my running = false;
+	//my numberOfLabels = 0;
 //Melder_casual (U"Interpreter_stop out: ", Melder_pointer (me));
 }
 
@@ -3553,6 +3631,241 @@ void Interpreter_stringArrayExpression (Interpreter me, conststring32 expression
 void Interpreter_anyExpression (Interpreter me, conststring32 expression, Formula_Result *out_result) {
 	Formula_compile (me, nullptr, expression, kFormula_EXPRESSION_TYPE_UNKNOWN, false);
 	Formula_run (0, 0, out_result);
+}
+
+Thing_implement (InterpreterStack, Thing, 0);
+
+/*
+	Schematic code:
+
+	void Interpreter_run (Interpreter me) {
+		my lineNumber = 1;
+		Interpreter_resume (me);
+	}
+	void Interpreter_resume (Interpreter me) {
+		my isHalted = false;
+		try {
+			for (; lineNumber <= my lines.size; lineNumber ++) {
+				if (my isHalted)
+					break;
+				handleOneLine ();
+			}
+		} catch (MelderError) {
+			my owningInterpreterStack -> currentLevel -= 1;
+			throw;
+		}
+	}
+	void runScript (InterpreterStack interpreterStack, conststring32 fileName, integer narg, Stackel args, Editor optionalInterpreterOwningEditor) {
+		Melder_assert (interpreterStack);
+		Interpreter parentInterpreter = interpreterStack -> current_a ();
+		if (parentInterpreter -> isInSecondPass) {
+			interpreterStack -> resumeNextLevelInSecondPass ();
+		} else {
+			Melder_assert (MelderFolder_equal (Melder_peekWorkingDirectory (), & parentInterpreter -> workingDirectory));
+			//autoMelderSetCurrentFolder folder (& parentInterpreter -> workingDirectory);   // TODO: is this superfluous, i.e. does the previous assertion never fire?
+			structMelderFile file { };
+			try {
+				Melder_relativePathToFile (fileName, & file);
+				autostring32 text = MelderFile_readText (& file);
+				{// scope
+					autoMelderFileSetCurrentFolder folder (& file);   // so that callee-relative file names can be used for including include files
+					Melder_includeIncludeFiles (& text);
+				}   // back to the default directory of the caller
+				autoInterpreter me = Interpreter_createFromEnvironment (
+					interpreterStack,   // owner always needed
+					optionalInterpreterOwningEditor,
+					& file   // so that callee-relative file names can be used inside the script
+				);
+				Interpreter_readParameters (me.get(), text.get());   // TODO: should become a field of structInterpreter
+				my text = text.move();
+				Interpreter_getArgumentsFromArgs (me.get(), narg, args);   // interpret caller-relative paths for infile/outfile/folder arguments
+				interpreterStack -> runDown (me.move(), autostring32(), false);   // back to the default directory of the caller
+			} catch (MelderError) {
+				Melder_throw (U"Script ", & file, U" not completed.");   // don't refer to 'fileName', because its contents may have changed
+			}
+		}
+	}
+	int endPause (int numberOfContinueButtons, int defaultContinueButton, int cancelContinueButton,
+		conststring32 continueText1, conststring32 continueText2, conststring32 continueText3,
+		conststring32 continueText4, conststring32 continueText5, conststring32 continueText6,
+		conststring32 continueText7, conststring32 continueText8, conststring32 continueText9,
+		conststring32 continueText10, Interpreter interpreter)
+	{
+		Melder_assert (interpreter);
+		if (interpreter -> isInSecondPass) {
+			Melder_assert (interpreter == thePauseForm_interpreterReference);
+			Melder_assert (! thePauseForm);
+			interpreter -> isInSecondPass = false;   // TODO: needed?
+			return thePauseForm_clicked;
+		} else {
+			if (! thePauseForm)
+				Melder_throw (U"Found the function “endPause” without a preceding “beginPause”.");
+			thePauseForm_interpreterReference = interpreter;
+			thePauseForm_savedEditorReference = interpreter -> optionalDynamicEnvironmentEditor();
+			UiForm_setPauseForm (thePauseForm.get(), numberOfContinueButtons, defaultContinueButton, cancelContinueButton,
+				continueText1, continueText2, continueText3, continueText4, continueText5,
+				continueText6, continueText7, continueText8, continueText9, continueText10,
+				thePauseFormCancelCallback
+			);
+			theCancelContinueButton = cancelContinueButton;
+			UiForm_finish (thePauseForm.get());
+			thePauseForm_clicked = 0;
+			Melder_assert (interpreter -> owningInterpreterStack);
+			interpreter -> owningInterpreterStack -> haltAll ();
+			UiForm_destroyWhenUnmanaged (thePauseForm.get());
+			UiForm_do (thePauseForm.get(), false);   // put he pause form on the screen
+			return 0;
+		}
+	}
+	void Demo_waitForInput (Interpreter interpreter) {
+		Melder_assert (interpreter);
+		if (interpreter -> isInSecondPass) {
+			interpreter -> isInSecondPass = false;   // TODO: needed?
+		} else {
+			if (! theReferenceToTheOnlyDemoEditor)
+				Melder_throw (U"Cannot do demoWaitForInput() if the Demo window isn’t visible.");
+			if (theReferenceToTheOnlyDemoEditor -> waitingForInput &&0) {
+				Melder_throw (U"You cannot work with the Demo window while it is waiting for input. "
+					U"Please click or type into the Demo window or close it.");
+			}
+			//GuiThing_show (theReferenceToTheOnlyDemoEditor -> windowForm);
+			theReferenceToTheOnlyDemoEditor -> clicked = false;
+			theReferenceToTheOnlyDemoEditor -> keyPressed = false;
+			theReferenceToTheOnlyDemoEditor -> waitingForInput = true;
+			interpreter -> owningInterpreterStack -> haltAll ();
+			theReferenceToTheOnlyDemoEditor -> interpreterReference = interpreter;
+		}
+	}
+	static void thePauseFormOkCallback (void *closure) {
+		if (! thePauseForm_interpreterReference) {   // interpreter was destroyed?
+			GuiThing_hide (thePauseForm -> d_dialogForm);   // BUG: memory leak
+			thePauseForm. releaseToUser();
+			return;
+		}
+		if (! thePauseForm)   // BUG: perhaps there was a mistake in the script
+			return;
+		thePauseForm_clicked = UiForm_getClickedContinueButton (thePauseForm.get());
+		if (thePauseForm_clicked != theCancelContinueButton)
+			UiForm_Interpreter_addVariables (thePauseForm.get(), (Interpreter) closure);   // 'closure', not 'interpreter' or 'theInterpreter'!
+		Melder_assert (thePauseForm_clicked >= 1 && thePauseForm_clicked <= 10);
+		autostring32 clickedText = Melder_dup (thePauseForm -> continueTexts [thePauseForm_clicked].get());   // very safe
+		if (thePauseForm -> d_dialogForm) {
+			GuiThing_hide (thePauseForm -> d_dialogForm);   // BUG: memory leak
+			//thePauseForm_interpreterReference -> isInSecondPass = false;   // TODO: corrected? and what about isHalted?
+		}
+		thePauseForm. releaseToUser();   // undangle (will be autodestroyed when unmanaged)
+		Melder_assert (! thePauseForm);
+		try {
+			autoPraatBackground background;
+			Melder_assert (thePauseForm_interpreterReference -> owningInterpreterStack);
+			thePauseForm_interpreterReference -> owningInterpreterStack -> resumeFromTop ();
+		} catch (MelderError) {
+			if (thePauseForm_clicked == theCancelContinueButton)
+				Melder_throw (U"This happened after you cancelled the pause form.");
+			else
+				Melder_throw (U"This happened after you clicked “", clickedText.get(), U"” in the pause form.");
+		}
+	}
+*/
+
+autoInterpreterStack InterpreterStack_create (Editor optionalInterpreterStackOwningEditor) {
+	try {
+		autoInterpreterStack me = Thing_new (InterpreterStack);
+		my optionalInterpreterStackOwningEditor = optionalInterpreterStackOwningEditor;
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"InterpreterStack not created.");
+	}
+}
+
+void structInterpreterStack :: emptyAll () {
+	for (integer ilevel = 1; ilevel <= our currentLevel; ilevel ++)
+		our interpreters [ilevel]. reset();
+	our currentLevel = 0;
+}
+
+void structInterpreterStack :: runDown (autoInterpreter interpreter, autostring32 text, const bool reuseVariables) {
+	if (our currentLevel == InterpreterStack_MAXIMUM_NUMBER_OF_LEVELS)
+		Melder_throw (U"Cannot have more than ", InterpreterStack_MAXIMUM_NUMBER_OF_LEVELS, U" levels of nested scripts.");
+	our currentLevel += 1;
+	if (interpreter)
+		our interpreters [our currentLevel] = interpreter.move();   // otherwise, use my existing interpreter
+	const integer oldLevel = our currentLevel;   // sets up an assertion below
+	Interpreter childInterpreter = our current_a();
+	try {
+		autoMelderSetCurrentFolder folder (& childInterpreter -> workingDirectory);
+		Interpreter_run (childInterpreter, text.move(), reuseVariables);
+	} catch (MelderError) {
+		//if (currentLevel == 0)
+		//	our emptyAll ();   // TODO: figure out when precisely an interpreter can be deleted
+		//Melder_throw (U"Interpreter stack not run completely.");
+		throw;
+	}
+	Melder_assert (our currentLevel == oldLevel);
+	our currentLevel -= 1;
+	if (our currentLevel == 0) {
+		//our emptyAll();   // TODO: successful run of the whole stack; can we delete? Does it depend on halted?
+		return;   // nothing else to do
+	}
+	Interpreter parentInterpreter = our current_a();
+	if (! childInterpreter -> isHalted) {   // TODO: why the child interpreter?
+		parentInterpreter -> isInSecondPass = false;   // TODO: why the parent interpreter?
+		//childInterpreter. reset();   // TODO: figure out when precisely an interpreter can be deleted
+	}
+}
+
+void structInterpreterStack :: haltAll () {
+	for (integer ilevel = 1; ilevel <= our currentLevel; ilevel ++) {
+		Melder_assert (our interpreters [ilevel]);
+		our interpreters [ilevel] -> isHalted = true;   // ensures fast unwinding, without processing any more lines
+		our interpreters [ilevel] -> lineNumber -= 1;   // ensure that all runScripts will get a second pass
+	}
+}
+
+void structInterpreterStack :: resumeFromTop () {
+	our currentLevel = 1;
+	Melder_assert (our interpreters [1]);
+
+	/*
+		Unhalt all.
+	*/
+	for (integer ilevel = 1; ilevel <= InterpreterStack_MAXIMUM_NUMBER_OF_LEVELS; ilevel ++)
+		if (our interpreters [ilevel]) {
+			our interpreters [ilevel] -> isHalted = false;
+			our interpreters [ilevel] -> isInSecondPass = true;   // ensures that all runScripts, the pause window and demoWaitForInput will short-cut
+		}
+
+	try {
+		autoMelderSetCurrentFolder folder (& our interpreters [1] -> workingDirectory);
+		Interpreter_resume (our interpreters [1].get());
+	} catch (MelderError) {
+		//if (currentLevel == 0)
+		//	our emptyAll ();   // TODO: figure out when precisely an interpreter can be deleted; perhaps always, when we're here?
+		//Melder_throw (U"Interpreter stack has not run to completion.");
+		throw;
+	}
+	our currentLevel -= 1;
+	Melder_assert (our currentLevel == 0);   // running an interpreter to its end MUST have decremented the level
+	//our emptyAll();   // TODO: successful run of the whole stack; can we delete? Does it depend on halted?
+}
+
+void structInterpreterStack :: resumeNextLevelInSecondPass () {
+	our currentLevel += 1;
+	Melder_assert (our currentLevel <= InterpreterStack_MAXIMUM_NUMBER_OF_LEVELS);
+	Interpreter childInterpreter = our current_a();
+	{// scope
+		autoMelderSetCurrentFolder folder (& childInterpreter -> workingDirectory);   // so that callee-relative file names can be used inside the script
+		Interpreter_resume (childInterpreter);
+	}   // back to the default directory of the caller
+	our currentLevel -= 1;
+	if (our currentLevel == 0)
+		return;   // nothing to do
+	Interpreter parentInterpreter = our current_a();
+	//Melder_assert (! childInterpreter -> isHalted);   // TODO: why not parentInterpreter? and why can this fire?
+	if (! childInterpreter -> isHalted) {
+		parentInterpreter -> isInSecondPass = false;   // TODO: why not childInterpreter?
+		//our interpreters [our currentLevel + 1]. reset();   // TODO: figure out when precisely an interpreter can be deleted
+	}
 }
 
 /* End of file Interpreter.cpp */

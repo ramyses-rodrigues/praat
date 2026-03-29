@@ -1,10 +1,10 @@
 /* praat_objectMenus.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -317,10 +317,23 @@ FORM (INFO_NONE__praat_calculator, U"Calculator", U"Calculator") {
 DO
 	INFO_NONE
 		Formula_Result result;
+		//TRACE
 		if (! interpreter) {
-			autoInterpreter tempInterpreter = Interpreter_create ();
-			Interpreter_anyExpression (tempInterpreter.get(), expression, & result);
+			trace (U"no interpreter");
+			static autoInterpreterStack theCalculatorInterpreterStack;
+			if (! theCalculatorInterpreterStack) {
+				theCalculatorInterpreterStack = InterpreterStack_create (Editor (nullptr));   // object-window command, so no editor
+				theCalculatorInterpreterStack -> interpreters [1] = Interpreter_createFromEnvironment (   // TODO: too exposed
+					theCalculatorInterpreterStack.get(),
+					Editor (nullptr),
+					MelderFile (nullptr)
+				);
+			}
+			Melder_assert (theCalculatorInterpreterStack -> interpreters [1]);   // TODO: should fire after exception
+			Melder_assert (theCalculatorInterpreterStack -> interpreters [1] -> owningInterpreterStack);
+			Interpreter_anyExpression (theCalculatorInterpreterStack -> interpreters [1].get(), expression, & result);
 		} else {
+			trace (U"yes interpreter");
 			Interpreter_anyExpression (interpreter, expression, & result);
 		}
 		switch (result. expressionType) {

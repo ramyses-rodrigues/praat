@@ -1,6 +1,6 @@
 /* praat.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -317,10 +317,8 @@ static void praat_remove (integer iobject, bool removeVisibly) {
 		theCurrentPraatObjects -> list [iobject]. isBeingCreated = false;
 		theCurrentPraatObjects -> totalBeingCreated --;
 	}
-	trace (U"deselect object ", iobject);
 	if (removeVisibly)
 		praat_deselect (iobject);
-	trace (U"deselected object ", iobject);
 
 	/*
 		To prevent synchronization problems, kill editors before killing the data.
@@ -337,11 +335,8 @@ static void praat_remove (integer iobject, bool removeVisibly) {
 		}
 	}
 	MelderFile_setToNull (& theCurrentPraatObjects -> list [iobject]. file);
-	trace (U"free name");
 	theCurrentPraatObjects -> list [iobject]. name. reset();
-	trace (U"forget object");
 	forget (theCurrentPraatObjects -> list [iobject]. object);   // note: this might save a file-based object to file
-	trace (U"forgotten object");
 }
 
 void praat_cleanUpName (char32 *name) {
@@ -505,7 +500,7 @@ void praat_removeObject (integer i) {
 	praat_remove (i, true);   // dangle
 	for (integer j = i; j < theCurrentPraatObjects -> n; j ++)
 		theCurrentPraatObjects -> list [j] = std::move (theCurrentPraatObjects -> list [j + 1]);   // undangle but create second references
-	theCurrentPraatObjects -> list [theCurrentPraatObjects -> n]. name. reset ();
+	theCurrentPraatObjects -> list [theCurrentPraatObjects -> n]. name. reset();
 	theCurrentPraatObjects -> list [theCurrentPraatObjects -> n]. object = nullptr;   // undangle or remove second reference
 	theCurrentPraatObjects -> list [theCurrentPraatObjects -> n]. isSelected = 0;
 	for (int ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++)
@@ -930,7 +925,7 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 			{// scope
 				autoPraatBackground background;
 				try {
-					praat_executeScriptFromFile (& messageFile, nullptr, nullptr);
+					praat_executeScript_noGUI (& messageFile);
 				} catch (MelderError) {
 					Melder_flushError (Melder_upperCaseAppName(), U": message not completely handled.");
 				}
@@ -944,7 +939,7 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 	static int cb_userMessage () {
 		autoPraatBackground background;
 		try {
-			praat_executeScriptFromFile (& messageFile, nullptr, nullptr);
+			praat_executeScript_noGUI (& messageFile);
 		} catch (MelderError) {
 			Melder_flushError (Melder_upperCaseAppName(), U": message not completely handled.");
 		}
@@ -1080,7 +1075,7 @@ extern "C" void praatlib_init () {
 	Melder_setAppName (U"Praatlib");
 	theCurrentPraatApplication -> batch = true;
 	Melder_getHomeDir (& homeDir);
-	Thing_recognizeClassesByName (classCollection, classStrings, classManPages, classStringSet, nullptr);
+	Thing_recognizeClassesByName (classCollection, classStrings, classManPages, classStringSet);
 	Thing_recognizeClassByOtherName (classStringSet, U"SortedSetOfString");
 	Melder_backgrounding = true;
 	praat_addMenus (nullptr);
@@ -1138,6 +1133,7 @@ static void printHelp () {
 	MelderInfo_writeLine (U"                   (on Windows, use -8 or -a when you redirect to a pipe or file)");
 	MelderInfo_writeLine (U"  --trace          switch tracing on at start-up (see Praat > Technical > Debug)");
 	MelderInfo_writeLine (U"  --hide-picture   hide the Picture window at start-up");
+	MelderInfo_writeLine (U"  --debug=58       set the Debug option to e.g. 58 at start-up");
 }
 
 #ifdef _WIN32
@@ -1265,6 +1261,7 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 			praat --open [OPTION]... FILE-NAME...
 		*/
 		for (integer iarg = praatP.argumentNumber; iarg < praatP.argc; iarg ++) {   // do not change praatP.argumentNumber itself (we might return false)
+			TRACE
 			structMelderFile file { };
 			Melder_relativePathToFile (Melder_peek8to32 (praatP.argv [iarg]), & file);
 			conststring32 absolutePath = MelderFile_peekPath (& file);
@@ -1490,6 +1487,9 @@ static void interpretCommandLineArguments (bool weWereStartedFromTheCommandLine,
 			praatP.argumentNumber += 1;
 		} else if (strequ (argv [praatP.argumentNumber], "--hide-picture")) {
 			praatP.commandLineOptions.hidePicture = true;
+			praatP.argumentNumber += 1;
+		} else if (strnequ (argv [praatP.argumentNumber], "--debug=", 8)) {
+			Melder_debug = atoi (argv [praatP.argumentNumber] + 8);
 			praatP.argumentNumber += 1;
 		} else if (strequ (argv [praatP.argumentNumber], "--help")) {
 			MelderInfo_open ();
@@ -1946,7 +1946,7 @@ void praat_init (conststring32 title,
 		GuiThing_show (raam);
 		trace (U"after objects window shows locale ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
 	}
-	Thing_recognizeClassesByName (classCollection, classStrings, classManPages, classStringSet, nullptr);
+	Thing_recognizeClassesByName (classCollection, classStrings, classManPages, classStringSet);
 	Thing_recognizeClassByOtherName (classStringSet, U"SortedSetOfString");
 	if (Melder_batch) {
 		Melder_backgrounding = true;
@@ -2005,7 +2005,7 @@ static void executeStartUpFile (MelderFolder startUpDirectory, conststring32 fil
 		if (! MelderFile_readable (& startUp))
 			return;   // it's OK if the file doesn't exist
 		try {
-			praat_executeScriptFromFile (& startUp, nullptr, nullptr);
+			praat_executeScript_noGUI (& startUp);
 		} catch (MelderError) {
 			Melder_flushError (Melder_upperCaseAppName(), U": start-up file ", & startUp, U" not completed.");
 		}
@@ -2096,9 +2096,11 @@ void praat_run () {
 	if (! MelderFolder_isNull (Melder_preferencesFolder()) && ! praatP.ignorePlugins) {
 		trace (U"install plug-ins");
 		trace (U"locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
-		/* The Praat phase should remain praat_STARTING_UP,
-		 * because any added commands must not be included in the buttons file.
-		 */
+		/*
+			The Praat phase should remain praat_STARTING_UP,
+			because any added commands must not be included in the buttons file.
+			In plug-ins, pause windows should therefore be made modal.
+		*/
 		structMelderFile searchPattern { };
 		MelderFolder_getFile (Melder_preferencesFolder(), U"plugin_*", & searchPattern);
 		try {
@@ -2111,7 +2113,7 @@ void praat_run () {
 				if (MelderFile_readable (& plugin)) {
 					Melder_backgrounding = true;
 					try {
-						praat_executeScriptFromFile (& plugin, nullptr, nullptr);
+						praat_executeScript_noGUI (& plugin);
 					} catch (MelderError) {
 						Melder_flushError (Melder_upperCaseAppName(), U": plugin ", & plugin, U" contains an error.");
 					}
@@ -2381,6 +2383,32 @@ void praat_run () {
 		"sizeof(integer) should equal the size of a pointer");
 	static_assert (sizeof (off_t) >= 8,
 		"sizeof(off_t) is less than 8. Compile Praat with -D_FILE_OFFSET_BITS=64.");
+
+	/*
+		Some libraries expect the definition of endian information.
+		Check here at compile time that these are #defined,
+		and check here at runtime that they have the correct value.
+	*/
+	#if ! defined (WORDS_BIGENDIAN)   // FLAC, MAD, Lame
+		#error WORDS_BIGENDIAN should be #defined
+	#endif
+	#if ! defined (PA_BIG_ENDIAN) && ! defined (PA_LITTLE_ENDIAN)   // PortAudio
+		#error PA_BIG_ENDIAN or PA_LITTLE_ENDIAN should be #defined
+	#endif
+	#if defined (PA_BIG_ENDIAN) && defined (PA_LITTLE_ENDIAN)
+		#error PA_BIG_ENDIAN and PA_LITTLE_ENDIAN shouldn't both be #defined
+	#endif
+	if (Melder_integersAreBigEndian()) {
+		Melder_assert (WORDS_BIGENDIAN == 1);
+		#if ! defined (PA_BIG_ENDIAN)
+			Melder_assert ("PA_BIG_ENDIAN should be #defined" && 0);
+		#endif
+	} else {
+		Melder_assert (WORDS_BIGENDIAN == 0);
+		#if ! defined (PA_LITTLE_ENDIAN)
+			Melder_assert ("PA_LITTLE_ENDIAN should be #defined" && 0);
+		#endif
+	}
 
 	/*
 		The type "integer" is defined as intptr_t, analogously to uinteger as uintptr_t

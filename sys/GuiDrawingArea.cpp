@@ -1,11 +1,11 @@
 /* GuiDrawingArea.cpp
  *
- * Copyright (C) 1993-2018,2020-2022 Paul Boersma,
+ * Copyright (C) 1993-2018,2020-2023,2025,2026 Paul Boersma,
  *               2008 Stefan de Konink, 2010 Franz Brausse, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -186,36 +186,100 @@ Thing_implement (GuiDrawingArea, GuiControl, 0);
 		}
 		return false;
 	}
+	static void _guiGtkDrawingArea_handleZoom (GuiObject widget, double delta) {
+		iam_drawingarea;
+		if (my d_zoomCallback) {
+			struct structGuiDrawingArea_ZoomEvent event { me };
+			event. delta = delta;
+			try {
+				my d_zoomCallback (my d_zoomBoss, & event);
+			} catch (MelderError) {
+				Melder_flushError (U"Zoom not completely handled.");
+			}
+		}
+	}
 	static gboolean _guiGtkDrawingArea_swipeCallback (GuiObject w, GdkEventScroll *event, gpointer void_me) {
 		iam (GuiDrawingArea);
 		trace (U"_guiGtkDrawingArea_swipeCallback ", Melder_pointer (my d_horizontalScrollBar), Melder_pointer (my d_verticalScrollBar));
-		if (my d_horizontalScrollBar) {
+		constexpr double zoomStepSize = 12.0;
+		const bool shiftKeyPressed = (event -> state & GDK_SHIFT_MASK) != 0;
+		const bool controlKeyPressed = (event -> state & GDK_CONTROL_MASK) != 0;
+		if (controlKeyPressed && my d_zoomCallback) {
+			double zoomDelta = 0.0;
+			switch (event -> direction) {
+				case GDK_SCROLL_UP:
+					zoomDelta = zoomStepSize;
+					break;
+				case GDK_SCROLL_DOWN:
+					zoomDelta = - zoomStepSize;
+					break;
+				case GDK_SCROLL_LEFT:
+					zoomDelta = - zoomStepSize;
+					break;
+				case GDK_SCROLL_RIGHT:
+					zoomDelta = zoomStepSize;
+					break;
+				#ifdef GDK_SCROLL_SMOOTH
+				case GDK_SCROLL_SMOOTH:
+					if (event -> delta_y != 0.0)
+						zoomDelta = - event -> delta_y * zoomStepSize;
+					else if (event -> delta_x != 0.0)
+						zoomDelta = - event -> delta_x * zoomStepSize;
+					break;
+				#endif
+			}
+			if (zoomDelta != 0.0)
+				_guiGtkDrawingArea_handleZoom (w, zoomDelta);
+			return true;
+		}
+		const bool mapVerticalToHorizontal = (my d_horizontalScrollBar && (! my d_verticalScrollBar || shiftKeyPressed));
+		double hSteps = 0.0;
+		double vSteps = 0.0;
+		switch (event -> direction) {
+			case GDK_SCROLL_LEFT:
+				hSteps -= 1.0;
+				break;
+			case GDK_SCROLL_RIGHT:
+				hSteps += 1.0;
+				break;
+			case GDK_SCROLL_UP:
+				if (mapVerticalToHorizontal)
+					hSteps -= 1.0;
+				else
+					vSteps -= 1.0;
+				break;
+			case GDK_SCROLL_DOWN:
+				if (mapVerticalToHorizontal)
+					hSteps += 1.0;
+				else
+					vSteps += 1.0;
+				break;
+			#ifdef GDK_SCROLL_SMOOTH
+			case GDK_SCROLL_SMOOTH:
+				if (event -> delta_x != 0.0)
+					hSteps += event -> delta_x;
+				if (event -> delta_y != 0.0) {
+					if (mapVerticalToHorizontal)
+						hSteps += event -> delta_y;
+					else
+						vSteps += event -> delta_y;
+				}
+				break;
+			#endif
+		}
+		if (my d_horizontalScrollBar && hSteps != 0.0) {
 			double hv = gtk_range_get_value (GTK_RANGE (my d_horizontalScrollBar -> d_widget));
 			GtkAdjustment *adjustment = gtk_range_get_adjustment (GTK_RANGE (my d_horizontalScrollBar -> d_widget));
 			gdouble hi;
 			g_object_get (adjustment, "step_increment", & hi, nullptr);
-			switch (event -> direction) {
-				case GDK_SCROLL_LEFT:
-					gtk_range_set_value (GTK_RANGE (my d_horizontalScrollBar -> d_widget), hv - hi);
-					break;
-				case GDK_SCROLL_RIGHT:
-					gtk_range_set_value (GTK_RANGE (my d_horizontalScrollBar -> d_widget), hv + hi);
-					break;
-			}
+			gtk_range_set_value (GTK_RANGE (my d_horizontalScrollBar -> d_widget), hv + hSteps * hi);
 		}
-		if (my d_verticalScrollBar) {
+		if (my d_verticalScrollBar && vSteps != 0.0) {
 			double vv = gtk_range_get_value (GTK_RANGE (my d_verticalScrollBar -> d_widget));
 			GtkAdjustment *adjustment = gtk_range_get_adjustment (GTK_RANGE (my d_verticalScrollBar -> d_widget));
 			gdouble vi;
 			g_object_get (adjustment, "step_increment", & vi, nullptr);
-			switch (event -> direction) {
-				case GDK_SCROLL_UP:
-					gtk_range_set_value (GTK_RANGE (my d_verticalScrollBar -> d_widget), vv - vi);
-					break;
-				case GDK_SCROLL_DOWN:
-					gtk_range_set_value (GTK_RANGE (my d_verticalScrollBar -> d_widget), vv + vi);
-					break;
-			}
+			gtk_range_set_value (GTK_RANGE (my d_verticalScrollBar -> d_widget), vv + vSteps * vi);
 		}
 		return true;
 	}
@@ -396,9 +460,7 @@ Thing_implement (GuiDrawingArea, GuiControl, 0);
 				for (integer igraphics = 1; igraphics <= my numberOfGraphicses; igraphics ++) {
 					GraphicsScreen graphics = static_cast <GraphicsScreen> (my graphicses [igraphics]);
 					if (graphics -> d_macView) {
-						graphics -> d_macGraphicsContext = Melder_systemVersion < 101400 ?
-								(CGContextRef) [[NSGraphicsContext currentContext] graphicsPort] :
-								[[NSGraphicsContext currentContext] CGContext];
+						graphics -> d_macGraphicsContext = [[NSGraphicsContext currentContext] CGContext];
 						Melder_assert (!! graphics -> d_macGraphicsContext);
 					}
 				}
@@ -448,9 +510,9 @@ Thing_implement (GuiDrawingArea, GuiControl, 0);
 			event. x = local_point. x;
 			event. y = local_point. y;
 			NSUInteger modifiers = [nsEvent modifierFlags];
-			event. shiftKeyPressed = modifiers & NSShiftKeyMask;
-			event. optionKeyPressed = modifiers & NSAlternateKeyMask;
-			event. commandKeyPressed = modifiers & NSCommandKeyMask;
+			event. shiftKeyPressed = modifiers & NSEventModifierFlagShift;
+			event. optionKeyPressed = modifiers & NSEventModifierFlagOption;
+			event. commandKeyPressed = modifiers & NSEventModifierFlagCommand;
 			try {
 				my mouseCallback (my mouseBoss, & event);
 			} catch (MelderError) {
@@ -524,9 +586,9 @@ Thing_implement (GuiDrawingArea, GuiControl, 0);
 				event. key = 0x2193;
 			trace (U"key ", event. key);
 			NSUInteger modifiers = [nsEvent modifierFlags];
-			event. shiftKeyPressed = modifiers & NSShiftKeyMask;
-			event. optionKeyPressed = modifiers & NSAlternateKeyMask;
-			event. commandKeyPressed = modifiers & NSCommandKeyMask;
+			event. shiftKeyPressed = modifiers & NSEventModifierFlagShift;
+			event. optionKeyPressed = modifiers & NSEventModifierFlagOption;
+			event. commandKeyPressed = modifiers & NSEventModifierFlagCommand;
 			try {
 				my d_keyCallback (my d_keyBoss, & event);
 			} catch (MelderError) {
