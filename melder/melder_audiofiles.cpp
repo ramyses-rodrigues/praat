@@ -1981,8 +1981,6 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 								}
 						} break;
 						case Melder_LINEAR_16_LITTLE_ENDIAN: {
-							
-							/* Ramyses: inserção de barra de progresso - Testes */
 							for (integer isamp = 1; isamp <= numberOfSamples; isamp ++)
 								for (integer ichan = 1; ichan <= numberOfChannels; ichan ++) {
 									const uint8 byte1 = * bytes ++, byte2 = * bytes ++;
