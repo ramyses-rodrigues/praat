@@ -3109,7 +3109,6 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 			const bool controlKeyPressed = (fwKeys & MK_CONTROL);
 			const bool shiftKeyPressed = (fwKeys & MK_SHIFT);
 
-			/* Código anterior */
 			if (controlKeyPressed)
 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
 			else if (controlKeyPressed) // zom mais rápido
@@ -3131,6 +3130,7 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 										
 					if (child->widgetClass == xmScrollBarWidgetClass)
 						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+					
 					// if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
 					// 	on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
 					// else if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
@@ -3168,6 +3168,29 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 	} else
 		FORWARD_WM_MOUSEWHEEL (
 		        window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
+}
+static void on_mouseWheel (HWND window, int xPos, int yPos, int zDelta, int fwKeys) {
+	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+	if (me) {
+		if (my widgetClass == xmDrawingAreaWidgetClass) {
+			const bool isHorizontal = ( fwKeys & MK_SHIFT );
+			const int direction = ( isHorizontal ? ( zDelta < 0 ? SB_LINELEFT : SB_LINERIGHT ) : ( zDelta < 0 ? SB_LINEDOWN : SB_LINEUP ) );
+			const bool controlKeyPressed = ( fwKeys & MK_CONTROL );
+			if (controlKeyPressed) {
+				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 10.0);
+			} else if (my parent -> widgetClass == xmScrolledWindowWidgetClass) {
+				on_scroll (isHorizontal ? my parent -> motiff.scrolledWindow.horizontalBar : my parent -> motiff.scrolledWindow.verticalBar, direction, 0);
+			} else if (isHorizontal) {
+				for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
+					if (child -> widgetClass == xmScrollBarWidgetClass && child -> orientation == XmHORIZONTAL)
+						on_scroll (child, direction, 0);
+			} else {
+				for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
+					if (child -> widgetClass == xmScrollBarWidgetClass && child -> orientation == XmVERTICAL)
+						on_scroll (child, direction, 0);
+			}
+		} else FORWARD_WM_MOUSEWHEEL (window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
+	} else FORWARD_WM_MOUSEWHEEL (window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
 }
 static void on_size (HWND window, UINT state, int cx, int cy) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
@@ -3392,7 +3415,7 @@ static LRESULT CALLBACK windowProc(
 		HANDLE_MSG(window, WM_PAINT, on_paint);
 		HANDLE_MSG(window, WM_HSCROLL, on_hscroll);
 		HANDLE_MSG(window, WM_VSCROLL, on_vscroll);
-		HANDLE_MSG(window, WM_MOUSEWHEEL, on_verticalWheel);
+		HANDLE_MSG(window, WM_MOUSEWHEEL, on_mouseWheel);
 		// HANDLE_MSG (window, WM_MOUSEHWHEEL, on_horizontalWheel);
 		HANDLE_MSG(window, WM_SIZE, on_size);
 		HANDLE_MSG(window, WM_KEYDOWN, on_key);
