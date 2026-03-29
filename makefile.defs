@@ -1,4 +1,5 @@
 # File: makefile.defs.msys-mingw64
+# Ramyses - modificações para compilar com flag -g (debug)
 
 # System: MinGW on Windows under MSYS2
 # Paul Boersma 2024-01-05
