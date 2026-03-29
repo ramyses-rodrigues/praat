@@ -3082,6 +3082,25 @@ static void on_vscroll (HWND window, HWND controlWindow, UINT code, int pos) {
 	        MAKELPARAM ((xPos), (yPos)))
 //#define HANDLE_WM_MOUSEWHEEL(hwnd,wParam,lParam,fn) \
 	((fn)((hwnd),(int)(short)LOWORD(lParam),(int)(short)HIWORD(lParam),(int)(short)HIWORD(wParam),(UINT)(short)LOWORD(wParam)),(LRESULT)0)
+
+/* --------------------------------------------
+	Ramyses: implementado para manipular a roda do mouse.
+	Roda isolada = deslocamento para esquerda e direita. scroll up/down se for janela de texto
+	Roda + Shift = zoom preciso, se for SoundEditor; 
+	Roda + Ctrl = zoom mais intenso, parecido com os botões in/out
+	
+	Dicas:
+	zDelta assume +120 ou -120 a depende da direção da roda
+	Na função original, ao ser detectado o movimento da roda do mouse com a tecla CTRL pressionada,
+	é chamada a função de hancleZoom: gui_drawingarea_cb_zoom(), linha 479 do arquvio FunctionEditor.cpp 
+	O parãmetro de aumento/diminuiçao é dada pela equação:
+		enlargement = exp (-0.02 * (event->delta > 0.0 ? +1 : -1) * sqrt (fabs (event->delta)));
+	
+	Mudança: 
+	Usando a roda do mouse com a tecla SHIFT pressionada, zoom de +-2%
+	Usando a roda do mouse com a tecla CTRL pressionada, zoom de +- 25 %
+*/
+
 static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int fwKeys) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
@@ -3090,49 +3109,59 @@ static void on_verticalWheel (HWND window, int xPos, int yPos, int zDelta, int f
 			const bool controlKeyPressed = (fwKeys & MK_CONTROL);
 			const bool shiftKeyPressed = (fwKeys & MK_SHIFT);
 
-			/* --------------------------------------------
-			 Ramyses: implementado para manipular a roda do mouse.
-			  Roda isolada = deslocamento para esquerda e direita. scroll up/down se for janela de texto
-			  Roda + Shift = zoom preciso, se for SoundEditor; 
-			  Roda + Ctrl = zoom mais intenso, parecido com os botões in/out
-			  zDelta assume +120 ou -120 a depende da direção da roda
-			  É chamada a função de hancleZoom: gui_drawingarea_cb_zoom(), linha 479 do arquvio FunctionEditor.cpp 
-			  O parãmetro de aumento/diminuiçao é dada pela equação:
-			      enlargement = exp (-0.02 * (event->delta > 0.0 ? +1 : -1) * sqrt (fabs (event->delta)));
-			   Assim, usando apenas a roda do mouse, zoom de +-2%
-			   com a tecla Ctrl, de +- 25 %
-			*/
-			if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-				on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			// senão, varre buscando por todos os objetos filhos e chama callbacks específicos...
-			else for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
-					if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL) {
-						if (shiftKeyPressed)
-							_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0); // zoom mais preciso (2%)
-						else if (controlKeyPressed) // zom mais rápido
-							_GuiWinDrawingArea_handleZoom (me, double (zDelta * 5)); // mais taxa de zoom (25%)
-						else 							
-							on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-					}
-					else if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
-						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-
-
 			/* Código anterior */
-			// if (controlKeyPressed)
-			// 	_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
-			// else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
-			// 			on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			if (controlKeyPressed)
+				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0);
+			else if (controlKeyPressed) // zom mais rápido
+				_GuiWinDrawingArea_handleZoom (me, double (zDelta * 5)); // mais taxa de zoom (25%)
+			else if (my parent->widgetClass == xmScrolledWindowWidgetClass)
+				on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			else {
+				// debug: lista todas as janelas filhas da janela pai do DrawingArea, para verificar coisas	
+				static MelderString childInfo;
+				MelderString_empty (&childInfo);
+
+				// varre todas as janelas filhas da janela pai do DrawingArea, para verificar se há uma ScrollBar
+				// (sempre presente na janela de SoundEditor, etc) e chama callbacks da ScrollBar vertical, 
+				// que desloca a janela para esquerda/direita.
+
+				for (GuiObject child = my parent->firstChild; child;child = child->nextSibling) {
+					// debug
+					MelderString_append (&childInfo, U"\nChild: ", Melder_pointer (child), U" WidgetClass: ", child->widgetClass);
+										
+					if (child->widgetClass == xmScrollBarWidgetClass)
+						on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+					// if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
+					// 	on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+					// else if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
+					// 	on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+				}
+
+				// debug
+				Melder_information(childInfo.string); 
+					
+			}
+		
+			
+			// // verifica se é uma janela de texto, se for, scroll up/down; se for outra janela, scroll left/right
+			// if (my parent->widgetClass == xmScrolledWindowWidgetClass)
+			// 	on_scroll (my parent->motiff.scrolledWindow.verticalBar, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// // senão, varre buscando por todos os objetos filhos dessa janela e verifica se há 
+			// // uma ScrollBar com orientação HORIZONTAL (sempre presente na janela de functionEditor (), pitchEditor
+			// // SoundEditor, etc) e chama callbacks da ScrollBar horozintal, que desloca a janela para esquerda/direita.
 			// else {
-			// 	for (GuiObject child = my parent->firstChild; child;child = child->nextSibling)
-			// 		if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
+			// 	for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
+			// 		if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL) {
+			// 			if (shiftKeyPressed)
+			// 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 120.0); // zoom mais preciso (2%)
+			// 			else if (controlKeyPressed) // zom mais rápido
+			// 				_GuiWinDrawingArea_handleZoom (me, double (zDelta * 5)); // mais taxa de zoom (25%)
+			// 			else 							
+			// 				on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
+			// 		}
+			// 		else if (child -> widgetClass == xmScrollBarWidgetClass && child->orientation == XmVERTICAL)
 			// 			on_scroll (child, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP, 0);
-			// 	}
-			// else {
-			//     for (GuiObject child = my parent->firstChild; child; child = child->nextSibling)
-			// 		if (child->widgetClass == xmScrollBarWidgetClass && child->orientation == XmHORIZONTAL)
-			// 			_GuiWinDrawingArea_handleZoom (me, double (-1*zDelta) / 120.0);
-			// }
+			// 	}			
 		} else
 			FORWARD_WM_MOUSEWHEEL (
 			        window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
