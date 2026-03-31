@@ -2893,6 +2893,7 @@ static GuiObject findItem (GuiObject menu, int id) {
 	}
 	return NULL;
 }
+
 // Ramyses - callback do duplo clique no objeto da lista
 // headers praat.h e praat_script para ter acesso às variáveis do Praat, funções e script. Uso também para o cb on_dropFiles
 
@@ -2917,7 +2918,7 @@ static void cb_list_ondoubleclick(GuiObject widget) {
 			try {
 				// verifica se o item selecionado é um objeto Sound, e se for, executa o comando Play
 				ClassInfo classInfo = theCurrentPraatObjects->list[iselected].object->classInfo;
-				isSound = !Melder_cmp(classInfo -> className, U"Sound"); 
+				isSound = str32nequ(classInfo -> className, U"Sound", 5);  //!Melder_cmp(classInfo -> className, U"Sound"); 
 				if (isSound) {// 	selectedItem = iselected;
 					if (!praat_executeCommand (nullptr, U"Play")) {
 						Melder_warning (U"Não foi possível reproduzir o arquivo. Verifique se o formato do arquivo é suportado e se o caminho está correto.");

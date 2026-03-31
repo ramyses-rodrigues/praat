@@ -929,6 +929,9 @@ headers necessários:
 TextGrid.h
 TextEditor.h
 praat.h (no início deste CPP) - para ter acesso aos objetos do Praat carregados na janela principal
+
+// menu_cb_SaveWholeTextGridAsTextFile em TextGridArea
+
 */
 #include "TextGrid.h"
 static void Save_TextGrid_to_Disk (TextGrid tg, MelderFile fileName) {
@@ -941,26 +944,30 @@ static void Save_TextGrid_to_Disk (TextGrid tg, MelderFile fileName) {
 		return; // usuário cancelou a operação
 	
 	Melder_pathToFile (outfile.get(), &lastSavedfile);   // atualiza lastSavedfile
-	Melder_information(lastSavedfile.path);
 	Data_writeToTextFile (tg, fileName);		
 }
 
 // Ramyses: callback do botão SAVE: 
-static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {
-		
+#include "EditorM.h"
+static void gui_button_cb_Save (FunctionEditor me, GuiButtonEvent event) {		
+	MelderString sAreas = {};
 	for (int iArea = 0; iArea < FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iArea ++ ) {					
 			FunctionArea area = static_cast <FunctionArea> (my functionAreas [iArea].get());
 			if (area) {
 				// tenta extrair dessa functionArea o objeto textGrid
 				TextGrid tg = static_cast <TextGrid> (area -> function());
 				if (tg)  {
-					structMelderFile file {};
-					Melder_pathToFile (Melder_cat(tg->name.get(), U".TextGrid"), &file);   // atualiza file.path com o nome do tg da janela ativa
-					// Melder_information(Melder_cat(file.path)); 
-					Save_TextGrid_to_Disk (tg, &file);
+					if (str32nequ(tg->classInfo->className, U"TextGrid", 8)) {
+						structMelderFile file {};
+						Melder_pathToFile (Melder_cat(tg->name.get(), U".TextGrid"), &file);   // atualiza file.path com o nome do tg da janela ativa
+						// MelderString_append(&sAreas, U"\nClassName: ", tg->classInfo->className);
+						// MelderString_append(&sAreas, U"\nArea: ", area->function()->name.get());
+						Save_TextGrid_to_Disk (tg, &file);
+					}
 				}
 			}
 		}
+	// Melder_information(sAreas.string);
 }
 
 #pragma mark - FunctionEditor Play menu
