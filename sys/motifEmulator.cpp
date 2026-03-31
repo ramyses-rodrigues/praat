@@ -3103,8 +3103,8 @@ static void on_vscroll (HWND window, HWND controlWindow, UINT code, int pos) {
 
 /* --------------------------------------------
 	Ramyses: implementado para manipular a roda do mouse.
+	
 	Roda isolada = deslocamento para esquerda e direita. scroll up/down se for janela de texto
-	Roda + Shift = zoom preciso, se for SoundEditor; 
 	Roda + Ctrl = zoom mais intenso, parecido com os botões in/out
 	
 	Dicas:
