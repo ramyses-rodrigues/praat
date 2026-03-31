@@ -2,13 +2,13 @@
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     "makefile.launchConfigurations": [
         {
-            "cwd": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat\\praat",
-            "binaryPath": "c:\\Users\\ramyses.rmr\\OneDrive\\Documentos\\Projects\\Praat\\praat\\praat\\Praat_Mod_Debug.exe",
+            "cwd": "c:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/praat/praat",
+            "binaryPath": "c:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/praat/praat/Praat_Mod_Debug.exe",
             "binaryArgs": []
         },
         {
-            "cwd": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\Praat\\praat",
-            "binaryPath": "c:\\Users\\ramys\\OneDrive\\Documentos\\Projects\\Praat\\Praat\\praat\\Praat_Mod_Debug.exe",
+            "cwd": "c:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat",
+            "binaryPath": "c:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/Praat_Mod_Debug.exe",
             "binaryArgs": []
         }
     ],
