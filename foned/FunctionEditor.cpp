@@ -926,8 +926,7 @@ static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS) {
 salva o conteúdo do objeto textGrid em um arquio de texto com extensão .textGrid
 headers necessários:
 
-TextGrid.h
-TextEditor.h
+TextGrid.h (acesso ao objeto TextGrid)
 praat.h (no início deste CPP) - para ter acesso aos objetos do Praat carregados na janela principal
 
 // menu_cb_SaveWholeTextGridAsTextFile em TextGridArea
@@ -937,9 +936,7 @@ praat.h (no início deste CPP) - para ter acesso aos objetos do Praat carregados
 static void Save_TextGrid_to_Disk (TextGrid tg, MelderFile fileName) {
 	static structMelderFile lastSavedfile {}; // mantém variável ativa após sair da função
 	//lastSavedDir = MelderFolder_getParentFolder()
-
 	autostring32 outfile = GuiFileSelect_getOutfileName(nullptr, U"Salvar TextGrid", fileName->path); 
-	
 	if (! outfile)
 		return; // usuário cancelou a operação
 	

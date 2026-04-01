@@ -3123,6 +3123,7 @@ static void on_mouseWheel (HWND window, int xPos, int yPos, int zDelta, int fwKe
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
 		if (my widgetClass == xmDrawingAreaWidgetClass) {
+			zDelta = -zDelta;
 			const bool isHorizontal = ( fwKeys & MK_SHIFT );
 			const int direction = ( isHorizontal ? ( zDelta < 0 ? SB_LINELEFT : SB_LINERIGHT ) : ( zDelta < 0 ? SB_LINEDOWN : SB_LINEUP ) );
 			const bool controlKeyPressed = ( fwKeys & MK_CONTROL );
