@@ -1265,6 +1265,7 @@ autoTable TextGrid_downto_Table (TextGrid me, bool includeLineNumbers, integer t
 					icol = 0;
 					if (includeLineNumbers)
 						Table_setNumericValue (thee.get(), irow, ++ icol, irow);
+
 					/* Ramyses: mofica ordem das colunas na tabela */
 					if (includeTierNames)
 						Table_setStringValue (thee.get(), irow, ++ icol, tier -> name.get());
@@ -1365,6 +1366,7 @@ autoTable TextGrid_tabulateOccurrences (TextGrid me, constVEC searchTiers, kMeld
 	return thee;
 }
 
+// Ramyses: modificado a função Table_list(...), definida em Table.cpp
 void TextGrid_list (
 	const TextGrid me,
 	const bool includeLineNumbers,

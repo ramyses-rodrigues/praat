@@ -158,6 +158,7 @@ void TextGrid_setPointText (TextGrid me, integer tierNumber, integer pointNumber
 autoTable TextGrid_downto_Table (TextGrid me, bool includeLineNumbers, integer timeDecimals, bool includeTierNames, bool includeEmptyIntervals);
 autoTable TextGrid_tabulateOccurrences (TextGrid me, constVEC searchTiers,
 	kMelder_string which, conststring32 criterion, bool caseSensitive);
+
 void TextGrid_list (TextGrid me, bool includeLineNumbers, integer timeDecimals, bool includeTierNames,
 	bool includeEmptyIntervals);
 

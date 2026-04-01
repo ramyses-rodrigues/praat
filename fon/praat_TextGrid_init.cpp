@@ -863,10 +863,12 @@ DIRECT (HINT_TextGrid_Pitch_draw) {
 
 // MARK: Tabulate
 
+// Ramyses: modificada a função TextGrid_list (definida em TextGrid.cpp) para construir texto da transcrição
+// modificado valor padrão da variável includeTierNames para false
 FORM (LIST_TextGrid_list, U"TextGrid: List", nullptr) {
 	BOOLEAN (includeLineNumber, U"Include line number", false)
 	NATURAL (timeDecimals, U"Time decimals", U"6")
-	BOOLEAN (includeTierNames, U"Include tier names", true)
+	BOOLEAN (includeTierNames, U"Include tier names", false)
 	BOOLEAN (includeEmptyIntervals, U"Include empty intervals", false)
 	OK
 DO
@@ -900,7 +902,6 @@ DO
 		autoTable result = TextGrid_tabulateOccurrences (me, searchTiers, listEveryLabelThat___, ___theText, caseSensitive);
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", ___theText)
 }
-
 
 // MARK: Query
 

@@ -2009,10 +2009,45 @@ static conststring32 visibleString (conststring32 s) {
 	return ( s && s [0] != U'\0' ? s : U"?" );
 }
 
+// Ramyses: modificado forma de construção do texto da transcrição para compatibilizar com o utilizado no laudo
+void Table_list2 (const constTable me, const bool includeRowNumbers) {
+	MelderInfo_open ();
+	if (includeRowNumbers) {
+		MelderInfo_write (U"row");
+		if (my numberOfColumns > 0)
+			MelderInfo_write (U"\t");
+	}
+	for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
+		if (icol > 1)
+			MelderInfo_write (U"\t");
+		MelderInfo_write (visibleString (my columnHeaders [icol]. label.get()));
+	}
+	MelderInfo_write (U"\n");
+	for (integer irow = 1; irow <= my rows.size; irow ++) {
+		if (includeRowNumbers) {
+			MelderInfo_write (irow);
+			if (my numberOfColumns > 0)
+				MelderInfo_write (U"\t");
+		}
+		TableRow row = my rows.at [irow];
+		for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
+			if (icol > 1)
+				MelderInfo_write (U"\t");
+			MelderInfo_write (visibleString (row -> cells [icol]. string.get()));
+		}
+		MelderInfo_write (U"\n");
+	}
+	MelderInfo_close ();
+}
+
 void Table_list (
 	const constTable me,
 	const bool includeRowNumbers
 ) {
+	// Ramyses: chama função modificada. Após os testes, eliminar a funão Table_list?
+	Table_list2(me, includeRowNumbers);
+	return;
+	
 	MelderInfo_open ();
 	if (includeRowNumbers) {
 		MelderInfo_write (U"row");
