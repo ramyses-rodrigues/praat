@@ -2009,7 +2009,7 @@ static conststring32 visibleString (conststring32 s) {
 	return ( s && s [0] != U'\0' ? s : U"?" );
 }
 
-// Ramyses: função para obter o conteúdo de uma célula a partir do título da coluna. Utilizada na função Table_list2 para construir o texto da transcrição
+// Ramyses: função para obter o conteúdo de uma célula a partir da linha e do título da coluna. Utilizada na função Table_list2 para construir o texto da transcrição
 static conststring32 getCellString (const constTable me, const integer irow, const conststring32 colTitle) {
 	conststring32 s = U"";
 	TableRow row = my rows.at [irow];
@@ -2022,7 +2022,8 @@ static conststring32 getCellString (const constTable me, const integer irow, con
 }
 
 // Ramyses: modificado forma de construção do texto da transcrição para compatibilizar com o utilizado no laudo
-void Table_list2 (const constTable me, const bool includeRowNumbers) {
+// declarado em Table.h
+void Table_list2 (const constTable me, const conststring32 textGridName) {
 	MelderInfo_open ();
 	
 	// formato de cada linha: [x (s)-> y (s)]: texto
@@ -2034,28 +2035,17 @@ void Table_list2 (const constTable me, const bool includeRowNumbers) {
 
 	// TODO: inserir o nome do arquivo ou do TextGrid!!!!
 
-	// varre todas as linhas
+	// varre todas as linhas e insere o valor da coluna
+
+	MelderInfo_write (U"Nome do objeto: ", textGridName);
 	for (integer irow = 1; irow <= my rows.size; irow ++) {
-		if (includeRowNumbers) {
-			MelderInfo_write (irow);
-			if (my numberOfColumns > 0)
-				MelderInfo_write (U": ");
-		}
 		
 		MelderInfo_write (U"[ ");
 		MelderInfo_write (getCellString(me, irow, U"tmin"));
 		MelderInfo_write (U" -> ");
 		MelderInfo_write (getCellString(me, irow, U"tmax"));
 		MelderInfo_write (U" ]: ");
-		MelderInfo_write (getCellString(me, irow, U"text"));
-
-		// for (integer icol = 1; icol <= my numberOfColumns; icol ++) {			
-		// 	MelderInfo_write (visibleString (row -> cells [0]. string.get())); // coluna tmin
-		// 	MelderInfo_write (U"(s) -> ");
-		// 	MelderInfo_write (visibleString (row -> cells [1]. string.get())); // coluna tmax
-		// 	MelderInfo_write (U"(s)]: ");
-		// 	MelderInfo_write (visibleString (row -> cells [2]. string.get())); // coluna texto
-		// }
+		MelderInfo_write (getCellString(me, irow, U"text"));		
 		MelderInfo_write (U"\n");
 	}
 	MelderInfo_close ();
@@ -2065,37 +2055,33 @@ void Table_list (
 	const constTable me,
 	const bool includeRowNumbers
 ) {
-	// Ramyses: chama função modificada. Após os testes, eliminar a funão Table_list?
-	Table_list2(me, includeRowNumbers);
-	
-		
-	// MelderInfo_open ();
-	// if (includeRowNumbers) {
-	// 	MelderInfo_write (U"row");
-	// 	if (my numberOfColumns > 0)
-	// 		MelderInfo_write (U"\t");
-	// }
-	// for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
-	// 	if (icol > 1)
-	// 		MelderInfo_write (U"\t");
-	// 	MelderInfo_write (visibleString (my columnHeaders [icol]. label.get()));
-	// }
-	// MelderInfo_write (U"\n");
-	// for (integer irow = 1; irow <= my rows.size; irow ++) {
-	// 	if (includeRowNumbers) {
-	// 		MelderInfo_write (irow);
-	// 		if (my numberOfColumns > 0)
-	// 			MelderInfo_write (U"\t");
-	// 	}
-	// 	TableRow row = my rows.at [irow];
-	// 	for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
-	// 		if (icol > 1)
-	// 			MelderInfo_write (U"\t");
-	// 		MelderInfo_write (visibleString (row -> cells [icol]. string.get()));
-	// 	}
-	// 	MelderInfo_write (U"\n");
-	// }
-	// MelderInfo_close ();
+	MelderInfo_open ();
+	if (includeRowNumbers) {
+		MelderInfo_write (U"row");
+		if (my numberOfColumns > 0)
+			MelderInfo_write (U"\t");
+	}
+	for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
+		if (icol > 1)
+			MelderInfo_write (U"\t");
+		MelderInfo_write (visibleString (my columnHeaders [icol]. label.get()));
+	}
+	MelderInfo_write (U"\n");
+	for (integer irow = 1; irow <= my rows.size; irow ++) {
+		if (includeRowNumbers) {
+			MelderInfo_write (irow);
+			if (my numberOfColumns > 0)
+				MelderInfo_write (U"\t");
+		}
+		TableRow row = my rows.at [irow];
+		for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
+			if (icol > 1)
+				MelderInfo_write (U"\t");
+			MelderInfo_write (visibleString (row -> cells [icol]. string.get()));
+		}
+		MelderInfo_write (U"\n");
+	}
+	MelderInfo_close ();
 }
 
 static void writeToCharacterSeparatedFile (Table me, MelderFile file, char32 separator, bool interpretQuotes) {

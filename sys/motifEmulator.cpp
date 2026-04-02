@@ -2902,37 +2902,24 @@ static GuiObject findItem (GuiObject menu, int id) {
 static void cb_list_ondoubleclick(GuiObject widget) {
 	//Melder_assert (event -> list == praatList_objects);	
 	GuiList me = (GuiList) widget -> userData;
-	// debug
-	Melder_information(	U"Objeto: ", me ->classInfo -> className, 
-						U"\nItem selecionado: ", GuiList_getSelectedPositions (me).size,
-						U"\nQuantidade de objetos na lista: ", theCurrentPraatObjects -> n,
-						U"\nTotal de objetos selecionados: ", theCurrentPraatObjects -> totalSelection);
-	// theCurrentPraatObjects -> totalSelection = 0;
-	// praat => functionEditor()->duringPlay) {
-	// 		our functionEditor()->v_play (x_world, our functionEditor()->endWindow);
-	// autoINTVEC selected = GuiList_getSelectedPositions (praatList_objects);
-	int selectedItem = -1;
-	bool isSound = false;
 	for (integer iselected = 1; iselected <= theCurrentPraatObjects -> n; iselected ++) {
 		if (theCurrentPraatObjects->list[iselected].isSelected)			
 			try {
 				// verifica se o item selecionado é um objeto Sound, e se for, executa o comando Play
 				ClassInfo classInfo = theCurrentPraatObjects->list[iselected].object->classInfo;
-				isSound = str32nequ(classInfo -> className, U"Sound", 5);  //!Melder_cmp(classInfo -> className, U"Sound"); 
-				if (isSound) {// 	selectedItem = iselected;
-					if (!praat_executeCommand (nullptr, U"Play")) {
+				if (str32equ (classInfo->className, U"Sound")) {
+					if (!praat_executeCommand (nullptr, U"Play")) 
 						Melder_warning (U"Não foi possível reproduzir o arquivo. Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-					} else {
-						//Melder_information(U"Reproduzindo o arquivo de áudio selecionado.");
-					}
+				} else if (str32equ (classInfo->className, U"TextGrid")) {
+					// TextGrid handling here if needed
+					if (!praat_executeCommand (nullptr, U"View & Edit alone")) 
+						Melder_warning (U"Não foi possível abrir o TextGrid selecionado. Verifique se o formato do arquivo é suportado e se o caminho está correto.");
 				} else
-					Melder_warning (U"Não é possível reproduzir um objeto ", classInfo -> className, U".");
+						Melder_warning (U"Não é possível manipular um objeto ", classInfo -> className, U".");
 				}
 			catch (MelderError) {
 				Melder_information(U"Ocorreu um erro, ", 
-					U"É objeto Sound? ", isSound,
 					U"Item selecionado, ", theCurrentPraatObjects->list[iselected].object->classInfo->className,
-					U"Resultado da comparação: ", Melder_cmp(theCurrentPraatObjects->list[iselected].object->classInfo->className, U"Sound"),
 					U"\nQuantidade de objetos na lista: ", theCurrentPraatObjects -> n,
 					U"\nTotal de objetos selecionados: ", theCurrentPraatObjects -> totalSelection);
 			}		
@@ -3321,9 +3308,8 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 
 			Melder_pathToFile (MelderstrFiles32[i].string, file);
 			MelderString_empty (&command);
+			
 			// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-			
-			
 			MelderString_append (&command, U"Read from file... ", file->path);			
 			try {
 				if (!praat_executeCommand (nullptr, command.string)) {

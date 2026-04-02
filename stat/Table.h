@@ -111,6 +111,8 @@ void Table_scatterPlot_mark (Table me, Graphics g, integer xcolumn, integer ycol
 void Table_drawEllipse_e (Table me, Graphics g, integer xcolumn, integer ycolumn,
 	double xmin, double xmax, double ymin, double ymax, double numberOfSigmas, bool garnish);
 
+	// Ramyses: declaração da nova função Table_list2, para imprimir conteúdo da transcrição
+void Table_list2 (const constTable me, const conststring32 textGridName);
 void Table_list (constTable me, bool includeRowNumbers);
 void Table_writeToTabSeparatedFile (Table me, MelderFile file);
 void Table_writeToCommaSeparatedFile (Table me, MelderFile file);

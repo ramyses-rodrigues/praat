@@ -497,7 +497,7 @@ static void gui_drawingarea_cb_zoomVerticalWhell (FunctionEditor me, GuiDrawingA
 
 	// const double mousePos = GetMouseMovePointsEx();
 
-	if (shifted) {
+	if ((shifted) && (wCenter != selCenter)) {
 		my startWindow += shift;
 		if (my startWindow < my tmin + 1e-12)
 			my startWindow = my tmin;
