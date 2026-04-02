@@ -1376,7 +1376,7 @@ void TextGrid_list (
 ) {
 	try {
 		autoTable table = TextGrid_downto_Table (me, includeLineNumbers, timeDecimals, includeTierNames, includeEmptyIntervals);
-		// Table_list (table.get(), false);
+		// Table_list (table.get(), false); // modificado para Table_list2(...)
 		Table_list2(table.get(), me->name.get());
 	} catch (MelderError) {
 		Melder_throw (me, U": not listed.");
