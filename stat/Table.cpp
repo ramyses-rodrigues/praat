@@ -2027,8 +2027,8 @@ void Table_list2 (const constTable me, const conststring32 textGridName) {
 	MelderInfo_open ();
 	
 	// formato de cada linha: [x (s)-> y (s)]: texto
-	MelderInfo_write (U"[x (s)-> y (s)]: Texto");
-	MelderInfo_write (U"\n");
+	// MelderInfo_write (U"[x (s)-> y (s)]: Texto");
+	// MelderInfo_write (U"\n");
 
 	// a função dowto_table (definida em TextGrid.cpp) foi modificada para trazer as colunas na seguinte ordem:
 	// line -> Tier -> tmin -> tmax -> texto
@@ -2038,13 +2038,14 @@ void Table_list2 (const constTable me, const conststring32 textGridName) {
 	// varre todas as linhas e insere o valor da coluna
 
 	MelderInfo_write (U"Nome do objeto: ", textGridName);
+	MelderInfo_write (U"\n");
 	for (integer irow = 1; irow <= my rows.size; irow ++) {
 		
-		MelderInfo_write (U"[ ");
+		MelderInfo_write (U"[");
 		MelderInfo_write (getCellString(me, irow, U"tmin"));
-		MelderInfo_write (U" -> ");
+		MelderInfo_write (U"(s) >> ");
 		MelderInfo_write (getCellString(me, irow, U"tmax"));
-		MelderInfo_write (U" ]: ");
+		MelderInfo_write (U"(s)]: ");
 		MelderInfo_write (getCellString(me, irow, U"text"));		
 		MelderInfo_write (U"\n");
 	}
