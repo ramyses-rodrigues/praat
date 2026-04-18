@@ -100,6 +100,7 @@ void FileInMemory_showAsCode (FileInMemory me, conststring32 name, integer numbe
 	MelderInfo_write (U"\t\tstatic unsigned char ", name, U"_data[", my d_numberOfBytes+1, U"] = \n\"");
 	for (integer i = 1; i <= my d_numberOfBytes; i ++) {
 		const unsigned char number = my d_data [i];
+		const unsigned char previousNumber = ( i > 1 ? my d_data [i - 1] : '\0' );
 		const unsigned char nextNumber = ( i < my d_numberOfBytes ? my d_data [i + 1] : '\0' );
 		if (i % numberOfBytesPerLine == 1 && i > 1)
 			MelderInfo_write (U"\"\n\"");
@@ -110,7 +111,12 @@ void FileInMemory_showAsCode (FileInMemory me, conststring32 name, integer numbe
 				MelderInfo_write (U"\\\"");   // two characters: \" ...
 			else if (number == '\\')
 				MelderInfo_write (U"\\\\");   // two characters: \\ ...
-			else {
+			else if (number == '?') {
+				if (previousNumber == '?')   // prevent trigraphs
+					MelderInfo_write (U"\\?");   // two characters: \? ...
+				else
+					MelderInfo_write (U"?");
+			} else {
 				char32 buffer [2] = { number, U'\0' };
 				MelderInfo_write (buffer);
 			}
@@ -145,7 +151,7 @@ FileInMemory FileInMemory_fopen (FileInMemory me, const char *mode) {
 }
 
 FileInMemory FileInMemorySet_fopen (FileInMemorySet me, const char *fileName, const char *mode) {
-	const integer index = my lookUp (Melder_peek8to32 (fileName));
+	const integer index = my lookUp (Melder_peek8to32_u (fileName));
 	if (index == 0) {
 		errno = ENOENT;   // "no such file or directory"
 		return nullptr;
@@ -597,7 +603,7 @@ int FileInMemory_ungetc (int character, FileInMemory me) {
 }
 
 int FileInMemorySet_stat (FileInMemorySet me, const char *path, struct stat *buf) {
-	conststring32 path32 = Melder_peek8to32 (path);
+	conststring32 path32 = Melder_peek8to32_u (path);
 	integer position = my lookUp (path32);
 	if (position > 0) {
 		buf -> st_mode = S_IFREG;
@@ -933,9 +939,9 @@ static void testOneFile (
 			Melder_require (fimline [lineLength] == '\0',
 				U"Fm-line ", iline, U" should have a null byte after it, not ", (integer) fimline [lineLength], U".");
 			Melder_require (memcmp (fline, lineContent, (size_t) lineLength) == 0,   // not strcmp, because of potential null bytes
-				U"File-line ", iline, U" (\"", Melder_peek8to32 (fline), U"\") should have been \"", Melder_peek8to32 (lineContent), U"\".");
+				U"File-line ", iline, U" (\"", Melder_peek8to32_u (fline), U"\") should have been \"", Melder_peek8to32_u (lineContent), U"\".");
 			Melder_require (memcmp (fimline, lineContent, (size_t) lineLength) == 0,   // not strcmp, because of potential null bytes
-				U"Fim-line ", iline, U" (\"", Melder_peek8to32 (fimline), U"\") should have been \"", Melder_peek8to32 (lineContent), U"\".");
+				U"Fim-line ", iline, U" (\"", Melder_peek8to32_u (fimline), U"\") should have been \"", Melder_peek8to32_u (lineContent), U"\".");
 			intendedPosition += lineLength;
 			integer fpos = ftell (theTestFilePointer);
 			integer fimpos = FileInMemory_ftell (theTestFim);

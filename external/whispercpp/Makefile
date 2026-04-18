@@ -1,10 +1,16 @@
 # Makefile of the library "external/whispercpp"
+# Anastasia Shchupak 2025,2026
 
 include ../../makefile.defs
 
+CPPFLAGS = -I ../../melder -I ../../fon -I ../../sys
+
 WHISPER_AND_GGML_OBJECTS = \
 	whisper.o \
+	diarize.o \
 	ggml.o \
+	ggml-type-traits.o \
+	ggml-memory-pool.o \
 	ggml-backend.o \
 	ggml-backend-dl.o \
 	ggml-backend-reg.o \
@@ -22,7 +28,11 @@ GGML_CPU_OBJECTS = \
 	ops.o \
 	vec.o
 
-WHISPER_OBJECTS = $(WHISPER_AND_GGML_OBJECTS) $(GGML_CPU_OBJECTS)
+MODEL_OBJECTS = \
+	model-ggml-segmentation.o \
+	model-ggml-embedding.o
+
+WHISPER_OBJECTS = $(WHISPER_AND_GGML_OBJECTS) $(GGML_CPU_OBJECTS) $(MODEL_OBJECTS)
 
 .PHONY: all clean
 
