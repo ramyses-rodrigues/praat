@@ -1726,18 +1726,24 @@ DO
 }
 
 // Ramyses: inserida opção para listar somente valores válidos (exclui valores --undefined--)
+// exporta para csv
 FORM (NUMVEC_Pitch_listValuesInAllFrames, U"Pitch: List values in all frames", U"Pitch: List values in all frames...") {
 	OPTIONMENU_ENUM (kPitch_unit, unit, U"Unit", kPitch_unit::DEFAULT)
-	CHOICEx (isValid, U"Opções de retorno", 1, 0)
-		OPTION (U"Somente valores válidos") // isValid = 0
-		OPTION (U"Tudo (incluindo valores NaN)") // isValid = 1
+	CHOICEx (isCSV, U"Opções de retorno", 1, 0)
+		OPTION (U"Exportar para CSV?") // isCSV = 0
+		OPTION (U"Tudo (incluindo valores NaN)") // isCSV = 1
 	OK
 DO
 	QUERY_ONE_FOR_REAL_VECTOR (Pitch)
 		autoVEC result = Sampled_listValuesOfAllSamples (me, Pitch_LEVEL_FREQUENCY, (int) unit);
-		for (integer iframe = 1; iframe <= result.size; iframe ++) {
-			//if (isValid)
+		for (integer iframe = 1; iframe <= result.size; iframe ++) {			
 				result [iframe] = Function_convertToNonlogarithmic (me, result [iframe], Pitch_LEVEL_FREQUENCY, (int) unit);
+		}
+
+		if (isCSV) {
+			Melder_information(U"Em construção a exportação para CSV");
+
+
 		}
 	QUERY_ONE_FOR_REAL_VECTOR_END
 }

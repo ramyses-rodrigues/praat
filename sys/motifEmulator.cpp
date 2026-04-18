@@ -3117,13 +3117,13 @@ static void on_mouseWheel (HWND window, int xPos, int yPos, int zDelta, int fwKe
 				_GuiWinDrawingArea_handleZoom (me, double (zDelta) / 10.0);
 			} else if (my parent -> widgetClass == xmScrolledWindowWidgetClass) {
 				on_scroll (isHorizontal ? my parent -> motiff.scrolledWindow.horizontalBar : my parent -> motiff.scrolledWindow.verticalBar, direction, 0);
-			} else if (isHorizontal) {
-				for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
-					if (child -> widgetClass == xmScrollBarWidgetClass && child -> orientation == XmHORIZONTAL)
-						on_scroll (child, direction, 0);
+			// } else if (isHorizontal) {
+			// 	for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
+			// 		if (child -> widgetClass == xmScrollBarWidgetClass && child -> orientation == XmHORIZONTAL)
+			// 			on_scroll (child, direction, 0);
 			} else {
 				for (GuiObject child = my parent -> firstChild; child; child = child -> nextSibling)
-					if (child -> widgetClass == xmScrollBarWidgetClass && child -> orientation == XmVERTICAL)
+					if (child -> widgetClass == xmScrollBarWidgetClass /*&& child -> orientation == XmVERTICAL*/)
 						on_scroll (child, direction, 0);
 			}
 		} else FORWARD_WM_MOUSEWHEEL (window, xPos, yPos, zDelta, fwKeys, DefWindowProc);
