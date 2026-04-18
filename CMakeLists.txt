@@ -1,15 +1,21 @@
 # Versão mínima do CMake
 cmake_minimum_required(VERSION 3.10)
-set(MODE "Release" CACHE STRING "Build mode: Debug or Release")
-set(Exec "Praat_Mod")
+# set(MODE "RELEASE" CACHE STRING "Build mode: Debug or Release")
+set(MODE "DEBUG" CACHE STRING "Build mode: Debug or Release")
+set(EXEC_NAME "Praat_Mod_{MODE}")
 SET(LIBS -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool 
 	-static-libgcc -static-libstdc++ -mwindows -static -lwinpthread)
 
 # Nome do projeto e linguagem
-project(${Exec} LANGUAGES C CXX)
+project(${EXEC_NAME} LANGUAGES C CXX)
 
 # Define o padrão C++ (opcional)
 set(CMAKE_CXX_STANDARD 17)
+
+# Setup output directories.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
 include_directories( 
         fon 
@@ -43,51 +49,49 @@ include_directories(
 set(LIST_DIR_PROJECT 
 		fon 
         artsynth 
-        FFNet 
-		gram 
-        EEG 
-		LPC 
-        dwtools 
-        sensors 
-		foned        
-        stat 
-		dwsys 
-        sys 
-        melder 
-        kar 
-		external/espeak 
-		external/portaudio 
-		external/flac
-        external/lame
-        external/mp3 
-		external/glpk 
-		external/clapack 
-		external/gsl 
-		external/num 
-		external/vorbis 
-		external/opusfile 
-		external/whispercpp
+        # FFNet 
+		# gram 
+        # EEG 
+		# LPC 
+        # dwtools 
+        # sensors 
+		# foned        
+        # stat 
+		# dwsys 
+        # sys 
+        # melder 
+        # kar 
+		# external/espeak 
+		# external/portaudio 
+		# external/flac
+        # external/lame
+        # external/mp3 
+		# external/glpk 
+		# external/clapack 
+		# external/gsl 
+		# external/num 
+		# external/vorbis 
+		# external/opusfile 
+		# external/whispercpp
 		)
 
-foreach(FILE IN LISTS LIST_DIR_PROJECT)
-    file(GLOB ${FILE}_SCRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${FILE}/*.cpp ${FILE}/*.c)
-	list(LENGTH  ${FILE}_SCRS MY_LIST_LEN)
-	message(STATUS "Variavel ${FILE}_SCRS possui ${MY_LIST_LEN} arquivos c/cpp")
+
+foreach(DIR IN LISTS LIST_DIR_PROJECT)
+    set(DIR_SCRS ${DIR}_SCRS)
+	file(GLOB DIR_SCRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${DIR}/*.cpp ${DIR}/*.c)
+	# message(STATUS "Variavel ${DIR}_SCRS: ${DIR_SCRS}")
+	
+	list(LENGTH  DIR_SCRS MY_LIST_LEN)
+	# message(STATUS "Variavel ${DIR}_SCRS possui ${MY_LIST_LEN} arquivos c/cpp")
+	
+	get_filename_component(path "${DIR}" NAME)
+	set(LIBa "lib${path}")
+	message(STATUS "Lib gerada: ${LIBa}")
+	
+	add_library(${LIBa} SHARED ${DIR_SCRS})
 endforeach()
 
-# file(GLOB artsynth_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} artsynth/*.cpp)
-# list(LENGTH artsynth_SRCS MY_LIST_LEN)
-# message(STATUS "Variavel artsynthFiles: ${artsynth_SRCS} - ${MY_LIST_LEN} elementos")
 
-# file(GLOB dwsys_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} dwsys/*.cpp)
-# list(LENGTH dwsys_SRCS MY_LIST_LEN)
-# message(STATUS "Variavel dwsysFiles: ${dwsys_SRCS} - ${MY_LIST_LEN} elementos")
-
-
-# Setup output directories.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
 
 # Adiciona o executável e os arquivos fonte

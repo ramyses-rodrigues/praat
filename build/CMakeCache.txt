@@ -159,7 +159,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Praat_Mod
+CMAKE_PROJECT_NAME:STATIC=Praat_Mod_{MODE}
 
 //Value Computed by CMake
 CMAKE_PROJECT_SPDX_LICENSE:STATIC=
@@ -247,6 +247,15 @@ CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Value Computed by CMake
+LANGUAGES_BINARY_DIR:STATIC=C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/build
+
+//Value Computed by CMake
+LANGUAGES_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+LANGUAGES_SOURCE_DIR:STATIC=C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat
+
 //Build mode: Debug or Release
 MODE:STRING=Release
 
@@ -258,6 +267,15 @@ Praat_Mod_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 Praat_Mod_SOURCE_DIR:STATIC=C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat
+
+//Value Computed by CMake
+Praat_Mod_{MODE}_BINARY_DIR:STATIC=C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/build
+
+//Value Computed by CMake
+Praat_Mod_{MODE}_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+Praat_Mod_{MODE}_SOURCE_DIR:STATIC=C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat
 
 
 ########################

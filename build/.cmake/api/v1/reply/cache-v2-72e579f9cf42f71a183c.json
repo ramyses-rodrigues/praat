@@ -903,7 +903,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "Praat_Mod"
+			"value" : "Praat_Mod_{MODE}"
 		},
 		{
 			"name" : "CMAKE_PROJECT_SPDX_LICENSE",
@@ -1310,6 +1310,42 @@
 			"value" : "FALSE"
 		},
 		{
+			"name" : "LANGUAGES_BINARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/build"
+		},
+		{
+			"name" : "LANGUAGES_IS_TOP_LEVEL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "ON"
+		},
+		{
+			"name" : "LANGUAGES_SOURCE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat"
+		},
+		{
 			"name" : "MODE",
 			"properties" : 
 			[
@@ -1347,6 +1383,42 @@
 		},
 		{
 			"name" : "Praat_Mod_SOURCE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat"
+		},
+		{
+			"name" : "Praat_Mod_{MODE}_BINARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/build"
+		},
+		{
+			"name" : "Praat_Mod_{MODE}_IS_TOP_LEVEL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "ON"
+		},
+		{
+			"name" : "Praat_Mod_{MODE}_SOURCE_DIR",
 			"properties" : 
 			[
 				{
