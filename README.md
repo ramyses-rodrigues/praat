@@ -194,8 +194,9 @@ in 2025, MSYS2 ended support for Intel32, so you may have to use `mingw32` for t
 unless you have an old Intel32 toolchain lying around.
 
 Ramyses: para instalar o toolchain mingw64:
-1. instalar MSYS2 do site (https://www.msys2.org/#installation)
-2. instalar pacote "pacman -S mingw-w64-ucrt-x86_64-gcc" (antes era "$ pacman -S mingw-w64-x86_64-gcc")
+1. Instalar a extensão C/C++ (Microsoft);
+1-a. instalar MSYS2 do site (https://www.msys2.org/#installation)
+2. instalar pacote de compilação UCRT64, com o comando "pacman -S mingw-w64-ucrt-x86_64-gcc" (antes era "$ pacman -S mingw-w64-x86_64-gcc")
 3. instalar make: "pacman -S mingw-w64-ucrt-x86_64-make" (antes era "pacman -S make")
 4. instalar gdb: "pacman -S mingw-w64-ucrt-x86_64-gdb" (antes era "$ pacman -S mingw-w64-x86_64-gdb")
 5. atualizar Msys2: "pacman -Suy"
@@ -205,6 +206,12 @@ Ramyses: para instalar o toolchain mingw64:
 9. O arquivo makefile.defs já está editado para usar com o msys2 (File: makefile.defs.msys-mingw64)
 
 Usando a biblioteca UCRT64, os arquivos baixados pelo Pacman serão armazenados na pasta  ou "\msys2\mingw64\bin".
+
+Ramyses: adicionalmente, para usar o CMAKE:
+1. instalar a extensão CMake Tools (Microsoft) no vscode;
+2. Instalar o pacote cmake e ninja, pelo comando "pacman -S --needed mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja";
+3. 
+4. 
 
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
 perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,
