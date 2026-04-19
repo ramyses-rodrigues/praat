@@ -607,11 +607,11 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "Name of generator platform."
+					"value" : "Force 64-bit"
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : ""
+			"value" : "x64"
 		},
 		{
 			"name" : "CMAKE_GENERATOR_TOOLSET",

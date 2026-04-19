@@ -358,8 +358,8 @@ CMAKE_EXTRA_GENERATOR:INTERNAL=
 CMAKE_GENERATOR:INTERNAL=Ninja
 //Generator instance identifier.
 CMAKE_GENERATOR_INSTANCE:INTERNAL=
-//Name of generator platform.
-CMAKE_GENERATOR_PLATFORM:INTERNAL=
+//Force 64-bit
+CMAKE_GENERATOR_PLATFORM:INTERNAL=x64
 //Name of generator toolset.
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
 //Source directory with the top level CMakeLists.txt file for this

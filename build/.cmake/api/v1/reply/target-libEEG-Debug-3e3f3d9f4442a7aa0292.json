@@ -1,14 +1,9 @@
 {
+	"archive" : {},
 	"artifacts" : 
 	[
 		{
-			"path" : "bin/liblibartsynth.dll"
-		},
-		{
-			"path" : "lib/liblibartsynth.dll.a"
-		},
-		{
-			"path" : "bin/liblibartsynth.pdb"
+			"path" : "lib/liblibEEG.a"
 		}
 	],
 	"backtrace" : 1,
@@ -17,6 +12,7 @@
 		"commands" : 
 		[
 			"add_library",
+			"add_definitions",
 			"include_directories"
 		],
 		"files" : 
@@ -31,13 +27,43 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 91,
+				"line" : 113,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 20,
+				"line" : 15,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 18,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 16,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 19,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 40,
 				"parent" : 0
 			}
 		]
@@ -59,113 +85,134 @@
 			"defines" : 
 			[
 				{
-					"define" : "libartsynth_EXPORTS"
+					"backtrace" : 2,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "_CRT_NONSTDC_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "_CRT_SECURE_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "_CRT_SECURE_NO_WARNINGS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "_UNICODE"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "_USE_MATH_DEFINES"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/fon"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/artsynth"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/FFNet"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/gram"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/EEG"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/LPC"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwtools"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sensors"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/foned"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/stat"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwsys"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sys"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/melder"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/kar"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/espeak"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/portaudio"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/flac"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/lame"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/mp3"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/glpk"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/clapack"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/gsl"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/num"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/vorbis"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/opusfile"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/whispercpp"
 				}
 			],
@@ -189,33 +236,13 @@
 				6,
 				7,
 				8,
-				9,
-				10,
-				11,
-				12,
-				13,
-				14
+				9
 			]
 		}
 	],
-	"id" : "libartsynth::@6890427a1f51a3e7e1df",
-	"link" : 
-	{
-		"commandFragments" : 
-		[
-			{
-				"fragment" : "-shared",
-				"role" : "flags"
-			},
-			{
-				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
-				"role" : "libraries"
-			}
-		],
-		"language" : "CXX"
-	},
-	"name" : "libartsynth",
-	"nameOnDisk" : "liblibartsynth.dll",
+	"id" : "libEEG::@6890427a1f51a3e7e1df",
+	"name" : "libEEG",
+	"nameOnDisk" : "liblibEEG.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -236,12 +263,7 @@
 				6,
 				7,
 				8,
-				9,
-				10,
-				11,
-				12,
-				13,
-				14
+				9
 			]
 		}
 	],
@@ -250,93 +272,63 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Art_Speaker.cpp",
+			"path" : "EEG/EEG.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Art_Speaker_Delta.cpp",
+			"path" : "EEG/EEGAnalysisArea.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Art_Speaker_to_VocalTract.cpp",
+			"path" : "EEG/EEGArea.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Articulation.cpp",
+			"path" : "EEG/EEGWindow.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Artword.cpp",
+			"path" : "EEG/ERP.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/ArtwordEditor.cpp",
+			"path" : "EEG/ERPArea.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Artword_Speaker.cpp",
+			"path" : "EEG/ERPTier.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Artword_Speaker_Sound.cpp",
+			"path" : "EEG/ERPWindow.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Artword_Speaker_to_Sound.cpp",
+			"path" : "EEG/manual_EEG.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "artsynth/Artword_to_Art.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "artsynth/Delta.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "artsynth/Speaker.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "artsynth/Speaker_to_Delta.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "artsynth/manual_Artsynth.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "artsynth/praat_Artsynth.cpp",
+			"path" : "EEG/praat_EEG.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],
-	"type" : "SHARED_LIBRARY"
+	"type" : "STATIC_LIBRARY"
 }

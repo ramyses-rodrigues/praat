@@ -1,16 +1,36 @@
 # Versão mínima do CMake
 cmake_minimum_required(VERSION 3.10)
+
 # set(MODE "RELEASE" CACHE STRING "Build mode: Debug or Release")
 set(MODE "DEBUG" CACHE STRING "Build mode: Debug or Release")
+
 set(EXEC_NAME "Praat_Mod_{MODE}")
-SET(LIBS -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool 
-	-static-libgcc -static-libstdc++ -mwindows -static -lwinpthread)
 
 # Nome do projeto e linguagem
 project(${EXEC_NAME} LANGUAGES C CXX)
 
+SET(LIBS -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool 
+	-static-libgcc -static-libstdc++ -mwindows -static -lwinpthread)
+
+add_definitions(-DUNICODE -D_UNICODE)
+# add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+# add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+# add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+# add_definitions(-D_USE_MATH_DEFINES)
+# add_definitions(-DWIN32_LEAN_AND_MEAN)
+
+# set(CMAKE_GENERATOR_PLATFORM x64 CACHE INTERNAL "Force 64-bit")
+
+# if(MSVC)
+#     target_compile_options(${EXEC_NAME} PRIVATE _SBCS)
+# endif()
+
 # Define o padrão C++ (opcional)
 set(CMAKE_CXX_STANDARD 17)
+# target_compile_options(${EXEC_NAME} PRIVATE -std=gnu++17 CMAKE_CL_64 Wshadow)
+# set(COMMON_FLAGS -municode -D_FILE_OFFSET_BITS=64 -DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN -O3)
+# set(CMAKE_CXX_COMPILE_FEATURESFLAGS "${CMAKE_CXX_FLAGS} std=gnu++17")
+# message(STATUS "Variavel: ${CMAKE_CXX_EXTENSIONS} ${CMAKE_CXX_EXTENSIONS}")
 
 # Setup output directories.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -49,35 +69,36 @@ include_directories(
 set(LIST_DIR_PROJECT 
 		fon 
         artsynth 
-        # FFNet 
-		# gram 
-        # EEG 
-		# LPC 
-        # dwtools 
-        # sensors 
-		# foned        
-        # stat 
-		# dwsys 
-        # sys 
-        # melder 
-        # kar 
-		# external/espeak 
-		# external/portaudio 
-		# external/flac
-        # external/lame
-        # external/mp3 
-		# external/glpk 
-		# external/clapack 
-		# external/gsl 
-		# external/num 
-		# external/vorbis 
-		# external/opusfile 
-		# external/whispercpp
+        FFNet 
+		gram 
+        EEG 
+		LPC 
+        dwtools 
+        sensors 
+		foned        
+        stat 
+		dwsys 
+        sys 
+        melder 
+        kar 
+		external/espeak 
+		external/portaudio 
+		external/flac
+        external/lame
+        external/mp3 
+		external/glpk 
+		external/clapack 
+		external/gsl 
+		external/num 
+		external/vorbis 
+		external/opusfile 
+		external/whispercpp
 		)
 
 
 foreach(DIR IN LISTS LIST_DIR_PROJECT)
-    set(DIR_SCRS ${DIR}_SCRS)
+    
+	set(DIR_SCRS ${DIR}_SCRS)
 	file(GLOB DIR_SCRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${DIR}/*.cpp ${DIR}/*.c)
 	# message(STATUS "Variavel ${DIR}_SCRS: ${DIR_SCRS}")
 	
@@ -86,9 +107,10 @@ foreach(DIR IN LISTS LIST_DIR_PROJECT)
 	
 	get_filename_component(path "${DIR}" NAME)
 	set(LIBa "lib${path}")
+	file(REMOVE LIBa)
 	message(STATUS "Lib gerada: ${LIBa}")
 	
-	add_library(${LIBa} SHARED ${DIR_SCRS})
+	add_library(${LIBa} STATIC ${DIR_SCRS})
 endforeach()
 
 

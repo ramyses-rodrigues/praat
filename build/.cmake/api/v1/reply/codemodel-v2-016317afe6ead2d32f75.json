@@ -1,0 +1,286 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : [],
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f040eec181a89de70dbe.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Praat_Mod_{MODE}",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "libEEG::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libEEG-Debug-3e3f3d9f4442a7aa0292.json",
+					"name" : "libEEG",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libFFNet::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libFFNet-Debug-4d609898643477e60481.json",
+					"name" : "libFFNet",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libLPC::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libLPC-Debug-70f52233153151175b2b.json",
+					"name" : "libLPC",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libartsynth::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libartsynth-Debug-d2c895c0c8081d3058e2.json",
+					"name" : "libartsynth",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libclapack::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libclapack-Debug-1ee6a40882dd781530e7.json",
+					"name" : "libclapack",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libdwsys::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libdwsys-Debug-33005ebecd59c2e63fd7.json",
+					"name" : "libdwsys",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libdwtools::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libdwtools-Debug-5ef9e46d1763452d3fe0.json",
+					"name" : "libdwtools",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libespeak::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libespeak-Debug-ca13df7bedce7e15f614.json",
+					"name" : "libespeak",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libflac::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libflac-Debug-d81bd3fa61853d18f3ee.json",
+					"name" : "libflac",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libfon::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libfon-Debug-6bec12b02f3176b95ee6.json",
+					"name" : "libfon",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libfoned::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libfoned-Debug-6552f1f7bfedb1715e2c.json",
+					"name" : "libfoned",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libglpk::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libglpk-Debug-42a85cb0791b10d6098e.json",
+					"name" : "libglpk",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libgram::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libgram-Debug-387b96ce10974b41f561.json",
+					"name" : "libgram",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libgsl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libgsl-Debug-78ba2d39764996f841b6.json",
+					"name" : "libgsl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libkar::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libkar-Debug-129dedec5330b83ec5e8.json",
+					"name" : "libkar",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "liblame::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-liblame-Debug-44412a6647dd1f28ab58.json",
+					"name" : "liblame",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libmelder::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libmelder-Debug-855c103ac5b1f1ec4a20.json",
+					"name" : "libmelder",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libmp3::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libmp3-Debug-dd72b77280fcf15c43ad.json",
+					"name" : "libmp3",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libnum::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libnum-Debug-90c28d20ee20e1ae7f19.json",
+					"name" : "libnum",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libopusfile::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libopusfile-Debug-a1983e7c32c7ab16ad9e.json",
+					"name" : "libopusfile",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libportaudio::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libportaudio-Debug-4a90d08d55aa7c4df755.json",
+					"name" : "libportaudio",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libsensors::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libsensors-Debug-5e7733278582db59b2f4.json",
+					"name" : "libsensors",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libstat::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libstat-Debug-22a72d41d9d2f0d2b8fd.json",
+					"name" : "libstat",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libsys::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libsys-Debug-42c648ea40e8d2edacad.json",
+					"name" : "libsys",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libvorbis::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libvorbis-Debug-54d2d86bbebb71018065.json",
+					"name" : "libvorbis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "libwhispercpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-libwhispercpp-Debug-2be8cb2770734d12b797.json",
+					"name" : "libwhispercpp",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/build",
+		"source" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	}
+}

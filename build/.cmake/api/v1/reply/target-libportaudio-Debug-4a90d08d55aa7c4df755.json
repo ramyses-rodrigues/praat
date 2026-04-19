@@ -1,0 +1,664 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "lib/liblibportaudio.a"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"add_definitions",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 113,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 15,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 18,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 16,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 19,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 40,
+				"parent" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "_CRT_NONSTDC_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "_CRT_SECURE_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "_CRT_SECURE_NO_WARNINGS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "_UNICODE"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "_USE_MATH_DEFINES"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/fon"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/artsynth"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/FFNet"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/gram"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/EEG"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/LPC"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwtools"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sensors"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/foned"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/stat"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwsys"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sys"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/melder"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/kar"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/espeak"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/portaudio"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/flac"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/lame"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/mp3"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/glpk"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/clapack"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/gsl"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/num"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/vorbis"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/opusfile"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/whispercpp"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				0,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -std=gnu++17"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "_CRT_NONSTDC_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "_CRT_SECURE_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "_CRT_SECURE_NO_WARNINGS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "_UNICODE"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "_USE_MATH_DEFINES"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/fon"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/artsynth"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/FFNet"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/gram"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/EEG"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/LPC"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwtools"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sensors"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/foned"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/stat"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwsys"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sys"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/melder"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/kar"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/espeak"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/portaudio"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/flac"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/lame"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/mp3"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/glpk"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/clapack"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/gsl"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/num"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/vorbis"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/opusfile"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/whispercpp"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					1
+				],
+				"standard" : "17"
+			},
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"id" : "libportaudio::@6890427a1f51a3e7e1df",
+	"name" : "libportaudio",
+	"nameOnDisk" : "liblibportaudio.a",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_allocation.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/portaudio/pa_asio.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_converters.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_cpuload.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_debugprint.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_dither.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_front.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_hostapi_skeleton.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_jack.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_linux_alsa.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_linux_asihpi.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_mac_core.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_mac_core_blocking.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_mac_core_utilities.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_mac_hostapis.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_process.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_ringbuffer.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_stream.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_trace.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_unix_hostapis.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_unix_oss.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_unix_util.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_coinitialize.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_ds.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_ds_dynlink.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_hostapis.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_util.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_wasapi.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_waveformat.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_wdmks.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_wdmks_utils.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_win_wmme.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/portaudio/pa_x86_plain_converters.c",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

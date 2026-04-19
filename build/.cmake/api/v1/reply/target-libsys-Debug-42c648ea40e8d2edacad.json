@@ -1,14 +1,9 @@
 {
+	"archive" : {},
 	"artifacts" : 
 	[
 		{
-			"path" : "bin/liblibfon.dll"
-		},
-		{
-			"path" : "lib/liblibfon.dll.a"
-		},
-		{
-			"path" : "bin/liblibfon.pdb"
+			"path" : "lib/liblibsys.a"
 		}
 	],
 	"backtrace" : 1,
@@ -17,6 +12,7 @@
 		"commands" : 
 		[
 			"add_library",
+			"add_definitions",
 			"include_directories"
 		],
 		"files" : 
@@ -31,13 +27,43 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 91,
+				"line" : 113,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 20,
+				"line" : 15,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 18,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 16,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 19,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 40,
 				"parent" : 0
 			}
 		]
@@ -59,113 +85,134 @@
 			"defines" : 
 			[
 				{
-					"define" : "libfon_EXPORTS"
+					"backtrace" : 2,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "_CRT_NONSTDC_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "_CRT_SECURE_NO_DEPRECATE"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "_CRT_SECURE_NO_WARNINGS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "_UNICODE"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "_USE_MATH_DEFINES"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/fon"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/artsynth"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/FFNet"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/gram"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/EEG"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/LPC"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwtools"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sensors"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/foned"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/stat"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/dwsys"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/sys"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/melder"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/kar"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/espeak"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/portaudio"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/flac"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/lame"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/mp3"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/glpk"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/clapack"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/gsl"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/num"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/vorbis"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/opusfile"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 7,
 					"path" : "C:/Users/ramys/OneDrive/Documentos/Projects/Praat/Praat/praat/external/whispercpp"
 				}
 			],
@@ -259,64 +306,13 @@
 				76,
 				77,
 				78,
-				79,
-				80,
-				81,
-				82,
-				83,
-				84,
-				85,
-				86,
-				87,
-				88,
-				89,
-				90,
-				91,
-				92,
-				93,
-				94,
-				95,
-				96,
-				97,
-				98,
-				99,
-				100,
-				101,
-				102,
-				103,
-				104,
-				105,
-				106,
-				107,
-				108,
-				109,
-				110,
-				111,
-				112,
-				113,
-				114,
-				115
+				79
 			]
 		}
 	],
-	"id" : "libfon::@6890427a1f51a3e7e1df",
-	"link" : 
-	{
-		"commandFragments" : 
-		[
-			{
-				"fragment" : "-shared",
-				"role" : "flags"
-			},
-			{
-				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
-				"role" : "libraries"
-			}
-		],
-		"language" : "CXX"
-	},
-	"name" : "libfon",
-	"nameOnDisk" : "liblibfon.dll",
+	"id" : "libsys::@6890427a1f51a3e7e1df",
+	"name" : "libsys",
+	"nameOnDisk" : "liblibsys.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -407,43 +403,7 @@
 				76,
 				77,
 				78,
-				79,
-				80,
-				81,
-				82,
-				83,
-				84,
-				85,
-				86,
-				87,
-				88,
-				89,
-				90,
-				91,
-				92,
-				93,
-				94,
-				95,
-				96,
-				97,
-				98,
-				99,
-				100,
-				101,
-				102,
-				103,
-				104,
-				105,
-				106,
-				107,
-				108,
-				109,
-				110,
-				111,
-				112,
-				113,
-				114,
-				115
+				79
 			]
 		}
 	],
@@ -452,699 +412,483 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/AmplitudeTier.cpp",
+			"path" : "sys/ButtonEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/AnyTier.cpp",
+			"path" : "sys/Collection.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Cochleagram.cpp",
+			"path" : "sys/Data.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Cochleagram_and_Excitation.cpp",
+			"path" : "sys/DataEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Corpus.cpp",
+			"path" : "sys/DataGui.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Distributions_and_Transition.cpp",
+			"path" : "sys/DemoEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/DurationTier.cpp",
+			"path" : "sys/Editor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Excitation.cpp",
+			"path" : "sys/Formula.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Excitation_to_Formant.cpp",
+			"path" : "sys/Graphics.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/ExperimentMFC.cpp",
+			"path" : "sys/GraphicsPostscript.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Formant.cpp",
+			"path" : "sys/GraphicsScreen.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/FormantGrid.cpp",
+			"path" : "sys/Graphics_altitude.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/FormantTier.cpp",
+			"path" : "sys/Graphics_colour.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/FujisakiPitch.cpp",
+			"path" : "sys/Graphics_grey.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Function.cpp",
+			"path" : "sys/Graphics_image.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/H1minusH2Tier.cpp",
+			"path" : "sys/Graphics_linesAndAreas.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Harmonicity.cpp",
+			"path" : "sys/Graphics_record.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Image.cpp",
+			"path" : "sys/Graphics_surface.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Intensity.cpp",
+			"path" : "sys/Graphics_text.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/IntensityTier.cpp",
+			"path" : "sys/Graphics_utils.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Label.cpp",
+			"path" : "sys/Gui.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/LongSound.cpp",
+			"path" : "sys/GuiButton.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Ltas.cpp",
+			"path" : "sys/GuiCheckButton.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Ltas_to_SpectrumTier.cpp",
+			"path" : "sys/GuiControl.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Manipulation.cpp",
+			"path" : "sys/GuiDialog.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Matrix.cpp",
+			"path" : "sys/GuiDrawingArea.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Matrix_and_Pitch.cpp",
+			"path" : "sys/GuiFileSelect.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Matrix_and_PointProcess.cpp",
+			"path" : "sys/GuiForm.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Matrix_and_Polygon.cpp",
+			"path" : "sys/GuiLabel.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Movie.cpp",
+			"path" : "sys/GuiList.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/ParamCurve.cpp",
+			"path" : "sys/GuiMenu.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Photo.cpp",
+			"path" : "sys/GuiMenuItem.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Pitch.cpp",
+			"path" : "sys/GuiObject.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/PitchTier.cpp",
+			"path" : "sys/GuiOptionMenu.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/PitchTier_to_PointProcess.cpp",
+			"path" : "sys/GuiProgressBar.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/PitchTier_to_Sound.cpp",
+			"path" : "sys/GuiRadioButton.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Pitch_AnyTier_to_PitchTier.cpp",
+			"path" : "sys/GuiScale.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Pitch_Intensity.cpp",
+			"path" : "sys/GuiScrollBar.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Pitch_to_PitchTier.cpp",
+			"path" : "sys/GuiScrolledWindow.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Pitch_to_PointProcess.cpp",
+			"path" : "sys/GuiShell.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Pitch_to_Sound.cpp",
+			"path" : "sys/GuiText.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/PointProcess.cpp",
+			"path" : "sys/GuiThing.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/PointProcess_and_Sound.cpp",
+			"path" : "sys/GuiTrust.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Polygon.cpp",
+			"path" : "sys/GuiWindow.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Praat_tests.cpp",
+			"path" : "sys/Gui_messages.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/RealTier.cpp",
+			"path" : "sys/HyperPage.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sampled.cpp",
+			"path" : "sys/InfoEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/SampledXY.cpp",
+			"path" : "sys/Interpreter.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound.cpp",
+			"path" : "sys/ManPage.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/SoundSet.cpp",
+			"path" : "sys/ManPages.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_PointProcess.cpp",
+			"path" : "sys/ManPages_toHtml.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_and_Spectrogram.cpp",
+			"path" : "sys/Manual.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_and_Spectrum.cpp",
+			"path" : "sys/Notebook.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_audio.cpp",
+			"path" : "sys/NotebookEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_enhance.cpp",
+			"path" : "sys/Picture.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_files.cpp",
+			"path" : "sys/Preferences.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_Cochleagram.cpp",
+			"path" : "sys/Printer.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_Formant.cpp",
+			"path" : "sys/Script.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_Harmonicity.cpp",
+			"path" : "sys/ScriptEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_Harmonicity_GNE.cpp",
+			"path" : "sys/Simple.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_Intensity.cpp",
+			"path" : "sys/Strings.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_Pitch.cpp",
+			"path" : "sys/StringsEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Sound_to_PointProcess.cpp",
+			"path" : "sys/TextEditor.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Spectrogram.cpp",
+			"path" : "sys/Thing.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Spectrum.cpp",
+			"path" : "sys/Ui.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/SpectrumTier.cpp",
+			"path" : "sys/UiFile.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Spectrum_and_Spectrogram.cpp",
+			"path" : "sys/UiPause.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Spectrum_to_Excitation.cpp",
+			"path" : "sys/machine.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Spectrum_to_Formant.cpp",
+			"path" : "sys/motifEmulator-Ramyses-Lap.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/SpeechRecognizer.cpp",
+			"path" : "sys/motifEmulator.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/SpellingChecker.cpp",
+			"path" : "sys/praat.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/TextGrid.cpp",
+			"path" : "sys/praat_actions.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/TextGrid_Sound.cpp",
+			"path" : "sys/praat_library.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/TextGrid_files.cpp",
+			"path" : "sys/praat_logo.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Transition.cpp",
+			"path" : "sys/praat_menuCommands.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/Vector.cpp",
+			"path" : "sys/praat_objectMenus.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/VocalTract.cpp",
+			"path" : "sys/praat_picture.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/VocalTract_to_Spectrum.cpp",
+			"path" : "sys/praat_script.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/VoiceAnalysis.cpp",
+			"path" : "sys/praat_statistics.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "fon/WordList.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_ExperimentMFC.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_Fon.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_Manual.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_Picture.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_Sampling.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_SpeechRecognizer.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_annotation.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_commands.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_demoWindow.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_exampleSound.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_formant.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_formulas.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_functions.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_glossary.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_licenses.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_pitch.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_pointProcess.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_programming.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_references.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_scripting.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_sound.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_soundFiles.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_spectrum.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_tutorials.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_voice.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/manual_whatsnew.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_ExperimentMFC.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_Matrix.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_Sound.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_SpeechRecognizer.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_TextGrid_init.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_Tiers.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_TimeFrameSampled.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_TimeFunction.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_TimeTier.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "fon/praat_uvafon_init.cpp",
+			"path" : "sys/site.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],
-	"type" : "SHARED_LIBRARY"
+	"type" : "STATIC_LIBRARY"
 }
