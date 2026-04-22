@@ -13,3 +13,5 @@ add_library(libglpk STATIC ${GLPK_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
 target_include_directories(libglpk PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

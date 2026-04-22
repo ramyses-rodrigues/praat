@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
-project(GSL_Library C)
+project(DWSYS_Library C)
 
 # 1. Configurações de compilação (equivalente ao makefile.defs)
 set(CMAKE_C_STANDARD 99)
 add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 
 # 2. Lista exaustiva de arquivos fonte
-FILE(GLOB GSL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
+FILE(GLOB DWSYS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
-# 3. Criação da biblioteca estática (libgsl.a)
-add_library(libgsl STATIC ${GSL_SOURCES})
+# 3. Criação da biblioteca estática (libdwsys.a)
+add_library(libdwsys STATIC ${DWSYS_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libgsl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(libdwsys PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")
