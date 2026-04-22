@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(Praat C CXX)
+project(Praat VERSION 1.0 LANGUAGES C CXX)
 
 # 1. Gerenciamento de DEBUG/RELEASE (Substitui DEBUG_ON)
 # O CMake já tem suporte nativo: use -DCMAKE_BUILD_TYPE=Debug ou Release
@@ -27,7 +27,9 @@ add_compile_options(-municode -O3)
 # Padrões de linguagem
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON) # Necessário para o -std=gnu++17 (M_PI)
+# set(CMAKE_CXX_FLAGS "-std=c++11")
 
 # 3. Tratamento do Ícone (Windows)
 # O comando windres converte o .rc em um objeto que o linker entende
