@@ -26,6 +26,8 @@ Thumbs.db
 # and then rename
 #makefile.defs
 
+/build/*.*
+
 # executables
 praat
 Praat

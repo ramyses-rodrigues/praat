@@ -1,0 +1,83 @@
+cmake_minimum_required(VERSION 3.15)
+
+if(CMAKE_GENERATOR MATCHES "Ninja")
+    if(DEFINED CMAKE_GENERATOR_PLATFORM)
+        unset(CMAKE_GENERATOR_PLATFORM CACHE)
+    endif()
+endif()
+
+# Setup output directories.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+
+message(STATUS "Using CMake generator: ${CMAKE_GENERATOR}")
+message(STATUS "project Binary Directory: ${PROJECT_BINARY_DIR}")
+
+project(Praat_Mod VERSION 1.0 LANGUAGES C CXX)
+
+# --- Configurações de Compilação (makefile.defs) ---
+
+# Opção para alternar entre Debug e Release[span_0](end_span)
+option(DEBUG_ON "Ativar modo de depuração" OFF)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 17)
+
+
+# Definições comuns (COMMONFLAGS)[span_1](end_span)
+add_definitions(-municode -D_FILE_OFFSET_BITS=64 -DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN)
+
+if(DEBUG_ON)
+    set(DEBUG_TAG "_Debug")
+    set(CMAKE_BUILD_TYPE Debug)
+    add_compile_options(-g)
+else()
+    set(DEBUG_TAG "_Release")
+    set(CMAKE_BUILD_TYPE Release)
+    add_compile_options(-O3) 
+endif()
+
+# Nome do executável conforme definido no Makefile[span_4](end_span)
+set(EXECUTABLE_NAME "Praat_Mod${DEBUG_TAG}")
+
+# --- Bibliotecas Externas e Internas (Makefile) ---
+
+# Nota: No CMake, o ideal é que cada subdiretório tenha seu próprio CMakeLists.txt.
+# Aqui definimos a ordem de inclusão baseada nos comandos 'all-external' e 'all-self'.
+
+set(SUBDIRS_EXTERNAL
+    external/clapack external/gsl external/glpk external/lame external/mp3
+    external/num external/flac external/portaudio external/espeak 
+    external/vorbis external/opusfile external/whispercpp
+)
+
+set(SUBDIRS_SELF
+    kar melder sys dwsys stat fon foned dwtools 
+    LPC EEG sensors gram FFNet artsynth main
+)
+
+foreach(dir ${SUBDIRS_EXTERNAL} ${SUBDIRS_SELF})
+	message(STATUS "Adicionando subdiretório ${dir}")
+	add_subdirectory(${dir})
+endforeach()
+
+# --- Definição do Executável e Links ---
+
+# O arquivo principal e o ícone
+add_executable(${EXECUTABLE_NAME} main/main_Praat.o main/praat_win.o)
+
+# Linkagem das bibliotecas estáticas geradas nos subdiretórios
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+    fon artsynth FFNet gram EEG LPC dwtools sensors foned stat
+    dwsys sys melder kar espeak portaudio flac lame mp3
+    glpk clapack gsl num vorbis opusfile whisper
+    # Bibliotecas do sistema Windows (LIBS)
+    winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool
+    winpthread
+)
+
+# Flags de linkagem estática e interface Windowss
+set_target_properties(${EXECUTABLE_NAME} PROPERTIES 
+    LINK_FLAGS "-static-libgcc -static-libstdc++ -mwindows -static"
+)

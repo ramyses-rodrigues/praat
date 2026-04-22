@@ -1,119 +1,230 @@
-# Versão mínima do CMake
 cmake_minimum_required(VERSION 3.10)
+project(Praat C CXX)
 
-# set(MODE "RELEASE" CACHE STRING "Build mode: Debug or Release")
-set(MODE "DEBUG" CACHE STRING "Build mode: Debug or Release")
+# 1. Gerenciamento de DEBUG/RELEASE (Substitui DEBUG_ON)
+# O CMake já tem suporte nativo: use -DCMAKE_BUILD_TYPE=Debug ou Release
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
-set(EXEC_NAME "Praat_Mod_{MODE}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(DEBUG_TAG "_Debug")
+else()
+    set(DEBUG_TAG "_Release")
+endif()
 
-# Nome do projeto e linguagem
-project(${EXEC_NAME} LANGUAGES C CXX)
+# 2. Configurações de Compilação (Substitui COMMONFLAGS, CFLAGS, CXXFLAGS)
+add_definitions(
+    -D_FILE_OFFSET_BITS=64 
+    -DWORDS_BIGENDIAN=0 
+    -DPA_LITTLE_ENDIAN
+    -D_UNICODE -DUNICODE # Equivalente ao -municode
+)
 
-SET(LIBS -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool 
-	-static-libgcc -static-libstdc++ -mwindows -static -lwinpthread)
+# Flags globais para C e C++
+add_compile_options(-municode -O3)
 
-add_definitions(-DUNICODE -D_UNICODE)
-# add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-# add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
-# add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-# add_definitions(-D_USE_MATH_DEFINES)
-# add_definitions(-DWIN32_LEAN_AND_MEAN)
+# Padrões de linguagem
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS ON) # Necessário para o -std=gnu++17 (M_PI)
 
-# set(CMAKE_GENERATOR_PLATFORM x64 CACHE INTERNAL "Force 64-bit")
+# 3. Tratamento do Ícone (Windows)
+# O comando windres converte o .rc em um objeto que o linker entende
+set(RESOURCE_FILES "main/praat_win.rc") # Presumindo que exista um .rc
+if(WIN32)
+    enable_language(RC)
+    set(ICON_RESOURCE "main/praat_win.rc")
+endif()
 
-# if(MSVC)
-#     target_compile_options(${EXEC_NAME} PRIVATE _SBCS)
+# 4. Adicionar Subdiretórios (Conforme vimos antes)
+add_subdirectory(external/clapack)
+# ... adicione os outros aqui ...
+add_subdirectory(external/gsl)
+add_subdirectory(external/glpk)
+add_subdirectory(external/lame)
+add_subdirectory(external/mp3)
+add_subdirectory(external/num)
+add_subdirectory(external/flac)
+add_subdirectory(external/portaudio)
+add_subdirectory(external/espeak)
+add_subdirectory(external/vorbis)
+add_subdirectory(external/opusfile)
+add_subdirectory(external/whispercpp)
+
+add_subdirectory(kar)
+add_subdirectory(melder)
+add_subdirectory(sys)
+add_subdirectory(dwsys)
+add_subdirectory(stat)
+add_subdirectory(fon)
+add_subdirectory(foned)
+add_subdirectory(dwtools)
+add_subdirectory(LPC)
+add_subdirectory(EEG)
+add_subdirectory(sensors)
+add_subdirectory(gram)
+add_subdirectory(FFNet)
+add_subdirectory(artsynth)
+add_subdirectory(main)
+
+# 5. Definição do Executável
+set(EXECUTABLE_NAME "Praat_Mod${DEBUG_TAG}")
+add_executable(${EXECUTABLE_NAME} main/main_Praat.cpp ${ICON_RESOURCE})
+
+# 6. Linkagem de Bibliotecas do Sistema (Substitui LIBS)
+target_link_libraries(${EXECUTABLE_NAME}
+    PRIVATE
+    # Suas bibliotecas compiladas
+    fon foned dwtools LPC EEG sensors gram FFNet artsynth
+    stat dwsys sys melder kar
+    # Bibliotecas externas
+    clapack gsl glpk lame mp3 num flac portaudio espeak vorbis opusfile whisper
+    # Bibliotecas do Windows (LIBS)
+    winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool winpthread
+    -static-libgcc -static-libstdc++ -static -mwindows
+)
+
+
+# cmake_minimum_required(VERSION 3.10)
+# project(Praat)
+
+# # 1. Configurações Globais (Substitui o makefile.defs)
+# set(CMAKE_CXX_STANDARD 17)
+# add_compile_options(-O3) # Ou as flags que estavam no seu .defs
+
+# # 2. Adicionar todos os subdiretórios das bibliotecas externas
+# # Cada pasta deve ter seu próprio CMakeLists.txt com add_library()
+# add_subdirectory(external/clapack)
+
+
+# # 3. Adicionar os subdiretórios do núcleo (all-self)
+# add_subdirectory(kar)
+# add_subdirectory(melder)
+# add_subdirectory(sys)
+# add_subdirectory(dwsys)
+# add_subdirectory(stat)
+# add_subdirectory(fon)
+# add_subdirectory(foned)
+# add_subdirectory(dwtools)
+# add_subdirectory(LPC)
+# add_subdirectory(EEG)
+# add_subdirectory(sensors)
+# add_subdirectory(gram)
+# add_subdirectory(FFNet)
+# add_subdirectory(artsynth)
+# add_subdirectory(main)
+
+# # 4. Definir o Executável Principal
+# # O arquivo main_Praat.o (ou .cpp) deve estar em main/
+# add_executable(praat main/main_Praat.cpp)
+
+# # 5. Linkar todas as bibliotecas (Substitui o bloco $(LINK))
+# target_link_libraries(praat
+#     PRIVATE
+#     fon foned dwtools LPC EEG sensors gram FFNet artsynth
+#     stat dwsys sys melder kar
+#     espeak portaudio flac lame mp3 glpk clapack gsl num vorbis opusfile whisper
+#     ${CMAKE_DL_LIBS} # Substitui flags de sistema como -ldl se necessário
+# )
+
+
+
+# cmake_minimum_required(VERSION 3.15)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
+# if(CMAKE_GENERATOR MATCHES "Ninja")
+#     if(DEFINED CMAKE_GENERATOR_PLATFORM)
+#         unset(CMAKE_GENERATOR_PLATFORM CACHE)
+#     endif()
 # endif()
 
-# Define o padrão C++ (opcional)
-set(CMAKE_CXX_STANDARD 17)
-# target_compile_options(${EXEC_NAME} PRIVATE -std=gnu++17 CMAKE_CL_64 Wshadow)
-# set(COMMON_FLAGS -municode -D_FILE_OFFSET_BITS=64 -DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN -O3)
-# set(CMAKE_CXX_COMPILE_FEATURESFLAGS "${CMAKE_CXX_FLAGS} std=gnu++17")
-# message(STATUS "Variavel: ${CMAKE_CXX_EXTENSIONS} ${CMAKE_CXX_EXTENSIONS}")
+# # Setup output directories.
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
-# Setup output directories.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+# project(Praat_Mod VERSION 1.0 LANGUAGES C CXX)
 
-include_directories( 
-        fon 
-        artsynth 
-        FFNet 
-		gram 
-        EEG 
-		LPC 
-        dwtools 
-        sensors 
-		foned        
-        stat 
-		dwsys 
-        sys 
-        melder 
-        kar 
-		external/espeak 
-		external/portaudio 
-		external/flac
-        external/lame
-        external/mp3 
-		external/glpk 
-		external/clapack 
-		external/gsl 
-		external/num 
-		external/vorbis 
-		external/opusfile 
-		external/whispercpp
-        )
+# # --- Configurações de Compilação (makefile.defs) ---
 
-set(LIST_DIR_PROJECT 
-		fon 
-        artsynth 
-        FFNet 
-		gram 
-        EEG 
-		LPC 
-        dwtools 
-        sensors 
-		foned        
-        stat 
-		dwsys 
-        sys 
-        melder 
-        kar 
-		external/espeak 
-		external/portaudio 
-		external/flac
-        external/lame
-        external/mp3 
-		external/glpk 
-		external/clapack 
-		external/gsl 
-		external/num 
-		external/vorbis 
-		external/opusfile 
-		external/whispercpp
-		)
+# # Opção para alternar entre Debug e Release[span_0](end_span)
+# option(DEBUG_ON "Ativar modo de depuração" OFF)
 
+# set(CMAKE_C_STANDARD 99)
+# set(CMAKE_CXX_STANDARD 17)
 
-foreach(DIR IN LISTS LIST_DIR_PROJECT)
-    
-	set(DIR_SCRS ${DIR}_SCRS)
-	file(GLOB DIR_SCRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${DIR}/*.cpp ${DIR}/*.c)
-	# message(STATUS "Variavel ${DIR}_SCRS: ${DIR_SCRS}")
+# # Definições comuns (COMMONFLAGS)
+# add_definitions(-municode -D_FILE_OFFSET_BITS=64 -DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN)
+
+# if(DEBUG_ON)
+#     set(DEBUG_TAG "_Debug")
+#     set(CMAKE_BUILD_TYPE Debug)
+#     add_compile_options(-g)
+# else()
+#     set(DEBUG_TAG "_Release")
+#     set(CMAKE_BUILD_TYPE Release)
+#     add_compile_options(-O3) 
+# endif()
+
+# # Nome do executável conforme definido no Makefile
+# set(EXECUTABLE_NAME "Praat_Mod${DEBUG_TAG}")
+
+# # --- Bibliotecas Externas e Internas (Makefile) ---
+
+# # Nota: No CMake, o ideal é que cada subdiretório tenha seu próprio CMakeLists.txt.
+# # Aqui definimos a ordem de inclusão baseada nos comandos 'all-external' e 'all-self'.
+
+# set(SUBDIRS_EXTERNAL
+#     external/clapack external/gsl external/glpk external/lame external/mp3
+#     external/num external/flac external/portaudio external/espeak 
+#     external/vorbis external/opusfile external/whispercpp
+# )
+
+# set(SUBDIRS_SELF
+#     kar melder sys dwsys stat fon foned dwtools 
+#     LPC EEG sensors gram FFNet artsynth main
+# )
+
+# foreach(dir ${SUBDIRS_EXTERNAL} ${SUBDIRS_SELF})
+# 	message(STATUS "Adicionando subdiretório ${dir}")
+# 	add_subdirectory(${dir})
+# endforeach()
+
+# # --- Definição do Executável e Links ---
+
+# # O arquivo principal e o ícone
+# add_executable(${EXECUTABLE_NAME} main/main_Praat.o main/praat_win.o)
+
+# # Linkagem das bibliotecas estáticas geradas nos subdiretórios
+# target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+#     fon artsynth FFNet gram EEG LPC dwtools sensors foned stat
+#     dwsys sys melder kar espeak portaudio flac lame mp3
+#     glpk clapack gsl num vorbis opusfile whisper
+#     # Bibliotecas do sistema Windows (LIBS)
+#     winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool
+#     winpthread
+# )
+
+# # Flags de linkagem estática e interface Windowss
+# set_target_properties(${EXECUTABLE_NAME} PROPERTIES 
+#     LINK_FLAGS "-static-libgcc -static-libstdc++ -mwindows -static"
+# )
+
+# file(GLOB FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${dir}/*.cpp ${dir}/*.c)	
 	
-	list(LENGTH  DIR_SCRS MY_LIST_LEN)
-	# message(STATUS "Variavel ${DIR}_SCRS possui ${MY_LIST_LEN} arquivos c/cpp")
-	
-	get_filename_component(path "${DIR}" NAME)
-	set(LIBa "lib${path}")
-	file(REMOVE LIBa)
-	message(STATUS "Lib gerada: ${LIBa}")
-	
-	add_library(${LIBa} STATIC ${DIR_SCRS})
-endforeach()
+	# foreach(file ${FILES})
+	# 	message(STATUS "Arquivo a ser acrescido: ${file}")
+	# 	list(LENGTH FILES MY_LIST_LEN)
+	# endforeach()
 
-
+	# # message(STATUS "Variavel ${DIR}_SCRS possui ${MY_LIST_LEN} arquivos c/cpp")
+	
+	# get_filename_component(path "${dir}" NAME)
+	# set(LIBa "lib${path}")
+	# file(REMOVE LIBa)
+	# message(STATUS "Lib gerada: ${LIBa}")
+	
+	# add_library(${LIBa} STATIC ${DIR_SCRS})
 
 
 # Adiciona o executável e os arquivos fonte

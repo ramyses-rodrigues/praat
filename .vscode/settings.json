@@ -24,6 +24,11 @@
             ]
         }
     ],
+    "cmake.configureArgs": [
+        "-DEXAMPLE_SETTING=ON",
+        "-DOTHER_FLAG=OFF"
+    ],
+    "cmake.args": ["--preset=default", "-GNinja"],
     "files.associations": {
         "*.tcc": "cpp",
         "string": "cpp",
