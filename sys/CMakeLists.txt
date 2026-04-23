@@ -15,11 +15,11 @@ add_library(libsys STATIC ${SYS_SOURCES})
 
 # 3. Incluir diretórios de busca (Equivalente ao CPPFLAGS -I)
 target_include_directories(libsys PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/**
+    ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/../kar 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../melder/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys/*.h     
-    ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../melder
+    ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys    
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../ *.h 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../kar/*.h 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../melder/*.h 

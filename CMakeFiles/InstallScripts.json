@@ -1,0 +1,34 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/clapack/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/gsl/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/glpk/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/lame/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/mp3/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/num/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/flac/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/portaudio/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/espeak/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/vorbis/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/opusfile/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/whispercpp/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/kar/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/melder/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/sys/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/dwsys/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/stat/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/fon/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/foned/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/dwtools/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/LPC/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/EEG/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/sensors/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/gram/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/FFNet/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/artsynth/cmake_install.cmake",
+		"C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/main/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
