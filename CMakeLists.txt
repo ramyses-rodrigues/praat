@@ -29,6 +29,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON) # Necessário para o -std=gnu++17 (M_PI)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 # set(CMAKE_CXX_FLAGS "-std=c++11")
 
 # 3. Tratamento do Ícone (Windows)
@@ -85,3 +86,34 @@ target_link_libraries(${EXECUTABLE_NAME}
     winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool winpthread
     -static-libgcc -static-libstdc++ -static -mwindows
 )
+
+# # 4. Adicionar Subdiretórios (Conforme vimos antes)
+# target_include_directories(
+#     external/clapack
+#     external/gsl
+#     external/glpk
+#     external/lame   
+#     external/mp3
+#     external/num
+#     external/flac
+#     external/portaudio
+#     external/espeak
+#     external/vorbis
+#     external/opusfile
+#     external/whispercpp
+#     kar
+#     melder
+#     sys
+#     dwsys
+#     stat
+#     fon
+#     foned
+#     dwtools
+#     LPC
+#     EEG
+#     sensors
+#     gram
+#     FFNet
+#     artsynth
+#     main
+# )

@@ -15,19 +15,21 @@ add_library(libsys STATIC ${SYS_SOURCES})
 
 # 3. Incluir diretórios de busca (Equivalente ao CPPFLAGS -I)
 target_include_directories(libsys PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/
+    ${CMAKE_CURRENT_SOURCE_DIR}/**
     ${CMAKE_CURRENT_SOURCE_DIR}/../kar 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../melder 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../melder/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys/*.h     
     ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../ *.h 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../kar/*.h 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../melder/*.h 
     # ${CMAKE_CURRENT_SOURCE_DIR}/../dwsys/*.h # Pasta kar
 )
-set(dir "../melder/")
+set(dir "../melder")
 FILE(GLOB MELDER_HEADERS ${dir}/*.h)
-foreach(header ${MELDER_HEADERS})
-    message(STATUS "Found header: ${header}")
+foreach(file ${MELDER_HEADERS})
+    get_filename_component(filebase ${file} NAME)
+    message(STATUS "Found header: ${filebase}")
 endforeach()
 
 find_file(FILE dir/melder.h)

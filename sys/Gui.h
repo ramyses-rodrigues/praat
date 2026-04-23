@@ -70,14 +70,14 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 		#include <pango/pangocairo.h>
 	#endif
 #elif defined (macintosh)
-	#include "macport_on.h"
+	#include "../melder/macport_on.h"
     #include <Cocoa/Cocoa.h>
-	#include "macport_off.h"
+	#include "../melder/macport_off.h"
 #elif defined (_WIN32)
-	#include "winport_on.h"
+	#include "../melder/winport_on.h"
 	#include <windows.h>
 	#include <windowsx.h>
-	#include "winport_off.h"
+	#include "../melder/winport_off.h"
 #endif
 
 #include "machine.h"
