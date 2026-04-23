@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(GSL_Library C)
+project(GSL_Library C CXX)
 
 # 1. Configurações de compilação (equivalente ao makefile.defs)
 set(CMAKE_C_STANDARD 99)
@@ -12,6 +12,10 @@ FILE(GLOB GSL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_D
 add_library(libgsl STATIC ${GSL_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libgsl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(libgsl PRIVATE 
+${CMAKE_CURRENT_SOURCE_DIR}
+${CMAKE_CURRENT_SOURCE_DIR}/../melder
+)
+target_include_directories(libgsl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ../melder *.h ../melder/*.h)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

@@ -41,7 +41,6 @@ endif()
 
 # 4. Adicionar Subdiretórios (Conforme vimos antes)
 add_subdirectory(external/clapack)
-# ... adicione os outros aqui ...
 add_subdirectory(external/gsl)
 add_subdirectory(external/glpk)
 add_subdirectory(external/lame)

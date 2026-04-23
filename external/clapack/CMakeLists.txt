@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
-project(CLAPACK_Library C)
+project(CLAPACK_Library C CXX)
 
 # 1. Configurações de compilação (equivalente ao makefile.defs)
 set(CMAKE_C_STANDARD 99)
@@ -12,6 +11,6 @@ FILE(GLOB CLAPACK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOUR
 add_library(libclapack STATIC ${CLAPACK_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libclapack PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(libclapack PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ../../melder *.h ../../melder/*.h)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")
