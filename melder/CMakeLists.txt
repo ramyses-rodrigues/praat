@@ -9,9 +9,13 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB MELDER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libmelder.a)
-add_library(libmelder STATIC ${MELDER_SOURCES})
+add_library(melder STATIC ${MELDER_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libmelder PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(melder PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../melder 
+    ../sys
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

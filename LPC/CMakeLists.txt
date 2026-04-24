@@ -9,9 +9,20 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB LPC_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (liblpc.a)
-add_library(liblpc STATIC ${LPC_SOURCES})
+add_library(lpc STATIC ${LPC_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(liblpc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(lpc PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder 
+    ../fon 
+    ../foned 
+    ../dwtools 
+    ../sys 
+    ../dwsys 
+    ../stat 
+    ..external/num
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

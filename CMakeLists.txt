@@ -29,7 +29,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON) # Necessário para o -std=gnu++17 (M_PI)
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 # set(CMAKE_CXX_FLAGS "-std=c++11")
 
 # 3. Tratamento do Ícone (Windows)
@@ -72,7 +72,15 @@ add_subdirectory(main)
 
 # 5. Definição do Executável
 set(EXECUTABLE_NAME "Praat_Mod${DEBUG_TAG}")
+
 add_executable(${EXECUTABLE_NAME} main/main_Praat.cpp ${ICON_RESOURCE})
+
+set_target_properties( ${EXECUTABLE_NAME}
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
 
 # 6. Linkagem de Bibliotecas do Sistema (Substitui LIBS)
 target_link_libraries(${EXECUTABLE_NAME}
@@ -86,6 +94,16 @@ target_link_libraries(${EXECUTABLE_NAME}
     winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool winpthread
     -static-libgcc -static-libstdc++ -static -mwindows
 )
+
+# set(dir "../melder")
+# FILE(GLOB MELDER_HEADERS ${dir}/*.h)
+# foreach(file ${MELDER_HEADERS})
+#     get_filename_component(filebase ${file} NAME)
+#     message(STATUS "Found header: ${filebase}")
+# endforeach()
+
+# find_file(FILE dir/melder.h)
+# message("FILE points to ${dir}. Status: ${FILE}")
 
 # # 4. Adicionar Subdiretórios (Conforme vimos antes)
 # target_include_directories(

@@ -9,9 +9,19 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB STAT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libstat.a)
-add_library(libstat STATIC ${STAT_SOURCES})
+add_library(stat STATIC ${STAT_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libstat PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(stat PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar
+    ../melder 
+    ../sys 
+    ../dwsys 
+    ../dwtools 
+    ../fon 
+    ../foned 
+    ../stat
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

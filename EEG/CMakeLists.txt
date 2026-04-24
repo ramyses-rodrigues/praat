@@ -9,9 +9,19 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB EEG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libeeg.a)
-add_library(libeeg STATIC ${EEG_SOURCES})
+add_library(eeg STATIC ${EEG_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libeeg PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(eeg PUBLIC 
+${CMAKE_CURRENT_SOURCE_DIR}
+../kar
+../melder 
+../sys 
+../dwsys 
+../stat 
+../dwtools 
+../fon 
+../foned
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

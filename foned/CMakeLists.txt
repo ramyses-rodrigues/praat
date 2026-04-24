@@ -9,9 +9,23 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB FONED_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libfoned.a)
-add_library(libfoned STATIC ${FONED_SOURCES})
+add_library(foned STATIC ${FONED_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libfoned PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(foned PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder 
+    ../sys 
+    ../dwsys 
+    ../stat 
+    ../dwtools 
+    ../LPC 
+    ../fon 
+    ../external/portaudio 
+    ../external/flac 
+    ../external/mp3 
+    ../external/espeak
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

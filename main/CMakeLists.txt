@@ -9,9 +9,15 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB MAIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libmain.a)
-add_library(libmain STATIC ${MAIN_SOURCES})
+add_library(main STATIC ${MAIN_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libmain PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(main PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder 
+    ../sys 
+    ../fon
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

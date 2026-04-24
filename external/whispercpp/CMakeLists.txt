@@ -9,9 +9,14 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB WHISPERCPP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libwhispercpp.a)
-add_library(libwhispercpp STATIC ${WHISPERCPP_SOURCES})
+add_library(whispercpp STATIC ${WHISPERCPP_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libwhispercpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(whispercpp PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../../melder 
+    ../../fon 
+    ../../sys
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

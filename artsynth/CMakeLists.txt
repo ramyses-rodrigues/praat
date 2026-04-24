@@ -9,9 +9,17 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB ARTSYNTH_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libartsynth.a)
-add_library(libartsynth STATIC ${ARTSYNTH_SOURCES})
+add_library(artsynth STATIC ${ARTSYNTH_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libartsynth PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(artsynth PUBLIC 
+${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder
+    ../sys
+    ../dwsys
+    ../fon 
+    ../stat
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

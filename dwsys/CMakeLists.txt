@@ -9,9 +9,20 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB DWSYS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libdwsys.a)
-add_library(libdwsys STATIC ${DWSYS_SOURCES})
+add_library(dwsys STATIC ${DWSYS_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libdwsys PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(dwsys PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../melder
+    ../stat
+    ../sys
+    ../fon
+    ../external/gsl
+    ../external/num
+    ../external/clapack
+    ../kar
+    ../dwtools
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

@@ -9,9 +9,9 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB GLPK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libglpk.a)
-add_library(libglpk STATIC ${GLPK_SOURCES})
+add_library(glpk STATIC ${GLPK_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libglpk PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(glpk PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

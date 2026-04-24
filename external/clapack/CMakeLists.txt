@@ -8,9 +8,12 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB CLAPACK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libclapack.a)
-add_library(libclapack STATIC ${CLAPACK_SOURCES})
+add_library(clapack STATIC ${CLAPACK_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libclapack PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ../../melder *.h ../../melder/*.h)
+target_include_directories(clapack PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ../../melder 
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

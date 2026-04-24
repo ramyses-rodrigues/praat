@@ -9,9 +9,19 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB GRAM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libgram.a)
-add_library(libgram STATIC ${GRAM_SOURCES})
+add_library(gram STATIC ${GRAM_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libgram PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(gram PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder 
+    ../sys 
+    ../dwsys 
+    ../stat 
+    ../dwtools 
+    ../fon 
+    ../foned
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

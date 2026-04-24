@@ -326,9 +326,6 @@ FFNET_Library_IS_TOP_LEVEL:STATIC=OFF
 //Value Computed by CMake
 FFNET_Library_SOURCE_DIR:STATIC=C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/FFNet
 
-//Path to a file.
-FILE:FILEPATH=FILE-NOTFOUND
-
 //Value Computed by CMake
 FLAC_Library_BINARY_DIR:STATIC=C:/Users/ramyses.rmr/OneDrive/Documentos/Projects/Praat/Praat/praat/external/flac
 

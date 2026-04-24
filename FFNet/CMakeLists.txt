@@ -9,9 +9,19 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB FFNET_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libffnet.a)
-add_library(libffnet STATIC ${FFNET_SOURCES})
+add_library(ffnet STATIC ${FFNET_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libffnet PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(ffnet PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder 
+    ../sys 
+    ../dwtools 
+    ../fon 
+    ../dwsys 
+    ../stat 
+    ../gram
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

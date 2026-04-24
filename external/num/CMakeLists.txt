@@ -9,9 +9,12 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB NUM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libnum.a)
-add_library(libnum STATIC ${NUM_SOURCES})
+add_library(num STATIC ${NUM_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libnum PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(num PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../../melder
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

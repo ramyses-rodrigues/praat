@@ -9,9 +9,12 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB VORBIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libvorbis.a)
-add_library(libvorbis STATIC ${VORBIS_SOURCES})
+add_library(vorbis STATIC ${VORBIS_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libvorbis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(vorbis PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../../melder
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

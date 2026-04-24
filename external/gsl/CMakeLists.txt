@@ -9,13 +9,13 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB GSL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libgsl.a)
-add_library(libgsl STATIC ${GSL_SOURCES})
+add_library(gsl STATIC ${GSL_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libgsl PRIVATE 
-${CMAKE_CURRENT_SOURCE_DIR}
-${CMAKE_CURRENT_SOURCE_DIR}/../melder
+target_include_directories(gsl PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../melder
 )
-target_include_directories(libgsl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ../melder *.h ../melder/*.h)
+target_include_directories(gsl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ../melder *.h ../melder/*.h)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

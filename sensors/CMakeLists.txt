@@ -9,9 +9,19 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB SENSORS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libsensors.a)
-add_library(libsensors STATIC ${SENSORS_SOURCES})
+add_library(sensors STATIC ${SENSORS_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libsensors PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(sensors PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../melder 
+    ../stat 
+    ../sys 
+    ../fon 
+    ../external/gsl 
+    ../external/clapack 
+    ../kar 
+    ../dwtools
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

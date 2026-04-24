@@ -9,9 +9,12 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB MP3_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libmp3.a)
-add_library(libmp3 STATIC ${MP3_SOURCES})
+add_library(mp3 STATIC ${MP3_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libmp3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(mp3 PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../../melder
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

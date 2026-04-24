@@ -9,9 +9,26 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB DWTOOLS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libdwtools.a)
-add_library(libdwtools STATIC ${DWTOOLS_SOURCES})
+add_library(dwtools STATIC ${DWTOOLS_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libdwtools PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(dwtools PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../kar 
+    ../melder 
+    ../sys 
+    ../dwsys 
+    ../stat 
+    ../fon 
+    ../LPC 
+    ../foned 
+    ../EEG 
+	../external/clapack 
+    ../external/vorbis 
+    ../external/opusfile 
+    ../external/portaudio 
+    ../external/espeak 
+	../external/num
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

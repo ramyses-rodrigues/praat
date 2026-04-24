@@ -9,9 +9,17 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB OPUSFILE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (libopusfile.a)
-add_library(libopusfile STATIC ${OPUSFILE_SOURCES})
+add_library(opusfile STATIC ${OPUSFILE_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(libopusfile PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(opusfile PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../../melder 
+    ../vorbis 
+    opus 
+    opus/celt 
+    opus/silk 
+    opus/silk/float
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")

@@ -9,9 +9,12 @@ add_definitions(${CPPFLAGS}) # Caso existam definições extras no makefile.defs
 FILE(GLOB LAME_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # 3. Criação da biblioteca estática (liblame.a)
-add_library(liblame STATIC ${LAME_SOURCES})
+add_library(lame STATIC ${LAME_SOURCES})
 
 # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-target_include_directories(liblame PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(lame PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../../melder
+)
 
 message(STATUS "Saindo do diretório ${CMAKE_CURRENT_SOURCE_DIR}")
