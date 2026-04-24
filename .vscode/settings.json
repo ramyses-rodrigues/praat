@@ -97,5 +97,6 @@
         "master"
     ],
     "makefile.makefilePath": "Makefile",
-    "makefile.makePath": "C:/msys64/ucrt64/bin/mingw32-make.exe"
+    "makefile.makePath": "C:/msys64/ucrt64/bin/mingw32-make.exe",
+    "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/gcc.exe"
 }
