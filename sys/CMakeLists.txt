@@ -11,9 +11,7 @@ FILE(GLOB SYS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_D
 add_library(sys STATIC ${SYS_SOURCES})
 
 # # 4. Inclusão de diretórios (Equivalente ao comportamento do Make)
-# target_include_directories(sys PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-# 3. Incluir diretórios de busca (Equivalente ao CPPFLAGS -I)
+# Incluir diretórios de busca (Equivalente ao CPPFLAGS -I)
 target_include_directories(sys PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/
     ../kar 
