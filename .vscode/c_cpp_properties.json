@@ -16,7 +16,9 @@
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-gcc-x64",
             "configurationProvider": "ms-vscode.makefile-tools",
-            "compilerArgs": ["-g"]
+            "compilerArgs": [
+                "-g"
+            ]
         }
     ],
     "version": 4
