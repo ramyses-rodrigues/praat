@@ -98,5 +98,19 @@
     ],
     "makefile.makefilePath": "Makefile",
     "makefile.makePath": "C:/msys64/ucrt64/bin/mingw32-make.exe",
-    "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/gcc.exe"
+    "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe"
+    {
+    "cmake.generator": "MinGW Makefiles",
+    "cmake.configureSettings": {
+        "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64",
+        "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/gcc.exe",
+        "CMAKE_CXX_COMPILER": "C:/msys64/ucrt64/bin/g++.exe"
+    },
+    "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "C:/msys64/ucrt64/include/**"
+    ]
+}
+
 }
