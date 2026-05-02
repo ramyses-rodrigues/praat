@@ -2318,7 +2318,7 @@ void structSoundAnalysisArea :: v_createMenuItems_formant (EditorMenu menu) {
 			0, menu_cb_advancedFormantSettings, this);
 
 	FunctionAreaMenu_addCommand (menu, U"- Query formants:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Formant listing", 1,
+	FunctionAreaMenu_addCommand (menu, U"Formant listing", GuiMenu_COMMAND | GuiMenu_F1 | GuiMenu_DEPTH_1,
 			INFO_DATA__formantListing, this);
 	FunctionAreaMenu_addCommand (menu, U"Get first formant", GuiMenu_F1 | GuiMenu_DEPTH_1,
 			QUERY_DATA_FOR_REAL__getFirstFormant, this);
