@@ -1,12 +1,11 @@
 # test_Eigen.praat
 # djmw 20161116, 20180829, 20210609, 20260314
 
-goto veryEnd
 appendInfoLine: "test_Eigen.praat:"
 
 @testOlderFormats
 include readingAndWritingOfObjects.praat
-;@testReadAndWrite
+@testReadAndWrite
 
 @testInterface
 eps = 1e-7
@@ -34,7 +33,6 @@ procedure testOlderFormats
 	removeObject: .eigen
 	appendInfoLine: .test2$, " OK"
 	appendInfoLine: .test$ + " OK"
-
 endproc
 
 procedure testReadAndWrite
@@ -343,4 +341,3 @@ procedure testEigenvaluesOfOneKacSylvesterMatrix: .n
 	endfor
 	appendInfoLine: " OK"	
 endproc
-label veryEnd
