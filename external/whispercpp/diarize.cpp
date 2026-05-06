@@ -53,6 +53,8 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <chrono>
+#include <atomic>
 
 #include "ggml.h"
 #include "ggml-alloc.h"
@@ -73,6 +75,24 @@
 */
 #define SINCNET_MAX_NODES 64
 #define CONV2D_MAX_NODES 16
+
+/*
+	Performance counters for diarization timing breakdown.
+	These atomic accumulators record how much time each phase of segmentation
+	and embedding takes (in microseconds), summed across all operations of
+	a single diarize_full() run. They are reset at the start of each run and
+	printed if (Melder_debug == 2004) at the end. Atomic types are used to support multithreading.
+*/
+static std::atomic <int64_t> g_seg_sincnet_us {0};   // GGML SincNet forward
+static std::atomic <int64_t> g_seg_lstm_us    {0};   // plain-C++ bidirectional LSTM
+static std::atomic <int64_t> g_seg_linear_us  {0};   // plain-C++ linear layers + classifier
+static std::atomic <int>     g_seg_calls      {0};   // number of segmentation_forward() calls
+
+static std::atomic <int64_t> g_emb_fbank_us        {0};   // plain-C++ fbank feature extraction
+static std::atomic <int64_t> g_emb_conv1bn1relu_us {0};   // ResNet stem (GGML conv + plain-C++ BN/ReLU)
+static std::atomic <int64_t> g_emb_resnet_us       {0};   // ResNet layers 1–4 (mix of GGML and plain C++)
+static std::atomic <int64_t> g_emb_tail_us         {0};   // TSTP pooling + final linear layer
+static std::atomic <int>     g_emb_calls           {0};   // number of embedding_forward() calls
 
 // ============================================================================
 // Big-endian support
@@ -225,6 +245,7 @@ struct segmentation_context {
 
     // GGML backend for SincNet
     ggml_backend_t backend = nullptr;
+	ggml_threadpool_t threadpool = nullptr;
 };
 
 // ============================================================================
@@ -683,10 +704,14 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
     // 1. SincNet (GGML graph)
     std::vector<float> sincnet_out;
     int sn_time, sn_ch;
+
+	auto t0 = std::chrono::high_resolution_clock::now();
+
     if (!sincnet_forward(sctx, samples, n_samples, sincnet_out, sn_time, sn_ch)) {
         return false;
     }
-    trace (U"SincNet output: [", sn_time, U", ", sn_ch, U"]");
+	auto t1 = std::chrono::high_resolution_clock::now();
+	trace (U"SincNet output: [", sn_time, U", ", sn_ch, U"]");
 
     // SincNet output is [ne0=time, ne1=ch] in GGML memory order.
     // This is the same as [ch, time] in PyTorch.
@@ -703,6 +728,7 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
 
     // 2. LSTM (plain C++)
     const auto lstm_out = lstm_forward(model, lstm_in.data(), T);
+	auto t2 = std::chrono::high_resolution_clock::now();
     trace (U"LSTM output: [", T, U", ", hp.lstm_output_size(), U"]");
 
     // 3. Linear layers
@@ -725,9 +751,20 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
 
     // 5. Log-softmax activation
     result = log_softmax(cls_out.data(), T, hp.n_classes);
+	auto t3 = std::chrono::high_resolution_clock::now();
 
     n_frames = T;
     n_classes = hp.n_classes;
+
+	if (Melder_debug == 2004) {
+		auto us = [](auto a, auto b) {
+			return std::chrono::duration_cast<std::chrono::microseconds>(b - a).count();
+		};
+		g_seg_sincnet_us += us(t0, t1);
+		g_seg_lstm_us    += us(t1, t2);
+		g_seg_linear_us  += us(t2, t3);
+		++ g_seg_calls;
+	}
 
     return true;
 }
@@ -746,13 +783,26 @@ static void segmentation_init(segmentation_context & sctx, diarize_model_loader 
 	sctx.sinc_filters = compute_sinc_filters(sctx.model);
     sctx.backend = ggml_backend_cpu_init();
 
+	const int n_threads = (int32_t) MelderThread_getMaximumNumberOfConcurrentThreads ();
+	ggml_threadpool_params tp_params = ggml_threadpool_params_default(n_threads);
+	sctx.threadpool = ggml_threadpool_new(&tp_params);
+	ggml_backend_cpu_set_threadpool(sctx.backend, sctx.threadpool);
+	ggml_backend_cpu_set_n_threads(sctx.backend, n_threads);
+	if (Melder_debug == 2004)
+		Melder_casual (U"segmentation: requested ", n_threads, U" GGML CPU threads");
+
     trace (U"Initialized (", sctx.model.hparams.n_filters(), U" sinc filters, ", sctx.model.hparams.sincnet_kernel_0, U" kernel)");
 }
 
 static void segmentation_free(segmentation_context & sctx) {
-    if (sctx.backend) ggml_backend_free(sctx.backend);
-    for (auto buf : sctx.model.buffers) ggml_backend_buffer_free(buf);
-    for (auto ctx : sctx.model.ctxs) ggml_free(ctx);
+    if (sctx.backend)
+    	ggml_backend_free(sctx.backend);
+	if (sctx.threadpool)
+		ggml_threadpool_free(sctx.threadpool);
+    for (auto buf : sctx.model.buffers)
+    	ggml_backend_buffer_free(buf);
+    for (auto ctx : sctx.model.ctxs)
+    	ggml_free(ctx);
 }
 
 
@@ -795,6 +845,7 @@ struct embedding_model {
 struct embedding_context {
     embedding_model model;
     ggml_backend_t backend = nullptr;
+	ggml_threadpool_t threadpool = nullptr;
 };
 
 // ============================================================================
@@ -1266,6 +1317,8 @@ static bool embedding_forward(embedding_context & ectx,
     auto & model = ectx.model;
     auto & hp = model.hparams;
 
+	auto t0 = std::chrono::high_resolution_clock::now();
+
     // 1. Fbank extraction
     std::vector<float> fbank;
     int num_frames;
@@ -1282,6 +1335,7 @@ static bool embedding_forward(embedding_context & ectx,
     for (int t = 0; t < W; t++)
         for (int f = 0; f < H; f++)
             cur[f * W + t] = fbank[t * H + f];
+	auto t1 = std::chrono::high_resolution_clock::now();
 
     // 3. Stem: conv1 + bn1 + relu
     {
@@ -1294,12 +1348,14 @@ static bool embedding_forward(embedding_context & ectx,
         cur = conv_out; C = OC; H = OH; W = OW;
     }
     trace (U"stem: (", N, U", ", C, U", ", H, U", ", W, U")");
+	auto t2 = std::chrono::high_resolution_clock::now();
 
     // 4. ResNet layers 1-4
     for (int layer = 1; layer <= 4; layer++) {
         if (!run_layer(ectx.backend, model, layer, cur, N, C, H, W)) return false;
         trace (U"layer ", layer, U": (", N, U", ", C, U", ", H, U", ", W, U")");
     }
+	auto t3 = std::chrono::high_resolution_clock::now();
 
     // 5. TSTP pooling
     std::vector<float> pool;
@@ -1311,11 +1367,25 @@ static bool embedding_forward(embedding_context & ectx,
                    (float*)model.tensors["resnet.seg_1.weight"]->data,
                    (float*)model.tensors["resnet.seg_1.bias"]->data,
                    hp.embed_dim, embedding_out);
+
+	auto t4 = std::chrono::high_resolution_clock::now();
+
     trace (U"embedding: (", N, U", ", hp.embed_dim, U")");
+
+	if (Melder_debug == 2004) {
+		auto us = [](auto a, auto b) {
+			return std::chrono::duration_cast<std::chrono::microseconds>(b - a).count();
+		};
+		g_emb_fbank_us  += us(t0, t1);
+		g_emb_conv1bn1relu_us += us(t1, t2);
+		g_emb_resnet_us += us(t2, t3);
+		g_emb_tail_us   += us(t3, t4);
+		++g_emb_calls;
+	}
 
     return true;
 }
-
+struct ggml_backend_cpu_context;
 // ============================================================================
 // Embedding: Init / Free
 // ============================================================================
@@ -1329,13 +1399,27 @@ static void embedding_init(embedding_context & ectx, diarize_model_loader * load
 
 	ectx.backend = ggml_backend_cpu_init();
 
+	const int n_threads = (int32_t) MelderThread_getMaximumNumberOfConcurrentThreads ();
+	ggml_threadpool_params tp_params = ggml_threadpool_params_default(n_threads);
+	ectx.threadpool = ggml_threadpool_new(&tp_params);
+	ggml_backend_cpu_set_threadpool(ectx.backend, ectx.threadpool);
+
+	ggml_backend_cpu_set_n_threads(ectx.backend, n_threads);
+	if (Melder_debug == 2004)
+		Melder_casual (U"embedding: requested ", n_threads, U" GGML CPU threads");
+
 	trace (U"Embedding model initialized (", ectx.model.n_loaded, U" tensors)");
 }
 
 static void embedding_free(embedding_context & ectx) {
-    if (ectx.backend) ggml_backend_free(ectx.backend);
-    for (auto buf : ectx.model.buffers) ggml_backend_buffer_free(buf);
-    for (auto ctx : ectx.model.ctxs) ggml_free(ctx);
+    if (ectx.backend)
+    	ggml_backend_free(ectx.backend);
+	if (ectx.threadpool)
+		ggml_threadpool_free(ectx.threadpool);
+    for (auto buf : ectx.model.buffers)
+    	ggml_backend_buffer_free(buf);
+    for (auto ctx : ectx.model.ctxs)
+    	ggml_free(ctx);
 }
 
 
@@ -2322,6 +2406,22 @@ void diarize_full(
     int                      n_samples)
 {
     //TRACE
+	if (Melder_debug == 2004) {
+		/*
+			Reset performance counters so timings reflect this run only and do not
+			accumulate across multiple calls within a single Praat session.
+		*/
+		g_seg_sincnet_us = 0;
+		g_seg_lstm_us    = 0;
+		g_seg_linear_us  = 0;
+		g_seg_calls      = 0;
+		g_emb_fbank_us   = 0;
+		g_emb_conv1bn1relu_us = 0;
+		g_emb_resnet_us  = 0;
+		g_emb_tail_us    = 0;
+		g_emb_calls      = 0;
+	}
+
     if (!ctx || !ctx->models_loaded || !samples || n_samples <= 0)
         Melder_throw (U"Invalid arguments in diarize_full.");
 
@@ -2379,6 +2479,19 @@ void diarize_full(
 
         all_segmentations.insert(all_segmentations.end(), seg_out.begin(), seg_out.end());
     }
+
+	if (Melder_debug == 2004) {
+    	int n = g_seg_calls.load();
+    	int64_t s = g_seg_sincnet_us.load();
+    	int64_t l = g_seg_lstm_us.load();
+    	int64_t f = g_seg_linear_us.load();
+    	int64_t total = s + l + f;
+    	Melder_casual (U"=== Segmentation timing over ", n, U" chunks ===");
+    	Melder_casual (U"  SincNet (GGML):       ", s / 1000, U" ms  (", (total ? 100*s/total : 0), U"%)");
+    	Melder_casual (U"  LSTM (plain C++):     ", l / 1000, U" ms  (", (total ? 100*l/total : 0), U"%)");
+    	Melder_casual (U"  Linear+Cls (plain C++):", f / 1000, U" ms  (", (total ? 100*f/total : 0), U"%)");
+    	Melder_casual (U"  Total segmentation:   ", total / 1000, U" ms");
+	}
 
     int num_speakers = dp.seg_num_speakers;  // 3
 
@@ -2447,6 +2560,21 @@ void diarize_full(
             trace (U"diarize_full: embeddings ", c + 1, U"/", num_chunks);
         }
     }
+
+	if (Melder_debug == 2004) {
+		int n = g_emb_calls. load();
+		int64_t fb = g_emb_fbank_us.        load();
+		int64_t cb = g_emb_conv1bn1relu_us. load();
+		int64_t rn = g_emb_resnet_us.       load();
+		int64_t tl = g_emb_tail_us.         load();
+		int64_t total = fb + cb + rn + tl;
+		Melder_casual (U"=== Embedding timing over ", n, U" calls ===");
+		Melder_casual (U"  Fbank (plain C++):         ", fb / 1000, U" ms  (", (total ? 100*fb/total : 0), U"%)");
+		Melder_casual (U"  Conv1+bn+Relu (plain C++): ", cb / 1000, U" ms  (", (total ? 100*cb/total : 0), U"%)");
+		Melder_casual (U"  ResNet (GGML+C++):         ", rn / 1000, U" ms  (", (total ? 100*rn/total : 0), U"%)");
+		Melder_casual (U"  TSTP+Linear (C++):         ", tl / 1000, U" ms  (", (total ? 100*tl/total : 0), U"%)");
+		Melder_casual (U"  Total embedding:           ", total / 1000, U" ms");
+	}
 
     // --- Step 4: Clustering + reconstruction pipeline ---
 	ctx->result = run_diarization_pipeline(

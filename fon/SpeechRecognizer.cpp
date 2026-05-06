@@ -238,6 +238,8 @@ static void SpeechRecognizer_runWhisper (constSpeechRecognizer me, constSound so
 	trace (U"Sampling strategy = ", samplingStrategy == WHISPER_SAMPLING_GREEDY ? U"greedy" : U"beam search");
 	whisper_full_params params = whisper_full_default_params (samplingStrategy);
 	params. token_timestamps = true;   // must be true to use t0 and t1 (non-DTW) token timestamps
+	params. n_threads = (int32_t) MelderThread_getMaximumNumberOfConcurrentThreads ();
+
 	if (useVad) {
 		params. vad = true;   // enable Silero VAD (Voice Activity Detection used to chop away the silences)
 		params. vad_model_data = ggml_silero_bin;   // set up either params.vad_model_data or params.vad_model_path
