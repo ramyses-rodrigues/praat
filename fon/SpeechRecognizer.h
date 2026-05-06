@@ -30,22 +30,40 @@ struct diarize_context;
 /*
 	Default Whisper model parameters.
 */
-inline conststring32 theSpeechRecognizerDefaultModelName = U"ggml-base.bin";
-inline conststring32 theSpeechRecognizerDefaultLanguageName = U"Autodetect language";
+inline constexpr conststring32 theSpeechRecognizerDefaultModelName = U"ggml-base.bin";
+inline constexpr conststring32 theSpeechRecognizerDefaultLanguageName = U"Autodetect language";
 
 /*
 	Default Silero-VAD parameters.
 */
 inline constexpr double theVadDefaultThreshold = 0.5;
-inline conststring32 theVadDefaultThresholdStr = U"0.5";   // for UI
-inline constexpr double theVadDefaultMinSpeechDuration = 0.25;
-inline conststring32 theVadDefaultMinSpeechDurationStr = U"0.25";   // for UI
+inline constexpr conststring32 theVadDefaultThresholdStr = U"0.5";   // for UI
 inline constexpr double theVadDefaultMinNonSpeechDuration = 0.1;
-inline conststring32 theVadDefaultMinNonSpeechDurationStr = U"0.1";   // for UI
+inline constexpr conststring32 theVadDefaultMinNonSpeechDurationStr = U"0.1";   // for UI
+inline constexpr double theVadDefaultMinSpeechDuration = 0.25;
+inline constexpr conststring32 theVadDefaultMinSpeechDurationStr = U"0.25";   // for UI
 inline constexpr double theVadDefaultSpeechPad = 0.03;
-inline conststring32 theVadDefaultSpeechPadStr = U"0.03";   // for UI
-inline conststring32 theVadDefaultSpeechLabel = U"speech";   // for UI
-inline conststring32 theVadDefaultNonSpeechLabel = U"non-speech";   // for UI
+inline constexpr conststring32 theVadDefaultSpeechPadStr = U"0.03";   // for UI
+inline constexpr conststring32 theVadDefaultSpeechLabel = U"speech";   // for UI
+inline constexpr conststring32 theVadDefaultNonSpeechLabel = U"non-speech";   // for UI
+
+/*
+	Default transcription parameters.
+*/
+inline constexpr bool theSpeechRecognizerDefaultIncludeWords = true;
+inline constexpr bool theSpeechRecognizerDefaultIncludeDiarization = false;
+inline constexpr bool theSpeechRecognizerDefaultUseVad = true;
+
+/*
+	Default diarization parameters.
+*/
+inline constexpr integer theDiarizationMaxSimultaneousSpeakers = 0;
+inline constexpr conststring32 theDiarizationMaxSimultaneousSpeakersStr = U"20";   // for UI
+inline constexpr double theDiarizationClusterThreshold = 0.7045654963945799;
+inline constexpr conststring32 theDiarizationClusterThresholdStr = U"0.7045654963945799";   // for UI
+inline constexpr double theDiarizationSegmentationOverlap = 0.1;
+inline constexpr conststring32 theDiarizationSegmentationOverlapStr = U"0.1";   // for UI
+
 
 struct autoWhisperContext {
 	whisper_context *ptr;
@@ -127,24 +145,22 @@ struct SileroVadParams {
 	double speechPad = theVadDefaultSpeechPad;   // padding added before and after each speech segment
 };
 
-/*
-	This should be extended, and also store the default labels above.
-*/
 struct DiarizationParams {
-	float segmentDuration = 10.0f;
+	integer maxSimultaneousSpeakers = theDiarizationMaxSimultaneousSpeakers;
+	double clusterThreshold = theDiarizationClusterThreshold;
+	double segmentationOverlap = theDiarizationSegmentationOverlap;
 };
 
-struct WhisperSegment {
+struct SpeechSegment {
 	autostring32 text;
 	double tmin;
 	double tmax;
 };
 
 struct WhisperTranscription {
-	WhisperSegment fullTranscription;
-	autovector <WhisperSegment> words;
-	autovector <WhisperSegment> sentences;
-	autovector <autovector <WhisperSegment>> speakers;
+	SpeechSegment fullTranscription;
+	autovector <SpeechSegment> words;
+	autovector <SpeechSegment> sentences;
 };
 
 inline std::set <structSpeechRecognizer *> theLivingSpeechRecognizers;
@@ -161,18 +177,25 @@ constSTRVEC theSpeechRecognizerLanguageNames ();
 */
 autoSpeechRecognizer SpeechRecognizer_create (conststring32 modelName, conststring32 languageName);
 WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, constSound sound,
-		bool useVad, SileroVadParams const& sileroVadParams, bool diarize);
+		bool useVad, SileroVadParams const& sileroVadParams);
 
 /*
 	Silero-VAD functions.
 */
-autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const& sileroVadParams,
+autovector <SpeechSegment> doSileroVad (constSound sound, SileroVadParams const& sileroVadParams,
 		conststring32 nonSpeechLabel, conststring32 speechLabel);
 
 /*
 	Diarization functions.
 */
-autovector <autovector <WhisperSegment>> doDiarization (constSound sound);
+/*
+	Run speaker diarization on Sound. Return a vector of timelines, one timeline per speaker.
+	Each timeline covers [sound->xmin, sound->xmax] as alternating silent/active intervals,
+	labeled `nonSpeechLabel` and `speechLabel` respectively.
+*/
+autovector <autovector <SpeechSegment>> doDiarization (constSound sound, DiarizationParams const& diarizationParams,
+		conststring32 nonSpeechLabel, conststring32 speechLabel);
+
 
 /* End of file SpeechRecognizer.h */
 #endif

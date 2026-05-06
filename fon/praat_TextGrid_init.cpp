@@ -559,17 +559,21 @@ FORM (MODIFY_TextGrid_Sound_transcribeInterval, U"TextGrid & Sound: Transcribe i
 	HEADING (U"Textgrid...")
 	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
-	BOOLEAN (includeWords, U"Include words", true)
-	BOOLEAN (includeDiarization, U"Include diarization", true)
+	BOOLEAN (includeWords, U"Include words", theSpeechRecognizerDefaultIncludeWords)
+	BOOLEAN (includeDiarization, U"Include diarization", theSpeechRecognizerDefaultIncludeDiarization)
 	HEADING (U"Speech activity detection...")
-	BOOLEAN (useVad, U"Allow silences", true)
-	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", U"0.5")
-	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", U"0.1")
-	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", U"0.25")
-	POSITIVE (speechPad, U"Padding around speech segments (s)", U"0.03")
+	BOOLEAN (useVad, U"Allow silences", theSpeechRecognizerDefaultUseVad)
+	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", theVadDefaultThresholdStr)
+	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", theVadDefaultMinNonSpeechDurationStr)
+	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", theVadDefaultMinSpeechDurationStr)
+	POSITIVE (speechPad, U"Padding around speech segments (s)", theVadDefaultSpeechPadStr)
 	HEADING (U"Transcription...")
 	LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
 	LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+	HEADING (U"Diarization...")
+	NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers", theDiarizationMaxSimultaneousSpeakersStr)
+	POSITIVE (clusterThreshold, U"Cluster threshold", theDiarizationClusterThresholdStr)
+	POSITIVE (segmentationOverlap, U"Segmentation overlap", theDiarizationSegmentationOverlapStr)
 OK
 	static autoSTRVEC modelNames;
 	modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
@@ -581,11 +585,12 @@ OK
 
 	SET_LIST (modelIndex, modelName, modelNames.get (), NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName))
 	SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(),
-		NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+			NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
 DO
 	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
 		TextGrid_Sound_transcribeInterval (me, you, tierNumber, intervalNumber, modelName, languageName, includeWords,
-				includeDiarization, useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
+			includeDiarization, useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad,
+			maxSimultaneousSpeakers, clusterThreshold, segmentationOverlap);
 	MODIFY_FIRST_OF_ONE_AND_ONE_END
 }
 

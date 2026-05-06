@@ -1447,8 +1447,10 @@ static void menu_cb_TranscribeInterval (TextGridArea me, EDITOR_ARGS) {
 		TextGrid_Sound_transcribeInterval (my textGrid(), my borrowedSoundArea -> sound(), my selectedTier, intervalNumber,
 				my instancePref_transcribe_model(), my instancePref_transcribe_language(),
 				my instancePref_transcribe_includeWords(), my instancePref_transcribe_includeDiarization(),
-				my instancePref_transcribe_useVad(), my instancePref_transcribe_vadThreshold(), my instancePref_transcribe_vadMinNonSpeech(),
-				my instancePref_transcribe_vadMinSpeech(), my instancePref_transcribe_vadPadding());
+				my instancePref_transcribe_useVad(), my instancePref_transcribe_vadThreshold(),
+				my instancePref_transcribe_vadMinNonSpeech(),my instancePref_transcribe_vadMinSpeech(),
+				my instancePref_transcribe_vadPadding(), my instancePref_diarize_maxSimultaneiosSpeakers(),
+				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationOverlap());
 	}
 	FunctionArea_broadcastDataChanged (me);
 }
@@ -1457,7 +1459,7 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Transcription settings", nullptr)
 		HEADING (U"Textgrid...")
 		BOOLEAN (includeWords, U"Include words", my default_transcribe_includeWords())
-		BOOLEAN (includeDiarization, U"Include diarization", true)
+		BOOLEAN (includeDiarization, U"Include diarization", my default_transcribe_includeDiarization())
 		HEADING (U"Speech activity detection...")
 		BOOLEAN (useVad, U"Allow silences", my default_transcribe_useVad())
 		POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", my default_transcribe_vadThreshold())
@@ -1467,6 +1469,10 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		HEADING (U"Transcription...")
 		LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
 		LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+		HEADING (U"Diarization...")
+		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers", my default_diarize_maxSimultaneiosSpeakers())
+		POSITIVE (clusterThreshold, U"Cluster threshold", my default_diarize_clusterThreshold())
+		POSITIVE (segmentationOverlap, U"Segmentation overlap", my default_diarize_segmentationOverlap())
 	EDITOR_OK
 		static autoSTRVEC modelNames;
 		modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
@@ -1483,6 +1489,9 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		SET_REAL (minNonSpeechDuration, my instancePref_transcribe_vadMinNonSpeech())
 		SET_REAL (minSpeechDuration, my instancePref_transcribe_vadMinSpeech())
 		SET_REAL (speechPad, my instancePref_transcribe_vadPadding())
+		SET_INTEGER (maxSimultaneousSpeakers, my instancePref_diarize_maxSimultaneiosSpeakers())
+		SET_REAL (clusterThreshold, my instancePref_diarize_clusterThreshold())
+		SET_REAL (segmentationOverlap, my instancePref_diarize_segmentationOverlap())
 
 		integer prefModel = NUMfindFirst (modelNames.get (), my instancePref_transcribe_model());
 		if (prefModel == 0)
@@ -1506,6 +1515,9 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_transcribe_vadMinNonSpeech (minNonSpeechDuration);
 		my setInstancePref_transcribe_vadMinSpeech (minSpeechDuration);
 		my setInstancePref_transcribe_vadPadding (speechPad);
+		my setInstancePref_diarize_maxSimultaneiosSpeakers (maxSimultaneousSpeakers);
+		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
+		my setInstancePref_diarize_segmentationOverlap (segmentationOverlap);
 	EDITOR_END
 }
 

@@ -384,10 +384,10 @@ again:
 
 void splitIntervalIntoWhisperSegments (IntervalTier tier, const integer tierNumber,
 	const double originalTmin, const double originalTmax,
-	autovector <WhisperSegment> const& segments
+	autovector <SpeechSegment> const& segments
 ) {
 	for (integer i = 1; i <= segments.size; i ++) {
-		WhisperSegment& segment = segments [i];
+		SpeechSegment& segment = segments [i];
 
 		const double currentTmin = originalTmin + segment. tmin;
 		const double currentTmax = (i == segments.size) ? originalTmax : originalTmin + segment. tmax;
@@ -412,7 +412,8 @@ void TextGrid_Sound_transcribeInterval (
 	const integer tierNumber, const integer intervalNumber,
 	const conststring32 modelName, const conststring32 languageName,
 	const bool includeWords, const bool diarize, const bool useVad, const double speechProbabilityThreshold,
-	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad
+	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad,
+	const integer maxSimultaneousSpeakers, const double clusterThreshold, const double segmentationOverlap
 ) {
 	/*
 		Lambda function to create and return a new tier after a specified tier.
@@ -446,7 +447,7 @@ void TextGrid_Sound_transcribeInterval (
 	/*
 		Lambda function to compute an overlap of a given word with the given speaker activity (encoded in a speakerTier).
 	*/
-	auto computeSpeakerOverlap = [] (WhisperSegment const& wordSegment, IntervalTier speakerTier) {
+	auto computeSpeakerOverlap = [] (SpeechSegment const& wordSegment, IntervalTier speakerTier) {
 		const integer intervalStart = IntervalTier_timeToLowIndex (speakerTier, wordSegment. tmin);
 		constTextInterval speakerInterval = speakerTier -> intervals.at [intervalStart];
 		const conststring32 speakerIntervalText = speakerInterval -> text.get();
@@ -474,12 +475,14 @@ void TextGrid_Sound_transcribeInterval (
 		const integer headTierNumber = tierNumber;
 		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
+
+		if (intervalNumber < 1 || intervalNumber > headTier -> intervals.size)
+			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
+
 		constTextInterval originalInterval = headTier -> intervals.at [intervalNumber];
 		const double originalTmin = originalInterval -> xmin;
 		const double originalTmax = originalInterval -> xmax;
 
-		if (intervalNumber < 1 || intervalNumber > headTier -> intervals.size)
-			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
 		if (str32str (headTier -> name.get(), U"/"))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a word tier from it.");
 
@@ -487,18 +490,26 @@ void TextGrid_Sound_transcribeInterval (
 		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
 			kSound_windowShape::RECTANGULAR, 1.0, false);
 		autoSpeechRecognizer speechRecognizer = SpeechRecognizer_create (modelName, languageName);
+
 		SileroVadParams sileroVadParams;
 		sileroVadParams. speechProbabilityThreshold = speechProbabilityThreshold;
 		sileroVadParams. minSpeechDuration = minSpeechDuration;
 		sileroVadParams. minNonSpeechDuration = minNonSpeechDuration;
 		sileroVadParams. speechPad = speechPad;
-		trace (U"speechPad = ", speechPad);
-		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (
-				speechRecognizer.get(), soundPart.get(), useVad, sileroVadParams, diarize);
+		DiarizationParams diarizationParams;
+		diarizationParams. maxSimultaneousSpeakers = maxSimultaneousSpeakers;
+		diarizationParams. clusterThreshold = clusterThreshold;
+		diarizationParams. segmentationOverlap = segmentationOverlap;
 
-		autovector <WhisperSegment> wordSegments = whisperTranscription. words.move();
-		autovector <WhisperSegment> sentenceSegments = whisperTranscription. sentences.move();
-		autovector <autovector <WhisperSegment>> speakerSegments = whisperTranscription. speakers.move();
+		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (speechRecognizer.get(), soundPart.get(),
+				useVad, sileroVadParams);
+		autovector <autovector <SpeechSegment>> pyannoteDiarization;
+		if (diarize)
+			pyannoteDiarization = doDiarization (soundPart.get(), diarizationParams, U"", U"speech");
+
+		autovector <SpeechSegment> wordSegments = whisperTranscription. words.move();
+		autovector <SpeechSegment> sentenceSegments = whisperTranscription. sentences.move();
+		autovector <autovector <SpeechSegment>> speakerSegments = pyannoteDiarization.move();
 
 		integer numberOfSpeakers = speakerSegments.size;
 		/* mutable conditional init */ bool doDiarize = diarize;
@@ -543,7 +554,7 @@ void TextGrid_Sound_transcribeInterval (
 			autovector <autoIntervalTier> virtualSpeakerTiers = newvectorzero <autoIntervalTier> (numberOfSpeakers);
 
 			struct WordWithContext {
-				WhisperSegment *whisperSegment;
+				SpeechSegment *whisperSegment;
 				autovector <double> overlaps;
 				integer resolvedSpeaker;
 			};
@@ -564,7 +575,7 @@ void TextGrid_Sound_transcribeInterval (
 			}
 
 			/*
-				Create virtual diarization tiers , one per speaker, with speevch and non-speech intervals.
+				Create virtual diarization tiers , one per speaker, with speech and non-speech intervals.
 			*/
 			for (integer i = 1; i <= numberOfSpeakers; i ++) {
 				autoIntervalTier virtualSpeakerTier = IntervalTier_create (my xmin, my xmax);

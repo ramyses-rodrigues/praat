@@ -1360,7 +1360,7 @@ struct diarization_params {
     bool    emb_exclude_overlap = true;
 
     // Clustering
-    double  cluster_threshold  = 0.7045654963945799;
+    double  cluster_threshold  = 0.7045654963945799;   // https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml
     int     cluster_min_size   = 12;
     float   min_active_ratio   = 0.2f;    // for filter_embeddings
 

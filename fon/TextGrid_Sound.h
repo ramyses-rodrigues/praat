@@ -37,12 +37,14 @@ void TextGrid_Pitch_drawSeparately (TextGrid grid, Pitch pitch, Graphics g, doub
 void TextGrid_anySound_alignInterval (TextGrid me, Function anySound, integer tierNumber, integer intervalNumber,
 	conststring32 languageName, bool includeWords, bool includePhonemes);
 
-struct WhisperSegment;
+struct SpeechSegment;
 void splitIntervalIntoWhisperSegments (IntervalTier tier, integer tierNumber,
-	double originalTmin, double originalTmax, autovector<WhisperSegment> const& segments);
+	double originalTmin, double originalTmax, autovector<SpeechSegment> const& segments);
 void TextGrid_Sound_transcribeInterval (TextGrid me, Sound sound, integer tierNumber, integer intervalNumber,
 	conststring32 modelName, conststring32 languageName, bool includeWords, bool diarize, bool useVad,
-	double speechProbabilityThreshold, double minNonSpeechDuration, double minSpeechDuration, double speechPad);
+	double speechProbabilityThreshold, double minNonSpeechDuration, double minSpeechDuration, double speechPad,
+	integer maxSimultaneousSpeakers, double clusterThreshold, double segmentationOverlap
+);
 
 autoSound Sound_readWithAdjacentAnnotationFiles_buckeye (conststring32 soundFileName, autoTextGrid *out_textgrid);
 autoSound Sound_readWithAdjacentAnnotationFiles_timit   (conststring32 soundFileName, autoTextGrid *out_textgrid);

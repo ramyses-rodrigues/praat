@@ -43,11 +43,6 @@
 #include "oo_DESCRIPTION.h"
 #include "SpeechRecognizer_def.h"
 
-extern unsigned char model_ggml_segmentation_data[];
-extern unsigned int model_ggml_segmentation_length;
-extern unsigned char model_ggml_embedding_data[];
-extern unsigned int model_ggml_embedding_length;
-
 autoWhisperContext :: ~autoWhisperContext () {
 	//TRACE
 	trace (U"Destroying whisper context at ", Melder_pointer (ptr));
@@ -298,7 +293,7 @@ static bool endsWithPunctuation(const conststring32 token) {
 }
 
 WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, constSound sound,
-		const bool useVad, SileroVadParams const& sileroVadParams, const bool diarize) {
+		const bool useVad, SileroVadParams const& sileroVadParams) {
 	try {
 		//TRACE
 		Melder_require (my whisperContext.get(),
@@ -316,11 +311,11 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			transcription. fullTranscription. text = Melder_dup (U"[BLANK_AUDIO]");
 			transcription. fullTranscription. tmin = sound -> xmin;
 			transcription. fullTranscription. tmax = sound -> xmax;
-			transcription. words = newvectorzero <WhisperSegment> (1);
+			transcription. words = newvectorzero <SpeechSegment> (1);
 			transcription. words [1]. text = Melder_dup (U"BLANKAUDIO");
 			transcription. words [1]. tmin = sound -> xmin;
 			transcription. words [1]. tmax = sound -> xmax;
-			transcription. sentences = newvectorzero <WhisperSegment> (1);
+			transcription. sentences = newvectorzero <SpeechSegment> (1);
 			transcription. sentences [1]. text = Melder_dup (U"[BLANK_AUDIO]");
 			transcription. sentences [1]. tmin = sound -> xmin;
 			transcription. sentences [1]. tmax = sound -> xmax;
@@ -529,8 +524,8 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 		*/
 		autoMelderString sentenceText;
 		autoMelderString fullText;
-		autovector <WhisperSegment> words = newvectorzero <WhisperSegment> (0);
-		autovector <WhisperSegment> sentences = newvectorzero <WhisperSegment> (0);
+		autovector <SpeechSegment> words = newvectorzero <SpeechSegment> (0);
+		autovector <SpeechSegment> sentences = newvectorzero <SpeechSegment> (0);
 
 		/* mutable per-sentence */ double sentenceTmin = sound -> xmin;   // (re)set at each sentence start, default assignment is just a guard
 		/* mutable per-token */ double previousTokenTmax = sound -> xmin;   // default for the first token
@@ -573,18 +568,18 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			Melder_assert (tokenTmax >= tokenTmin);
 			trace (U"Token ", i, U": \"", tokenTextWithoutPunctuation, U"\" [ ", tokenTmin, U" - ", tokenTmax, U" ], isSilentToken = ", isSilentToken);
 			if ((isNewWord || words.size == 0) && tokenTmax > tokenTmin) {   // new word
-				WhisperSegment *word = words. append();
+				SpeechSegment *word = words. append();
 				word -> text = Melder_dup (tokenTextWithoutPunctuation);
 				word -> tmin = tokenTmin;
 				word -> tmax = tokenTmax;
 				trace (U"Word ", words.size, U": \"", word -> text.get(), U"\" [ ", word -> tmin, U" - ", word -> tmax, U" ]");
 			} else if (isNewWord && tokenTmax == tokenTmin && words.size > 0) {   // zero-length new word: append to previous with a space
-				WhisperSegment& word = words [words.size];
+				SpeechSegment& word = words [words.size];
 				word.text = Melder_dup (Melder_cat (word.text.get(), U" ", tokenTextWithoutPunctuation));
 				word.tmax = tokenTmax;
 				trace (U"Word ", words.size, U": \"", word.text.get(), U"\" [ ", word. tmin, U" - ", word. tmax, U" ] (appended zero-length)");
 			} else if (words.size > 0) {   // continuation token: append to the last word
-				WhisperSegment& word = words [words.size];
+				SpeechSegment& word = words [words.size];
 				word. text = Melder_dup (Melder_cat (word.text.get(), tokenTextWithoutPunctuation));
 				word. tmax = tokenTmax;
 				trace (U"Word ", words.size, U": \"", word.text.get(), U"\" [ ", word. tmin, U" - ", word. tmax, U" ]");
@@ -595,7 +590,7 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			*/
 			const bool isLastTokenOverall = (i == allTokens.size);
 			if (isLastTokenInSentence || isLastTokenOverall || (isSilentToken && isFirstTokenInSentence)) {
-				WhisperSegment *sentence = sentences. append();
+				SpeechSegment *sentence = sentences. append();
 				sentence -> text = Melder_dup (sentenceText.string);
 				sentence -> tmin = sentenceTmin;
 				sentence -> tmax = tokenTmax;
@@ -620,11 +615,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				U" [ ", transcription. fullTranscription. tmin, U" - ",
 				transcription. fullTranscription. tmax, U" ]", transcription. fullTranscription. text.get());
 
-		if (diarize) {
-			transcription. speakers = doDiarization (sound);
-		} else {
-			transcription. speakers = newvectorzero <autovector <WhisperSegment>> (0);
-		}
 		return transcription;
 
 	} catch (MelderError) {
@@ -632,7 +622,7 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 	}
 }
 
-autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const& sileroVadParams,
+autovector <SpeechSegment> doSileroVad (constSound sound, SileroVadParams const& sileroVadParams,
 		const conststring32 nonSpeechLabel, const conststring32 speechLabel) {
 	//TRACE
 	trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
@@ -672,7 +662,7 @@ autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const
 			Collect all VAD segments and wrap them with "non-voice" intervals.
 		*/
 		const int numberOfVadSegments = whisper_vad_segments_n_segments (vad_segments.get());
-		autovector <WhisperSegment> allIntervals = newvectorzero <WhisperSegment> (0);
+		autovector <SpeechSegment> allIntervals = newvectorzero <SpeechSegment> (0);
 
 		for (int i = 0; i < numberOfVadSegments; i ++) {
 			const double t0 = whisper_vad_segments_get_segment_t0 (vad_segments.get(), i) / 100.0;
@@ -683,7 +673,7 @@ autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const
 			*/
 			const double previousEnd = (i == 0) ? soundStart : whisper_vad_segments_get_segment_t1 (vad_segments.get(), i - 1) / 100.0;
 			if (t0 > previousEnd) {
-				WhisperSegment *nonVoiceInterval = allIntervals. append ();
+				SpeechSegment *nonVoiceInterval = allIntervals. append ();
 				nonVoiceInterval -> text = Melder_dup (nonSpeechLabel);
 				nonVoiceInterval -> tmin = previousEnd;
 				nonVoiceInterval -> tmax = t0;
@@ -692,7 +682,7 @@ autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const
 			/*
 				Insert the voice interval.
 			*/
-			WhisperSegment *voiceInterval = allIntervals. append();
+			SpeechSegment *voiceInterval = allIntervals. append();
 			voiceInterval -> text = Melder_dup (speechLabel);
 			voiceInterval -> tmin = t0;
 			voiceInterval -> tmax = t1;
@@ -702,7 +692,7 @@ autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const
 				After the last voice interval, add non-voice if there is remaining audio.
 			*/
 			if (i == numberOfVadSegments - 1 && t1 < soundEnd) {
-				WhisperSegment *nonVoiceInterval = allIntervals. append ();
+				SpeechSegment *nonVoiceInterval = allIntervals. append ();
 				nonVoiceInterval -> text = Melder_dup (nonSpeechLabel);
 				nonVoiceInterval -> tmin = t1;
 				nonVoiceInterval -> tmax = soundEnd;
@@ -714,7 +704,7 @@ autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const
 			If no voice activity detected at all, then entire sound is non-voice.
 		*/
 		if (! numberOfVadSegments) {
-			WhisperSegment *nonVoice = allIntervals. append ();
+			SpeechSegment *nonVoice = allIntervals. append ();
 			nonVoice -> text = Melder_dup (nonSpeechLabel);
 			nonVoice -> tmin = soundStart;
 			nonVoice -> tmax = soundEnd;
@@ -727,7 +717,13 @@ autovector <WhisperSegment> doSileroVad (constSound sound, SileroVadParams const
 	}
 }
 
-autovector <autovector <WhisperSegment>> doDiarization (constSound sound) {
+extern unsigned char model_ggml_segmentation_data[];
+extern unsigned int model_ggml_segmentation_length;
+extern unsigned char model_ggml_embedding_data[];
+extern unsigned int model_ggml_embedding_length;
+
+autovector <autovector <SpeechSegment>> doDiarization (constSound sound, DiarizationParams const& diarizationParams,
+		const conststring32 nonSpeechLabel, const conststring32 speechLabel) {
 	//TRACE
 	autovector <float> samples32 = resampleForWhisper (sound);
 	try {
@@ -736,6 +732,9 @@ autovector <autovector <WhisperSegment>> doDiarization (constSound sound) {
 			model_ggml_embedding_data, model_ggml_embedding_length
 			);
 		diarize_params diarizeParams = diarize_default_params ();
+		diarizeParams.max_speakers = static_cast<int> (diarizationParams.maxSimultaneousSpeakers);
+		diarizeParams.cluster_threshold = static_cast<float> (diarizationParams.clusterThreshold);
+		diarizeParams.seg_step_ratio = static_cast<float> (diarizationParams.segmentationOverlap);
 		diarize_full (diarizeContext.get(), diarizeParams,samples32.asArgumentToFunctionThatExpectsZeroBasedArray(),
 				static_cast <int> (samples32.size));
 		const unsigned int numberOfSegments = diarize_full_n_segments (diarizeContext.get());
@@ -743,7 +742,7 @@ autovector <autovector <WhisperSegment>> doDiarization (constSound sound) {
 
 		trace(U"Speakers:", numberOfSpeakers, U", Segments: ", numberOfSegments);
 
-		autovector <autovector <WhisperSegment>> speakers = newvectorzero <autovector <WhisperSegment>> (numberOfSpeakers);
+		autovector <autovector <SpeechSegment>> speakers = newvectorzero <autovector <SpeechSegment>> (numberOfSpeakers);
 		/*
 			Collect segments for each speaker.
 		*/
@@ -758,14 +757,14 @@ autovector <autovector <WhisperSegment>> doDiarization (constSound sound) {
 				const double tmax = diarize_full_get_segment_t1 (diarizeContext.get(), segment);
 
 				if (tmin > currentIntervalStart) {
-					WhisperSegment *gap = speakers [i]. append();
-					gap -> text = Melder_dup (U"");
+					SpeechSegment *gap = speakers [i]. append();
+					gap -> text = Melder_dup (nonSpeechLabel);
 					gap -> tmin = currentIntervalStart;
 					gap -> tmax = tmin;
 				}
 
-				WhisperSegment *speakerSegment = speakers [i]. append();
-				speakerSegment -> text = Melder_dup (Melder_cat (U"SPEAKER_", Melder_integer (i)));
+				SpeechSegment *speakerSegment = speakers [i]. append();
+				speakerSegment -> text = Melder_dup (speechLabel);
 				speakerSegment -> tmin = tmin;
 				speakerSegment -> tmax = tmax;
 
@@ -776,8 +775,8 @@ autovector <autovector <WhisperSegment>> doDiarization (constSound sound) {
 			}
 
 			if (currentIntervalStart < sound -> xmax) {
-				WhisperSegment *gap = speakers [i].append();
-				gap -> text = Melder_dup (U"");
+				SpeechSegment *gap = speakers [i].append();
+				gap -> text = Melder_dup (nonSpeechLabel);
 				gap -> tmin = currentIntervalStart;
 				gap -> tmax = sound -> xmax;
 			}

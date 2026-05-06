@@ -129,7 +129,7 @@ autoTextGrid Sound_to_TextGrid_speechActivity_silero (constSound me, const doubl
 		sileroVadParams. minNonSpeechDuration = minNonSpeechDuration;
 		sileroVadParams. minSpeechDuration = minSpeechDuration;
 		sileroVadParams. speechPad = speechPad;
-		autovector <WhisperSegment> vadIntervals = doSileroVad (me, sileroVadParams, nonSpeechLabel, speechLabel);
+		autovector <SpeechSegment> vadIntervals = doSileroVad (me, sileroVadParams, nonSpeechLabel, speechLabel);
 
 		autoTextGrid thee = TextGrid_create (my xmin, my xmax, U"VAD", U"");
 		const IntervalTier vadTier = static_cast <IntervalTier> (thy tiers->at [1]);
