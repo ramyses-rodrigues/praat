@@ -1450,6 +1450,7 @@ static void menu_cb_TranscribeInterval (TextGridArea me, EDITOR_ARGS) {
 				my instancePref_transcribe_useVad(), my instancePref_transcribe_vadThreshold(),
 				my instancePref_transcribe_vadMinNonSpeech(),my instancePref_transcribe_vadMinSpeech(),
 				my instancePref_transcribe_vadPadding(), my instancePref_diarize_maxSimultaneiosSpeakers(),
+				my instancePref_diarize_numSpeakers(), my instancePref_diarize_maxSpeakers(), my instancePref_diarize_minSpeakers(),
 				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationOverlap());
 	}
 	FunctionArea_broadcastDataChanged (me);
@@ -1468,11 +1469,17 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_transcribe_vadPadding())
 		HEADING (U"Transcription...")
 		LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
-		LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+		OPTIONMENUSTR (languageName, U"Language",
+			(int) NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+		for (integer i = 1; i <= theSpeechRecognizerLanguageNames().size; i ++)
+			OPTION (theSpeechRecognizerLanguageNames() [i])
 		HEADING (U"Diarization...")
-		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers", my default_diarize_maxSimultaneiosSpeakers())
-		POSITIVE (clusterThreshold, U"Cluster threshold", my default_diarize_clusterThreshold())
-		POSITIVE (segmentationOverlap, U"Segmentation overlap", my default_diarize_segmentationOverlap())
+		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", my default_diarize_maxSimultaneiosSpeakers())
+		INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", my default_diarize_numSpeakers())
+		INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", my default_diarize_maxSpeakers())
+		INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", my default_diarize_minSpeakers())
+		POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", my default_diarize_clusterThreshold())
+		INTEGER (segmentationOverlap, U"Segmentation overlap (%, 0-99)", theDiarizationSegmentationOverlapStr)
 	EDITOR_OK
 		static autoSTRVEC modelNames;
 		modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
@@ -1490,21 +1497,22 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		SET_REAL (minSpeechDuration, my instancePref_transcribe_vadMinSpeech())
 		SET_REAL (speechPad, my instancePref_transcribe_vadPadding())
 		SET_INTEGER (maxSimultaneousSpeakers, my instancePref_diarize_maxSimultaneiosSpeakers())
+		SET_INTEGER (numSpeakers, my instancePref_diarize_numSpeakers())
+		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
+		SET_INTEGER (minSpeakers, my instancePref_diarize_minSpeakers())
 		SET_REAL (clusterThreshold, my instancePref_diarize_clusterThreshold())
-		SET_REAL (segmentationOverlap, my instancePref_diarize_segmentationOverlap())
+		SET_INTEGER (segmentationOverlap, my instancePref_diarize_segmentationOverlap())
 
 		integer prefModel = NUMfindFirst (modelNames.get (), my instancePref_transcribe_model());
 		if (prefModel == 0)
 			prefModel = NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName);
 		SET_INTEGER (modelIndex, prefModel)
-
-		integer prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), my instancePref_transcribe_language());
-		if (prefLanguage == 0)
-			prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName);
-		SET_INTEGER (languageIndex, prefLanguage)
-
 		SET_LIST (modelIndex, modelName, modelNames.get (), prefModel)
-		SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(), prefLanguage)
+
+		conststring32 prefLanguage = my instancePref_transcribe_language();
+		if (NUMfindFirst (theSpeechRecognizerLanguageNames(), prefLanguage) == 0)
+			prefLanguage = theSpeechRecognizerDefaultLanguageName;
+		SET_STRING (languageName, prefLanguage)
 	EDITOR_DO
 		my setInstancePref_transcribe_model (modelName);
 		my setInstancePref_transcribe_language (languageName);
@@ -1516,6 +1524,9 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_transcribe_vadMinSpeech (minSpeechDuration);
 		my setInstancePref_transcribe_vadPadding (speechPad);
 		my setInstancePref_diarize_maxSimultaneiosSpeakers (maxSimultaneousSpeakers);
+		my setInstancePref_diarize_numSpeakers (numSpeakers);
+		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
+		my setInstancePref_diarize_minSpeakers (minSpeakers);
 		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
 		my setInstancePref_diarize_segmentationOverlap (segmentationOverlap);
 	EDITOR_END

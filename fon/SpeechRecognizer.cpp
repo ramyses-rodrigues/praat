@@ -733,9 +733,12 @@ autovector <autovector <SpeechSegment>> doDiarization (constSound sound, Diariza
 			model_ggml_embedding_data, model_ggml_embedding_length
 			);
 		diarize_params diarizeParams = diarize_default_params ();
-		diarizeParams.max_speakers = static_cast<int> (diarizationParams.maxSimultaneousSpeakers);
-		diarizeParams.cluster_threshold = static_cast<float> (diarizationParams.clusterThreshold);
-		diarizeParams.seg_step_ratio = static_cast<float> (diarizationParams.segmentationOverlap);
+		diarizeParams. max_simultaneous_speakers = diarizationParams. maxSimultaneousSpeakers;
+		diarizeParams. num_speakers = diarizationParams. numSpeakers;
+		diarizeParams. max_speakers = diarizationParams. maxSpeakers;
+		diarizeParams. min_speakers = diarizationParams. minSpeakers;
+		diarizeParams. cluster_threshold = diarizationParams. clusterThreshold;
+		diarizeParams. seg_step_ratio = (100.0 - diarizationParams. segmentationOverlap) / 100.0;
 		diarize_full (diarizeContext.get(), diarizeParams,samples32.asArgumentToFunctionThatExpectsZeroBasedArray(),
 				static_cast <int> (samples32.size));
 		const unsigned int numberOfSegments = diarize_full_n_segments (diarizeContext.get());

@@ -413,7 +413,8 @@ void TextGrid_Sound_transcribeInterval (
 	const conststring32 modelName, const conststring32 languageName,
 	const bool includeWords, const bool diarize, const bool useVad, const double speechProbabilityThreshold,
 	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad,
-	const integer maxSimultaneousSpeakers, const double clusterThreshold, const double segmentationOverlap
+	const integer maxSimultaneousSpeakers, const integer numSpeakers, const integer maxSpeakers, const integer minSpeakers,
+	const double clusterThreshold, const integer segmentationOverlap
 ) {
 	/*
 		Lambda function to create and return a new tier after a specified tier.
@@ -476,7 +477,7 @@ void TextGrid_Sound_transcribeInterval (
 		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
-		if (intervalNumber < 1 || intervalNumber > headTier -> intervals.size)
+		if (intervalNumber > headTier -> intervals.size)
 			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
 
 		constTextInterval originalInterval = headTier -> intervals.at [intervalNumber];
@@ -498,6 +499,9 @@ void TextGrid_Sound_transcribeInterval (
 		sileroVadParams. speechPad = speechPad;
 		DiarizationParams diarizationParams;
 		diarizationParams. maxSimultaneousSpeakers = maxSimultaneousSpeakers;
+		diarizationParams. numSpeakers = numSpeakers;
+		diarizationParams. maxSpeakers = maxSpeakers;
+		diarizationParams. minSpeakers = minSpeakers;
 		diarizationParams. clusterThreshold = clusterThreshold;
 		diarizationParams. segmentationOverlap = segmentationOverlap;
 
@@ -750,7 +754,8 @@ void TextGrid_Sound_transcribeInterval (
 void TextGrid_Sound_diarizeInterval (
 	const TextGrid me, const Sound sound,
 	const integer tierNumber, const integer intervalNumber,
-	const integer maxSimultaneousSpeakers, const double clusterThreshold, const double segmentationOverlap
+	const integer maxSimultaneousSpeakers, const integer numSpeakers, const integer maxSpeakers, const integer minSpeakers,
+	const double clusterThreshold, const integer segmentationOverlap
 ) {
 	/*
 		Lambda function to create and return a new tier after a specified tier.
@@ -787,7 +792,7 @@ void TextGrid_Sound_diarizeInterval (
 		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
-		if (intervalNumber < 1 || intervalNumber > headTier -> intervals.size)
+		if (intervalNumber > headTier -> intervals.size)
 			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
 
 		constTextInterval originalInterval = headTier -> intervals.at [intervalNumber];
@@ -803,6 +808,9 @@ void TextGrid_Sound_diarizeInterval (
 
 		DiarizationParams diarizationParams;
 		diarizationParams. maxSimultaneousSpeakers = maxSimultaneousSpeakers;
+		diarizationParams. numSpeakers = numSpeakers;
+		diarizationParams. maxSpeakers = maxSpeakers;
+		diarizationParams. minSpeakers = minSpeakers;
 		diarizationParams. clusterThreshold = clusterThreshold;
 		diarizationParams. segmentationOverlap = segmentationOverlap;
 

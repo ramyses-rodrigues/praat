@@ -57,12 +57,18 @@ inline constexpr bool theSpeechRecognizerDefaultUseVad = true;
 /*
 	Default diarization parameters.
 */
-inline constexpr integer theDiarizationMaxSimultaneousSpeakers = 0;
-inline constexpr conststring32 theDiarizationMaxSimultaneousSpeakersStr = U"20";   // for UI
+inline constexpr integer theDiarizationMaxSimultaneousSpeakers = 3;
+inline constexpr conststring32 theDiarizationMaxSimultaneousSpeakersStr = U"3";   // for UI
+inline constexpr integer theDiarizationNumSpeakers = 0;
+inline constexpr conststring32 theDiarizationNumSpeakersStr = U"0";   // for UI
+inline constexpr integer theDiarizationMaxSpeakers = 0;
+inline constexpr conststring32 theDiarizationMaxSpeakersStr = U"0";   // for UI
+inline constexpr integer theDiarizationMinSpeakers = 0;
+inline constexpr conststring32 theDiarizationMinSpeakersStr = U"0";   // for UI
 inline constexpr double theDiarizationClusterThreshold = 0.7045654963945799;
 inline constexpr conststring32 theDiarizationClusterThresholdStr = U"0.7045654963945799";   // for UI
-inline constexpr double theDiarizationSegmentationOverlap = 0.1;
-inline constexpr conststring32 theDiarizationSegmentationOverlapStr = U"0.1";   // for UI
+inline constexpr integer theDiarizationSegmentationOverlap = 90;
+inline constexpr conststring32 theDiarizationSegmentationOverlapStr = U"90";   // for UI
 
 
 struct autoWhisperContext {
@@ -147,8 +153,11 @@ struct SileroVadParams {
 
 struct DiarizationParams {
 	integer maxSimultaneousSpeakers = theDiarizationMaxSimultaneousSpeakers;
+	integer numSpeakers = theDiarizationNumSpeakers;
+	integer maxSpeakers = theDiarizationMaxSpeakers;
+	integer minSpeakers = theDiarizationMinSpeakers;
 	double clusterThreshold = theDiarizationClusterThreshold;
-	double segmentationOverlap = theDiarizationSegmentationOverlap;
+	integer segmentationOverlap = theDiarizationSegmentationOverlap;
 };
 
 struct SpeechSegment {

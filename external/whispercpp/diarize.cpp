@@ -1363,6 +1363,9 @@ struct diarization_params {
     double  cluster_threshold  = 0.7045654963945799;   // https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml
     int     cluster_min_size   = 12;
     float   min_active_ratio   = 0.2f;    // for filter_embeddings
+	int     num_speakers       = 0;   // unspecified
+	int     min_speakers       = 0;   // unspecified
+	int     max_speakers       = 0;   // unspecified
 
     // Post-processing
     float   min_duration_off   = 0.0f;
@@ -1652,13 +1655,92 @@ static void fcluster_distance(const std::vector<linkage_merge> & dend, int n, do
     for (int i = 0; i < n; i++) labels[i] = mp[labels[i]];
 }
 
+// Variant of fcluster_distance that cuts the dendrogram at an iteration
+// index instead of a distance. Performs merges 0..cut_index inclusive,
+// then assigns connected components.
+//   Mirrors pyannote's clustering.py:407-408 + fcluster trick:
+//     _dendrogram[:, 2] = np.arange(num_embeddings - 1)
+//     fcluster(_dendrogram, iteration, criterion="distance")
+static void fcluster_byiteration(const std::vector<linkage_merge> & dend, int n,
+								 int cut_index,
+								 std::vector<int32_t> & labels) {
+	int mx = 2 * n - 1;
+	std::vector<int> parent(mx);
+	for (int i = 0; i < mx; i++) parent[i] = i;
+	auto find = [&](int x) -> int {
+		while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x;
+	};
+	for (int i = 0; i < n - 1; i++) {
+		int a = (int)dend[i].idx1, b = (int)dend[i].idx2, ni = n + i;
+		parent[ni] = ni;
+		if (i <= cut_index) { parent[find(a)] = ni; parent[find(b)] = ni; }
+	}
+	labels.resize(n);
+	for (int i = 0; i < n; i++) labels[i] = find(i);
+	// Renumber 0..K-1 (same as fcluster_distance)
+	std::vector<int> uq;
+	for (int i = 0; i < n; i++) {
+		bool found = false;
+		for (int u : uq) { if (u == labels[i]) { found = true; break; } }
+		if (!found) uq.push_back(labels[i]);
+	}
+	std::vector<int> mp(mx, -1);
+	for (int k = 0; k < (int)uq.size(); k++) mp[uq[k]] = k;
+	for (int i = 0; i < n; i++) labels[i] = mp[labels[i]];
+}
+
+// Helper: count "large" clusters (size >= min_cluster_size) given labels.
+static int count_large_clusters(const std::vector<int32_t> & labels, int min_cluster_size) {
+	std::map<int32_t, int> counts;
+	for (auto l : labels) counts[l]++;
+	int n_large = 0;
+	for (auto & [_, c] : counts) if (c >= min_cluster_size) n_large++;
+	return n_large;
+}
+
+// Normalize cluster-count constraints. Mirrors pyannote's
+// AgglomerativeClustering.set_num_clusters (clustering.py:54).
+//   num, min, max are 0 when "not specified" by the caller.
+// On return, min and max are valid (1 <= min <= max <= n_embeddings)
+// and num is either 0 (range) or >0 (force exact count).
+static void set_num_clusters(int num_embeddings,
+							 int & num_clusters,
+							 int & min_clusters,
+							 int & max_clusters) {
+	// pyannote: min_clusters = num_clusters or min_clusters or 1
+	if (num_clusters > 0)         min_clusters = num_clusters;
+	else if (min_clusters <= 0)   min_clusters = 1;
+	min_clusters = std::max(1, std::min(num_embeddings, min_clusters));
+
+	// pyannote: max_clusters = num_clusters or max_clusters or num_embeddings
+	if (num_clusters > 0)         max_clusters = num_clusters;
+	else if (max_clusters <= 0)   max_clusters = num_embeddings;
+	max_clusters = std::max(1, std::min(num_embeddings, max_clusters));
+
+	if (min_clusters > max_clusters)
+		Melder_throw (U"min_speakers must be <= max_speakers (got min=", min_clusters,
+					  U", max=", max_clusters, U").");
+
+	if (min_clusters == max_clusters)
+		num_clusters = min_clusters;
+}
+
 static std::vector<int32_t> agglomerative_cluster(
     const float * embeddings_raw, int n, int dim,
-    double threshold, int min_cluster_size_param
+    double threshold, int min_cluster_size_param,
+    int num_clusters_in,    // 0 = unspecified
+    int min_clusters_in,    // 0 = unspecified
+    int max_clusters_in     // 0 = unspecified
 ) {
     int mcs = std::min(min_cluster_size_param, std::max(1, (int)std::round(0.1 * n)));
 
     if (n == 1) return {0};
+
+    // Normalize cluster-count constraints (mirrors clustering.py:259-263).
+    int num_clusters = num_clusters_in;
+    int min_clusters = min_clusters_in;
+    int max_clusters = max_clusters_in;
+    set_num_clusters(n, num_clusters, min_clusters, max_clusters);
 
     // L2-normalize
     std::vector<double> emb(n * dim);
@@ -1669,9 +1751,60 @@ static std::vector<int32_t> agglomerative_cluster(
     std::vector<linkage_merge> dend;
     centroid_linkage(emb.data(), n, dim, dend);
 
-    // fcluster
+    // Initial cut at threshold (clustering.py:385)
     std::vector<int32_t> clusters;
     fcluster_distance(dend, n, threshold, clusters);
+
+    // Count large clusters (clustering.py:387-394)
+    int n_large = count_large_clusters(clusters, mcs);
+
+    // Force num_clusters from min/max bounds when threshold cut is out of range
+    // (clustering.py:396-402).
+    if      (n_large < min_clusters) num_clusters = min_clusters;
+    else if (n_large > max_clusters) num_clusters = max_clusters;
+
+    // If num_clusters is now constrained and the threshold cut doesn't already
+    // produce that count, search the dendrogram for the best alternative cut
+    // (clustering.py:405-451).
+    if (num_clusters > 0 && n_large != num_clusters) {
+        // Sort iteration indices by |dend[i].distance - threshold| (closest first)
+        std::vector<int> order (n - 1);
+        for (int i = 0; i < n - 1; i++) order[i] = i;
+        std::sort (order.begin(), order.end(), [&](int a, int b) {
+            return std::abs(dend[a].distance - threshold)
+                 < std::abs(dend[b].distance - threshold);
+        });
+
+        int best_iteration       = n - 2;   // default: cut after all merges (1 cluster)
+        int best_n_large         = 1;
+        std::vector<int32_t> best_clusters = std::vector<int32_t>(n, 0);
+
+        for (int it : order) {
+            // Skip merges where the new cluster would be too small
+            // (clustering.py:419-421).
+            int new_size = (int) dend[it].count;
+            if (new_size < mcs) continue;
+
+            std::vector<int32_t> trial;
+            fcluster_byiteration(dend, n, it, trial);
+            int n_l = count_large_clusters(trial, mcs);
+
+            if (std::abs(n_l - num_clusters) < std::abs(best_n_large - num_clusters)) {
+                best_iteration = it;
+                best_n_large   = n_l;
+                best_clusters  = std::move(trial);
+            }
+            if (n_l == num_clusters) break;   // perfect candidate
+        }
+
+        clusters = std::move(best_clusters);
+        n_large  = best_n_large;
+    	if (num_clusters > 0 && n_large != num_clusters) {
+    		Melder_warning (U"Diarization: found only ", n_large,
+							U" clusters (requested ", num_clusters,
+							U"). Lowering 'cluster_min_size' might help.");
+    	}
+    }
 
     // Large/small split
     std::map<int32_t, int> cc;
@@ -1901,7 +2034,7 @@ static diarization_result run_diarization_pipeline(
     int num_speakers,                       // local speakers per chunk (3)
     int emb_dim,
     const diarization_params & params,
-    int max_speakers = 20                   // upper bound on global speakers
+	int max_simultaneous_speakers           // per-frame cap
 ) {
     //TRACE
     int step_frames = params.seg_step_frames();
@@ -1926,8 +2059,8 @@ static diarization_result run_diarization_pipeline(
     compute_speaker_count(binarized_segmentations, num_chunks, num_frames,
                           num_speakers, step_frames, total_frames, spk_count);
 
-    // Cap at max_speakers
-    for (auto & c : spk_count) c = std::min(c, (int32_t)max_speakers);
+	// Cap simultaneous (per-frame) speaker count
+	for (auto & c : spk_count) c = std::min(c, (int32_t)max_simultaneous_speakers);
 
     // Check if any speaker is ever active
     int max_count = *std::max_element(spk_count.begin(), spk_count.end());
@@ -1952,9 +2085,10 @@ static diarization_result run_diarization_pipeline(
     }
 
     // --- Cluster ---
-    auto train_clusters = agglomerative_cluster(
-        filt.filtered_embeddings.data(), filt.num_filtered, emb_dim,
-        params.cluster_threshold, params.cluster_min_size);
+	auto train_clusters = agglomerative_cluster(
+		filt.filtered_embeddings.data(), filt.num_filtered, emb_dim,
+		params.cluster_threshold, params.cluster_min_size,
+		params.num_speakers, params.min_speakers, params.max_speakers);
 
     int num_clusters = *std::max_element(train_clusters.begin(), train_clusters.end()) + 1;
     trace (U"diarize: ", num_clusters, U" clusters");
@@ -2046,8 +2180,11 @@ struct diarize_params diarize_default_params(void) {
     p.cluster_threshold = 0.7045654963945799f;
     p.cluster_min_size  = 12;
     p.min_active_ratio  = 0.2f;
-    p.max_speakers      = 20;
-    return p;
+	p.num_speakers      = 0;       // unspecified
+	p.min_speakers      = 0;       // unspecified
+	p.max_speakers      = 0;       // unspecified
+	p.max_simultaneous_speakers = 3;
+	return p;
 }
 
 struct diarize_context * diarize_init(struct diarize_model_loader * seg_loader, struct diarize_model_loader * emb_loader) {
@@ -2192,12 +2329,15 @@ void diarize_full(
     ctx->result = {};
 
     // --- Pipeline parameters ---
-    diarization_params dp;
-    dp.seg_duration      = params.seg_duration;
-    dp.seg_step_ratio    = params.seg_step_ratio;
-    dp.cluster_threshold = (double)params.cluster_threshold;
-    dp.cluster_min_size  = params.cluster_min_size;
-    dp.min_active_ratio  = params.min_active_ratio;
+	diarization_params dp;
+	dp.seg_duration      = params.seg_duration;
+	dp.seg_step_ratio    = params.seg_step_ratio;
+	dp.cluster_threshold = (double)params.cluster_threshold;
+	dp.cluster_min_size  = params.cluster_min_size;
+	dp.min_active_ratio  = params.min_active_ratio;
+	dp.num_speakers      = params.num_speakers;
+	dp.min_speakers      = params.min_speakers;
+	dp.max_speakers      = params.max_speakers;
 
     const int sample_rate   = 16000;
     const int chunk_samples = (int)(dp.seg_duration * sample_rate);
@@ -2309,13 +2449,12 @@ void diarize_full(
     }
 
     // --- Step 4: Clustering + reconstruction pipeline ---
-    ctx->result = run_diarization_pipeline(
-        all_segmentations.data(),
-        all_binarized.data(),
-        all_embeddings.data(),
-        num_chunks, num_frames, num_classes, num_speakers, emb_dim,
-        dp, params.max_speakers);
-
+	ctx->result = run_diarization_pipeline(
+		all_segmentations.data(),
+		all_binarized.data(),
+		all_embeddings.data(),
+		num_chunks, num_frames, num_classes, num_speakers, emb_dim,
+		dp, params.max_simultaneous_speakers);
     trace (U"diarize_full: ", ctx->result.num_speakers, U" speakers, ", ctx->result.segments.size(), U" segments");
 }
 

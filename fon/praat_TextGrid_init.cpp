@@ -557,7 +557,7 @@ DIRECT (MODIFY_TextGrid_Sound_scaleTimes) {
 
 FORM (MODIFY_TextGrid_Sound_transcribeInterval, U"TextGrid & Sound: Transcribe interval", U"TextGrid & Sound: Transcribe interval") {
 	HEADING (U"Textgrid...")
-	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
 	BOOLEAN (includeWords, U"Include words", theSpeechRecognizerDefaultIncludeWords)
 	BOOLEAN (includeDiarization, U"Include diarization", theSpeechRecognizerDefaultIncludeDiarization)
@@ -569,11 +569,17 @@ FORM (MODIFY_TextGrid_Sound_transcribeInterval, U"TextGrid & Sound: Transcribe i
 	POSITIVE (speechPad, U"Padding around speech segments (s)", theVadDefaultSpeechPadStr)
 	HEADING (U"Transcription...")
 	LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
-	LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+	OPTIONMENUSTR (languageName, U"Language",
+		(int) NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+	for (integer i = 1; i <= theSpeechRecognizerLanguageNames().size; i ++)
+		OPTION (theSpeechRecognizerLanguageNames() [i])
 	HEADING (U"Diarization...")
-	NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers", theDiarizationMaxSimultaneousSpeakersStr)
-	POSITIVE (clusterThreshold, U"Cluster threshold", theDiarizationClusterThresholdStr)
-	POSITIVE (segmentationOverlap, U"Segmentation overlap", theDiarizationSegmentationOverlapStr)
+	NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", theDiarizationMaxSimultaneousSpeakersStr)
+	INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", theDiarizationNumSpeakersStr)
+	INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", theDiarizationMaxSpeakersStr)
+	INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", theDiarizationMinSpeakersStr)
+	POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", theDiarizationClusterThresholdStr)
+	INTEGER (segmentationOverlap, U"Segmentation overlap (%, 0-99)", theDiarizationSegmentationOverlapStr)
 OK
 	static autoSTRVEC modelNames;
 	modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
@@ -584,28 +590,30 @@ OK
 	);
 
 	SET_LIST (modelIndex, modelName, modelNames.get (), NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName))
-	SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(),
-			NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
 DO
 	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
 		TextGrid_Sound_transcribeInterval (me, you, tierNumber, intervalNumber, modelName, languageName, includeWords,
 			includeDiarization, useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad,
-			maxSimultaneousSpeakers, clusterThreshold, segmentationOverlap);
+			maxSimultaneousSpeakers, numSpeakers, maxSpeakers, minSpeakers, clusterThreshold, segmentationOverlap);
 	MODIFY_FIRST_OF_ONE_AND_ONE_END
 }
 
 FORM (MODIFY_TextGrid_Sound_diarizeInterval, U"TextGrid & Sound: Diarize interval", U"TextGrid & Sound: Diarize interval") {
 	HEADING (U"Textgrid...")
-	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
 	HEADING (U"Diarization...")
-	NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers", theDiarizationMaxSimultaneousSpeakersStr)
-	POSITIVE (clusterThreshold, U"Cluster threshold", theDiarizationClusterThresholdStr)
-	POSITIVE (segmentationOverlap, U"Segmentation overlap", theDiarizationSegmentationOverlapStr)
+	NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", theDiarizationMaxSimultaneousSpeakersStr)
+	INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", theDiarizationNumSpeakersStr)
+	INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", theDiarizationMaxSpeakersStr)
+	INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", theDiarizationMinSpeakersStr)
+	POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", theDiarizationClusterThresholdStr)
+	POSITIVE (segmentationOverlap, U"Segmentation overlap (0 - 1)", theDiarizationSegmentationOverlapStr)
 	OK
 DO
 	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
-		TextGrid_Sound_diarizeInterval (me, you, tierNumber, intervalNumber, maxSimultaneousSpeakers, clusterThreshold, segmentationOverlap);
+		TextGrid_Sound_diarizeInterval (me, you, tierNumber, intervalNumber,
+				maxSimultaneousSpeakers, numSpeakers, maxSpeakers, minSpeakers, clusterThreshold, segmentationOverlap);
 	MODIFY_FIRST_OF_ONE_AND_ONE_END
 }
 
