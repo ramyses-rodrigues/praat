@@ -1469,10 +1469,10 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_transcribe_vadPadding())
 		HEADING (U"Transcription...")
 		LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
-		OPTIONMENUSTR (languageName, U"Language",
-			(int) NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
-		for (integer i = 1; i <= theSpeechRecognizerLanguageNames().size; i ++)
-			OPTION (theSpeechRecognizerLanguageNames() [i])
+		OPTIONMENU (language, U"Language", (int) NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+		for (integer i = 1; i <= theSpeechRecognizerLanguageNames().size; i ++) {
+			OPTION (theSpeechRecognizerLanguageNames() [i]);
+		}
 		HEADING (U"Diarization...")
 		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", my default_diarize_maxSimultaneiosSpeakers())
 		INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", my default_diarize_numSpeakers())
@@ -1509,13 +1509,13 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		SET_INTEGER (modelIndex, prefModel)
 		SET_LIST (modelIndex, modelName, modelNames.get (), prefModel)
 
-		conststring32 prefLanguage = my instancePref_transcribe_language();
-		if (NUMfindFirst (theSpeechRecognizerLanguageNames(), prefLanguage) == 0)
-			prefLanguage = theSpeechRecognizerDefaultLanguageName;
-		SET_STRING (languageName, prefLanguage)
+		integer prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), my instancePref_transcribe_language());
+		if (prefLanguage == 0)
+			prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName);
+		SET_OPTION (language, prefLanguage)
 	EDITOR_DO
 		my setInstancePref_transcribe_model (modelName);
-		my setInstancePref_transcribe_language (languageName);
+		my setInstancePref_transcribe_language (theSpeechRecognizerLanguageNames() [language]);
 		my setInstancePref_transcribe_includeWords (includeWords);
 		my setInstancePref_transcribe_includeDiarization (includeDiarization);
 		my setInstancePref_transcribe_useVad (useVad);
@@ -1529,6 +1529,58 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_diarize_minSpeakers (minSpeakers);
 		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
 		my setInstancePref_diarize_segmentationOverlap (segmentationOverlap);
+	EDITOR_END
+}
+
+static void menu_cb_DiarizeInterval (TextGridArea me, EDITOR_ARGS) {
+	checkTierSelection (me, U"diarize interval");
+	const AnyTier tier = static_cast <AnyTier> (my textGrid() -> tiers->at [my selectedTier]);
+	if (tier -> classInfo != classIntervalTier)
+		Melder_throw (U"Diarization works only for interval tiers, whereas tier ", my selectedTier, U" is a point tier.\nSelect an interval tier instead.");
+	const integer intervalNumber = getSelectedInterval (me);
+	if (! intervalNumber)
+		Melder_throw (U"Select an interval first");
+	{// scope
+		const autoMelderProgressOff noprogress;
+		FunctionArea_save (me, U"Diarize interval");
+		TextGrid_Sound_diarizeInterval (my textGrid(), my borrowedSoundArea -> sound(), my selectedTier, intervalNumber,
+				my instancePref_diarize_maxSimultaneiosSpeakers(), my instancePref_diarize_numSpeakers(),
+				my instancePref_diarize_maxSpeakers(), my instancePref_diarize_minSpeakers(),
+				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationOverlap(),
+				my instancePref_diarize_nonSpeechLabel(), my instancePref_diarize_speechLabel()
+		);
+	}
+	FunctionArea_broadcastDataChanged (me);
+}
+
+static void menu_cb_DiarizationSettings (TextGridArea me, EDITOR_ARGS) {
+	EDITOR_FORM (U"Diarization settings", nullptr)
+		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", my default_diarize_maxSimultaneiosSpeakers())
+		INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", my default_diarize_numSpeakers())
+		INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", my default_diarize_maxSpeakers())
+		INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", my default_diarize_minSpeakers())
+		POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", my default_diarize_clusterThreshold())
+		INTEGER (segmentationOverlap, U"Segmentation overlap (%, 0-99)", my default_diarize_segmentationOverlap())
+		WORD (nonSpeechLabel, U"Non-speech interval label", my default_diarize_nonSpeechLabel())
+		WORD (speechLabel, U"Speech interval label", my default_diarize_speechLabel())
+	EDITOR_OK
+		SET_INTEGER (maxSimultaneousSpeakers, my instancePref_diarize_maxSimultaneiosSpeakers())
+		SET_INTEGER (numSpeakers, my instancePref_diarize_numSpeakers())
+		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
+		SET_INTEGER (minSpeakers, my instancePref_diarize_minSpeakers())
+		SET_REAL (clusterThreshold, my instancePref_diarize_clusterThreshold())
+		SET_INTEGER (segmentationOverlap, my instancePref_diarize_segmentationOverlap())
+		SET_STRING (nonSpeechLabel, my instancePref_diarize_nonSpeechLabel())
+		SET_STRING (speechLabel, my instancePref_diarize_speechLabel())
+	EDITOR_DO
+		my setInstancePref_diarize_maxSimultaneiosSpeakers (maxSimultaneousSpeakers);
+		my setInstancePref_diarize_numSpeakers (numSpeakers);
+		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
+		my setInstancePref_diarize_minSpeakers (minSpeakers);
+		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
+		my setInstancePref_diarize_segmentationOverlap (segmentationOverlap);
+		my setInstancePref_diarize_nonSpeechLabel (nonSpeechLabel);
+		my setInstancePref_diarize_speechLabel (speechLabel);
 	EDITOR_END
 }
 
@@ -1919,7 +1971,7 @@ void structTextGridArea :: v_createMenus () {
 	EditorMenu intervalMenu = Editor_addMenu (our functionEditor(), U"Interval", 0);
 	if (our editable()) {
 		if (our borrowedSoundArea) {
-			FunctionAreaMenu_addCommand (intervalMenu, U"Align interval", 'D',
+			FunctionAreaMenu_addCommand (intervalMenu, U"Align interval", 'E',
 					menu_cb_AlignInterval, this);
 			FunctionAreaMenu_addCommand (intervalMenu, U"Alignment settings...", 0,
 					menu_cb_AlignmentSettings, this);
@@ -1929,6 +1981,11 @@ void structTextGridArea :: v_createMenus () {
 			FunctionAreaMenu_addCommand (intervalMenu, U"Transcription settings...", 0,
 					menu_cb_TranscriptionSettings, this);
 			FunctionAreaMenu_addCommand (intervalMenu, U"-- after transcribe --", 0, nullptr, this);
+			FunctionAreaMenu_addCommand (intervalMenu, U"Diarize interval", 'D',
+					menu_cb_DiarizeInterval, this);
+			FunctionAreaMenu_addCommand (intervalMenu, U"Diarization settings...", 0,
+					menu_cb_DiarizationSettings, this);
+			FunctionAreaMenu_addCommand (intervalMenu, U"-- after diarize --", 0, nullptr, this);
 		}
 		FunctionAreaMenu_addCommand (intervalMenu, U"New interval:", 0, nullptr, this);
 		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 1", GuiMenu_COMMAND | '1' | GuiMenu_DEPTH_1,
