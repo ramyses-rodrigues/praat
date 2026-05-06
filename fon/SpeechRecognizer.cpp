@@ -120,7 +120,7 @@ static void whisper_log_silent (ggml_log_level level, const char *text, void *us
 	(void) user_data;
 }
 
-static void supressWhisperLogging () {
+static void supressGgmlLogging () {
 	if (Melder_debug == 2001)
 		whisper_log_set (nullptr, nullptr);
 	else
@@ -191,7 +191,7 @@ autoSpeechRecognizer SpeechRecognizer_create (const conststring32 modelName, con
 		/*
 			Initialise Whisper model.
 		*/
-		supressWhisperLogging ();
+		supressGgmlLogging ();
 		whisper_context *ctx = whisper_init_from_file_with_params (utf8ModelPath, contextParams);
 		if (! ctx)
 			Melder_throw (U"Cannot create Whisper context from: ", modelPath, U". Model file not found?");
@@ -261,7 +261,7 @@ static void SpeechRecognizer_runWhisper (constSpeechRecognizer me, constSound so
 	/*
 		Run Whisper.
 	*/
-	supressWhisperLogging ();
+	supressGgmlLogging ();
 	try {
 		if (whisper_full (my whisperContext.get(), params, samples32. asArgumentToFunctionThatExpectsZeroBasedArray(),
 				static_cast <int> (samples32.size)) != 0)
@@ -626,7 +626,7 @@ autovector <SpeechSegment> doSileroVad (constSound sound, SileroVadParams const&
 		const conststring32 nonSpeechLabel, const conststring32 speechLabel) {
 	//TRACE
 	trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
-	supressWhisperLogging ();
+	supressGgmlLogging ();
 
 	/*
 		Remember original sound -> xmin and sound -> xmax before resampling; and resample.
@@ -727,6 +727,7 @@ autovector <autovector <SpeechSegment>> doDiarization (constSound sound, Diariza
 	//TRACE
 	autovector <float> samples32 = resampleForWhisper (sound);
 	try {
+		supressGgmlLogging ();
 		autoDiarizeContext diarizeContext = diarize_init_from_memory (
 			model_ggml_segmentation_data, model_ggml_segmentation_length,
 			model_ggml_embedding_data, model_ggml_embedding_length

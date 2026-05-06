@@ -45,6 +45,9 @@ void TextGrid_Sound_transcribeInterval (TextGrid me, Sound sound, integer tierNu
 	double speechProbabilityThreshold, double minNonSpeechDuration, double minSpeechDuration, double speechPad,
 	integer maxSimultaneousSpeakers, double clusterThreshold, double segmentationOverlap
 );
+void TextGrid_Sound_diarizeInterval (TextGrid me, Sound sound, integer tierNumber, integer intervalNumber,
+	integer maxSimultaneousSpeakers, double clusterThreshold, double segmentationOverlap
+);
 
 autoSound Sound_readWithAdjacentAnnotationFiles_buckeye (conststring32 soundFileName, autoTextGrid *out_textgrid);
 autoSound Sound_readWithAdjacentAnnotationFiles_timit   (conststring32 soundFileName, autoTextGrid *out_textgrid);

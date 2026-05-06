@@ -747,6 +747,95 @@ void TextGrid_Sound_transcribeInterval (
 	}
 }
 
+void TextGrid_Sound_diarizeInterval (
+	const TextGrid me, const Sound sound,
+	const integer tierNumber, const integer intervalNumber,
+	const integer maxSimultaneousSpeakers, const double clusterThreshold, const double segmentationOverlap
+) {
+	/*
+		Lambda function to create and return a new tier after a specified tier.
+		If overwrite == true and the tier with the given name already exists, return this tier.
+	*/
+	auto getIntervalTier = [& me] (autoMelderString const& tierName, const integer prevTierNumber, const bool overwrite) {
+		/* mutable search */ integer newTierNumber = 0;
+		if (overwrite) {
+			for (integer i = 1; i <= my tiers->size; i ++) {
+				Function tier = my tiers -> at [i];
+				if (Melder_equ (tierName.string, tier -> name.get())) {
+					if (tier -> classInfo != classIntervalTier)
+						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
+								U") already exists, but it is not an interval tier."
+								U"\nPlease change its name or remove it.");
+					newTierNumber = i;
+					break;
+				}
+			}
+		}
+		if (! newTierNumber) {
+			autoIntervalTier newTier = IntervalTier_create (my xmin, my xmax);
+			Thing_setName (newTier.get(), tierName.string);
+			newTierNumber = prevTierNumber + 1;
+			my tiers -> addItemAtPosition_move (newTier.move(), newTierNumber);
+			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers -> size);
+		}
+		return newTierNumber;
+	};
+
+	try {
+		//TRACE
+		const integer headTierNumber = tierNumber;
+		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
+		autostring32 headTierName = Melder_dup (headTier -> name.get());
+
+		if (intervalNumber < 1 || intervalNumber > headTier -> intervals.size)
+			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
+
+		constTextInterval originalInterval = headTier -> intervals.at [intervalNumber];
+		const double originalTmin = originalInterval -> xmin;
+		const double originalTmax = originalInterval -> xmax;
+
+		if (str32str (headTier -> name.get(), U"/"))
+			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a speaker tier from it.");
+
+		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
+		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
+			kSound_windowShape::RECTANGULAR, 1.0, false);
+
+		DiarizationParams diarizationParams;
+		diarizationParams. maxSimultaneousSpeakers = maxSimultaneousSpeakers;
+		diarizationParams. clusterThreshold = clusterThreshold;
+		diarizationParams. segmentationOverlap = segmentationOverlap;
+
+		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (
+				soundPart.get(), diarizationParams, U"", U"speech");
+
+		integer numberOfSpeakers = speakerSegments.size;
+		if (numberOfSpeakers < 1)
+			Melder_throw (U"Diarization detected 0 speakers. Diarization tiers are not created.");
+
+		autovector <IntervalTier> speakerTiers = newvectorzero <IntervalTier> (numberOfSpeakers);
+
+		/*
+			Create new speaker tiers for all speakers. Reuse the head tier for speaker 1.
+		*/
+		autoMelderString speakerTierName;
+		MelderString_copy (& speakerTierName, headTierName.get(), U"/sp1");
+		Thing_setName (headTier, speakerTierName.string);   // rename the head tier to make it "diarized tier" to prevent running diarization on it in the future
+		speakerTiers [1] = static_cast <IntervalTier> (my tiers -> at [headTierNumber]);
+		splitIntervalIntoWhisperSegments (speakerTiers [1], headTierNumber, originalTmin, originalTmax, speakerSegments [1]);
+
+		for (integer i = 2; i <= numberOfSpeakers; i ++) {
+			MelderString_copy (& speakerTierName, headTierName.get(), U"/sp", i);
+			const integer speakerTierNumber = getIntervalTier(
+					speakerTierName, headTierNumber + i - 2, false);
+			speakerTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerTierNumber]);
+			splitIntervalIntoWhisperSegments (speakerTiers [i], speakerTierNumber, originalTmin, originalTmax, speakerSegments [i]);
+		}
+	} catch (MelderError) {
+		Melder_throw (me, U" & ", sound, U": interval not transcribed.");
+	}
+}
+
 void TextGrid_Sound_draw (
 	const TextGrid me, const Sound sound, const Graphics g,
 	/* mutable autowindow */ double tmin, /* mutable autowindow */ double tmax,
