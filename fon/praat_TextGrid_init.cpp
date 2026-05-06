@@ -608,7 +608,7 @@ FORM (MODIFY_TextGrid_Sound_diarizeInterval, U"TextGrid & Sound: Diarize interva
 	INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", theDiarizationMaxSpeakersStr)
 	INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", theDiarizationMinSpeakersStr)
 	POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", theDiarizationClusterThresholdStr)
-	POSITIVE (segmentationOverlap, U"Segmentation overlap (0 - 1)", theDiarizationSegmentationOverlapStr)
+	INTEGER (segmentationOverlap, U"Segmentation overlap (%, 0-99)", theDiarizationSegmentationOverlapStr)
 	WORD (nonSpeechLabel, U"Non-speech interval label", theDiarizationDefaultNonSpeechLabel)
 	WORD (speechLabel, U"Speech interval label", theDiarizationDefaultSpeechLabel)
 	OK
