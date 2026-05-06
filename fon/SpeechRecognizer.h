@@ -44,8 +44,8 @@ inline constexpr double theVadDefaultMinSpeechDuration = 0.25;
 inline constexpr conststring32 theVadDefaultMinSpeechDurationStr = U"0.25";   // for UI
 inline constexpr double theVadDefaultSpeechPad = 0.03;
 inline constexpr conststring32 theVadDefaultSpeechPadStr = U"0.03";   // for UI
-inline constexpr conststring32 theVadDefaultSpeechLabel = U"speech";   // for UI
-inline constexpr conststring32 theVadDefaultNonSpeechLabel = U"non-speech";   // for UI
+inline constexpr conststring32 theVadDefaultNonSpeechLabel = U"non-speech";
+inline constexpr conststring32 theVadDefaultSpeechLabel = U"speech";
 
 /*
 	Default transcription parameters.
@@ -67,6 +67,9 @@ inline constexpr integer theDiarizationMinSpeakers = 0;
 inline constexpr conststring32 theDiarizationMinSpeakersStr = U"0";   // for UI
 inline constexpr double theDiarizationClusterThreshold = 0.7045654963945799;
 inline constexpr conststring32 theDiarizationClusterThresholdStr = U"0.7045654963945799";   // for UI
+inline constexpr conststring32 theDiarizationDefaultNonSpeechLabel = U"";   // must be empty for merging diarization with transcription algorithm
+inline constexpr conststring32 theDiarizationDefaultSpeechLabel = U"speech";
+
 inline constexpr integer theDiarizationSegmentationOverlap = 90;
 inline constexpr conststring32 theDiarizationSegmentationOverlapStr = U"90";   // for UI
 

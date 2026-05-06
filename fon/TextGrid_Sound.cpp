@@ -509,7 +509,8 @@ void TextGrid_Sound_transcribeInterval (
 				useVad, sileroVadParams);
 		autovector <autovector <SpeechSegment>> pyannoteDiarization;
 		if (diarize)
-			pyannoteDiarization = doDiarization (soundPart.get(), diarizationParams, U"", U"speech");
+			pyannoteDiarization = doDiarization (soundPart.get(), diarizationParams,
+					theDiarizationDefaultNonSpeechLabel, theDiarizationDefaultSpeechLabel);
 
 		autovector <SpeechSegment> wordSegments = whisperTranscription. words.move();
 		autovector <SpeechSegment> sentenceSegments = whisperTranscription. sentences.move();
@@ -755,7 +756,8 @@ void TextGrid_Sound_diarizeInterval (
 	const TextGrid me, const Sound sound,
 	const integer tierNumber, const integer intervalNumber,
 	const integer maxSimultaneousSpeakers, const integer numSpeakers, const integer maxSpeakers, const integer minSpeakers,
-	const double clusterThreshold, const integer segmentationOverlap
+	const double clusterThreshold, const integer segmentationOverlap,
+	const conststring32 nonSpeechLabel, const conststring32 speechLabel
 ) {
 	/*
 		Lambda function to create and return a new tier after a specified tier.
@@ -815,7 +817,7 @@ void TextGrid_Sound_diarizeInterval (
 		diarizationParams. segmentationOverlap = segmentationOverlap;
 
 		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (
-				soundPart.get(), diarizationParams, U"", U"speech");
+				soundPart.get(), diarizationParams, nonSpeechLabel, speechLabel);
 
 		integer numberOfSpeakers = speakerSegments.size;
 		if (numberOfSpeakers < 1)

@@ -609,11 +609,14 @@ FORM (MODIFY_TextGrid_Sound_diarizeInterval, U"TextGrid & Sound: Diarize interva
 	INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", theDiarizationMinSpeakersStr)
 	POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", theDiarizationClusterThresholdStr)
 	POSITIVE (segmentationOverlap, U"Segmentation overlap (0 - 1)", theDiarizationSegmentationOverlapStr)
+	WORD (nonSpeechLabel, U"Non-speech interval label", theDiarizationDefaultNonSpeechLabel)
+	WORD (speechLabel, U"Speech interval label", theDiarizationDefaultSpeechLabel)
 	OK
 DO
 	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
 		TextGrid_Sound_diarizeInterval (me, you, tierNumber, intervalNumber,
-				maxSimultaneousSpeakers, numSpeakers, maxSpeakers, minSpeakers, clusterThreshold, segmentationOverlap);
+				maxSimultaneousSpeakers, numSpeakers, maxSpeakers, minSpeakers, clusterThreshold, segmentationOverlap,
+				nonSpeechLabel, speechLabel);
 	MODIFY_FIRST_OF_ONE_AND_ONE_END
 }
 
