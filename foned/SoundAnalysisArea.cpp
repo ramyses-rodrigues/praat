@@ -2318,7 +2318,7 @@ void structSoundAnalysisArea :: v_createMenuItems_formant (EditorMenu menu) {
 			0, menu_cb_advancedFormantSettings, this);
 
 	FunctionAreaMenu_addCommand (menu, U"- Query formants:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Formant listing", GuiMenu_COMMAND | GuiMenu_F1 | GuiMenu_DEPTH_1,
+	FunctionAreaMenu_addCommand (menu, U"Formant listing", GuiMenu_F1 | GuiMenu_COMMAND | GuiMenu_DEPTH_1,
 			INFO_DATA__formantListing, this);
 	FunctionAreaMenu_addCommand (menu, U"Get first formant", GuiMenu_F1 | GuiMenu_DEPTH_1,
 			QUERY_DATA_FOR_REAL__getFirstFormant, this);
@@ -2431,13 +2431,20 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Advanced pitch settings (raw AC and CC)...", GuiMenu_HIDDEN,
 				menu_cb_advancedPitchSettings_rawAcCc_BEFORE_6414, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query pitch:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Pitch listing", 1,
+		const uint32 pitchFunctionKey =
+			#ifdef macintosh
+				GuiMenu_F10
+			#else
+				GuiMenu_F5
+			#endif
+		;
+		FunctionAreaMenu_addCommand (menu, U"Pitch listing", pitchFunctionKey | GuiMenu_COMMAND | GuiMenu_DEPTH_1,
 				INFO_DATA__pitchListing, this);
-		FunctionAreaMenu_addCommand (menu, U"Get pitch", GuiMenu_F5 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (menu, U"Get pitch", pitchFunctionKey | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getPitch, this);
-		FunctionAreaMenu_addCommand (menu, U"Get minimum pitch", GuiMenu_F5 | GuiMenu_OPTION | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (menu, U"Get minimum pitch", pitchFunctionKey | GuiMenu_OPTION | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getMinimumPitch, this);
-		FunctionAreaMenu_addCommand (menu, U"Get maximum pitch", GuiMenu_F5 | GuiMenu_SHIFT | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (menu, U"Get maximum pitch", pitchFunctionKey | GuiMenu_SHIFT | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getMaximumPitch, this);
 		FunctionAreaMenu_addCommand (menu, U"- Select by pitch:", 0, nullptr, this);
 		FunctionAreaMenu_addCommand (menu, U"Move cursor to minimum pitch", GuiMenu_COMMAND_EXTRA | 'L' | GuiMenu_DEPTH_1,
@@ -2461,7 +2468,7 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Intensity settings...", 0,
 				menu_cb_intensitySettings, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query intensity:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Intensity listing", 1,
+		FunctionAreaMenu_addCommand (menu, U"Intensity listing", GuiMenu_F8 | GuiMenu_COMMAND | GuiMenu_DEPTH_1,
 				INFO_DATA__intensityListing, this);
 		FunctionAreaMenu_addCommand (menu, U"Get intensity", GuiMenu_F8 | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getIntensity, this);
@@ -2490,9 +2497,9 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Advanced pulses settings...", 0,
 				menu_cb_advancedPulsesSettings, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query pulses:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Voice report", 1,
+		FunctionAreaMenu_addCommand (menu, U"Voice report", GuiMenu_F9 | GuiMenu_DEPTH_1,
 				INFO_DATA__voiceReport, this);
-		FunctionAreaMenu_addCommand (menu, U"Pulse listing", 1,
+		FunctionAreaMenu_addCommand (menu, U"Pulse listing", GuiMenu_F9 | GuiMenu_COMMAND | GuiMenu_DEPTH_1,
 				INFO_DATA__pulseListing, this);
 		/*
 		FunctionAreaMenu_addCommand (menu, U"Get jitter (local)", 0, cb_getJitter_local, this);
