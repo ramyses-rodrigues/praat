@@ -179,7 +179,7 @@ This is Praat’s original ##Get jitter#. The value is three times RAP.
 
 ################################################################################
 "Voice 3. Shimmer"
-© Paul Boersma 2003
+© Paul Boersma 2003,2026
 
 You can measure shimmer in the Sound editor window, after choosing @@Show pulses@ from the #Pulses menu.
 You will see blue lines that can be thought of as representing the glottal closures.
@@ -220,7 +220,7 @@ the average absolute difference between the amplitude of a period and the averag
 divided by the average amplitude.
 MDVP calls this parameter %APQ, and gives 3.070\%  as a threshold for pathology.
 
-Shimmer (ddp)
+Shimmer (dda)
 =============
 
 This is the average absolute difference between consecutive differences between the amplitudes of consecutive periods.
