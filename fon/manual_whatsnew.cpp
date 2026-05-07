@@ -1108,7 +1108,7 @@ then dragged the mouse out of that window, then released the mouse button, and t
 • Table window: added a preference for the interpretation of graphical style symbols (`%#^_@`).
 
 ##6.0.14# (11 February 2016)
-• Linux: corrected a bug by which the Tab short-cut for playing a sound would not work if the NumLock key was on.
+• Linux: corrected a bug by which the Tab shortcut for playing a sound would not work if the NumLock key was on.
 • Mac 64-bit: corrected a bug that could cause Praat to crash if the Tab key was pressed in a dialog window.
 
 ##6.0.13# (31 January 2016)

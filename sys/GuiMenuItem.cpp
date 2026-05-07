@@ -303,9 +303,13 @@ GuiMenuItem GuiMenu_addItem (GuiMenu menu, conststring32 title, uint32 flags,
 		#elif cocoa
 			accelerator = Melder_toLowerCase (accelerator);   // otherwise, a Shift key is introduced in the mask
 			NSUInteger mask = 0;
-			if (flags & GuiMenu_COMMAND) mask |= NSCommandKeyMask;
-			if (flags & GuiMenu_SHIFT)   mask |= NSShiftKeyMask;
-			if (flags & GuiMenu_OPTION)  mask |= NSAlternateKeyMask;
+			if (flags & GuiMenu_COMMAND)
+				mask |= NSEventModifierFlagCommand;
+				//mask |= ( accelerator == GuiMenu_F5 ? NSEventModifierFlagControl : NSEventModifierFlagCommand );
+			if (flags & GuiMenu_SHIFT)
+				mask |= NSEventModifierFlagShift;
+			if (flags & GuiMenu_OPTION)
+				mask |= NSEventModifierFlagOption;
 			[menuItem setKeyEquivalentModifierMask: mask];
 			if (accelerator > 0 && accelerator < 32) {
 				static unichar acceleratorKeys [32] = { 0, 0, 0, 0,
