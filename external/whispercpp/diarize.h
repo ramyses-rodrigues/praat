@@ -39,19 +39,32 @@ struct diarize_context;
 
 // Parameters for diarization
 struct diarize_params {
-    // Segmentation
-    float   seg_duration;       // chunk duration in seconds (default: 10.0)
-    float   seg_step_ratio;     // step as fraction of duration (default: 0.1 = 90% overlap)
+	// Segmentation
+	float   seg_duration;       // chunk duration in seconds (default: 10.0)
+	float   seg_step_ratio;     // step as fraction of duration (default: 0.1 = 90% overlap)
 
-    // Clustering
-    float   cluster_threshold;  // agglomerative clustering threshold (default: 0.7046)
-    int     cluster_min_size;   // minimum cluster size (default: 12)
+	// Clustering: threshold and large-vs-small split (always applied)
+	float   cluster_threshold;  // agglomerative clustering threshold (default: 0.7045654963945799f)
+	int     cluster_min_size;   // minimum cluster size (default: 12)
 
-    // Embedding filter
-    float   min_active_ratio;   // minimum non-overlapping activity to include (default: 0.2)
+	// Embedding filter
+	float   min_active_ratio;   // minimum non-overlapping activity to include (default: 0.2)
 
-    // Output
-    int     max_speakers;       // upper bound on number of speakers (default: 20)
+	// Cluster-count constraints (in numbers of distinct speakers).
+	// 0 means "unspecified": no constraint of this kind is applied.
+	// num_speakers     > 0 forces exactly that many clusters.
+	// min_speakers     > 0 forces at least that many clusters.
+	// max_speakers     > 0 forces at most that many clusters.
+	// If multiple are set, num_speakers takes precedence.
+	int     num_speakers;
+	int     min_speakers;
+	int     max_speakers;
+
+	// Per-frame cap on the number of speakers active simultaneously.
+	// Acts as overlap-resolution: the segmentation model can produce
+	// accumulated activations above this; values above it are clipped.
+	// Default: 20.
+	int     max_simultaneous_speakers;
 };
 
 // Get default parameters
