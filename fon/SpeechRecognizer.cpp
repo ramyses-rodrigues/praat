@@ -361,11 +361,11 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				partialTokenText. clear();
 				const integer fullTokenTextLength = Melder_length (fullTokenText.get());
 
-				/* mutable clean */ mutablestring32 cleanTokenText = fullTokenText.get();
+				/* mutable adjust */ mutablestring32 cleanTokenText = fullTokenText.get();
 				/* mutable adjust */ integer cleanTokenTextLength = Melder_length (cleanTokenText);
 				/* mutable flag */ bool isNewWord = false;
 
-				if (fullTokenTextLength && fullTokenText.get() [0] == U' ') {   // first, remove the leading silence in case of the new word
+				if (fullTokenTextLength && fullTokenText [0] == U' ') {   // first, remove the leading silence in case of the new word
 					++ cleanTokenText;
 					-- cleanTokenTextLength;
 					isNewWord = true;
