@@ -1,10 +1,10 @@
 /* KlattGrid_def.h
  *
- * Copyright (C) 2008-2019 David Weenink, 2015 Paul Boersma
+ * Copyright (C) 2008-2019 David Weenink, 2015,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -66,13 +66,13 @@ oo_END_CLASS (PhonationGridPlayOptions)
 oo_DEFINE_CLASS (PhonationGrid, Function)
 
 	oo_OBJECT (PitchTier, 0, pitch)
-	oo_OBJECT (RealTier, 0, flutter) // [0,1]
+	oo_OBJECT (RealTier, 0, flutter) // [0, 1]
 	oo_OBJECT (IntensityTier, 0, voicingAmplitude) // dB
-	oo_OBJECT (RealTier, 0, doublePulsing) // [0,1]
-	oo_OBJECT (RealTier, 0, openPhase) // (0,1)
+	oo_OBJECT (RealTier, 0, doublePulsing) // [0, 1]
+	oo_OBJECT (RealTier, 0, openPhase) // (0, 1)
 	oo_OBJECT (RealTier, 0, collisionPhase) //
-	oo_OBJECT (RealTier, 0, power1) // 2,3..
-	oo_OBJECT (RealTier, 0, power2) // 3,4.. power2>power1
+	oo_OBJECT (RealTier, 0, power1) // 2, 3, ...
+	oo_OBJECT (RealTier, 0, power2) // 3, 4, ... power2>power1
 	oo_OBJECT (IntensityTier, 0, spectralTilt) // dB
 	oo_OBJECT (IntensityTier, 0, aspirationAmplitude) // dB
 	oo_OBJECT (IntensityTier, 0, breathinessAmplitude) // dB

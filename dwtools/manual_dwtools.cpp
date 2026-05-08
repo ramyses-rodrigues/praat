@@ -1,6 +1,6 @@
 /* manual_dwtools.cpp
  *
- * Copyright (C) 1993-2026 David Weenink, 2025 Paul Boersma
+ * Copyright (C) 1993-2026 David Weenink, 2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2875,10 +2875,10 @@ INTRO (U"An algorithm to compute the mean and the variance of an array of number
 	"@@Chan, Golub & LeVeque (1983)@.")
 MAN_END
 
-MAN_BEGIN (U"PatternList", U"djmw", 20160524)
+MAN_BEGIN (U"PatternList", U"djmw", 20160524)  // 2026
 INTRO (U"One of the @@types of objects@ in Praat.")
 INTRO (U"An object of type PatternList is a list of patterns that can serve as "
-	"inputs for a neural net. All elements in a PatternList have to be in the interval [0,1].")
+	"inputs for a neural net. All elements in a PatternList have to be in the interval [0, 1].")
 ENTRY (U"PatternList commands")
 NORMAL (U"Creation:")
 LIST_ITEM (U"\\bu ##Create PatternList with zeroes...#")
