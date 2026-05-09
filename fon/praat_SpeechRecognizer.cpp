@@ -62,8 +62,16 @@ DIRECT (QUERY_ONE_FOR_STRING__SpeechRecognizer_getLanguageName) {
 DIRECT (QUERY_ONE_AND_ONE_FOR_STRING__SpeechRecognizer_Sound_recognize) {
 	QUERY_ONE_AND_ONE_FOR_STRING (SpeechRecognizer, Sound)
 		bool useVad = true;
-		SileroVadParams sileroVadParams;   // use default VAD parameters
-		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (me, you, useVad, sileroVadParams);
+		/*
+			Use default Silero VAD parameters.
+			FIXME make them configurable, like in other places
+		*/
+		double speechProbabilityThreshold = 0.5;   // probability threshold to decide that sound is speech
+		double minNonSpeechDuration = 0.1;   // min duration of a non-speech segment
+		double minSpeechDuration = 0.25;   // min duration of a speech segment
+		double speechPad = 0.03;   // padding added before and after each speech segment
+		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (me, you, useVad,
+				speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
 		conststring32 result = whisperTranscription.fullTranscription.text.get();
 	QUERY_ONE_AND_ONE_FOR_STRING_END
 }

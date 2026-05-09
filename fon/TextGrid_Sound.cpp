@@ -500,25 +500,12 @@ void TextGrid_Sound_transcribeInterval (
 			kSound_windowShape::RECTANGULAR, 1.0, false);
 		autoSpeechRecognizer speechRecognizer = SpeechRecognizer_create (modelName, languageName);
 
-		SileroVadParams sileroVadParams;
-		sileroVadParams. speechProbabilityThreshold = speechProbabilityThreshold;
-		sileroVadParams. minSpeechDuration = minSpeechDuration;
-		sileroVadParams. minNonSpeechDuration = minNonSpeechDuration;
-		sileroVadParams. speechPad = speechPad;
-		DiarizationParams diarizationParams;
-		diarizationParams. numSpeakers = numSpeakers;
-		diarizationParams. minSpeakers = minSpeakers;
-		diarizationParams. maxSpeakers = maxSpeakers;
-		diarizationParams. allowSpeakersOverlap = allowSpeakersOverlap;
-		diarizationParams. clusterThreshold = clusterThreshold;
-		diarizationParams. segmentationStep = segmentationStep;
-
 		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (speechRecognizer.get(), soundPart.get(),
-				useVad, sileroVadParams);
+				useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
 		autovector <autovector <SpeechSegment>> pyannoteDiarization;
 		if (diarize)
-			pyannoteDiarization = doDiarization (soundPart.get(), diarizationParams,
-					theDiarizationDefaultNonSpeechLabel, theDiarizationDefaultSpeechLabel);
+			pyannoteDiarization = doDiarization (soundPart.get(), numSpeakers, minSpeakers, maxSpeakers, allowSpeakersOverlap,
+					clusterThreshold, segmentationStep, theDiarizationDefaultNonSpeechLabel, theDiarizationDefaultSpeechLabel);
 
 		autovector <SpeechSegment> wordSegments = whisperTranscription. words.move();
 		autovector <SpeechSegment> sentenceSegments = whisperTranscription. sentences.move();
@@ -821,18 +808,10 @@ void TextGrid_Sound_diarizeInterval (
 
 		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
 		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
-			kSound_windowShape::RECTANGULAR, 1.0, false);
+				kSound_windowShape::RECTANGULAR, 1.0, false);
 
-		DiarizationParams diarizationParams;
-		diarizationParams. numSpeakers = numSpeakers;
-		diarizationParams. minSpeakers = minSpeakers;
-		diarizationParams. maxSpeakers = maxSpeakers;
-		diarizationParams. allowSpeakersOverlap = allowSpeakersOverlap;
-		diarizationParams. clusterThreshold = clusterThreshold;
-		diarizationParams. segmentationStep = segmentationStep;
-
-		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (
-				soundPart.get(), diarizationParams, nonSpeechLabel, speechLabel);
+		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (soundPart.get(), numSpeakers,
+				minSpeakers, maxSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep, nonSpeechLabel, speechLabel);
 
 		integer numberOfSpeakers = speakerSegments.size;
 		if (numberOfSpeakers < 1)

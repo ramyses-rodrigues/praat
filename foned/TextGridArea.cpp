@@ -1447,9 +1447,9 @@ static void menu_cb_TranscribeInterval (TextGridArea me, EDITOR_ARGS) {
 		TextGrid_Sound_transcribeInterval (my textGrid(), my borrowedSoundArea -> sound(), my selectedTier, intervalNumber,
 				my instancePref_transcribe_model(), my instancePref_transcribe_language(),
 				my instancePref_transcribe_includeWords(), my instancePref_transcribe_includeDiarization(),
-				my instancePref_transcribe_useVad(), my instancePref_transcribe_vadThreshold(),
-				my instancePref_transcribe_vadMinNonSpeech(),my instancePref_transcribe_vadMinSpeech(),
-				my instancePref_transcribe_vadPadding(), my instancePref_diarize_numSpeakers(),
+				my instancePref_transcribe_useVad(), my instancePref_vad_speechThreshold(),
+				my instancePref_vad_minNonSpeech(),my instancePref_vad_minSpeech(),
+				my instancePref_vad_speechPadding(), my instancePref_diarize_numSpeakers(),
 				my instancePref_diarize_minSpeakers(), my instancePref_diarize_maxSpeakers(),
 				my instancePref_diarize_allowSpeakersOverlap(),
 				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationStep());
@@ -1464,10 +1464,10 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		BOOLEAN (includeDiarization, U"Include diarization", my default_transcribe_includeDiarization())
 		HEADING (U"Speech activity detection...")
 		BOOLEAN (useVad, U"Allow silences", my default_transcribe_useVad())
-		REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", my default_transcribe_vadThreshold())
-		POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", my default_transcribe_vadMinNonSpeech())
-		POSITIVE (minSpeechDuration, U"Min. speech interval (s)", my default_transcribe_vadMinSpeech())
-		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_transcribe_vadPadding())
+		REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", my default_vad_speechThreshold())
+		POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", my default_vad_minNonSpeech())
+		POSITIVE (minSpeechDuration, U"Min. speech interval (s)", my default_vad_minSpeech())
+		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_vad_speechPadding())
 		HEADING (U"Transcription...")
 		LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
 		OPTIONMENU (language, U"Language", (int) NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
@@ -1493,10 +1493,10 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		SET_BOOLEAN (includeWords, my instancePref_transcribe_includeWords())
 		SET_BOOLEAN (includeDiarization, my instancePref_transcribe_includeDiarization())
 		SET_BOOLEAN (useVad, my instancePref_transcribe_useVad())
-		SET_REAL (speechProbabilityThreshold, my instancePref_transcribe_vadThreshold())
-		SET_REAL (minNonSpeechDuration, my instancePref_transcribe_vadMinNonSpeech())
-		SET_REAL (minSpeechDuration, my instancePref_transcribe_vadMinSpeech())
-		SET_REAL (speechPad, my instancePref_transcribe_vadPadding())
+		SET_REAL (speechProbabilityThreshold, my instancePref_vad_speechThreshold())
+		SET_REAL (minNonSpeechDuration, my instancePref_vad_minNonSpeech())
+		SET_REAL (minSpeechDuration, my instancePref_vad_minSpeech())
+		SET_REAL (speechPad, my instancePref_vad_speechPadding())
 		SET_INTEGER (numSpeakers, my instancePref_diarize_numSpeakers())
 		SET_INTEGER (minSpeakers, my instancePref_diarize_minSpeakers())
 		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
@@ -1520,10 +1520,10 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_transcribe_includeWords (includeWords);
 		my setInstancePref_transcribe_includeDiarization (includeDiarization);
 		my setInstancePref_transcribe_useVad (useVad);
-		my setInstancePref_transcribe_vadThreshold (speechProbabilityThreshold);
-		my setInstancePref_transcribe_vadMinNonSpeech (minNonSpeechDuration);
-		my setInstancePref_transcribe_vadMinSpeech (minSpeechDuration);
-		my setInstancePref_transcribe_vadPadding (speechPad);
+		my setInstancePref_vad_speechThreshold (speechProbabilityThreshold);
+		my setInstancePref_vad_minNonSpeech (minNonSpeechDuration);
+		my setInstancePref_vad_minSpeech (minSpeechDuration);
+		my setInstancePref_vad_speechPadding (speechPad);
 		my setInstancePref_diarize_numSpeakers (numSpeakers);
 		my setInstancePref_diarize_minSpeakers (minSpeakers);
 		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
