@@ -656,9 +656,8 @@ autovector <SpeechSegment> doSileroVad (constSound sound, SileroVadParams const&
 		vad_params. speech_pad_ms = sileroVadParams. speechPad * 1000.0;
 		autoWhisperVadSegments vad_segments = whisper_vad_segments_from_samples (
 			vad_ctx.get(), vad_params, samples32.asArgumentToFunctionThatExpectsZeroBasedArray(), static_cast <int> (samples32.size));
-		if (! vad_segments.get()) {
+		if (! vad_segments.get())
 			Melder_throw (U"Failed to obtain VAD segments.");
-		}
 
 		/*
 			Collect all VAD segments and wrap them with "non-voice" intervals.
@@ -735,12 +734,12 @@ autovector <autovector <SpeechSegment>> doDiarization (constSound sound, Diariza
 			model_ggml_embedding_data, model_ggml_embedding_length
 			);
 		diarize_params diarizeParams = diarize_default_params ();
-		diarizeParams. max_simultaneous_speakers = diarizationParams. maxSimultaneousSpeakers;
-		diarizeParams. num_speakers = diarizationParams. numSpeakers;
-		diarizeParams. max_speakers = diarizationParams. maxSpeakers;
-		diarizeParams. min_speakers = diarizationParams. minSpeakers;
-		diarizeParams. cluster_threshold = diarizationParams. clusterThreshold;
-		diarizeParams. seg_step_ratio = (100.0 - diarizationParams. segmentationOverlap) / 100.0;
+		diarizeParams. max_simultaneous_speakers = diarizationParams. allowSpeakersOverlap ? INT12_MAX : 1;
+		diarizeParams. num_speakers = static_cast <int> (diarizationParams. numSpeakers);
+		diarizeParams. max_speakers = static_cast <int> (diarizationParams. maxSpeakers);
+		diarizeParams. min_speakers = static_cast <int> (diarizationParams. minSpeakers);
+		diarizeParams. cluster_threshold = static_cast <float> (diarizationParams. clusterThreshold);
+		diarizeParams. seg_step_ratio = static_cast <float> (diarizationParams. segmentationStep);
 		diarize_full (diarizeContext.get(), diarizeParams,samples32.asArgumentToFunctionThatExpectsZeroBasedArray(),
 				static_cast <int> (samples32.size));
 		const unsigned int numberOfSegments = diarize_full_n_segments (diarizeContext.get());

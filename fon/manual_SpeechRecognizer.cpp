@@ -197,7 +197,7 @@ The sound is internally resampled to 16 kHz before being processed by the model.
 Settings
 ========
 
-##Speech probability threshold (0 - 1)
+##Speech probability threshold (0-1)
 :	determines the sensitivity of the speech detector. Higher values make the detector less sensitive,
 meaning that it requires stronger evidence of speech to mark a segment as speech. This reduces
 false positives (non-speech incorrectly labelled as speech), but may cause some speech to be missed.

@@ -2264,10 +2264,10 @@ struct diarize_params diarize_default_params(void) {
     p.cluster_threshold = 0.7045654963945799f;
     p.cluster_min_size  = 12;
     p.min_active_ratio  = 0.2f;
-	p.num_speakers      = 0;       // unspecified
-	p.min_speakers      = 0;       // unspecified
-	p.max_speakers      = 0;       // unspecified
-	p.max_simultaneous_speakers = 3;
+	p.num_speakers      = 0;
+	p.min_speakers      = 0;
+	p.max_speakers      = 0;
+	p.max_simultaneous_speakers = INT12_MAX;
 	return p;
 }
 

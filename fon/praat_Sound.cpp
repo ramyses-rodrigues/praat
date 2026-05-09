@@ -1891,10 +1891,10 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity_silero,
 	U"Sound: To TextGrid (speech activity, Silero)",
 	U"Sound: To TextGrid (speech activity, Silero)...")
 {
-	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", theVadDefaultThresholdStr)
-	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", theVadDefaultMinNonSpeechDurationStr)
-	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", theVadDefaultMinSpeechDurationStr)
-	POSITIVE (speechPad, U"Padding around speech segments (s)", theVadDefaultSpeechPadStr)
+	REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", theVadDefaultThreshold)
+	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", theVadDefaultMinNonSpeechDuration)
+	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", theVadDefaultMinSpeechDuration)
+	POSITIVE (speechPad, U"Padding around speech segments (s)", theVadDefaultSpeechPad)
 	WORD (nonSpeechLabel, U"Non-speech interval label", theVadDefaultNonSpeechLabel)
 	WORD (speechLabel, U"Speech interval label", theVadDefaultSpeechLabel)
 	OK
