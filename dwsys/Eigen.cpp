@@ -459,22 +459,24 @@ void Eigen_sort (Eigen me, bool sortAscending) {
 		*/
 		Melder_require (my onlyReals,
 			U"Don't know how to sort complex numbers.");
-		autoINTVEC keys = from_to_by_INTVEC (1_integer, my numberOfEigenvalues, 1_integer);
-		autoVEC sortedColumn = raw_VEC (my numberOfEigenvalues);
+		autoINTVEC keys = from_to_INTVEC (1_integer, my numberOfEigenvalues);
 		NUMsortTogether <VEC, INTVEC> (my eigenvalues.get(), keys.get());
 		if (! sortAscending) {
 			NUMreverseOrder<INTVEC> (keys.get());
 			NUMreverseOrder<VEC> (my eigenvalues.get());
 		}
-			for (integer i = 1; i <= my numberOfEigenvalues / 2; i ++) {
-				std::swap (keys [i], keys [my numberOfEigenvalues + 1 - i]); // reverse
-				std::swap (my eigenvalues [i], my eigenvalues [my numberOfEigenvalues + 1 - i]);
-			}
+		for (integer i = 1; i <= my numberOfEigenvalues / 2; i ++) {
+			std::swap (keys [i], keys [my numberOfEigenvalues + 1 - i]); // reverse
+			std::swap (my eigenvalues [i], my eigenvalues [my numberOfEigenvalues + 1 - i]);
+		}
+		/*
+			Sort the eigenvectors
+		*/
+		autoVEC colbuf = raw_VEC (my numberOfEigenvalues);
 		for (integer icol = 1; icol <= my dimension; icol ++) {
-			const integer rowIndex = keys [icol];
+			colbuf.get()  <<=  my eigenvectors.column (icol);
 			for (integer irow = 1; irow <= my numberOfEigenvalues; irow ++)
-				sortedColumn [irow] = my eigenvectors [rowIndex] [icol];
-			my eigenvectors.column (icol)  <<=  sortedColumn.get();
+				my eigenvectors [keys [irow]] [icol] = colbuf [irow];
 		}
 	} catch (MelderError) {
 		Melder_throw (me, U"Could not sort eigenvectors.");
