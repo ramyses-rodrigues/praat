@@ -37,9 +37,9 @@ OK
 		U"You can install them into the subfolders “whispercpp” of the folder “models” in the Praat preferences folder."
 	);
 
-	SET_LIST (modelIndex, modelName, modelNames.get(), NUMfindFirst (modelNames.get(), theSpeechRecognizerDefaultModelName))
+	SET_LIST (modelIndex, modelName, modelNames.get(), NUMfindFirst (modelNames.get(), TranscriptionDefaults::modelName))
 	SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(),
-			NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+			NUMfindFirst (theSpeechRecognizerLanguageNames(), TranscriptionDefaults::languageName))
 DO
 	CREATE_ONE
 		autoSpeechRecognizer result = SpeechRecognizer_create (modelName, languageName);

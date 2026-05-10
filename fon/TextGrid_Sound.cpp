@@ -505,7 +505,7 @@ void TextGrid_Sound_transcribeInterval (
 		autovector <autovector <SpeechSegment>> pyannoteDiarization;
 		if (diarize)
 			pyannoteDiarization = doDiarization (soundPart.get(), numSpeakers, minSpeakers, maxSpeakers, allowSpeakersOverlap,
-					clusterThreshold, segmentationStep, theDiarizationDefaultNonSpeechLabel, theDiarizationDefaultSpeechLabel);
+					clusterThreshold, segmentationStep, U"", U"s");
 
 		autovector <SpeechSegment> wordSegments = whisperTranscription. words.move();
 		autovector <SpeechSegment> sentenceSegments = whisperTranscription. sentences.move();
