@@ -1,6 +1,6 @@
 /* manual_FFNet.cpp
  *
- * Copyright (C) 1994-2019.2023,2025 David Weenink
+ * Copyright (C) 1994-2019,2023,2025,2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,7 +131,7 @@ INTRO (U"You may create the iris example set with the @@Create iris example...@ 
 	"Three new objects will appear in the @@List of Objects@: a @FFNet, a @Categories and "
 	"a @PatternList.")
 NORMAL (U"The #PatternList contains the @@iris data set@ in a matrix of 150 rows by 4 columns. "
-	"To guarantee that every cell in the PatternList is in the [0,1] interval, all measurement "
+	"To guarantee that every cell in the PatternList is in the [0, 1] interval, all measurement "
 	"values were divided by 10. In the #Categories the three iris species %setosa, "
 	"%versicolor, and %virginica were categorized with the numbers #1, #2 and #3, respectively. "
 	"Because there are 4 data columns in the PatternList and 3 different iris species in the Categories, "

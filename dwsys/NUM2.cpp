@@ -1,10 +1,10 @@
 /* NUM2.cpp
  *
- * Copyright (C) 1993-2025 David Weenink, Paul Boersma 2017,2020
+ * Copyright (C) 1993-2025 David Weenink, 2017-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -1679,7 +1679,7 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 		Parametrisation of the lines:
 		l1 = p1 + s (p2 - p1), s in (-inf,+inf)
 		l2 = p3 + t (p4 - p3), t in (-inf,+inf).
-		When s and t are in [0,1] we have line segments between the points.
+		When s and t are in [0, 1] we have line segments between the points.
 		At the intersection l1 == l2. We get for the x and y coordinates:
 			x1 + s (x2 - x1) = x3 + t (x4 - x3).............(1)
 			y1 + s (y2 - y1) = y3 + t (y4 - y3).............(2)
