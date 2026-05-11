@@ -190,26 +190,17 @@ autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confiden
 /* Morrison, page 118 */
 void Correlation_testDiagonality_bartlett (Correlation me, integer numberOfContraints, double *out_chisq, double *out_prob, double *out_df) {
 	const integer p = my numberOfRows;
-	double chisq = undefined, prob = undefined;
 	const double df = p * (p -1) / 2.0;
 
-	if (numberOfContraints <= 0)
-		numberOfContraints = 1;
-
-	if (numberOfContraints > my numberOfObservations) {
-		Melder_warning (U"Correlation_testDiagonality_bartlett: number of constraints cannot exceed the number of observations.");
-		return;
-	}
-	if (my numberOfObservations >= numberOfContraints) {
-		const double ln_determinant = NUMdeterminant_fromSymmetricMatrix (my data.get());
-		chisq = - ln_determinant * (my numberOfObservations - numberOfContraints - (2.0 * p + 5.0) / 6.0);
-		if (out_prob)
-			prob = NUMchiSquareQ (chisq, df);
-	}
+	Melder_require (numberOfContraints > 0 && numberOfContraints <= my numberOfObservations,
+			U"Correlation_testDiagonality_bartlett: number of constraints should be in the interval [1, ", my numberOfObservations, U"].");
+	
+	const double ln_determinant = NUMdeterminant_fromSymmetricMatrix (my data.get());
+	const double chisq = - ln_determinant * (my numberOfObservations - numberOfContraints - (2.0 * p + 5.0) / 6.0);
+	if (out_prob)
+		*out_prob = NUMchiSquareQ (chisq, df);
 	if (out_chisq)
 		*out_chisq = chisq;
-	if (out_prob)
-		*out_prob = prob;
 	if (out_df)
 		*out_df = df;
 }
