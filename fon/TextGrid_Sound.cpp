@@ -413,8 +413,8 @@ void TextGrid_Sound_transcribeInterval (
 	const conststring32 modelName, const conststring32 languageName,
 	const bool includeWords, const bool diarize, const bool useVad, const double speechProbabilityThreshold,
 	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad,
-	const integer maxSimultaneousSpeakers, const integer numSpeakers, const integer maxSpeakers, const integer minSpeakers,
-	const double clusterThreshold, const integer segmentationOverlap
+	const integer numSpeakers, const integer minSpeakers, const integer maxSpeakers, const bool allowSpeakersOverlap,
+	const double clusterThreshold, const double segmentationStep
 ) {
 	/*
 		Lambda function to create and return a new tier after a specified tier.
@@ -477,8 +477,16 @@ void TextGrid_Sound_transcribeInterval (
 		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
-		if (intervalNumber > headTier -> intervals.size)
-			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
+		Melder_require (intervalNumber <= headTier -> intervals.size, U"Interval ", intervalNumber, U" does not exist.");
+		Melder_require (speechProbabilityThreshold >= 0.0 && speechProbabilityThreshold <= 1.0,
+				U"The speech probability threshold should be in the interval [0, 1].");
+		Melder_require (numSpeakers >= 0, U"The number of speakers should be either a positive number, or zero for automatic detection.");
+		Melder_require (minSpeakers >= 0, U"The minimum number of speakers should be either a positive number, or zero for no lower bound.");
+		Melder_require (maxSpeakers >= 0, U"The maximum number of speakers should be either a positive number, or zero for no upper bound.");
+		Melder_require (minSpeakers <= maxSpeakers || minSpeakers == 0 || maxSpeakers == 0,
+				U"The minimum number of speakers should not exceed the maximum number of speakers.");
+		Melder_require (clusterThreshold <= 2.0, U"The clustering threshold should not be greater than 2.0.");
+		Melder_require (segmentationStep <= 1.0, U"The segmentation step should not be greater than 1.0.");
 
 		constTextInterval originalInterval = headTier -> intervals.at [intervalNumber];
 		const double originalTmin = originalInterval -> xmin;
@@ -492,25 +500,12 @@ void TextGrid_Sound_transcribeInterval (
 			kSound_windowShape::RECTANGULAR, 1.0, false);
 		autoSpeechRecognizer speechRecognizer = SpeechRecognizer_create (modelName, languageName);
 
-		SileroVadParams sileroVadParams;
-		sileroVadParams. speechProbabilityThreshold = speechProbabilityThreshold;
-		sileroVadParams. minSpeechDuration = minSpeechDuration;
-		sileroVadParams. minNonSpeechDuration = minNonSpeechDuration;
-		sileroVadParams. speechPad = speechPad;
-		DiarizationParams diarizationParams;
-		diarizationParams. maxSimultaneousSpeakers = maxSimultaneousSpeakers;
-		diarizationParams. numSpeakers = numSpeakers;
-		diarizationParams. maxSpeakers = maxSpeakers;
-		diarizationParams. minSpeakers = minSpeakers;
-		diarizationParams. clusterThreshold = clusterThreshold;
-		diarizationParams. segmentationOverlap = segmentationOverlap;
-
 		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (speechRecognizer.get(), soundPart.get(),
-				useVad, sileroVadParams);
+				useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
 		autovector <autovector <SpeechSegment>> pyannoteDiarization;
 		if (diarize)
-			pyannoteDiarization = doDiarization (soundPart.get(), diarizationParams,
-					theDiarizationDefaultNonSpeechLabel, theDiarizationDefaultSpeechLabel);
+			pyannoteDiarization = doDiarization (soundPart.get(), numSpeakers, minSpeakers, maxSpeakers, allowSpeakersOverlap,
+					clusterThreshold, segmentationStep, U"", U"s");
 
 		autovector <SpeechSegment> wordSegments = whisperTranscription. words.move();
 		autovector <SpeechSegment> sentenceSegments = whisperTranscription. sentences.move();
@@ -755,9 +750,10 @@ void TextGrid_Sound_transcribeInterval (
 void TextGrid_Sound_diarizeInterval (
 	const TextGrid me, const Sound sound,
 	const integer tierNumber, const integer intervalNumber,
-	const integer maxSimultaneousSpeakers, const integer numSpeakers, const integer maxSpeakers, const integer minSpeakers,
-	const double clusterThreshold, const integer segmentationOverlap,
-	const conststring32 nonSpeechLabel, const conststring32 speechLabel
+	const integer numSpeakers, const integer minSpeakers,
+	const integer maxSpeakers, const bool allowSpeakersOverlap,
+	const conststring32 nonSpeechLabel, const conststring32 speechLabel,
+	const double clusterThreshold, const double segmentationStep
 ) {
 	/*
 		Lambda function to create and return a new tier after a specified tier.
@@ -794,8 +790,14 @@ void TextGrid_Sound_diarizeInterval (
 		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
-		if (intervalNumber > headTier -> intervals.size)
-			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
+		Melder_require (intervalNumber <= headTier -> intervals.size, U"Interval ", intervalNumber, U" does not exist.");
+		Melder_require (numSpeakers >= 0, U"The number of speakers should be either a positive number, or zero for automatic detection.");
+		Melder_require (minSpeakers >= 0, U"The minimum number of speakers should be either a positive number, or zero for no lower bound.");
+		Melder_require (maxSpeakers >= 0, U"The maximum number of speakers should be either a positive number, or zero for no upper bound.");
+		Melder_require (minSpeakers <= maxSpeakers || minSpeakers == 0 || maxSpeakers == 0,
+				U"The minimum number of speakers should not exceed the maximum number of speakers.");
+		Melder_require (clusterThreshold <= 2.0, U"The clustering threshold should not be greater than 2.0.");
+		Melder_require (segmentationStep <= 1.0, U"The segmentation step should not be greater than 1.0.");
 
 		constTextInterval originalInterval = headTier -> intervals.at [intervalNumber];
 		const double originalTmin = originalInterval -> xmin;
@@ -806,18 +808,10 @@ void TextGrid_Sound_diarizeInterval (
 
 		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
 		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
-			kSound_windowShape::RECTANGULAR, 1.0, false);
+				kSound_windowShape::RECTANGULAR, 1.0, false);
 
-		DiarizationParams diarizationParams;
-		diarizationParams. maxSimultaneousSpeakers = maxSimultaneousSpeakers;
-		diarizationParams. numSpeakers = numSpeakers;
-		diarizationParams. maxSpeakers = maxSpeakers;
-		diarizationParams. minSpeakers = minSpeakers;
-		diarizationParams. clusterThreshold = clusterThreshold;
-		diarizationParams. segmentationOverlap = segmentationOverlap;
-
-		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (
-				soundPart.get(), diarizationParams, nonSpeechLabel, speechLabel);
+		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (soundPart.get(), numSpeakers,
+				minSpeakers, maxSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep, nonSpeechLabel, speechLabel);
 
 		integer numberOfSpeakers = speakerSegments.size;
 		if (numberOfSpeakers < 1)
