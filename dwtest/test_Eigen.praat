@@ -155,6 +155,11 @@ procedure testSymmetric_4by4
 	.eigen = To Eigen (special): "symmetric", 0, "no"
 	@testEqualityOfEigenvalues: .eigen, .eigenvalues#
 	@testOrthogonalityOfEigenvectors: .eigen
+	Sort: "yes"
+	.eigenvaluesr# =	{-1.8427929267829193,-0.24923615375564823,1.758549986173555,17.333479094364993}
+	@testEqualityOfEigenvalues: .eigen, .eigenvaluesr#
+	Sort: "no"
+	@testEqualityOfEigenvalues: .eigen, .eigenvalues#
 	removeObject: .mat, .eigen
 	appendInfoLine: .test$, " OK"
 endproc
