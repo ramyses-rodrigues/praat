@@ -43,12 +43,12 @@ void splitIntervalIntoWhisperSegments (IntervalTier tier, integer tierNumber,
 void TextGrid_Sound_transcribeInterval (TextGrid me, Sound sound, integer tierNumber, integer intervalNumber,
 	conststring32 modelName, conststring32 languageName, bool includeWords, bool diarize, bool useVad,
 	double speechProbabilityThreshold, double minNonSpeechDuration, double minSpeechDuration, double speechPad,
-	integer maxSimultaneousSpeakers, integer numSpeakers, integer maxSpeakers, integer minSpeakers,
-	double clusterThreshold, integer segmentationOverlap
+	integer numSpeakers, integer minSpeakers, integer maxSpeakers, bool allowSpeakersOverlap,
+	double clusterThreshold, double segmentationStep
 );
 void TextGrid_Sound_diarizeInterval (TextGrid me, Sound sound, integer tierNumber, integer intervalNumber,
-	integer maxSimultaneousSpeakers, integer numSpeakers, integer maxSpeakers, integer minSpeakers,
-	double clusterThreshold, integer segmentationOverlap, conststring32 nonSpeechLabel, conststring32 speechLabel
+	integer numSpeakers, integer minSpeakers, integer maxSpeakers, bool allowSpeakersOverlap,
+	conststring32 nonSpeechLabel, conststring32 speechLabel, double clusterThreshold, double segmentationStep
 );
 
 autoSound Sound_readWithAdjacentAnnotationFiles_buckeye (conststring32 soundFileName, autoTextGrid *out_textgrid);

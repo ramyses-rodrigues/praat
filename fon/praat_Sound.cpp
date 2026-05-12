@@ -1891,12 +1891,12 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_speechActivity_silero,
 	U"Sound: To TextGrid (speech activity, Silero)",
 	U"Sound: To TextGrid (speech activity, Silero)...")
 {
-	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", theVadDefaultThresholdStr)
-	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", theVadDefaultMinNonSpeechDurationStr)
-	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", theVadDefaultMinSpeechDurationStr)
-	POSITIVE (speechPad, U"Padding around speech segments (s)", theVadDefaultSpeechPadStr)
-	WORD (nonSpeechLabel, U"Non-speech interval label", theVadDefaultNonSpeechLabel)
-	WORD (speechLabel, U"Speech interval label", theVadDefaultSpeechLabel)
+	REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", VadDefaults::speechThreshold)
+	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", VadDefaults::minNonSpeechDuration)
+	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", VadDefaults::minSpeechDuration)
+	POSITIVE (speechPad, U"Padding around speech segments (s)", VadDefaults::speechPad)
+	WORD (nonSpeechLabel, U"Non-speech interval label", VadDefaults::nonSpeechLabel)
+	WORD (speechLabel, U"Speech interval label", VadDefaults::speechLabel)
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Sound)

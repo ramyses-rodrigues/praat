@@ -1446,12 +1446,13 @@ static void menu_cb_TranscribeInterval (TextGridArea me, EDITOR_ARGS) {
 		FunctionArea_save (me, U"Transcribe interval");
 		TextGrid_Sound_transcribeInterval (my textGrid(), my borrowedSoundArea -> sound(), my selectedTier, intervalNumber,
 				my instancePref_transcribe_model(), my instancePref_transcribe_language(),
-				my instancePref_transcribe_includeWords(), my instancePref_transcribe_includeDiarization(),
-				my instancePref_transcribe_useVad(), my instancePref_transcribe_vadThreshold(),
-				my instancePref_transcribe_vadMinNonSpeech(),my instancePref_transcribe_vadMinSpeech(),
-				my instancePref_transcribe_vadPadding(), my instancePref_diarize_maxSimultaneiosSpeakers(),
-				my instancePref_diarize_numSpeakers(), my instancePref_diarize_maxSpeakers(), my instancePref_diarize_minSpeakers(),
-				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationOverlap());
+				my instancePref_transcribe_includeWords(), my instancePref_transcribe_diarize(),
+				my instancePref_transcribe_useVad(), my instancePref_vad_speechThreshold(),
+				my instancePref_vad_minNonSpeech(),my instancePref_vad_minSpeech(),
+				my instancePref_vad_speechPadding(), my instancePref_diarize_numSpeakers(),
+				my instancePref_diarize_minSpeakers(), my instancePref_diarize_maxSpeakers(),
+				my instancePref_diarize_allowOverlap(),
+				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationStep());
 	}
 	FunctionArea_broadcastDataChanged (me);
 }
@@ -1460,26 +1461,26 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Transcription settings", nullptr)
 		HEADING (U"Textgrid...")
 		BOOLEAN (includeWords, U"Include words", my default_transcribe_includeWords())
-		BOOLEAN (includeDiarization, U"Include diarization", my default_transcribe_includeDiarization())
+		BOOLEAN (includeDiarization, U"Include diarization", my default_transcribe_diarize())
 		HEADING (U"Speech activity detection...")
 		BOOLEAN (useVad, U"Allow silences", my default_transcribe_useVad())
-		POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", my default_transcribe_vadThreshold())
-		POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", my default_transcribe_vadMinNonSpeech())
-		POSITIVE (minSpeechDuration, U"Min. speech interval (s)", my default_transcribe_vadMinSpeech())
-		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_transcribe_vadPadding())
+		REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", my default_vad_speechThreshold())
+		POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", my default_vad_minNonSpeech())
+		POSITIVE (minSpeechDuration, U"Min. speech interval (s)", my default_vad_minSpeech())
+		POSITIVE (speechPad, U"Padding around speech segments (s)", my default_vad_speechPadding())
 		HEADING (U"Transcription...")
 		LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
-		OPTIONMENU (language, U"Language", (int) NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+		OPTIONMENU (language, U"Language", (int) NUMfindFirst (theSpeechRecognizerLanguageNames(), TranscriptionDefaults::languageName))
 		for (integer i = 1; i <= theSpeechRecognizerLanguageNames().size; i ++) {
 			OPTION (theSpeechRecognizerLanguageNames() [i]);
 		}
 		HEADING (U"Diarization...")
-		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", my default_diarize_maxSimultaneiosSpeakers())
-		INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", my default_diarize_numSpeakers())
-		INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", my default_diarize_maxSpeakers())
-		INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", my default_diarize_minSpeakers())
-		POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", my default_diarize_clusterThreshold())
-		INTEGER (segmentationOverlap, U"Segmentation overlap (%, 0-99)", theDiarizationSegmentationOverlapStr)
+		INTEGER (numSpeakers, U"Fixed number of speakers...", DiarizationDefaults::numSpeakers)
+		INTEGER (minSpeakers, U"left ... or range of numbers of speakers", DiarizationDefaults::minSpeakers)
+		INTEGER (maxSpeakers, U"right ... or range of numbers of speakers", DiarizationDefaults::maxSpeakers)
+		BOOLEAN (allowSpeakersOverlap, U"Allow speakers overlap", DiarizationDefaults::allowOverlap)
+		POSITIVE (clusterThreshold, U"Clustering threshold (0-2)", DiarizationDefaults::clusterThreshold)
+		POSITIVE (segmentationStep, U"Segmentation step (0-1)", DiarizationDefaults::segmentationStep)
 	EDITOR_OK
 		static autoSTRVEC modelNames;
 		modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
@@ -1490,45 +1491,45 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		);
 
 		SET_BOOLEAN (includeWords, my instancePref_transcribe_includeWords())
-		SET_BOOLEAN (includeDiarization, my instancePref_transcribe_includeDiarization())
+		SET_BOOLEAN (includeDiarization, my instancePref_transcribe_diarize())
 		SET_BOOLEAN (useVad, my instancePref_transcribe_useVad())
-		SET_REAL (speechProbabilityThreshold, my instancePref_transcribe_vadThreshold())
-		SET_REAL (minNonSpeechDuration, my instancePref_transcribe_vadMinNonSpeech())
-		SET_REAL (minSpeechDuration, my instancePref_transcribe_vadMinSpeech())
-		SET_REAL (speechPad, my instancePref_transcribe_vadPadding())
-		SET_INTEGER (maxSimultaneousSpeakers, my instancePref_diarize_maxSimultaneiosSpeakers())
+		SET_REAL (speechProbabilityThreshold, my instancePref_vad_speechThreshold())
+		SET_REAL (minNonSpeechDuration, my instancePref_vad_minNonSpeech())
+		SET_REAL (minSpeechDuration, my instancePref_vad_minSpeech())
+		SET_REAL (speechPad, my instancePref_vad_speechPadding())
 		SET_INTEGER (numSpeakers, my instancePref_diarize_numSpeakers())
-		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
 		SET_INTEGER (minSpeakers, my instancePref_diarize_minSpeakers())
+		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
+		SET_BOOLEAN (allowSpeakersOverlap, my instancePref_diarize_allowOverlap())
 		SET_REAL (clusterThreshold, my instancePref_diarize_clusterThreshold())
-		SET_INTEGER (segmentationOverlap, my instancePref_diarize_segmentationOverlap())
+		SET_REAL (segmentationStep, my instancePref_diarize_segmentationStep())
 
 		integer prefModel = NUMfindFirst (modelNames.get (), my instancePref_transcribe_model());
 		if (prefModel == 0)
-			prefModel = NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName);
+			prefModel = NUMfindFirst (modelNames.get (), TranscriptionDefaults::modelName);
 		SET_INTEGER (modelIndex, prefModel)
 		SET_LIST (modelIndex, modelName, modelNames.get (), prefModel)
 
 		integer prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), my instancePref_transcribe_language());
 		if (prefLanguage == 0)
-			prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName);
+			prefLanguage = NUMfindFirst (theSpeechRecognizerLanguageNames(), TranscriptionDefaults::languageName);
 		SET_OPTION (language, prefLanguage)
 	EDITOR_DO
 		my setInstancePref_transcribe_model (modelName);
 		my setInstancePref_transcribe_language (theSpeechRecognizerLanguageNames() [language]);
 		my setInstancePref_transcribe_includeWords (includeWords);
-		my setInstancePref_transcribe_includeDiarization (includeDiarization);
+		my setInstancePref_transcribe_diarize (includeDiarization);
 		my setInstancePref_transcribe_useVad (useVad);
-		my setInstancePref_transcribe_vadThreshold (speechProbabilityThreshold);
-		my setInstancePref_transcribe_vadMinNonSpeech (minNonSpeechDuration);
-		my setInstancePref_transcribe_vadMinSpeech (minSpeechDuration);
-		my setInstancePref_transcribe_vadPadding (speechPad);
-		my setInstancePref_diarize_maxSimultaneiosSpeakers (maxSimultaneousSpeakers);
+		my setInstancePref_vad_speechThreshold (speechProbabilityThreshold);
+		my setInstancePref_vad_minNonSpeech (minNonSpeechDuration);
+		my setInstancePref_vad_minSpeech (minSpeechDuration);
+		my setInstancePref_vad_speechPadding (speechPad);
 		my setInstancePref_diarize_numSpeakers (numSpeakers);
-		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
 		my setInstancePref_diarize_minSpeakers (minSpeakers);
+		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
+		my setInstancePref_diarize_allowOverlap (allowSpeakersOverlap);
 		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
-		my setInstancePref_diarize_segmentationOverlap (segmentationOverlap);
+		my setInstancePref_diarize_segmentationStep (segmentationStep);
 	EDITOR_END
 }
 
@@ -1544,10 +1545,10 @@ static void menu_cb_DiarizeInterval (TextGridArea me, EDITOR_ARGS) {
 		const autoMelderProgressOff noprogress;
 		FunctionArea_save (me, U"Diarize interval");
 		TextGrid_Sound_diarizeInterval (my textGrid(), my borrowedSoundArea -> sound(), my selectedTier, intervalNumber,
-				my instancePref_diarize_maxSimultaneiosSpeakers(), my instancePref_diarize_numSpeakers(),
-				my instancePref_diarize_maxSpeakers(), my instancePref_diarize_minSpeakers(),
-				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationOverlap(),
-				my instancePref_diarize_nonSpeechLabel(), my instancePref_diarize_speechLabel()
+				my instancePref_diarize_numSpeakers(), my instancePref_diarize_minSpeakers(),
+				my instancePref_diarize_maxSpeakers(), my instancePref_diarize_allowOverlap(),
+				my instancePref_diarize_nonSpeechLabel(), my instancePref_diarize_speechLabel(),
+				my instancePref_diarize_clusterThreshold(), my instancePref_diarize_segmentationStep()
 		);
 	}
 	FunctionArea_broadcastDataChanged (me);
@@ -1555,32 +1556,32 @@ static void menu_cb_DiarizeInterval (TextGridArea me, EDITOR_ARGS) {
 
 static void menu_cb_DiarizationSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Diarization settings", nullptr)
-		NATURAL (maxSimultaneousSpeakers, U"Max. simultaneous speakers (1 - 3)", my default_diarize_maxSimultaneiosSpeakers())
-		INTEGER (numSpeakers, U"Number of speakers (0 = unspecified)", my default_diarize_numSpeakers())
-		INTEGER (maxSpeakers, U"Max. number of speakers (0 = unspecified)", my default_diarize_maxSpeakers())
-		INTEGER (minSpeakers, U"Min. number of speakers (0 = unspecified)", my default_diarize_minSpeakers())
-		POSITIVE (clusterThreshold, U"Cluster threshold (0 - 2)", my default_diarize_clusterThreshold())
-		INTEGER (segmentationOverlap, U"Segmentation overlap (%, 0-99)", my default_diarize_segmentationOverlap())
-		WORD (nonSpeechLabel, U"Non-speech interval label", my default_diarize_nonSpeechLabel())
-		WORD (speechLabel, U"Speech interval label", my default_diarize_speechLabel())
+		INTEGER (numSpeakers, U"Fixed number of speakers...", DiarizationDefaults::numSpeakers)
+		INTEGER (minSpeakers, U"left ... or range of numbers of speakers", DiarizationDefaults::minSpeakers)
+		INTEGER (maxSpeakers, U"right ... or range of numbers of speakers", DiarizationDefaults::maxSpeakers)
+		BOOLEAN (allowSpeakersOverlap, U"Allow speakers overlap", DiarizationDefaults::allowOverlap)
+		WORD (nonSpeechLabel, U"Non-speech interval label", DiarizationDefaults::nonSpeechLabel)
+		WORD (speechLabel, U"Speech interval label", DiarizationDefaults::speechLabel)
+		POSITIVE (clusterThreshold, U"Clustering threshold (0-2)", DiarizationDefaults::clusterThreshold)
+		POSITIVE (segmentationStep, U"Segmentation step (0-1)", DiarizationDefaults::segmentationStep)
 	EDITOR_OK
-		SET_INTEGER (maxSimultaneousSpeakers, my instancePref_diarize_maxSimultaneiosSpeakers())
 		SET_INTEGER (numSpeakers, my instancePref_diarize_numSpeakers())
-		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
 		SET_INTEGER (minSpeakers, my instancePref_diarize_minSpeakers())
-		SET_REAL (clusterThreshold, my instancePref_diarize_clusterThreshold())
-		SET_INTEGER (segmentationOverlap, my instancePref_diarize_segmentationOverlap())
+		SET_INTEGER (maxSpeakers, my instancePref_diarize_maxSpeakers())
+		SET_BOOLEAN (allowSpeakersOverlap, my instancePref_diarize_allowOverlap())
 		SET_STRING (nonSpeechLabel, my instancePref_diarize_nonSpeechLabel())
 		SET_STRING (speechLabel, my instancePref_diarize_speechLabel())
+		SET_REAL (clusterThreshold, my instancePref_diarize_clusterThreshold())
+		SET_REAL (segmentationStep, my instancePref_diarize_segmentationStep())
 	EDITOR_DO
-		my setInstancePref_diarize_maxSimultaneiosSpeakers (maxSimultaneousSpeakers);
 		my setInstancePref_diarize_numSpeakers (numSpeakers);
-		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
 		my setInstancePref_diarize_minSpeakers (minSpeakers);
-		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
-		my setInstancePref_diarize_segmentationOverlap (segmentationOverlap);
+		my setInstancePref_diarize_maxSpeakers (maxSpeakers);
+		my setInstancePref_diarize_allowOverlap (allowSpeakersOverlap);
 		my setInstancePref_diarize_nonSpeechLabel (nonSpeechLabel);
 		my setInstancePref_diarize_speechLabel (speechLabel);
+		my setInstancePref_diarize_clusterThreshold (clusterThreshold);
+		my setInstancePref_diarize_segmentationStep (segmentationStep);
 	EDITOR_END
 }
 

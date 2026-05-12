@@ -4,7 +4,7 @@
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -286,7 +286,7 @@ KlattGrid_PHONATION_GET_ADD_REMOVE_EXTRACT_REPLACE (Pitch, pitch, U" (Hz)", (U"1
 KlattGrid_PHONATION_GET_ADD_REMOVE_EXTRACT_REPLACE (VoicingAmplitude, voicing amplitude, U" (dB SPL)", U"90.0",
         (1), U"", U"voicing", IntensityTier)
 KlattGrid_PHONATION_GET_ADD_REMOVE_EXTRACT_REPLACE (Flutter, flutter, U" (0..1)", (U"0.0"),
-        (value >= 0.0 && value <= 1.0), (U"Flutter should be in [0,1]."), U"flutter", RealTier)
+        (value >= 0.0 && value <= 1.0), (U"Flutter should be in [0, 1]."), U"flutter", RealTier)
 KlattGrid_PHONATION_GET_ADD_REMOVE_EXTRACT_REPLACE (Power1, power1, U"", U"3",
         (value > 0.0), U"Power1 needs to be positive.", U"power1", RealTier)
 KlattGrid_PHONATION_GET_ADD_REMOVE_EXTRACT_REPLACE (Power2, power2, U"", U"4",

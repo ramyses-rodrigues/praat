@@ -114,17 +114,20 @@ autoCorrelation SSCP_to_Correlation (SSCP me) {
 autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confidenceLevel, integer numberOfTests, int method) {
 	try {
 		const integer m_bonferroni = my numberOfRows * (my numberOfRows - 1) / 2;
-		Melder_require (confidenceLevel > 0 && confidenceLevel <= 1.0,
-			U"Confidence level should be in interval (0-1).");
+		Melder_require (confidenceLevel > 0.0,
+			U"The confidence level that you asked for should be greater than 0.0.");
+		Melder_require (confidenceLevel <= 1.0,
+			U"The confidence level that you asked for should not be greater than 1.0.");
 		Melder_require (my numberOfObservations > 4,
-			U"The number of observations should be greater than 4.");
+			U"The number of observations in the Correlation object should be greater than 4.");
 		Melder_require (numberOfTests >= 0,
-			U"The \"number of tests\" should not be less than zero.");
+			U"The number of tests that you asked for should not be less than zero.");
 
 		if (numberOfTests == 0)
 			numberOfTests = m_bonferroni;
 		if (numberOfTests > m_bonferroni)
-			Melder_warning (U"The \"number of tests\" should not exceed the number of elements in the Correlation object.");
+			Melder_warning (U"The number of tests that you asked for (", numberOfTests,
+					U") should not exceed the number of elements in the Correlation object (", m_bonferroni, U").");
 
 		autoTableOfReal thee = TableOfReal_create (my numberOfRows, my numberOfRows);
 

@@ -981,7 +981,7 @@ static void menu_cb_advancedSpectrogramSettings (SoundAnalysisArea me, EDITOR_AR
 		BOOLEAN (autoscaling, U"Autoscaling", my default_spectrogram_autoscaling())
 		REAL (maximum, U"Maximum (dB/Hz)", my default_spectrogram_maximum())
 		REAL (preemphasis, U"Pre-emphasis (dB/oct)", my default_spectrogram_preemphasis())
-		REAL (dynamicCompression, U"Dynamic compression (0-1)", my default_spectrogram_dynamicCompression())
+		REAL (dynamicCompression, U"Dynamic compression (0 – 1)", my default_spectrogram_dynamicCompression())
 	EDITOR_OK
 		SET_INTEGER (numberOfTimeSteps,      my instancePref_spectrogram_timeSteps())
 		SET_INTEGER (numberOfFrequencySteps, my instancePref_spectrogram_frequencySteps())

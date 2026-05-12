@@ -63,7 +63,7 @@ struct diarize_params {
 	// Per-frame cap on the number of speakers active simultaneously.
 	// Acts as overlap-resolution: the segmentation model can produce
 	// accumulated activations above this; values above it are clipped.
-	// Default: 20.
+	// Default: unlimited (INT12_MAX).
 	int     max_simultaneous_speakers;
 };
 

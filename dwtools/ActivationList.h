@@ -2,11 +2,11 @@
 #define _ActivationList_h_
 /* ActivationList.h
  * 
- * Copyright (C) 1993-2011,2015,2016 David Weenink, Paul Boersma 2017
- * 
+ * Copyright (C) 1993-2011,2015,2016 David Weenink, Paul Boersma 2017,2026
+ *
  * This program is free oftware; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  * 
  * This code is distributed in the hope that it will be useful, but
@@ -46,7 +46,7 @@ autoActivationList Matrix_to_ActivationList (Matrix me);
 autoMatrix ActivationList_to_Matrix (ActivationList me);
 
 int _ActivationList_checkElements (ActivationList me);
-/* Return 1 if all elements are in interval [0,1] else 0. */
+/* Return 1 if all elements are in interval [0, 1], else 0. */
 
 /* End of file ActivationList.h */
 #endif
