@@ -1,7 +1,7 @@
 # File: makefile.defs.msys-clang-cross
 
 # System: clang on Windows under MSYS2
-# Paul Boersma, 5 April 2026
+# Paul Boersma, 13 May 2026
 
 # This is the makefile for building all three Windows edition of Praat:
 # for ARM64 (aarch64), x86_64 ("Intel64") and i686 ("Intel32") processors.
@@ -154,6 +154,21 @@ else
 endif
 $(info Making: the linker set-up is $(LINK))
 
+$(info Making: the x64 version is $(X64_VERSION))
+ifeq ($(MSYSTEM),CLANGARM64)
+	PROCESSOR_SETTINGS =
+else ifeq ($(MSYSTEM),CLANG64)
+	ifeq ($(X64_VERSION),0)
+		PROCESSOR_SETTINGS =
+	else
+		PROCESSOR_SETTINGS = -march=x86-64-v$(X64_VERSION)
+	endif
+else ifeq ($(MSYSTEM),CLANG32)
+	PROCESSOR_SETTINGS =
+else
+	$(warning Unknown MSYS environment: $(MSYSTEM))
+endif
+
 #
 # Now starts the minimally needed part of the makefile.
 # If you just want to do native compilation for an x86_64 target on an x86_64 host,
@@ -165,7 +180,7 @@ CXX ?= clang
 TOOLS_PREFIX ?=
 LINK ?= $(CXX)
 
-COMMONFLAGS = -municode -D_FILE_OFFSET_BITS=64 \
+COMMONFLAGS = $(PROCESSOR_SETTINGS) -municode -D_FILE_OFFSET_BITS=64 \
 	-O3
 # Probably implicit: -m64 -mwin32 -march=... -mtune=generic
 
