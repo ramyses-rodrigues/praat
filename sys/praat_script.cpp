@@ -864,7 +864,7 @@ static void secondPassThroughScript (UiForm sendingForm, integer /* narg */, Sta
 
 static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterOwningEditor, EditorCommand optionalCommand) {
 	static autoInterpreterStack interpreterStack;
-	UiPause_cleanUp ();   // TODO: needed?
+	//UiPause_cleanUp ();   // TODO: needed?
 	try {
 		autostring32 text = MelderFile_readText (file);
 		/*
