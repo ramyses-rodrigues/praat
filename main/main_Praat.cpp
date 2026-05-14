@@ -1,6 +1,6 @@
 /* main_Praat.cpp
  *
- * Copyright (C) 1992-2008,2010-2021,2023-2025 Paul Boersma
+ * Copyright (C) 1992-2008,2010-2021,2023-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,19 +44,32 @@ static void logo (Graphics graphics) {
 		#else
 			false;
 		#endif
+	[[maybe_unused]] constexpr int x64_version =
+		#if defined (__AVX2__) && defined (__FMA__) && defined (__F16C__)
+			3;
+		#else
+			0;
+		#endif
 	const conststring32 builtFor =
 		#if defined (macintosh)
 			isArm64 ? U"ARM64 macOS" : U"Intel64 macOS";
 		#elif defined (_WIN32)
-			isArm64 ? U"ARM64 Windows" : sizeof (void *) == 4 ? U"Intel32 Windows" : U"Intel64 Windows";
+			isArm64 ? U"ARM64 Windows" :
+			sizeof (void *) == 4 ? U"Intel32 Windows" :
+			x64_version == 3 ? U"x64-v3 Windows" :
+			U"x64 Windows";
 		#elif defined (__s390x__)
 			U"s390x Linux";
 		#elif defined (raspberrypi)
 			U"ARMV7 Raspberry Pi";
 		#elif defined (chrome)
-			isArm64 ? U"ARM64 Chromebook" : U"Intel64 Chromebook";
+			isArm64 ? U"ARM64 Chromebook" :
+			x64_version == 3 ? U"x64-v3 Chromebook" :
+			U"x64 Chromebook";
 		#elif defined (linux)
-			isArm64 ? U"ARM64 Linux" : U"Intel64 Linux";
+			isArm64 ? U"ARM64 Linux" :
+			x64_version == 3 ? U"x86_64-v3 Linux" :
+			U"x86_64 Linux";
 		#else
 			U"";
 			#error Unknown OS type.

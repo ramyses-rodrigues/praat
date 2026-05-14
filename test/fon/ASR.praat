@@ -15,7 +15,8 @@ selectObject: "Sound example", "TextGrid example"
 # TODO: warnings.
 # TODO: exit without error  ; document at exitScript!
 #
-Transcribe interval: 1, 1, "yes", "no", "yes", 0.5, 0.1, 0.25, 0.03, "ggml-base.bin", "Autodetect language"
+Transcribe interval: 1, 1, "yes", "no", "yes", 0.5, 0.1, 0.25, 0.03, "ggml-base.bin", "Autodetect language",
+... 3, 0, 0, 0, 0.7045655, 90
 selectObject: "TextGrid example"
 text$ = Get label of interval: 1, 1
 writeInfoLine: text$
