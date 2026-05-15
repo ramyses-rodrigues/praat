@@ -76,15 +76,32 @@ DIRECT (QUERY_ONE_AND_ONE_FOR_STRING__SpeechRecognizer_Sound_recognize) {
 	QUERY_ONE_AND_ONE_FOR_STRING_END
 }
 
+FORM (SETTINGS__SpeechRecognizerSettings, U"AI settings", nullptr) {
+	COMMENT (U"These settings determine how fast transcription and diarization")
+	COMMENT (U"procedures are performed on your computer.")
+	INTEGER (maxNumberOfThreadsForTranscription, U"Max. number of threads for transcription", U"0 (= automatic)")
+	INTEGER (maxNumberOfThreadsForDiarization, U"Max. number of threads for diarization", U"0 (= automatic)")
+OK
+	SET_INTEGER (maxNumberOfThreadsForTranscription, SpeechRecognizer_getMaxNumberOfThreadsForTranscription ())
+	SET_INTEGER (maxNumberOfThreadsForDiarization,   SpeechRecognizer_getMaxNumberOfThreadsForDiarization ())
+DO
+	PREFS
+		SpeechRecognizer_setMaxNumberOfThreadsForTranscription (maxNumberOfThreadsForTranscription);
+		SpeechRecognizer_setMaxNumberOfThreadsForDiarization   (maxNumberOfThreadsForDiarization);
+	PREFS_END
+}
+
 void praat_SpeechRecognizer_init () {
 	Thing_recognizeClassesByName (classSpeechRecognizer);
 
+	SpeechRecognizer_preferences ();
+
 	praat_addMenuCommand (U"Objects", U"New", U"Speech-to-text recognition", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"New", U"SpeechRecognizer help", nullptr, 1,
-				HELP__SpeechRecognizer_help);
+		praat_addMenuCommand (U"Objects", U"New", U"SpeechRecognizer help", nullptr, 1, HELP__SpeechRecognizer_help);
 		praat_addMenuCommand (U"Objects", U"New", U"-- new SpeechRecognizer --", nullptr, 1, nullptr);
-		praat_addMenuCommand (U"Objects", U"New", U"Create SpeechRecognizer...", nullptr, 1,
-				CREATE_ONE__SpeechRecognizer_create);
+		praat_addMenuCommand (U"Objects", U"New", U"Create SpeechRecognizer...", nullptr, 1, CREATE_ONE__SpeechRecognizer_create);
+	praat_addMenuCommand (U"Objects", U"Settings", U"-- AI settings --", nullptr, 0, nullptr);
+	praat_addMenuCommand (U"Objects", U"Settings", U"AI settings...", nullptr, 0, SETTINGS__SpeechRecognizerSettings);
 
 	praat_addAction1 (classSpeechRecognizer, 0, U"SpeechRecognizer help", nullptr, 0,
 			HELP__SpeechRecognizer_help);
