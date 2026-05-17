@@ -1840,7 +1840,9 @@ void GuiWin_initialize2 (unsigned int argc, char **argv)
 	windowClass. lpszClassName = Melder_32toW (theApplicationClassName).transfer();
 	RegisterClassEx (& windowClass);
 	InitCommonControls ();
-	EnableMouseInPointer (TRUE);   // from Windows 8 on
+	#ifdef _WIN64
+		EnableMouseInPointer (TRUE);   // from Windows 8 on
+	#endif
 }
 
 void GuiApp_setApplicationShell (GuiObject shell) {
@@ -2887,6 +2889,7 @@ static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LP
 		HANDLE_MSG (window, WM_CTLCOLORBTN, on_ctlColorBtn);
 		HANDLE_MSG (window, WM_CTLCOLORSTATIC, on_ctlColorStatic);
 		HANDLE_MSG (window, WM_ACTIVATE, on_activate);
+		#ifdef _WIN64
 		case WM_POINTERWHEEL: {   // from Windows 8 on
 			int zDelta = GET_WHEEL_DELTA_WPARAM (wParam);
 			int fwKeys = GET_KEYSTATE_WPARAM (wParam);
@@ -2907,6 +2910,7 @@ static LRESULT CALLBACK windowProc (HWND window, UINT message, WPARAM wParam, LP
 			on_mouseWheel (window, point.x, point.y, zDelta, fwKeys);
 			return 0;
 		}
+		#endif
 		case WM_USER:   // TODO: remove once Elan's sendpraat is updated to using WM_APP instead of WM_USER
 		case WM_APP:
 		{

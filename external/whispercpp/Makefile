@@ -1,7 +1,5 @@
 # Makefile of the library "external/whispercpp"
-# Anastasia Shchupak 2025,2026
-
-include ../../makefile.defs
+# Anastasia Shchupak, 16 May 2026
 
 CPPFLAGS = -I ../../melder -I ../../fon -I ../../sys
 

@@ -1,22 +1,22 @@
-# File: makefile.defs.linux.barren-clang
+# File: makefile.defs.linux.barren-arm64-gcc
 # System: Linux without GUI, graphics, and sound
 # Paul Boersma, 17 May 2026
 
-CC = clang
-CXX = clang
+CC = gcc
+CXX = g++
 LINK = $(CXX)
 
 COMMONFLAGS = -DNO_GRAPHICS -D_FILE_OFFSET_BITS=64 -DUNIX -Dlinux \
-	-march=x86-64-v3 \
+	-march=aarch64 \
 	-Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O3 -g1 -pthread
 
 CFLAGS = -std=gnu99 $(COMMONFLAGS) -Werror=missing-prototypes -Werror=implicit
 
-CXXFLAGS = -std=c++17 $(COMMONFLAGS) -stdlib=libc++ -Wshadow
+CXXFLAGS = -std=c++17 $(COMMONFLAGS) -Wshadow
 
 EXECUTABLE = praat_barren
 
-LIBS = -lc++ -lc++abi -lm -static -static-libgcc -static-libstdc++ -no-pie -lpthread
+LIBS = -lm -static -static-libgcc -static-libstdc++ -no-pie -lpthread
 
 AR = ar
 RANLIB = ls

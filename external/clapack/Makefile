@@ -1,8 +1,5 @@
 # Makefile of the library "external/clapack"
-# David Weenink, 13 March 2020
-# Paul Boersma, 24 May 2020
-
-include ../../makefile.defs
+# David Weenink and Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../../melder
 

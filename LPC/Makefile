@@ -1,7 +1,5 @@
 # Makefile of the library "LPC"
-# David Weenink and Paul Boersma, 2 October 2025
-
-include ../makefile.defs
+# David Weenink and Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I . -I ../kar -I ../melder -I ../fon -I ../foned -I ../dwtools -I ../sys -I ../dwsys -I ../stat \
 	-I ..external/num

@@ -1,7 +1,5 @@
-# Makefile for library "external/liblame.a"
-# David Weenink 20231212, Paul Boersma 20231229
-
-include ../../makefile.defs
+# Makefile of the library "external/lame"
+# David Weenink and Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../../melder
 

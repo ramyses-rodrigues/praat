@@ -1,7 +1,5 @@
 # Makefile of the library "gram"
-# Paul Boersma, 7 September 2023
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../fon -I ../foned
 

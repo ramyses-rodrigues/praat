@@ -1,7 +1,5 @@
 # Makefile of the library "melder"
-# Paul Boersma, 22 August 2025
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../melder -I ../sys
 
