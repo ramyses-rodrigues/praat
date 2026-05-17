@@ -44,7 +44,7 @@ Installing Whisper models
 =========================
 
 Before you can use the SpeechRecognizer, you need to install one or more Whisper model files
-(in GGML format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
+(in ggml format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
 in the Praat preferences folder.
 
 Whisper models come in several sizes, each offering a different trade-off between speed and accuracy.
@@ -82,7 +82,7 @@ Installing Whisper models
 =========================
 
 Before you can use the SpeechRecognizer, you need to install one or more Whisper model files
-(in GGML format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
+(in ggml format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
 in the Praat preferences folder.
 
 Whisper models come in several sizes, each offering a different trade-off between speed and accuracy.
@@ -165,7 +165,7 @@ Installing Whisper models
 =========================
 
 Before you can use the SpeechRecognizer, you need to install one or more Whisper model files
-(in GGML format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
+(in ggml format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
 in the Praat preferences folder.
 
 Whisper models come in several sizes, each offering a different trade-off between speed and accuracy.

@@ -20,11 +20,11 @@
  * ------------------------------------
  * Reimplements pyannote.audio SpeakerDiarization pipeline:
  *   Segmentation (pyannote/segmentation-3.0):
- *     WavNorm -> SincNet (GGML graph) -> LSTM (plain C++) -> Linear -> Classifier -> Log-softmax
+ *     WavNorm -> SincNet (ggml graph) -> LSTM (plain C++) -> Linear -> Classifier -> Log-softmax
  *     Input: 10s waveform at 16kHz -> Output: 589 frames × 7 powerset classes
  *
  *   Embedding (wespeaker-voxceleb-resnet34-LM):
- *     Fbank -> ResNet34 (GGML conv2d + plain C++) -> TSTP pooling -> Linear
+ *     Fbank -> ResNet34 (ggml conv2d + plain C++) -> TSTP pooling -> Linear
  *     Input: variable-length waveform -> Output: 256-d speaker embedding
  *
  *   Clustering:
@@ -67,7 +67,7 @@
 #define GGML_FILE_MAGIC 0x67676d6c
 
 /*
-	Maximum size for GGML computation graphs.
+	Maximum size for ggml computation graphs.
 	sincnet_forward builds a graph with 58 nodes (44 nodes and 14 leafs).
 	conv2d_forward builds a graph with 9 nodes (7 nodes and 2 leafs).
 	These numbers were found out by including the following print after ggml_build_forward_expand():
@@ -84,14 +84,14 @@
 	a single diarize_full() run. They are reset at the start of each run and
 	printed if (Melder_debug == 2004) at the end. Atomic types are used to support multithreading.
 */
-static std::atomic <int64_t> g_seg_sincnet_us {0};   // GGML SincNet forward
+static std::atomic <int64_t> g_seg_sincnet_us {0};   // ggml SincNet forward
 static std::atomic <int64_t> g_seg_lstm_us    {0};   // plain-C++ bidirectional LSTM
 static std::atomic <int64_t> g_seg_linear_us  {0};   // plain-C++ linear layers + classifier
 static std::atomic <int>     g_seg_calls      {0};   // number of segmentation_forward() calls
 
 static std::atomic <int64_t> g_emb_fbank_us        {0};   // plain-C++ fbank feature extraction
-static std::atomic <int64_t> g_emb_conv1bn1relu_us {0};   // ResNet stem (GGML conv + plain-C++ BN/ReLU)
-static std::atomic <int64_t> g_emb_resnet_us       {0};   // ResNet layers 1–4 (mix of GGML and plain C++)
+static std::atomic <int64_t> g_emb_conv1bn1relu_us {0};   // ResNet stem (ggml conv + plain-C++ BN/ReLU)
+static std::atomic <int64_t> g_emb_resnet_us       {0};   // ResNet layers 1–4 (mix of ggml and plain C++)
 static std::atomic <int64_t> g_emb_tail_us         {0};   // TSTP pooling + final linear layer
 static std::atomic <int>     g_emb_calls           {0};   // number of embedding_forward() calls
 
