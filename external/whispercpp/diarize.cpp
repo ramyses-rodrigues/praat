@@ -20,11 +20,11 @@
  * ------------------------------------
  * Reimplements pyannote.audio SpeakerDiarization pipeline:
  *   Segmentation (pyannote/segmentation-3.0):
- *     WavNorm -> SincNet (GGML graph) -> LSTM (plain C++) -> Linear -> Classifier -> Log-softmax
+ *     WavNorm -> SincNet (ggml graph) -> LSTM (plain C++) -> Linear -> Classifier -> Log-softmax
  *     Input: 10s waveform at 16kHz -> Output: 589 frames × 7 powerset classes
  *
  *   Embedding (wespeaker-voxceleb-resnet34-LM):
- *     Fbank -> ResNet34 (GGML conv2d + plain C++) -> TSTP pooling -> Linear
+ *     Fbank -> ResNet34 (ggml conv2d + plain C++) -> TSTP pooling -> Linear
  *     Input: variable-length waveform -> Output: 256-d speaker embedding
  *
  *   Clustering:
@@ -55,6 +55,7 @@
 #include <algorithm>
 #include <chrono>
 #include <atomic>
+#include <thread>
 
 #include "ggml.h"
 #include "ggml-alloc.h"
@@ -66,7 +67,7 @@
 #define GGML_FILE_MAGIC 0x67676d6c
 
 /*
-	Maximum size for GGML computation graphs.
+	Maximum size for ggml computation graphs.
 	sincnet_forward builds a graph with 58 nodes (44 nodes and 14 leafs).
 	conv2d_forward builds a graph with 9 nodes (7 nodes and 2 leafs).
 	These numbers were found out by including the following print after ggml_build_forward_expand():
@@ -83,14 +84,14 @@
 	a single diarize_full() run. They are reset at the start of each run and
 	printed if (Melder_debug == 2004) at the end. Atomic types are used to support multithreading.
 */
-static std::atomic <int64_t> g_seg_sincnet_us {0};   // GGML SincNet forward
+static std::atomic <int64_t> g_seg_sincnet_us {0};   // ggml SincNet forward
 static std::atomic <int64_t> g_seg_lstm_us    {0};   // plain-C++ bidirectional LSTM
 static std::atomic <int64_t> g_seg_linear_us  {0};   // plain-C++ linear layers + classifier
 static std::atomic <int>     g_seg_calls      {0};   // number of segmentation_forward() calls
 
 static std::atomic <int64_t> g_emb_fbank_us        {0};   // plain-C++ fbank feature extraction
-static std::atomic <int64_t> g_emb_conv1bn1relu_us {0};   // ResNet stem (GGML conv + plain-C++ BN/ReLU)
-static std::atomic <int64_t> g_emb_resnet_us       {0};   // ResNet layers 1–4 (mix of GGML and plain C++)
+static std::atomic <int64_t> g_emb_conv1bn1relu_us {0};   // ResNet stem (ggml conv + plain-C++ BN/ReLU)
+static std::atomic <int64_t> g_emb_resnet_us       {0};   // ResNet layers 1–4 (mix of ggml and plain C++)
 static std::atomic <int64_t> g_emb_tail_us         {0};   // TSTP pooling + final linear layer
 static std::atomic <int>     g_emb_calls           {0};   // number of embedding_forward() calls
 
@@ -245,7 +246,6 @@ struct segmentation_context {
 
     // GGML backend for SincNet
     ggml_backend_t backend = nullptr;
-	ggml_threadpool_t threadpool = nullptr;
 };
 
 // ============================================================================
@@ -783,22 +783,12 @@ static void segmentation_init(segmentation_context & sctx, diarize_model_loader 
 	sctx.sinc_filters = compute_sinc_filters(sctx.model);
     sctx.backend = ggml_backend_cpu_init();
 
-	const int n_threads = (int32_t) MelderThread_getMaximumNumberOfConcurrentThreads ();
-	ggml_threadpool_params tp_params = ggml_threadpool_params_default(n_threads);
-	sctx.threadpool = ggml_threadpool_new(&tp_params);
-	ggml_backend_cpu_set_threadpool(sctx.backend, sctx.threadpool);
-	ggml_backend_cpu_set_n_threads(sctx.backend, n_threads);
-	if (Melder_debug == 2004)
-		Melder_casual (U"segmentation: requested ", n_threads, U" GGML CPU threads");
-
     trace (U"Initialized (", sctx.model.hparams.n_filters(), U" sinc filters, ", sctx.model.hparams.sincnet_kernel_0, U" kernel)");
 }
 
 static void segmentation_free(segmentation_context & sctx) {
     if (sctx.backend)
     	ggml_backend_free(sctx.backend);
-	if (sctx.threadpool)
-		ggml_threadpool_free(sctx.threadpool);
     for (auto buf : sctx.model.buffers)
     	ggml_backend_buffer_free(buf);
     for (auto ctx : sctx.model.ctxs)
@@ -845,7 +835,6 @@ struct embedding_model {
 struct embedding_context {
     embedding_model model;
     ggml_backend_t backend = nullptr;
-	ggml_threadpool_t threadpool = nullptr;
 };
 
 // ============================================================================
@@ -1399,23 +1388,12 @@ static void embedding_init(embedding_context & ectx, diarize_model_loader * load
 
 	ectx.backend = ggml_backend_cpu_init();
 
-	const int n_threads = (int32_t) MelderThread_getMaximumNumberOfConcurrentThreads ();
-	ggml_threadpool_params tp_params = ggml_threadpool_params_default(n_threads);
-	ectx.threadpool = ggml_threadpool_new(&tp_params);
-	ggml_backend_cpu_set_threadpool(ectx.backend, ectx.threadpool);
-
-	ggml_backend_cpu_set_n_threads(ectx.backend, n_threads);
-	if (Melder_debug == 2004)
-		Melder_casual (U"embedding: requested ", n_threads, U" GGML CPU threads");
-
 	trace (U"Embedding model initialized (", ectx.model.n_loaded, U" tensors)");
 }
 
 static void embedding_free(embedding_context & ectx) {
     if (ectx.backend)
     	ggml_backend_free(ectx.backend);
-	if (ectx.threadpool)
-		ggml_threadpool_free(ectx.threadpool);
     for (auto buf : ectx.model.buffers)
     	ggml_backend_buffer_free(buf);
     for (auto ctx : ectx.model.ctxs)
@@ -2241,6 +2219,10 @@ struct diarize_context {
 
     // Last result
     diarization_result   result;
+
+	// Threadpool
+	ggml_threadpool_t    threadpool = nullptr;
+	int                  current_n_threads = 0;
 };
 
 // ============================================================================
@@ -2257,8 +2239,9 @@ struct diarize_mem_stream {
 // ============================================================================
 extern "C" {
 
-struct diarize_params diarize_default_params(void) {
-    struct diarize_params p{};
+struct diarize_full_params diarize_default_params(void) {
+    struct diarize_full_params p{};
+	p.n_threads			= (int32_t) std::thread::hardware_concurrency() / 2;
     p.seg_duration      = 10.0f;
     p.seg_step_ratio    = 0.1f;
     p.cluster_threshold = 0.7045654963945799f;
@@ -2269,6 +2252,27 @@ struct diarize_params diarize_default_params(void) {
 	p.max_speakers      = 0;
 	p.max_simultaneous_speakers = INT12_MAX;
 	return p;
+}
+
+static void ensure_n_threads (diarize_context *ctx, int n_threads) {
+	if (ctx->threadpool && ctx->current_n_threads == n_threads)   // already configured correctly
+		return;
+
+	if (ctx->threadpool) {
+		ggml_threadpool_free (ctx->threadpool);
+		ctx->threadpool = nullptr;
+	}
+
+	ggml_threadpool_params tp_params = ggml_threadpool_params_default (n_threads);
+	ctx->threadpool = ggml_threadpool_new (& tp_params);
+	ggml_backend_cpu_set_threadpool (ctx->seg_ctx.backend, ctx->threadpool);
+	ggml_backend_cpu_set_threadpool (ctx->emb_ctx.backend, ctx->threadpool);
+	ggml_backend_cpu_set_n_threads  (ctx->seg_ctx.backend, n_threads);
+	ggml_backend_cpu_set_n_threads  (ctx->emb_ctx.backend, n_threads);
+	ctx->current_n_threads = n_threads;
+
+	if (Melder_debug == 2004)
+		Melder_casual (U"Diarization: using ", n_threads, U" GGML CPU threads");
 }
 
 struct diarize_context * diarize_init(struct diarize_model_loader * seg_loader, struct diarize_model_loader * emb_loader) {
@@ -2392,6 +2396,10 @@ struct diarize_context * diarize_init_from_memory(const void * seg_data, size_t 
 
 void diarize_free(struct diarize_context * ctx) {
     if (!ctx) return;
+	if (ctx->threadpool) {
+		ggml_threadpool_free(ctx->threadpool);
+		ctx->threadpool = nullptr;
+	}
     if (ctx->models_loaded) {
         segmentation_free(ctx->seg_ctx);
         embedding_free(ctx->emb_ctx);
@@ -2400,10 +2408,10 @@ void diarize_free(struct diarize_context * ctx) {
 }
 
 void diarize_full(
-    struct diarize_context * ctx,
-    struct diarize_params    params,
-    const float            * samples,
-    int                      n_samples)
+    struct diarize_context		* ctx,
+    struct diarize_full_params  params,
+    const float					* samples,
+    int							n_samples)
 {
     //TRACE
 	if (Melder_debug == 2004) {
@@ -2424,6 +2432,9 @@ void diarize_full(
 
     if (!ctx || !ctx->models_loaded || !samples || n_samples <= 0)
         Melder_throw (U"Invalid arguments in diarize_full.");
+
+	// Set up threadpool and n_threads
+	ensure_n_threads (ctx, params.n_threads);
 
     // Clear previous result
     ctx->result = {};

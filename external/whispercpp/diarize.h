@@ -38,7 +38,9 @@ extern "C" {
 struct diarize_context;
 
 // Parameters for diarization
-struct diarize_params {
+struct diarize_full_params {
+	int n_threads;
+
 	// Segmentation
 	float   seg_duration;       // chunk duration in seconds (default: 10.0)
 	float   seg_step_ratio;     // step as fraction of duration (default: 0.1 = 90% overlap)
@@ -68,7 +70,7 @@ struct diarize_params {
 };
 
 // Get default parameters
-struct diarize_params diarize_default_params(void);
+struct diarize_full_params diarize_default_params(void);
 
 
 // Model loader — abstraction for reading from file or memory
@@ -93,10 +95,10 @@ void diarize_free(struct diarize_context * ctx);
 // n_samples: number of samples
 // Throws MelderError on failure
 void diarize_full(
-    struct diarize_context * ctx,
-    struct diarize_params    params,
-    const float            * samples,
-    int                      n_samples);
+    struct diarize_context		* ctx,
+    struct diarize_full_params  params,
+    const float					* samples,
+    int							n_samples);
 
 // --- Result accessors ---
 

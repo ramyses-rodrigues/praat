@@ -23,6 +23,7 @@
 #include "melder.h"
 #include "ggml-memory-pool.h"
 #include "ggml-silero-vad-model-data.h"
+#include "Preferences.h"
 
 #include "oo_DESTROY.h"
 #include "SpeechRecognizer_def.h"
@@ -231,6 +232,17 @@ static void SpeechRecognizer_runWhisper (constSpeechRecognizer me, constSound so
 	autovector <float> samples32 = resampleForWhisper (sound);
 
 	/*
+		Default maximum number of threads for transcription is half the number of logical processors. This is because:
+		1. hyperthreaded CPUs: half = physical cores, optimal for SIMD kernels.
+		2. hybrid P+E core CPUs: half is "mostly P-cores"; using all the cores can cause a 100x slowdown.
+		3. homogeneous non-hyperthreaded CPUs: half is below optimal, but not disastrous as in case 2.
+		The user can override this in Praat preferences.
+	*/
+	integer n_threads = SpeechRecognizer_getMaxNumberOfThreadsForTranscription ();
+	if (n_threads <= 0)
+		n_threads = MelderThread_getNumberOfProcessors () / 2;
+
+	/*
 		Set Whisper parameters.
 	*/
 	whisper_sampling_strategy samplingStrategy =
@@ -238,7 +250,7 @@ static void SpeechRecognizer_runWhisper (constSpeechRecognizer me, constSound so
 	trace (U"Sampling strategy = ", samplingStrategy == WHISPER_SAMPLING_GREEDY ? U"greedy" : U"beam search");
 	whisper_full_params params = whisper_full_default_params (samplingStrategy);
 	params. token_timestamps = true;   // must be true to use t0 and t1 (non-DTW) token timestamps
-	params. n_threads = (int32_t) MelderThread_getMaximumNumberOfConcurrentThreads ();
+	params. n_threads = static_cast<int32_t> (n_threads);
 
 	if (useVad) {
 		params. vad = true;   // enable Silero VAD (Voice Activity Detection used to chop away the silences)
@@ -731,16 +743,29 @@ autovector <autovector <SpeechSegment>> doDiarization (constSound sound,
 	//TRACE
 	autovector <float> samples32 = resampleForWhisper (sound);
 	try {
+		/*
+			Default maximum number of threads for diarization is half the number of logical processors. This is because:
+			1. hyperthreaded CPUs: half = physical cores, optimal for SIMD kernels.
+			2. hybrid P+E core CPUs: not tested yet; chosen by analogy with transcription.
+			3. homogeneous non-hyperthreaded CPUs: not tested yet; half is likely below optimal but the slowdown is probably
+			   smaller than the slowdown in case 1.
+			The user can override this in Praat preferences.
+		*/
+		integer n_threads = SpeechRecognizer_getMaxNumberOfThreadsForDiarization ();
+		if (n_threads <= 0)
+			n_threads = MelderThread_getNumberOfProcessors () / 2;
+
 		supressGgmlLogging ();
 		autoDiarizeContext diarizeContext = diarize_init_from_memory (
 			model_ggml_segmentation_data, model_ggml_segmentation_length,
 			model_ggml_embedding_data, model_ggml_embedding_length
 			);
-		diarize_params diarizeParams = diarize_default_params ();
-		diarizeParams. max_simultaneous_speakers = allowSpeakersOverlap ? INT12_MAX : 1;
+		diarize_full_params diarizeParams = diarize_default_params ();
+		diarizeParams. n_threads = static_cast<int> (n_threads);
 		diarizeParams. num_speakers = static_cast <int> (numSpeakers);
 		diarizeParams. max_speakers = static_cast <int> (maxSpeakers);
 		diarizeParams. min_speakers = static_cast <int> (minSpeakers);
+		diarizeParams. max_simultaneous_speakers = allowSpeakersOverlap ? INT12_MAX : 1;
 		diarizeParams. cluster_threshold = static_cast <float> (clusterThreshold);
 		diarizeParams. seg_step_ratio = static_cast <float> (segmentationStep);
 		diarize_full (diarizeContext.get(), diarizeParams,samples32.asArgumentToFunctionThatExpectsZeroBasedArray(),
@@ -863,6 +888,35 @@ constSTRVEC theSpeechRecognizerLanguageNames () {
 		}
 	}
 	return sortedWhisperLanguageNames.get();
+}
+
+/*
+	Preferences.
+*/
+static struct {
+	integer maxNumberOfThreadsForTranscription = 0;   // "0" signals automatic (MelderThread_getNumberOfProcessors () / 2)
+	integer maxNumberOfThreadsForDiarization = 0;   // "0" signals automatic (MelderThread_getNumberOfProcessors () / 2)
+} preferences;
+
+void SpeechRecognizer_preferences () {
+	Preferences_addInteger (U"SpeechRecognizer.maxNumberOfThreadsForTranscription",
+		& preferences. maxNumberOfThreadsForTranscription, 0);
+	Preferences_addInteger (U"SpeechRecognizer.maxNumberOfThreadsForDiarization",
+			& preferences. maxNumberOfThreadsForDiarization, 0);
+}
+
+void SpeechRecognizer_setMaxNumberOfThreadsForTranscription (integer numberOfThreads) {
+	preferences. maxNumberOfThreadsForTranscription = numberOfThreads;
+}
+void SpeechRecognizer_setMaxNumberOfThreadsForDiarization (integer numberOfThreads) {
+	preferences. maxNumberOfThreadsForDiarization = numberOfThreads;
+}
+
+integer SpeechRecognizer_getMaxNumberOfThreadsForTranscription () {
+	return preferences. maxNumberOfThreadsForTranscription;
+}
+integer SpeechRecognizer_getMaxNumberOfThreadsForDiarization () {
+	return preferences. maxNumberOfThreadsForDiarization;
 }
 
 /* End of file SpeechRecognizer.cpp */

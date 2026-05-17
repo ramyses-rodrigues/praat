@@ -177,5 +177,16 @@ autovector <autovector <SpeechSegment>> doDiarization (constSound sound,
 	double clusterThreshold, double segmentationStep,
 	conststring32 nonSpeechLabel, conststring32 speechLabel);
 
+/*
+	Preferences for AI settings (maximum number of threads for transcription & diarization).
+*/
+void SpeechRecognizer_preferences ();
+
+void SpeechRecognizer_setMaxNumberOfThreadsForTranscription (integer numberOfThreads);
+void SpeechRecognizer_setMaxNumberOfThreadsForDiarization (integer numberOfThreads);
+
+integer SpeechRecognizer_getMaxNumberOfThreadsForTranscription ();
+integer SpeechRecognizer_getMaxNumberOfThreadsForDiarization ();
+
 /* End of file SpeechRecognizer.h */
 #endif
