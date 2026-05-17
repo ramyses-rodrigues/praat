@@ -1,7 +1,5 @@
 # Makefile of the library "kar"
-# Paul Boersma, 26 April 2024
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 OBJECTS = ipaSerifRegularPS.o longchar.o wctype_portable.o
 

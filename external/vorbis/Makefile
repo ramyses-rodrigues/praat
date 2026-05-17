@@ -1,7 +1,5 @@
 # Makefile of the library "external/vorbis"
-# David Weenink, 21 December 2020
-
-include ../../makefile.defs
+# David Weenink, 16 May 2026
 
 CPPFLAGS = -I ../../melder
 

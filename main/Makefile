@@ -1,7 +1,5 @@
-# Makefile of the 'main' routines.
-# Paul Boersma, 24 September 2024
-
-include ../makefile.defs
+# Makefile of the library "main"
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../fon
 
