@@ -16,7 +16,7 @@ Sound: To TextGrid (speech activity, Silero)...
 <p>The Silero VAD model is loaded from data compiled into Praat, so no external model files are required. The sound is internally resampled to 16 kHz before being processed by the model.</p>
 <h2>Settings</h2>
 <dl>
-<dt><b>Speech probability threshold (0 - 1)</b>
+<dt><b>Speech probability threshold (0-1)</b>
 <dd>determines the sensitivity of the speech detector. Higher values make the detector less sensitive, meaning that it requires stronger evidence of speech to mark a segment as speech. This reduces false positives (non-speech incorrectly labelled as speech), but may cause some speech to be missed. Lower values make the detector more sensitive. A default of 0.5 works well for most use cases.</dd>
 <dt><b>Min. non-speech interval (s)</b>
 <dd>determines the minimum duration for a gap between speech intervals to be considered non-speech. Shorter gaps will be merged with the surrounding speech. If you find that brief pauses (such as plosive closures) are splitting speech intervals and you don't want this to happen, increase this value.</dd>
