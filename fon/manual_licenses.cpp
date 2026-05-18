@@ -35,13 +35,14 @@ The following people contributed source code to Praat:
 	@@Intro 7. Annotation|annotation@, @@Intro 8. Manipulation|speech manipulation@, @@voice|voice report@,
 	@@ExperimentMFC|listening experiments@,
 	@@articulatory synthesis@, @@OT learning|optimality-theoretic learning@,
-	tables, @formulas, @scripting, and adaptation of PortAudio, GLPK, regular expressions, eSpeak, Opus and LAME.
+	tables, @formulas, @scripting, and adaptation of PortAudio, GLPK, @@regular expressions@, @eSpeak, Opus and LAME.
 , David Weenink:
 	@@feedforward neural networks@, @@principal component analysis@, @@multidimensional scaling@, @@discriminant analysis@, @LPC,
 	@@KlattGrid|Acoustic synthesis (Klatt)@, automatic alignment, @VowelEditor, @FormantPath,
-	and adaptation of GSL, LAPACK, fftpack, regular expressions, eSpeak, Ogg Vorbis, Opus and LAME.
-, Anastasia Shchupak: automatic speech recognition with word-level timestamps, automatic speaker diarization,
-	and adaptation of whisper.cpp, Silero VAD and pyannote.audio.
+	and adaptation of GSL, @LAPACK, fftpack, regular expressions, @eSpeak, Ogg Vorbis, Opus and LAME.
+, Anastasia Shchupak: @@TextGrid & Sound: Transcribe interval...|automatic speech recognition with word-level timestamps@,
+	automatic speaker diarization,
+	and adaptation of @@whisper.cpp@, @@Silero VAD@ and pyannote.audio.
 , Erez Volk: adaptation of FLAC and MAD.
 , Stefan de Konink and Franz Brauße: major help in port to GTK.
 , Tom Naughton: major help in port to Cocoa.
@@ -57,7 +58,7 @@ We included the following freely available software libraries in Praat (sometime
 	contains AMD software by the same author (@@GNU Lesser General Public License, version 2.1|LGPL 2.1@ or later).
 , PortAudio: Portable Audio Library by Ross Bencina, Phil Burk, Bjorn Roche, Dominic Mazzoni, Darren Gibbs,
 	version 19.7.0 of April 2021 (CC-BY-like license).
-, eSpeak(-NG): text-to-speech synthesizer by Jonathan Duddington and Reece Dunn,
+, @eSpeak(-NG): text-to-speech synthesizer by Jonathan Duddington and Reece Dunn,
 	development version 1.52 of August 2023, with language and voice data of 2024-08-24T19:38Z (@@General Public License, version 3|GPL 3@ or later).
 , MAD: MPEG Audio Decoder by Underbit Technologies (@@General Public License, version 2|GPL 2@ or later).
 , LAME: MP3 encoding by Mike Cheng, Mark Taylor, Takehiro Tominaga, Robert Hegemann, Gabriel Bouvigne, Alexander Leidinger,
@@ -74,13 +75,13 @@ We included the following freely available software libraries in Praat (sometime
 , @LAPACK: public-domain numeric algorithms by Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
 	Courant Institute, Argonne National Lab, and Rice University,
 	C edition by Peng Du, Keith Seymour and Julie Langdou, version 3.2.1 of June 2009.
-, Regular expressions by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (@@General Public License, version 2|GPL 2@ or later).
+, @@Regular expressions@ by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (@@General Public License, version 2|GPL 2@ or later).
 , Unicode Character Database by Unicode Inc., version 16.0 of August 2024 (@@Unicode Inc. license agreement@).
 , Quickselect and Median of ninthers, by Andrei Alexandrescu 2016 (@@Boost Software License 1.0@).
 , ggml: tensor library for machine learning by Georgi Gerganov and many others, version 0.9.7 (@@ggml and whisper.cpp MIT License|ggml MIT License@)
-, whisper.cpp: automatic speech recognition, by Georgi Gerganov and many others, version 1.8.3 (@@ggml and whisper.cpp MIT License|whisper.cpp MIT License@),
+, @@whisper.cpp@: automatic speech recognition, by Georgi Gerganov and many others, version 1.8.3 (@@ggml and whisper.cpp MIT License|whisper.cpp MIT License@),
 	using separately installed Whisper models by OpenAI (@@Whisper OpenAI MIT License@).
-, Silero VAD: speech activity detection model by Silero Team, version 6.2.0 of November 2025 (@@Silero VAD MIT License@).
+, @@Silero VAD@: speech activity detection model by Silero Team, version 6.2.0 of November 2025 (@@Silero VAD MIT License@).
 , pyannote.audio: automatic speaker diarization toolkit by Hervé Bredin, version 4.0.4 of February 2026 (@@pyannote.audio MIT License@).
 , WeSpeaker: speaker embedding learning toolkit by WeNet Community, version 1.2.0 of July 2023 (@@WeSpeaker Apache License 2.0@),
     using speaker embedding model trained on VoxCeleb2 speaker recognition dataset by Joon Son Chung, Arsha Nagrani
