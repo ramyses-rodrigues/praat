@@ -110,7 +110,7 @@ to skip non-speech parts of the audio, which improves both speed and accuracy.
 The result is a flat text string containing the full transcription.
 
 ################################################################################
-"TextGrid & Sound: Transcribe interval"
+"TextGrid & Sound: Transcribe interval..."
 © Anastasia Shchupak 2026-03-15
 
 Transcribes the audio in a specific interval of the selected @@TextGrid@ using the @@whisper.cpp@ engine,
