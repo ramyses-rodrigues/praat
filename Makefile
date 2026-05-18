@@ -60,6 +60,12 @@
 #   will override the environment variable.
 #
 ##########################
+#
+# PRAAT_CHROME=1
+#
+# Add this in case you want to compile for Linux on a Chromebook (gives extra window titles).
+#
+##########################
 
 ifeq ($(OS),Windows_NT)
   OPERATING_SYSTEM := Windows
@@ -68,7 +74,7 @@ else
   ifeq ($(OPERATING_SYSTEM),Linux)
     OPTIONAL_RASPBERRY_PI_MODEL := $(shell cat /proc/device-tree/model 2>/dev/null)
     ifeq ($(findstring Raspberry Pi,$(OPTIONAL_RASPBERRY_PI_MODEL)),Raspberry Pi)
-      WE_HAVE_RPI := 1
+      WE_HAVE_RASPBERRY_PI := 1
     endif
   endif
 endif
@@ -82,6 +88,8 @@ else ifeq ($(PRAAT_ARCH),x64v3)
   ARCH_COMPILER_FLAGS = -march=x86-64-v3
 else ifeq ($(PRAAT_ARCH),i686)
   ARCH_COMPILER_FLAGS = -march=i686
+else ifeq ($(PRAAT_ARCH),s390x)
+  ARCH_COMPILER_FLAGS = -march=arch11 -mtune=arch13
 else ifeq ($(PRAAT_ARCH),native)
   ARCH_COMPILER_FLAGS = -march=native
 else
@@ -339,21 +347,21 @@ else
   MAIN_ICON := main/praat_win.o
 endif
 else ifeq ($(OPERATING_SYSTEM),Linux)
-  CC = gcc
-  CXX = g++
-  LINKER_COMMAND = $(CXX)
 
   PKG_CONFIG ?= pkg-config
 
   ifeq ($(PRAAT_GRAPHICS),barren)
-    GRAPHICS_COMPILER_FLAGS :=
+    GRAPHICS_COMPILER_FLAGS := -DNO_GRAPHICS
     GRAPHICS_LINKER_FLAGS :=
+    EXECUTABLE_FILE = praat_barren
   else ifeq ($(PRAAT_GRAPHICS),nogui)
-    GRAPHICS_COMPILER_FLAGS := `$(PKG_CONFIG) --cflags pangocairo`
+    GRAPHICS_COMPILER_FLAGS := -DNO_GUI `$(PKG_CONFIG) --cflags pangocairo`
     GRAPHICS_LINKER_FLAGS := `$(PKG_CONFIG) --libs pangocairo`
+    EXECUTABLE_FILE = praat_nogui
   else
     GRAPHICS_COMPILER_FLAGS := `$(PKG_CONFIG) --cflags gtk+-3.0`
     GRAPHICS_LINKER_FLAGS := `$(PKG_CONFIG) --libs gtk+-3.0`
+    EXECUTABLE_FILE = praat
   endif
 
   ifeq ($(PRAAT_AUDIO),none)
@@ -383,21 +391,41 @@ else ifeq ($(OPERATING_SYSTEM),Linux)
     $(ARCH_COMPILER_FLAGS) \
     $(GRAPHICS_COMPILER_FLAGS) $(AUDIO_COMPILER_FLAGS) \
     -Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O3 -g1 -pthread
+  ifeq ($(PRAAT_FOR_CHROME),1)
+    SHARED_COMPILER_FLAGS += -Dchrome
+  endif
 
   CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=missing-prototypes -Werror=implicit
 
   CXXFLAGS := -std=c++17 $(SHARED_COMPILER_FLAGS) -Wshadow
 
-  EXECUTABLE_FILE = praat
-
-  ifeq ($(WE_HAVE_RASPBERRY_PI),1)
-    # The static library /usr/lib/gcc/arm-linux-gnueabihf/8/libstdc++fs.a is needed with GCC 8,
-    # and can be removed when using GCC 9
-    NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) \
-      -static-libgcc -static-libstdc++ -lpthread -latomic -ldl -lstdc++fs
+  ifeq ($(PRAAT_COMPILER),clang)
+    CC := clang
+    CXX := clang
+    LINKER_COMMAND := clang
+    CXXFLAGS += -stdlib=libc++
+    NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lc++ -lm $(AUDIO_LINKER_FLAGS) -lpthread
   else
-    NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) -lpthread
-      # perhaps -static -static-libgcc -static-libstdc++ -lpthread -L /usr/lib/x86_64-linux-gnu?
+    CC := gcc
+    CXX := g++
+    LINKER_COMMAND := g++
+    ifeq ($(WE_HAVE_RASPBERRY_PI),1)
+      # The static library /usr/lib/gcc/arm-linux-gnueabihf/8/libstdc++fs.a is needed with GCC 8,
+      # and can be removed when using GCC 9
+      NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) \
+        -static-libgcc -static-libstdc++ -lpthread -latomic -ldl -lstdc++fs
+    else ifeq ($(PRAAT_FOR_CHROME),1)
+      NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) \
+        -static-libgcc -static-libstdc++ -lpthread -L /usr/lib/x86_64-linux-gnu
+    else ifeq ($(PRAAT_GRAPHICS),barrenXXX)
+      NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) \
+        -static-libgcc -static-libstdc++ -lpthread -L /usr/lib/x86_64-linux-gnu
+    else ifeq ($(PRAAT_GRAPHICS),noguiXXX)
+      NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) \
+        -static-libgcc -static-libstdc++ -lpthread
+    else
+      NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -no-pie -lm $(AUDIO_LINKER_FLAGS) -lpthread
+    endif
   endif
 
   AR = ar
