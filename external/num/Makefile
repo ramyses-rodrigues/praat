@@ -1,7 +1,5 @@
 # Makefile of the library "external/num"
-# Paul Boersma, 8 July 2025
-
-include ../../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../../melder
 

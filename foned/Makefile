@@ -1,7 +1,5 @@
 # Makefile of the library "foned"
-# Paul Boersma, 3 August 2022
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../LPC -I ../fon -I ../external/portaudio -I ../external/flac -I ../external/mp3 -I ../external/espeak
 

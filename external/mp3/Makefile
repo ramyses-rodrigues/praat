@@ -1,8 +1,5 @@
 # Makefile of the library "external/mp3"
-# Erez Volk, 24 May 2007
-# Paul Boersma, 24 August 2013
-
-include ../../makefile.defs
+# Erez Volk and Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../../melder
 

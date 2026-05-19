@@ -29,6 +29,12 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.66# (18 May 2026)
+• Much faster automatic transcription on Windows and Linux.
+• Standalone diarization.
+• Corrected a crash in sorting an Eigen object (could affect discriminant analysis).
+• Removed a bug introduced in 6.4.52 by which running a log script in the Sound window would stop any pending pause window.
+
 ##6.4.65# (24 April 2026)
 • Fixed a bug that could lead to a “Text is not valid UTF-8” error message in automatic transcription.
 • More windows recognize Command-Q (##Quit Praat#).

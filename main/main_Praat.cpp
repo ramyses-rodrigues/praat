@@ -56,20 +56,20 @@ static void logo (Graphics graphics) {
 		#elif defined (_WIN32)
 			isArm64 ? U"ARM64 Windows" :
 			sizeof (void *) == 4 ? U"Intel32 Windows" :
-			x64_version == 3 ? U"x64-v3 Windows" :
-			U"x64 Windows";
+			x64_version == 3 ? U"x64(v3) Windows" :
+			U"x64(v1) Windows";
 		#elif defined (__s390x__)
 			U"s390x Linux";
 		#elif defined (raspberrypi)
 			U"ARMV7 Raspberry Pi";
 		#elif defined (chrome)
 			isArm64 ? U"ARM64 Chromebook" :
-			x64_version == 3 ? U"x64-v3 Chromebook" :
-			U"x64 Chromebook";
+			x64_version == 3 ? U"x64(v3) Chromebook" :
+			U"x64(v1) Chromebook";
 		#elif defined (linux)
 			isArm64 ? U"ARM64 Linux" :
-			x64_version == 3 ? U"x86_64-v3 Linux" :
-			U"x86_64 Linux";
+			x64_version == 3 ? U"x64(v3) Linux" :
+			U"x64(v1) Linux";
 		#else
 			U"";
 			#error Unknown OS type.

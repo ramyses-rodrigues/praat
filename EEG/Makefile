@@ -1,7 +1,5 @@
 # Makefile of the library "EEG"
-# Paul Boersma, 27 July 2022
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../fon -I ../foned
 

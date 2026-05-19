@@ -1,7 +1,5 @@
-# Makefile of the library "external/opus"
-# David Weenink, 29 December 2020
-
-include ../../makefile.defs
+# Makefile of the library "external/opusfile"
+# David Weenink, 16 May 2026
 
 CPPFLAGS = -I ../../melder -I ../vorbis -I opus -I opus/celt -I opus/silk -I opus/silk/float
 

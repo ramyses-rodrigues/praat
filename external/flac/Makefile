@@ -1,8 +1,5 @@
 # Makefile of the library "external/flac"
-# Erez Volk, March 2007
-# Paul Boersma, 21 June 2025
-
-include ../../makefile.defs
+# Erez Volk and Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../../melder
 

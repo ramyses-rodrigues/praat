@@ -1,7 +1,5 @@
 # Makefile of the library "stat"
-# Paul Boersma, 6 June 2022
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../dwtools -I ../fon -I ../foned -I ../stat
 

@@ -1,7 +1,5 @@
-# Makefile for library "external/glpk"
-# Paul Boersma, 24 August 2013
-
-include ../../makefile.defs
+# Makefile of the library "external/glpk"
+# Paul Boersma, 16 May 2026
 
 OBJECTS = amd_1.o amd_2.o amd_aat.o amd_control.o amd_defaults.o amd_info.o \
    amd_order.o amd_post_tree.o amd_postorder.o amd_preprocess.o amd_valid.o \

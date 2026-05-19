@@ -1,7 +1,5 @@
 # Makefile of the library "artsynth"
-# Paul Boersma, 10 August 2018
-
-include ../makefile.defs
+# Paul Boersma, 16 May 2026
 
 CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../fon -I ../stat
 
