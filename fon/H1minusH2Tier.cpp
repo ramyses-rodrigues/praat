@@ -64,14 +64,14 @@ static double Sound_getHarmonicStrength (Sound me, double tmin, double tmax, int
 	}
 	return sqr (double (re)) + sqr (double (im));
 }
-autoH1minusH2Tier PointProcess_Sound_to_H1minusH2Tier (PointProcess me, Sound you, double tmin, double tmax,
+autoH1minusH2Tier PointProcess_Sound_to_H1minusH2Tier_u (PointProcess me, Sound you, double tmin, double tmax,
 	double pmin, double pmax, double maximumPeriodFactor)
 {
 	try {
 		Function_unidirectionalAutowindow (me, & tmin, & tmax);
 		const MelderIntegerRange peaks = PointProcess_getWindowPoints (me, tmin, tmax);
-		if (peaks.size() < 3)
-			Melder_throw (U"Too few pulses between ", tmin, U" and ", tmax, U" seconds.");
+		//if (peaks.size() < 3)
+		//	Melder_throw (U"Too few pulses between ", tmin, U" and ", tmax, U" seconds.");
 		autoH1minusH2Tier him = H1minusH2Tier_create (tmin, tmax);
 		for (integer i = peaks.first + 1; i <= peaks.last; i ++) {
 			const double period = my t [i] - my t [i - 1];
