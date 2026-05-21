@@ -78,7 +78,7 @@ static void logo (Graphics graphics) {
 	Graphics_setColour (graphics, Melder_BLACK);
 	Graphics_setFont (graphics, kGraphics_font::HELVETICA);
 	Graphics_setFontSize (graphics, 10.0);
-	Graphics_text (graphics, 0.5, 0.37, Melder_cat (U"Copyright © 1992–", Melder_appYear(), U" by Paul Boersma, David Weenink and Anastasia Shchupak"));
+	Graphics_text (graphics, 0.5, 0.37, Melder_cat (U"Copyright © 1992–", Melder_appYear(), U" Paul Boersma, David Weenink, Anastasia Shchupak"));
 	Graphics_setFontSize (graphics, 10.0);
 	Graphics_setTextAlignment (graphics, Graphics_RIGHT, Graphics_HALF);
 	Graphics_text (graphics, 0.34, 0.28, U"Download sites:");
