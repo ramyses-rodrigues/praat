@@ -2,11 +2,11 @@
 #define _RealTier_h_
 /* RealTier.h
  *
- * Copyright (C) 1992-2005,2007-2012,2015-2018,2020,2021,2023 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2012,2015-2018,2020,2021,2023,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -58,10 +58,10 @@ double RealTier_getValueAtTime (constRealTier me, double t);
 double RealTier_getMinimumValue (constRealTier me);
 double RealTier_getMaximumValue (constRealTier me);
 double RealTier_getArea (constRealTier me, double tmin, double tmax);
-double RealTier_getMean_curve (constRealTier me, double tmin, double tmax);
-double RealTier_getMean_points (constRealTier me, double tmin, double tmax);
-double RealTier_getStandardDeviation_curve (constRealTier me, double tmin, double tmax);
-double RealTier_getStandardDeviation_points (constRealTier me, double tmin, double tmax);
+double RealTier_getMean_curve_u (constRealTier me, double tmin, double tmax);
+double RealTier_getMean_points_u (constRealTier me, double tmin, double tmax);
+double RealTier_getStandardDeviation_curve_u (constRealTier me, double tmin, double tmax);
+double RealTier_getStandardDeviation_points_u (constRealTier me, double tmin, double tmax);
 
 void RealTier_addPoint (RealTier me, double t, double value);
 void RealTier_draw (constRealTier me, Graphics g, double tmin, double tmax,

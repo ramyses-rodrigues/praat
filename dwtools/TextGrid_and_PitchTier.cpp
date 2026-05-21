@@ -1,10 +1,10 @@
 /* TextGrid_and_PitchTier.cpp
  *
- * Copyright (C) 2017-2019 David Weenink
+ * Copyright (C) 2017-2021,2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -182,9 +182,9 @@ static autoPitchTier PitchTier_createAsModifiedPart (PitchTier me, double tmin, 
 			else if (pitchAnchor_status == PITCH_ANCHOR_IS_END)
 				pitchAnchor = i == 1 ? RealTier_getValueAtTime (me, tmax) : pitchAnchor;
 			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MEAN_OF_CURVE)
-				pitchAnchor = i == 1 ? RealTier_getMean_curve (me, tmin, tmax) : pitchAnchor;
+				pitchAnchor = i == 1 ? RealTier_getMean_curve_u (me, tmin, tmax) : pitchAnchor;
 			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MEAN_OF_POINTS)
-				pitchAnchor = i == 1 ? RealTier_getMean_points (me, tmin, tmax) : pitchAnchor;
+				pitchAnchor = i == 1 ? RealTier_getMean_points_u (me, tmin, tmax) : pitchAnchor;
 			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MAXIMUM)
 				pitchAnchor = i == 1 ? RealTier_getMaximumValue_interval (me, tmin, tmax) : pitchAnchor;
 			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MINIMUM)
