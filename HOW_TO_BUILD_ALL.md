@@ -3,24 +3,23 @@
 This page is relevant only if you want to build the complete Praat distribution set,
 i.e. you want to speed up building and testing Praat for all of these editions:
 
-- macOS (one executable for ARM64 and x86_64 processors together)
-- Windows (separate executables for i686, x86_64 and ARM64)
-- Ubuntu/Debian Linux (separate executables for x86_64 and ARM64, both with and without GUI)
-- Fedora Linux (separate executables for x86_64 and ARM64)
-- LinuxOne (for the big-endian s390x processor, both with and without GUI)
-- ChromeBook (separate executables for x86_64 and ARM64)
-- Raspberry Pi (ARMv7a processor)
+- macOS: one executable for ARM64 and x64 processors together;
+- Windows: separate executables for i686, x64(v1), x64(v3) and ARM64;
+- Ubuntu/Debian/Fedora Linux: separate executables for x64(v3) and ARM64, both with and without GUI;
+- LinuxOne: for the big-endian s390x processor, both with and without GUI;
+- ChromeBook: separate executables for x64(v1) and ARM64;
+- Raspberry Pi: ARMv7a processor.
 
-That’s 15 editions. To be able to understand this page, you should be familiar with the ways
+That’s 14 editions. To be able to understand this page, you should be familiar with the ways
 in which the separate editions are built, as described in [HOW_TO_BUILD_ONE.md](HOW_TO_BUILD_ONE.md).
 
-At the time of writing (18 December 2025), we develop 13 of the 15 Praat editions on a single
+At the time of writing (20 May 2026), we develop 11 of the 14 Praat editions on a single
 computer, which is a 2023 M3 Macbook Pro: the Mac edition is built natively with Xcode,
-the three Windows editions and the ARM64 Fedora edition are built via Parallels Desktop 26,
-and the six Linux (Ubuntu) editions and the two Chromebook editions are built via OrbStack.
+the four Windows editions are built via Parallels Desktop 26,
+and the four Linux (Ubuntu) editions and the two Chromebook editions are built via OrbStack.
 The Raspberry Pi edition is built separately (on a Raspberry Pi),
-and the Intel64 Fedora edition is built via Parallels Desktop 20 on a 2018 Intel Macbook Pro.
-We put all 15 editions into a `bin` folder on Dropbox, so that it is easy to test
+and the two s390x editions are built separately on a LinuxONE VM.
+We put all 14 editions into a `bin` folder on Dropbox, so that it is easy to test
 the Windows and Linux editions on other computers.
 
 In the following we assume that you want to create all of those editions as well.
@@ -31,9 +30,9 @@ We hope that our example will be useful to you.
 Your source code folders, such as `fon` and `sys`,
 will reside in a folder like `~/Dropbox/Praats/src`,
 where you also put `praat.xcodeproj`, as described in section 2 of [HOW_TO_BUILD_ONE.md](HOW_TO_BUILD_ONE.md).
-On our 2023 Mac with Xcode 16.3, building Praat with Command-B or Command-R,
+On our 2023 Mac with Xcode 26.4, building Praat with Command-B or Command-R,
 after cleaning the build folder with Shift-Command-K,
-takes only 56 seconds for the ARM64 part and Intel64 part together (optimization level O3).
+takes only 56 seconds for the ARM64 part and x64 part together (optimization level O3).
 
 ## 2. Windows development set-up
 
@@ -62,32 +61,15 @@ add the following definitions into `/home/yourname/.bashrc` (i.e. in your MSYS2 
 so that `bash` will automatically execute them whenever you start your
 MSYS shell or Cygwin terminal (you will need to have installed `rsync` and `make`).
 On our 2023 Mac, the ARM64 edition will be the default,
-but the Intel64/AMD64 and Intel32 versions will also be available.
+but the x64/AMD64 and Intel32 versions will also be available.
 As the same `.bashrc` file is shared among all three editions,
 we use the environment variable `MSYSTEM` to differentiate between the three:
 
     # in MSYS2:~/.bashrc
-    if [[ "$MSYSTEM" == "CLANGARM64" ]]; then
-        BUILD_FOLDER="~/praats-arm64-clang"
-        MAKEFILE_DEFS="makefiles/makefile.defs.msys-clang"
-    elif [[ "$MSYSTEM" == "CLANG64" ]]; then
-        BUILD_FOLDER="~/praats-intel64-clang"
-        MAKEFILE_DEFS="makefiles/makefile.defs.msys-clang"
-    elif [[ "$MSYSTEM" == "CLANG32" ]]; then
-        BUILD_FOLDER="~/praats-intel32-clang"
-        MAKEFILE_DEFS="makefiles/makefile.defs.msys-clang"
-    elif [[ "$MSYSTEM" == "MINGW64" ]]; then
-        BUILD_FOLDER="~/praats-intel64-gcc"
-        MAKEFILE_DEFS="makefiles/makefile.defs.msys-mingw64"
-    elif [[ "$MSYSTEM" == "MINGW32" ]]; then
-        BUILD_FOLDER="~/praats-intel32-gcc"
-        MAKEFILE_DEFS="makefiles/makefile.defs.msys-mingw32"
-    fi
     ORIGINAL_SOURCES="/z/Dropbox/Praats/src"
     EXCLUDES='--exclude="*.xcodeproj" --exclude="Icon*" --exclude=".*" --exclude="*kanweg*"'
     alias praat-build="( cd $BUILD_FOLDER &&\
         rsync -rptvz $ORIGINAL_SOURCES/ $EXCLUDES . &&\
-        cp $MAKEFILE_DEFS ./makefile.defs &&\
         make -j12 )"
     alias praat="$BUILD_FOLDER/Praat.exe"
     alias praat-run="praat-build && praat"
@@ -100,9 +82,9 @@ The cycle from editing Praat on the Mac to running the new version on Windows th
 
 The set-up of the Praat team is cross-compilation: the same Clang compiler running natively on the ARM64
 processor of our 2023 Mac creates the object files for all three Windows editions
-(for linking, which is fast anyway, the three separate ARM64/Intel64/Intel32 linkers are used).
+(for linking, which is fast anyway, the three separate ARM64/x64/Intel32 linkers are used).
 As a result, building from scratch costs 100 seconds for ARM64,
-and only 110 seconds for Intel64/AMD64 (which would be 212 seconds under Intel64/AMD64 emulation)
+and only 110 seconds for x64 (which would be 212 seconds under x64 emulation)
 and 161 seconds for Intel32 (which would be 390 seconds under Intel32 emulation).
 
 ## 3. Linux development set-up
@@ -136,7 +118,6 @@ between `/Users/yourname` and `/home/yourname`):
     EXCLUDES='--exclude="*.xcodeproj" --exclude="Icon*" --exclude=".*" --exclude="*kanweg*"'
     alias praat-build="( cd ~/praats &&\
         rsync -rptvz $ORIGINAL_SOURCES/ $EXCLUDES . &&\
-        cp makefiles/makefile.defs.linux.pulse-clang makefile.defs &&\
         make -j15 )"
     alias praat="~/praats/praat"
     alias praat-run="praat-build && praat"
@@ -158,8 +139,7 @@ To build `praat_barren`, create a folder `praatsb`, and define
     # in Fedora:~/.bashrc.d/bash_aliases
     alias praatb-build="( cd ~/praatsb &&\
         rsync -rptvz $ORIGINAL_SOURCES/ $EXCLUDES . &&\
-        cp makefiles/makefile.defs.linux.barren-clang makefile.defs &&\
-        make -j15 )"
+        make PRAAT_GRAPHICS=barren PRAAT_AUDIO=none -j15 )"
     alias praatb="~/praatsb/praat_barren"
     alias praatb-run="praatb-build && praatb"
 
@@ -175,7 +155,6 @@ create a folder `praatc`, and define
     # in Fedora:~/.bashrc.d/bash_aliases
     alias praatc-build="( cd ~/praatsc &&\
         rsync -rptvz $ORIGINAL_SOURCES/ EXCLUDES . &&\
-        cp makefiles/makefile.defs.chrome64 makefile.defs &&\
         make -j15 )"
     alias praatc="~/praatsc/praat"
     alias praatc-run="praatc-build && praat"
@@ -276,7 +255,6 @@ On the Raspberry Pi, you define
 
     # in RaspberryPi:~/.bash_aliases
     alias praat-build="( cd ~/praats &&\
-        cp makefiles/makefile.defs.linux.rpi makefile.defs &&\
         make -j4 )"
     alias praat="~/praats/praat"
     alias praat-run="praat-build && praat"
@@ -315,12 +293,10 @@ In your LinuxONE VM, you define
 
     # in LinuxONE:~/.bash_profile
     alias praat-build="( cd ~/praats &&\
-        cp makefiles/makefile.defs.linux.s390.pulse makefile.defs &&\
         make -j4 )"
     alias praat="~/praats/praat"
     alias praat-run="praat-build && praat"
     alias praatb-build="( cd ~/praatsb &&\
-        cp makefiles/makefile.defs.linux.s390.barren makefile.defs &&\
         make -j4 )"
     alias praatb="~/praatsb/praat_barren"
     alias praatb-run="praatb-build && praatb"
@@ -368,33 +344,36 @@ You also need to distribute the `.xcodeproj` file, which is actually a folder, s
 
 The Windows executables have to be sent from your Cygwin terminal or MSYS shell to your Mac.
 It is easiest to do this without a version number (so that you have to supply the number only once),
-so you send them to the intermediate Mac folders `~/Dropbox/Praats/bin/win-intel64`
+so you send them to the intermediate Mac folders `~/Dropbox/Praats/bin/win-x64v1`
+and `~/Dropbox/Praats/bin/win-x64v3`
 and `~/Dropbox/Praats/bin/win-intel32` and `~/Dropbox/Praats/bin/win-arm64`.
 On MSYS you can define:
 
     # in MSYS:~/.bashrc
     alias praat-dist="praat-build && rsync -t ~/praats/Praat.exe /z/Dropbox/Praats/bin/win-arm64"
-    alias praat64-dist="praat64-build && rsync -t ~/praats64/Praat.exe /z/Dropbox/Praats/bin/win-intel64"
+    alias praat1-dist="praat1-build && rsync -t ~/praats1/Praat.exe /z/Dropbox/Praats/bin/win-x64v1"
+    alias praat3-dist="praat3-build && rsync -t ~/praats3/Praat.exe /z/Dropbox/Praats/bin/win-x64v3"
     alias praat32-dist="praat32-build && rsync -t ~/praats32/Praat.exe /z/Dropbox/Praats/bin/win-intel32"
 
-so that you can “upload” the two executables to the Mac with
+so that you can “upload” the four executables to the Mac with
 
     # on MSYS command line
     praat-dist
-    praat64-dist
+    praat1-dist
+    praat3-dist
     praat32-dist
 
 The three Linux executables have to be sent from your Ubuntu terminal to your Mac,
-namely to the folder `~/Dropbox/Praats/bin/linux_intel64` or `~/Dropbox/Praats/bin/linux_arm64`
+namely to the folder `~/Dropbox/Praats/bin/linux_x64v3` or `~/Dropbox/Praats/bin/linux_arm64`
 (each of which will contain `praat` and `praat_barren`), and to the folder
-`~/Dropbox/Praats/bin/chrome_intel64` or `~/Dropbox/Praats/bin/chrome_arm64`
+`~/Dropbox/Praats/bin/chrome_x64v1` or `~/Dropbox/Praats/bin/chrome_arm64`
 (which will contain only `praat`).
 On Ubuntu you can define
 
     # in MSYS2 Intel64/AMD64 Ubuntu:~/.bash_aliases
-    alias praat-dist="praat-build && rsync -t ~/praats/praat /Users/yourname/Dropbox/Praats/bin/linux-intel64"
-    alias praatb-dist="praatb-build && rsync -t ~/praatsb/praat_barren /Users/yourname/Dropbox/Praats/bin/linux-intel64"
-    alias praatc-dist="praatc-build && rsync -t ~/praatsc/praat /Users/yourname/Dropbox/Praats/bin/chrome-intel64"
+    alias praat-dist="praat-build && rsync -t ~/praats/praat /Users/yourname/Dropbox/Praats/bin/linux-x64v3"
+    alias praatb-dist="praatb-build && rsync -t ~/praatsb/praat_barren /Users/yourname/Dropbox/Praats/bin/linux-x64v3"
+    alias praatc-dist="praatc-build && rsync -t ~/praatsc/praat /Users/yourname/Dropbox/Praats/bin/chrome-x64v1"
 
     # in MSYS2 ARM64 Ubuntu:~/.bash_aliases
     alias praat-dist="praat-build && rsync -t ~/praats/praat /Users/yourname/Dropbox/Praats/bin/linux-arm64"
@@ -425,21 +404,22 @@ all contain enough new executables (there should be 1, 1, 1, 3, 3, 1, 1 and 1, r
 you can issue the following commands to create the packages and install them in `~/Dropbox/Praats/www`:
 
     # on Mac command line
-    zip $PRAAT_WWW/praat${PRAAT_VERSION}_win-intel64.zip ~/Dropbox/Praats/bin/win-intel64/Praat.exe
+    zip $PRAAT_WWW/praat${PRAAT_VERSION}_win-x64v3.zip ~/Dropbox/Praats/bin/win-x64v3/Praat.exe
+    zip $PRAAT_WWW/praat${PRAAT_VERSION}_win-x64v1.zip ~/Dropbox/Praats/bin/win-x64v1/Praat.exe
     zip $PRAAT_WWW/praat${PRAAT_VERSION}_win-intel32.zip ~/Dropbox/Praats/bin/win-intel32/Praat.exe
     zip $PRAAT_WWW/praat${PRAAT_VERSION}_win-arm64.zip ~/Dropbox/Praats/bin/win-arm64/Praat.exe
-    ( cd ~/Dropbox/Praats/bin/linux-intel64 &&\
-      tar cvf praat${PRAAT_VERSION}_linux-intel64.tar praat &&\
-      gzip praat${PRAAT_VERSION}_linux-intel64.tar &&\
-      mv praat${PRAAT_VERSION}_linux-intel64.tar.gz $PRAAT_WWW )
-    ( cd ~/Dropbox/Praats/bin/linux-intel64 &&\
-      tar cvf praat${PRAAT_VERSION}_linux-intel64-barren.tar praat_barren &&\
-      gzip praat${PRAAT_VERSION}_linux-intel64-barren.tar &&\
-      mv praat${PRAAT_VERSION}_linux-intel64-barren.tar.gz $PRAAT_WWW )
-    ( cd ~/Dropbox/Praats/bin/chrome-intel64 &&\
-      tar cvf praat${PRAAT_VERSION}_chrome-intel64.tar praat &&\
-      gzip praat${PRAAT_VERSION}_chrome-intel64.tar &&\
-      mv praat${PRAAT_VERSION}_chrome-intel64.tar.gz $PRAAT_WWW )
+    ( cd ~/Dropbox/Praats/bin/linux-x64v3 &&\
+      tar cvf praat${PRAAT_VERSION}_linux-x64v3.tar praat &&\
+      gzip praat${PRAAT_VERSION}_linux-x64v3.tar &&\
+      mv praat${PRAAT_VERSION}_linux-x64v3.tar.gz $PRAAT_WWW )
+    ( cd ~/Dropbox/Praats/bin/linux-x64v3 &&\
+      tar cvf praat${PRAAT_VERSION}_linux-x64v3-barren.tar praat_barren &&\
+      gzip praat${PRAAT_VERSION}_linux-x64v3-barren.tar &&\
+      mv praat${PRAAT_VERSION}_linux-x64v3-barren.tar.gz $PRAAT_WWW )
+    ( cd ~/Dropbox/Praats/bin/chrome-x64v1 &&\
+      tar cvf praat${PRAAT_VERSION}_chrome-x64v1.tar praat &&\
+      gzip praat${PRAAT_VERSION}_chrome-x64v1.tar &&\
+      mv praat${PRAAT_VERSION}_chrome-x64v1.tar.gz $PRAAT_WWW )
     ( cd ~/Dropbox/Praats/bin/linux-arm64 &&\
       tar cvf praat${PRAAT_VERSION}_linux-arm64.tar praat &&\
       gzip praat${PRAAT_VERSION}_linux-arm64.tar &&\
