@@ -36,7 +36,7 @@ void H1minusH2Tier_draw (H1minusH2Tier me, Graphics g, double tmin, double tmax,
 autoH1minusH2Tier PointProcess_upto_H1minusH2Tier (PointProcess me, double soundPressure);
 autoH1minusH2Tier RealTier_to_H1minusH2Tier (RealTier me);
 
-autoH1minusH2Tier PointProcess_Sound_to_H1minusH2Tier (PointProcess me, Sound thee,
+autoH1minusH2Tier PointProcess_Sound_to_H1minusH2Tier_u (PointProcess me, Sound thee,
 	double tmin, double tmax, double shortestPeriod, double longestPeriod, double maximumPeriodFactor);
 
 /* End of file H1minusH2Tier.h */

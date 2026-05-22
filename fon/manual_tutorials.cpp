@@ -175,7 +175,7 @@ Answer: see @@Sound: To Formant (burg)...@.
 
 ################################################################################
 "FAQ: How to cite Praat"
-© Paul Boersma 2005,2010,2014,2025
+© Paul Boersma 2005,2010,2014,2025,2026
 
 #Question: how do I cite Praat in my articles?
 
@@ -184,7 +184,7 @@ The style approved by the American Psychological Association,
 and therefore by many journals, is like the following
 (change the dates and version number as needed):
 {-
-	writeInfoLine: “Boersma, Paul & Weenink, David (”, appYear(),
+	writeInfoLine: “Paul Boersma, David Weenink & Anastasia Shchupak (”, appYear(),
 	... “). Praat: doing phonetics by computer [Computer program]. Version ”, appVersion$(),
 	... “, retrieved ”, appDay(), “ ”, appMonth$(), “ ”, appYear(), “ from https://praat.org”
 }

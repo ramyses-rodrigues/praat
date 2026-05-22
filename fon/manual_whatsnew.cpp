@@ -29,6 +29,10 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.67# (21 May 2026)
+• Include Anastasia Shchupak as Praat’s third author.
+• Made the Voice Report give “undefined” H1-minus-H2 values (instead of an error message) if there are zero pulses.
+
 ##6.4.66# (18 May 2026)
 • Much faster automatic transcription on Windows and Linux.
 • Standalone diarization.

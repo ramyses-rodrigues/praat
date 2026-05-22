@@ -48,9 +48,11 @@ While the [Praat website](https://praat.org) contains the latest executable for 
 The meaning of the names of binary files available on GitHub is as follows (editions that currently receive updates are in bold):
 
 ### 1.1. Windows binaries
+- **`praatXXXX_win-x64v3.zip`: zipped executable for Intel64/AMD64(v3) Windows (10 and higher)**
+- **`praatXXXX_win-x64v1.zip`: zipped executable for Intel64/AMD64(v1) Windows (10 and higher)**
 - **`praatXXXX_win-arm64.zip`: zipped executable for ARM64 Windows (11 and higher)**
-- **`praatXXXX_win-intel64.zip`: zipped executable for Intel64/AMD64 Windows (7 and higher)**
-- **`praatXXXX_win-intel32.zip`: zipped executable for Intel32 Windows (7 and higher)**
+- **`praatXXXX_win-intel32.zip`: zipped executable for Intel32 Windows (7 [until 6.4.52] and higher)**
+- `praatXXXX_win-intel64.zip`: zipped executable for Intel64/AMD64(v1) Windows (7 [until 6.4.52] and higher)
 - `praatXXXX_win64.zip`: zipped executable for Intel64/AMD64 Windows (XP and higher, or 7 and higher)
 - `praatXXXX_win32.zip`: zipped executable for Intel32 Windows (XP and higher, or 7 and higher)
 - `praatconXXXX_win64.zip`: zipped executable for Intel64/AMD64 Windows, console edition
@@ -75,12 +77,14 @@ The meaning of the names of binary files available on GitHub is as follows (edit
 - `praatXXXX_mac7.sit`: StuffIt archive with executable for MacOS 7
 
 ### 1.3. Linux binaries
+- **`praatXXXX_linux-x64v3-barren.tar.gz`: gzipped tarred executable for Intel64/AMD64(v3) Linux (Ubuntu, Debian...), without GUI, sound and graphics**
+- **`praatXXXX_linux-x64v3.tar.gz`: gzipped tarred executable for Intel64/AMD64(v3) Linux (Ubuntu, Debian...) (GTK 3)
 - **`praatXXXX_linux-s390x-barren.tar.gz`: gzipped tarred executable for s390x Linux, without GUI, sound and graphics**
 - **`praatXXXX_linux-s390x.tar.gz`: gzipped tarred executable for s390x Linux (GTK 3)**
 - **`praatXXXX_linux-arm64-barren.tar.gz`: gzipped tarred executable for ARM64 Linux (Ubuntu, Debian...), without GUI, sound and graphics**
 - **`praatXXXX_linux-arm64.tar.gz`: gzipped tarred executable for ARM64 Linux (Ubuntu, Debian...) (GTK 3)**
-- **`praatXXXX_linux-intel64-barren.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux (Ubuntu, Debian...), without GUI, sound and graphics**
-- **`praatXXXX_linux-intel64.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux (Ubuntu, Debian...) (GTK 3)**
+- `praatXXXX_linux-intel64-barren.tar.gz`: gzipped tarred executable for Intel64/AMD64(v1) Linux (Ubuntu, Debian...), without GUI, sound and graphics**
+- `praatXXXX_linux-intel64.tar.gz`: gzipped tarred executable for Intel64/AMD64(v1) Linux (Ubuntu, Debian...) (GTK 3)
 - `praatXXXX_linux-arm64-nogui.tar.gz`: gzipped tarred executable for ARM64 Linux, without GUI and sound but with graphics (Cairo and Pango)
 - `praatXXXX_linux-intel64-nogui.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux, without GUI and sound but with graphics (Cairo and Pango)
 - `praatXXXX_linux64barren.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux, without GUI, sound and graphics
@@ -91,8 +95,9 @@ The meaning of the names of binary files available on GitHub is as follows (edit
 - `praatXXXX_linux_motif32.tar.gz`: gzipped tarred executable for Intel32 Linux (Motif)
 
 ### 1.4. Chromebook binaries
+- **`praatXXXX_chrome-x64v1.tar.gz`: gzipped tarred executable for Intel64/AMD64(v1) Linux on Intel64/AMD64 Chromebooks (GTK 3)**
 - **`praatXXXX_chrome-arm64.tar.gz`: gzipped tarred executable for Linux on ARM64 Chromebooks (GTK 3)**
-- **`praatXXXX_chrome-intel64.tar.gz`: gzipped tarred executable for Intel64/AMD64 Linux on Intel64/AMD64 Chromebooks (GTK 3)**
+- `praatXXXX_chrome-intel64.tar.gz`: gzipped tarred executable for Intel64/AMD64(v1) Linux on Intel64/AMD64 Chromebooks (GTK 3)
 - `praatXXXX_chrome64.tar.gz`: gzipped tarred executable for 64-bit Linux on Intel64/AMD64 Chromebooks (GTK 2 or 3)
 
 ### 1.5. Raspberry Pi binaries

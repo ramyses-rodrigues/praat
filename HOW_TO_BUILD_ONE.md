@@ -30,59 +30,57 @@ and of the Praat scripting language is tested as follows:
 
 On Windows, Praat is **built** through the makefiles provided in Praat’s source tree.
 
-One could use Cygwin or MSYS2. As we like to provide not only an Intel64/AMD64 and Intel32 edition,
+One could use Cygwin or MSYS2. As we like to provide not only an x64 and an Intel32 edition,
 but an ARM64 edition as well, and Cygwin has no toolchains for ARM64, we work with MSYS2 instead.
 
-After installing MSYS2, we see that a `mingw64` toolchain (for Praat’s Intel64/AMD64 edition)
-and a `mingw32` toolchain (for Praat’s Intel32 edition) are already available.
+After installing MSYS2, we see that a `mingw64` toolchain (*could* be used for Praat’s x64 edition)
+and a `mingw32` toolchain (*is* used for Praat’s Intel32 edition) are already available.
 Make sure you have installed at least `make`, `gcc`, `g++` and `pkg-config` to make those work.
 To also install a `clangarm64` toolchain (for Praat’s ARM64 edition),
 run `clangarm64.exe` to get a `clangarm64` shell. In that shell, run `pacman -Syu` to update and
 `pacman -S mingw-w64-clang-aarch64-clang` to install the build tools package.
 In the same way you can create a `clang64` toolchain and a `clang32` toolchain
-(`pacman -S mingw-w64-clang-x86_64-clang` and `pacman -S mingw-w64-i686-clang`),
-which are good alternatives to `mingw64` and `mingw32`;
-in 2025, MSYS2 ended support for Intel32, so you may have to use `mingw32` for that,
-unless you have an old Intel32 toolchain lying around.
+(`pacman -S mingw-w64-clang-x86_64-clang`),
+which is a good alternative to `mingw64`
+(in 2025, MSYS2 ended support for Intel32, so you can only use `mingw32` for that).
 
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
 perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,
-`/home/yourname/praats-intel64` and `/home/yourname/praats-intel32`;
+`/home/yourname/praats-x64` and `/home/yourname/praats-intel32`;
 the folders `fon` and `sys` should be visible within each of these folders.
 
 If you now want to build Praat’s ARM64 edition, start the shell `clangarm64` and type
 
-    cd ~/praats-arm64
-    cp makefiles/makefile.defs.msys-clang ./makefile.defs
     make -j12
 
-If you want to build Praat’s Intel64/AMD64 edition, start the shell `clang64` and type
+If you want to build Praat’s x64(v3) or x64(v1) editions, start the shell `clang64` and type
 
-    cd ~/praats-intel64
-    cp makefiles/makefile.defs.msys-clang ./makefile.defs
-    make -j12
+    make PRAAT_ARCH=x64v3 -j12
 
-or start the shell `mingw64` and type
+or
 
-    cd ~/praats-intel64
-    cp makefiles/makefile.defs.msys-mingw64 ./makefile.defs
-    make -j12
+    make PRAAT_ARCH=x64v1 -j12
 
-If you want to build Praat’s Intel32 edition, start the shell `clang32` and type
+respectively (you can also try this in the shell `mingw64`).
 
-    cd ~/praats-intel32
-    cp makefiles/makefile.defs.msys-clang ./makefile.defs
-    make -j12
+If you want to build Praat’s Intel32 edition, start the shell `mingw32` and type
 
-or start the shell `mingw32` and type
-
-    cd ~/praats-intel32
-    cp makefiles/makefile.defs.msys-mingw32 ./makefile.defs
     make -j12
 
 (With Cygwin, you would install the Devel package `mingw64-x86_64-gcc-g++`
-for Praat’s Intel64/AMD64 edition and `mingw64-i686-gcc-g++` for Praat’s Intel32 edition,
+for Praat’s x64 edition and `mingw64-i686-gcc-g++` for Praat’s Intel32 edition,
 plus perhaps `make` and `pkg-config` if you dont’t have those yet.)
+
+If you want to compile Praat with optimal settings for *your* computer, then often
+
+    make PRAAT_ARCH=native -j12
+
+will work (though e.g. `clang64` will assume that `native` means some x64 version,
+even if your computer is an ARM64 computer). You can also just set
+
+    export PRAAT_ARCH=native
+
+in you `.bashrc` file or so. See the `Makefile` for details.
 
 **Code-signing.** From version 6.4.25 on, we have signed the three Praat executables
 with an “open-source code-signing certificate” (by Certum)
@@ -201,31 +199,28 @@ On Centos you would do something like:
     sudo dnf install alsa-lib-devel
     sudo dnf install pipewire-jack-audio-connection-kit-devel
 
-To set up your source tree for Linux, go to Praat's sources directory (where the folders `fon` and `sys` are)
-and type one of the four following commands:
+To build the Praat executable, go to Praat's sources directory (where the folders `fon` and `sys` are)
+and type one of the following commands:
 
-    # on Ubuntu or Fedora command line (Intel64/AMD64 or ARM64 processor)
+    # on Ubuntu or Fedora command line (x64 or ARM64 processor)
+    # or on Centos command line (x64 or ARM64 processor)
     # either:
-        cp makefiles/makefile.defs.linux.pulse-clang ./makefile.defs
+        make PRAAT_ARCH=x64v3 PRAAT_COMPILER=gcc -j12
     # or:
-        cp makefiles/makefile.defs.linux.pulse-gcc ./makefile.defs
+        make PRAAT_ARCH=x64v3 PRAAT_COMPILER=clang -j12
 
-    # on Centos command line (Intel64/AMD64 or ARM64 processor)
-    cp makefiles/makefile.defs.linux.pulse-gcc ./makefile.defs
+    # on Ubuntu or Fedora command line (ARM64 processor)
+    # or on Centos command line (ARM64 processor)
+    # or on Chromebook command line (x64v1 or ARM64 processor)
+	make -j12
 
-    # on Ubuntu command line (s390x processor)
-    cp makefiles/makefile.defs.linux.s390x.pulse ./makefile.defs
+    # on Raspberry Pi command line (ARMv7 processor)
+    # or on Ubuntu command line (s390x processor)
+    make -j4
 
-    # on Chromebook command line
-    cp makefiles/makefile.defs.chrome64 ./makefile.defs
-
-    # on Raspberry Pi command line
-    cp makefiles/makefile.defs.linux.rpi ./makefile.defs
-    
     # on FreeBSD command line
-    cp makefiles/makefile.defs.freebsd.alsa ./makefile.defs
+    make PRAAT_OS=freebsd -j12
 
-To build the Praat executable, type `make -j15` or so.
 If your Unix isn’t Linux, you may have to edit the library names in the makefile
 (you may need pthread, gtk-3, gdk-3, atk-1.0, pangoft2-1.0, gdk_pixbuf-2.0, m, pangocairo-1.0,
 cairo-gobject, cairo, gio-2.0, pango-1.0, freetype, fontconfig, gobject-2.0, gmodule-2.0, 
@@ -234,8 +229,8 @@ gthread-2.0, rt, glib-2.0, asound, jack).
 When compiling Praat on an external supercomputer or so, you will not have sound.
 If you do have `libgtk-3-dev` or `gtk3-devel` (and its dependencies), do
 
-    # on Ubuntu or Fedora command line (Intel64/AMD64 or ARM64 processor)
-    cp makefiles/makefile.defs.linux.silent ./makefile.defs
+    # on Ubuntu or Fedora command line (x64 or ARM64 processor)
+    make PRAAT_AUDIO=none -j12
 
 Then type `make -j12` or so to build the program. If your Unix isn’t Linux,
 you may have to edit the library names in the makefile (you may need pthread, gtk-3, gdk-3, atk-1.0,
@@ -243,24 +238,24 @@ pangoft2-1.0, gdk_pixbuf-2.0, m, pangocairo-1.0, cairo-gobject, cairo, gio-2.0, 
 freetype, fontconfig, gobject-2.0, gmodule-2.0, gthread-2.0, rt, glib-2.0).
 
 When compiling Praat for use as a server for commands from your web pages,
-you may not need sound, a GUI, amd graphics. In that case, do
+you may not need sound, a GUI, and graphics. In that case, do
 
-    # on Ubuntu or Fedora command line (Intel64/AMD64 or ARM64 processor)
+    # on Ubuntu or Fedora command line (x64 or ARM64 processor)
     # either:
-        cp makefiles/makefile.defs.linux.barren-clang ./makefile.defs
+        make PRAAT_GRAPHICS=barren PRAAT_AUDIO=none -j12
     # or:
-        cp makefiles/makefile.defs.linux.barren-gcc ./makefile.defs
+        make PRAAT_GRAPHICS=barren PRAAT_AUDIO=none PRAAT_COMPILER=none -j12
 
     # on Ubuntu command line (s390x processor)
-    cp makefiles/makefile.defs.linux.s390x.barren ./makefile.defs
+    make PRAAT_GRAPHICS=barren PRAAT_AUDIO=none -j4
 
-which creates the executable `praat_barren`. Then type `make` or `make -j15` to build the program.
+which creates the executable `praat_barren`.
 If your Unix isn’t Linux, you may have to edit the library names in the makefile.
 
-The above works exactly the same for Intel64/AMD64 and ARM64 processors, with the same makefiles.
+The above works exactly the same for x64 and ARM64 processors, with the same Makefile.
 
 **Testing** on multiple platform versions can be done with virtual machines.
-On an Intel64 Mac with Parallels Desktop 20, we test with virtual machines for
+On an x64 Mac with Parallels Desktop 20, we test with virtual machines for
 e.g. Ubuntu 20.04, Ubuntu 22.04, Fedora 38, Mint 20.2,
 Debian GNU Linux 10.10, Debian GNU Linux 12, CentOS 8.4, and CentOS Stream 9.
 On an ARM64 Mac with Parallels Desktop 26, we test with virtual machines for
