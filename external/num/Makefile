@@ -1,7 +1,7 @@
 # Makefile of the library "external/num"
-# Paul Boersma, 16 May 2026
+# Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../../melder
+CPPFLAGS += -I ../../melder
 
 OBJECTS = median_of_ninthers.o
 

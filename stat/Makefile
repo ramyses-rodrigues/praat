@@ -1,7 +1,7 @@
 # Makefile of the library "stat"
-# Paul Boersma, 16 May 2026
+# Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../dwtools -I ../fon -I ../foned -I ../stat
+CPPFLAGS += -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../dwtools -I ../fon -I ../foned -I ../stat
 
 OBJECTS = Table.o TableEditor.o Regression.o manual_statistics.o \
    praat_TableOfReal.o praat_Stat.o \

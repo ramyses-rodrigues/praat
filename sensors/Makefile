@@ -1,7 +1,7 @@
 # makefile for library "sensors"
-# David Weenink, 16 May 2026
+# David Weenink, 23 May 2026
 
-CPPFLAGS = -I ../melder -I ../stat -I ../sys -I ../fon -I ../external/gsl -I ../external/clapack -I ../kar -I ../dwtools
+CPPFLAGS += -I ../melder -I ../stat -I ../sys -I ../fon -I ../external/gsl -I ../external/clapack -I ../kar -I ../dwtools
 
 OBJECTS = Electroglottogram.o EMA.o EMArawData.o praat_sensors_init.o
 

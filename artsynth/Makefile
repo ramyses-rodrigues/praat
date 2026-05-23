@@ -1,7 +1,7 @@
 # Makefile of the library "artsynth"
-# Paul Boersma, 16 May 2026
+# Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../fon -I ../stat
+CPPFLAGS += -I ../kar -I ../melder -I ../sys -I ../fon -I ../stat
 
 OBJECTS = Speaker.o Articulation.o Artword.o \
      Art_Speaker.o Art_Speaker_to_VocalTract.o Artword_Speaker.o Artword_Speaker_Sound.o \

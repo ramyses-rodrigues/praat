@@ -1,7 +1,7 @@
 # Makefile of the library "melder"
-# Paul Boersma, 16 May 2026
+# Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../melder -I ../sys
+CPPFLAGS += -I ../melder -I ../sys
 
 OBJECTS = melder.o complex.o melder_alloc.o melder_str32.o melder_colour.o \
 	melder_ftoa.o melder_console.o melder_atof.o melder_files.o \

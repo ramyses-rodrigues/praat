@@ -1,14 +1,13 @@
 # Makefile of the library "external/opusfile"
-# David Weenink, 16 May 2026
+# David Weenink, 23 May 2026
 
-CPPFLAGS = -I ../../melder -I ../vorbis -I opus -I opus/celt -I opus/silk -I opus/silk/float
+CPPFLAGS += -I ../../melder -I ../vorbis -I opus -I opus/celt -I opus/silk -I opus/silk/float
 
 OPUSFILE_OBJECTS = opusfile.o opusfile_info.o opusfile_internal.o opusfile_stream.o
 
 OPUS_OBJECTS = opus/analysis.o opus/mlp.o opus/opus.o opus/opus_decoder.o opus/opus_multistream.o \
 opus/mapping_matrix.o opus/mlp_data.o opus/opus_multistream_decoder.o \
 opus/opus_projection_decoder.o opus/repacketizer.o
-
 
 CELT = opus/celt/
 
@@ -48,7 +47,6 @@ $(SILKFLOAT)LTP_scale_ctrl_FLP.o $(SILKFLOAT)noise_shape_analysis_FLP.o $(SILKFL
 $(SILKFLOAT)process_gains_FLP.o $(SILKFLOAT)regularize_correlations_FLP.o $(SILKFLOAT)residual_energy_FLP.o \
 $(SILKFLOAT)scale_copy_vector_FLP.o $(SILKFLOAT)scale_vector_FLP.o $(SILKFLOAT)schur_FLP.o $(SILKFLOAT)sort_FLP.o \
 $(SILKFLOAT)warped_autocorrelation_FLP.o $(SILKFLOAT)wrappers_FLP.o
-
 
 OBJECTS = $(OPUSFILE_OBJECTS) \
 	$(OPUS_OBJECTS) \

@@ -1,7 +1,7 @@
 # makefile for library "dwsys".
-# David Weenink and Paul Boersma, 16 May 2026
+# David Weenink and Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../melder -I ../stat -I ../sys -I ../fon -I ../external/gsl -I ../external/num -I ../external/clapack -I ../kar -I ../dwtools
+CPPFLAGS += -I ../melder -I ../stat -I ../sys -I ../fon -I ../external/gsl -I ../external/num -I ../external/clapack -I ../kar -I ../dwtools
 
 all: libdwsys.a
 

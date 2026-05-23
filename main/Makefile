@@ -1,7 +1,7 @@
 # Makefile of the library "main"
-# Paul Boersma, 16 May 2026
+# Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../fon
+CPPFLAGS += -I ../kar -I ../melder -I ../sys -I ../fon
 
 .PHONY: clean
 
