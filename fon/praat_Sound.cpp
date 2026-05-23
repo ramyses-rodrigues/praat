@@ -118,7 +118,7 @@ DO
 }
 
 FORM (SAVE_ONE__LongSound_savePartAsAudioFile, U"LongSound: Save part as audio file", nullptr) {
-	OUTFILE (audioFile, U"Audio file", U"")
+	OUTFILE (audioFileName, U"Audio file", U"")
 	CHOICE (type, U"Type", 3)
 	{ int i; for (i = 1; i <= Melder_NUMBER_OF_AUDIO_FILE_TYPES; i ++) {
 		OPTION (Melder_audioFileTypeString (i))
@@ -127,11 +127,9 @@ FORM (SAVE_ONE__LongSound_savePartAsAudioFile, U"LongSound: Save part as audio f
 	REAL (toTime, U"right Time range (s)", U"10.0")
 	OK
 DO
-	SAVE_ONE (LongSound)
-		structMelderFile file { };
-		Melder_relativePathToFile (audioFile, & file);
+	SAVE_ONE_BY_NAME (LongSound, audioFileName, U"save part of the selected LongSound object to the audio file")
 		LongSound_savePartAsAudioFile (me, type, fromTime, toTime, & file, 16);
-	SAVE_ONE_END
+	SAVE_ONE_BY_NAME_END
 }
 
 FORM (NEW_LongSound_to_TextGrid, U"LongSound: To TextGrid...", U"LongSound: To TextGrid...") {
@@ -151,109 +149,109 @@ DIRECT (EDITOR_ONE__LongSound_view) {
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsAifcFile, U"Save as AIFC file", nullptr, U"aifc") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected LongSound object(s) to the AIFC file")
 		LongSound_concatenate (list.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsAiffFile, U"Save as AIFF file", nullptr, U"aiff") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected LongSound object(s) to the AIFF file")
 		LongSound_concatenate (list.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsNextSunFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected LongSound object(s) to the NeXT/Sun file")
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsNistFile, U"Save as NIST file", nullptr, U"nist") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected LongSound object(s) to the NIST file")
 		LongSound_concatenate (list.get(), file, Melder_NIST, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsFlacFile, U"Save as FLAC file", nullptr, U"flac") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected LongSound object(s) to the FLAC file")
 		LongSound_concatenate (list.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsWavFile, U"Save as WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected LongSound object(s) to the WAV file")
 		LongSound_concatenate (list.get(), file, Melder_WAV, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveLeftChannelAsAifcFile, U"Save left channel as AIFC file", nullptr, U"aifc") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the left channel of the selected LongSound object to the AIFC file")
 		LongSound_saveChannelAsAudioFile (me, Melder_AIFC, 0, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveLeftChannelAsAiffFile, U"Save left channel as AIFF file", nullptr, U"aiff") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the left channel of the selected LongSound object to the AIFF file")
 		LongSound_saveChannelAsAudioFile (me, Melder_AIFF, 0, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveLeftChannelAsNextSunFile, U"Save left channel as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the left channel of the selected LongSound object to the NeXT/Sun file")
 		LongSound_saveChannelAsAudioFile (me, Melder_NEXT_SUN, 0, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveLeftChannelAsNistFile, U"Save left channel as NIST file", nullptr, U"nist") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the left channel of the selected LongSound object to the NIST file")
 		LongSound_saveChannelAsAudioFile (me, Melder_NIST, 0, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveLeftChannelAsFlacFile, U"Save left channel as FLAC file", nullptr, U"flac") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the left channel of the selected LongSound object to the FLAC file")
 		LongSound_saveChannelAsAudioFile (me, Melder_FLAC, 0, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveLeftChannelAsWavFile, U"Save left channel as WAV file", nullptr, U"wav") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the left channel of the selected LongSound object to the WAV file")
 		LongSound_saveChannelAsAudioFile (me, Melder_WAV, 0, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveRightChannelAsAifcFile, U"Save right channel as AIFC file", nullptr, U"aifc") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the right channel of the selected LongSound object to the AIFC file")
 		LongSound_saveChannelAsAudioFile (me, Melder_AIFC, 1, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveRightChannelAsAiffFile, U"Save right channel as AIFF file", nullptr, U"aiff") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the right channel of the selected LongSound object to the AIFF file")
 		LongSound_saveChannelAsAudioFile (me, Melder_AIFF, 1, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveRightChannelAsNextSunFile, U"Save right channel as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the right channel of the selected LongSound object to the NeXT/Sun file")
 		LongSound_saveChannelAsAudioFile (me, Melder_NEXT_SUN, 1, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveRightChannelAsNistFile, U"Save right channel as NIST file", nullptr, U"nist") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the right channel of the selected LongSound object to the NIST file")
 		LongSound_saveChannelAsAudioFile (me, Melder_NIST, 1, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveRightChannelAsFlacFile, U"Save right channel as FLAC file", 0, U"flac") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the right channel of the selected LongSound object to the FLAC file")
 		LongSound_saveChannelAsAudioFile (me, Melder_FLAC, 1, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__LongSound_saveRightChannelAsWavFile, U"Save right channel as WAV file", 0, U"wav") {
-	SAVE_ONE (LongSound)
+	SAVE_ONE (LongSound, U"save the right channel of the selected LongSound object to the WAV file")
 		LongSound_saveChannelAsAudioFile (me, Melder_WAV, 1, file);
 	SAVE_ONE_END
 }
@@ -276,37 +274,37 @@ DO
 /********** LONGSOUND & SOUND **********/
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsAifcFile, U"Save as AIFC file", nullptr, U"aifc") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected (Long)Sound object(s) to the AIFC file")
 		LongSound_concatenate (list.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsAiffFile, U"Save as AIFF file", nullptr, U"aiff") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected (Long)Sound object(s) to the AIFF file")
 		LongSound_concatenate (list.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsNextSunFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected (Long)Sound object(s) to the NeXT/Sun file")
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsNistFile, U"Save as NIST file", nullptr, U"nist") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected (Long)Sound object(s) to the NIST file")
 		LongSound_concatenate (list.get(), file, Melder_NIST, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsFlacFile, U"Save as FLAC file", nullptr, U"flac") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected (Long)Sound object(s) to the FLAC file")
 		LongSound_concatenate (list.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsWavFile, U"Save as WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected (Long)Sound object(s) to the WAV file")
 		LongSound_concatenate (list.get(), file, Melder_WAV, 16);
 	SAVE_ALL_LISTED_END
 }
@@ -1318,13 +1316,13 @@ DIRECT (MODIFY_Sound_reverse) {
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAs24BitWavFile, U"Save as 24-bit WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the 24-bit WAV file")
 		LongSound_concatenate (list.get(), file, Melder_WAV, 24);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAs32BitWavFile, U"Save as 32-bit WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the 32-bit WAV file")
 		LongSound_concatenate (list.get(), file, Melder_WAV, 32);
 	SAVE_ALL_LISTED_END
 }
@@ -1962,146 +1960,145 @@ DIRECT (INFO_NONE__Praat_reportSoundServerProperties) {
 #endif
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsAifcFile, U"Save as AIFC file", nullptr, U"aifc") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the AIFC file")
 		LongSound_concatenate (list.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsAiffFile, U"Save as AIFF file", nullptr, U"aiff") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the AIFF file")
 		LongSound_concatenate (list.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsFlacFile, U"Save as FLAC file", nullptr, U"flac") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the FLAC file")
 		LongSound_concatenate (list.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsKayFile, U"Save as Kay sound file", nullptr, U"kay") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the Kay sound file")
 		Sound_saveAsKayFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsNextSunFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the NeXT/Sun file")
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsNistFile, U"Save as NIST file", nullptr, U"nist") {
-	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList, U"save the selected Sound object(s) to the NIST file")
 		LongSound_concatenate (list.get(), file, Melder_NIST, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw8bitSignedFile, U"Save as raw 8-bit signed sound file", nullptr, U"8sig") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 8-bit signed sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_8_SIGNED);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw8bitUnsignedFile, U"Save as raw 8-bit unsigned sound file", nullptr, U"8uns") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 8-bit unsigned sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_8_UNSIGNED);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw16bitBigEndianFile, U"Save as raw 16-bit big-endian sound file", nullptr, U"16be") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 16-bit big-endian sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_16_BIG_ENDIAN);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw16bitLittleEndianFile, U"Save as raw 16-bit little-endian sound file", nullptr, U"16le") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 16-bit little-endian sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_16_LITTLE_ENDIAN);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw24bitBigEndianFile, U"Save as raw 24-bit big-endian sound file", nullptr, U"24be") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 24-bit big-endian sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_24_BIG_ENDIAN);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw24bitLittleEndianFile, U"Save as raw 24-bit little-endian sound file", nullptr, U"24le") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 24-bit little-endian sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_24_LITTLE_ENDIAN);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw32bitBigEndianFile, U"Save as raw 32-bit big-endian sound file", nullptr, U"32be") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 32-bit big-endian sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_32_BIG_ENDIAN);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsRaw32bitLittleEndianFile, U"Save as raw 32-bit little-endian sound file", nullptr, U"32le") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the raw 32-bit little-endian sound file")
 		Sound_saveAsRawSoundFile (me, file, Melder_LINEAR_32_LITTLE_ENDIAN);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Sound_saveAsSesamFile, U"Save as Sesam file", nullptr, U"sdf") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the Sesam file")
 		Sound_saveAsSesamFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsStereoAifcFile, U"Save as stereo AIFC file", nullptr, U"aifc") {
-	SAVE_ALL (Sound)
+	SAVE_ALL (Sound, U"save the selected Sound objects to the stereo AIFC file")
 		autoSound stereo = Sounds_combineToStereo (& list);
 		Sound_saveAsAudioFile (stereo.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsStereoAiffFile, U"Save as stereo AIFF file", nullptr, U"aiff") {
-	SAVE_ALL (Sound)
+	SAVE_ALL (Sound, U"save the selected Sound objects to the stereo AIFF file")
 		autoSound stereo = Sounds_combineToStereo (& list);
 		Sound_saveAsAudioFile (stereo.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsStereoNextSunFile, U"Save as stereo NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL (Sound)
+	SAVE_ALL (Sound, U"save the selected Sound objects to the stereo NeXT/Sun file")
 		autoSound stereo = Sounds_combineToStereo (& list);
 		Sound_saveAsAudioFile (stereo.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsStereoNistFile, U"Save as stereo NIST file", nullptr, U"nist") {
-	SAVE_ALL (Sound)
+	SAVE_ALL (Sound, U"save the selected Sound objects to the stereo NIST file")
 		autoSound stereo = Sounds_combineToStereo (& list);
 		Sound_saveAsAudioFile (stereo.get(), file, Melder_NIST, 16);
 	SAVE_ALL_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsStereoFlacFile, U"Save as stereo FLAC file", nullptr, U"flac") {
-	SAVE_ALL (Sound)
+	SAVE_ALL (Sound, U"save the selected Sound objects to the stereo FLAC file")
 		autoSound stereo = Sounds_combineToStereo (& list);
 		Sound_saveAsAudioFile (stereo.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsStereoWavFile, U"Save as stereo WAV file", nullptr, U"wav") {
-	SAVE_ALL (Sound)
+	SAVE_ALL (Sound, U"save the selected Sound objects to the stereo WAV file")
 		autoSound stereo = Sounds_combineToStereo (& list);
 		Sound_saveAsAudioFile (stereo.get(), file, Melder_WAV, 16);
 	SAVE_ALL_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsSunAudioFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (Sound, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (Sound, SoundAndLongSoundList, U"save the selected Sound object(s) to the NeXT/Sun file")
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsWavFile, U"Save as WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (Sound, SoundAndLongSoundList)
-		//Melder_checkTrust (_interpreter_, U"save the selected Sound object(s) to the WAV file\n", file);
+	SAVE_ALL_LISTED (Sound, SoundAndLongSoundList, U"save the selected Sound object(s) to the WAV file")
 		LongSound_concatenate (list.get(), file, Melder_WAV, 16);
 	SAVE_ALL_LISTED_END
 }

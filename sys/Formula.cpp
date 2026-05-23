@@ -7547,16 +7547,20 @@ static void do_askForTrust () {
 		} else
 			message [1] =  U"Your untitled script or notebook";
 		message [3] = U"requests permission to control your computer (e.g. it may want to overwrite files,\n"
-			"delete folders, run system commands, and/or access the internet).";
-		message [4] = U"Allow this only if you fully trust the intentions and skills of the author(s).";
+				"delete folders, run system commands, and/or access the internet).";
+		message [4] = U"Allow this only if you fully trust the intentions and skills of the author(s),\n"
+				"AND the intentions and skills of the author(s) of the script(s) called by this script directly or indirectly.";
 		conststring32 option1 = U"CANCEL\n(because I don’t completely trust the authors’ skills and/or intentions)";
 		conststring32 option2 =
 			theInterpreter -> scriptReference ?
-				U"Yes, I allow this script to CONTROL MY COMPUTER\n(because I fully trust its authors’ skills and intentions)"
+				U"Yes, I allow this script to CONTROL MY COMPUTER, because I fully trust the skills and\n"
+				"intentions of its authors AND of those of the authors of any scripts called by it directly or indirectly."
 			: theInterpreter -> notebookReference ?
-				U"Yes, I allow this notebook to CONTROL MY COMPUTER,\n(because I fully trust its authors’ skills and intentions)"
+				U"Yes, I allow this notebook to CONTROL MY COMPUTER, because I fully trust the skills and\n"
+				"intentions of its authors AND of those of the authors of any scripts called by it directly or indirectly."
 			:
-				U"Yes, I allow this script or notebook to CONTROL MY COMPUTER,\n(because I fully trust its authors’ skills and intentions)";
+				U"Yes, I allow this script or notebook to CONTROL MY COMPUTER, because I fully trust the skills and\n"
+				"intentions of its authors AND of those of the authors of any scripts called by it directly or indirectly.";
 		const bool trusted = GuiTrust_get (parentShell, optionalTrustWindowOwningEditor,
 			message [1], message [2], message [3], message [4], message [5],
 			option1, option2, nullptr, nullptr, nullptr, theInterpreter
