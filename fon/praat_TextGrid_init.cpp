@@ -1,10 +1,10 @@
 /* praat_TextGrid_init.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma, 2025-2026 Anastasia Shchupak
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -95,7 +95,7 @@ DIRECT (HELP_IntervalTier_help) {
 }
 
 FORM_SAVE (SAVE_IntervalTier_writeToXwaves, U"Xwaves label file", nullptr, nullptr) {
-	SAVE_ONE (IntervalTier)
+	SAVE_ONE (IntervalTier, U"save the selected IntervalTier object to the Xwaves label file")
 		IntervalTier_writeToXwaves (me, file);
 	SAVE_ONE_END
 }
@@ -747,7 +747,7 @@ DIRECT (MODIFY_SpellingChecker_replaceUserDictionary) {
 // MARK: Save
 
 FORM_SAVE (SAVE_TextGrid_writeToChronologicalTextFile, U"Text file", nullptr, nullptr) {
-	SAVE_ONE (TextGrid)
+	SAVE_ONE (TextGrid, U"save the selected TextGrid object to the chronological text file")
 		TextGrid_writeToChronologicalTextFile (me, file);
 	SAVE_ONE_END
 }

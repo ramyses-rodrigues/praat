@@ -105,13 +105,13 @@ FORM_READ (READ_ONE__Matrix_readAP, U"Read Matrix from LVS AP file", nullptr, tr
 // MARK: Save
 
 FORM_SAVE (SAVE_Matrix_writeToMatrixTextFile, U"Save Matrix as matrix text file", nullptr, U"mat") {
-	SAVE_ONE (Matrix)
+	SAVE_ONE (Matrix, U"save the selected Matrix object to the matrix text file")
 		Matrix_writeToMatrixTextFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Matrix_writeToHeaderlessSpreadsheetFile, U"Save Matrix as spreadsheet", nullptr, U"txt") {
-	SAVE_ONE (Matrix)
+	SAVE_ONE (Matrix, U"save the selected Matrix object to the headerless spreadsheet file")
 		Matrix_writeToHeaderlessSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }
@@ -713,49 +713,49 @@ DO
 }
 
 FORM_SAVE (SAVE_Photo_saveAsAppleIconFile, U"Save as Apple icon file", nullptr, U"icns") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the Apple icon file")
 		Photo_saveAsAppleIconFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsGIF, U"Save as GIF file", nullptr, U"gif") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the GIF file")
 		Photo_saveAsGIF (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsJPEG, U"Save as JPEG file", nullptr, U"jpg") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the JPEG file")
 		Photo_saveAsJPEG (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsJPEG2000, U"Save as JPEG-2000 file", nullptr, U"jpg") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the JPEG-2000 file")
 		Photo_saveAsJPEG2000 (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsPNG, U"Save as PNG file", nullptr, U"png") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the PNG file")
 		Photo_saveAsPNG (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsTIFF, U"Save as TIFF file", nullptr, U"tiff") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the TIFF file")
 		Photo_saveAsTIFF (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsWindowsBitmapFile, U"Save as Windows bitmap file", nullptr, U"bmp") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the Windows bitmap file")
 		Photo_saveAsWindowsBitmapFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsWindowsIconFile, U"Save as Windows icon file", nullptr, U"ico") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the Windows icon file")
 		Photo_saveAsWindowsIconFile (me, file);
 	SAVE_ONE_END
 }

@@ -281,19 +281,19 @@ FORM_READ (READ_ONE__Table_readFromTabSeparatedFile, U"Read Table from tab-separ
 // MARK: Save
 
 FORM_SAVE (SAVE_ONE__Table_writeToTabSeparatedFile, U"Save Table as tab-separated file", nullptr, U"Table") {
-	SAVE_ONE (Table)
+	SAVE_ONE (Table, U"save the selected Table object to the tab-separated file")
 		Table_writeToTabSeparatedFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Table_writeToCommaSeparatedFile, U"Save Table as comma-separated file", nullptr, U"Table") {
-	SAVE_ONE (Table)
+	SAVE_ONE (Table, U"save the selected Table object to the comma-separated file")
 		Table_writeToCommaSeparatedFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Table_writeToSemicolonSeparatedFile, U"Save Table as semicolon-separated file", nullptr, U"Table") {
-	SAVE_ONE (Table)
+	SAVE_ONE (Table, U"save the selected Table object to the semicolon-separated file")
 		Table_writeToSemicolonSeparatedFile (me, file);
 	SAVE_ONE_END
 }

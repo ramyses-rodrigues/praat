@@ -1019,13 +1019,13 @@ DIRECT (HINT_PitchTier_Sound_viewAndEdit) {
 }
 
 FORM_SAVE (SAVE_PitchTier_writeToPitchTierSpreadsheetFile, U"Save PitchTier as spreadsheet", nullptr, U"PitchTier") {
-	SAVE_ONE (PitchTier)
+	SAVE_ONE (PitchTier, U"save the selected PitchTier object to the spreadsheet file")
 		PitchTier_writeToPitchTierSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_PitchTier_writeToHeaderlessSpreadsheetFile, U"Save PitchTier as spreadsheet", nullptr, U"txt") {
-	SAVE_ONE (PitchTier)
+	SAVE_ONE (PitchTier, U"save the selected PitchTier object to the headerless spreadsheet file")
 		PitchTier_writeToHeaderlessSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }

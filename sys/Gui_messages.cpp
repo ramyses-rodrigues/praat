@@ -387,6 +387,9 @@ static void gui_trust (void *void_interpreter, conststring32 action) {
 			Melder_throw (U"We expected a script or a notebook.");
 		if (script && script -> trusted || notebook && notebook -> trusted)
 			return;   // the request should be granted
+/**********/
+//return;   // comment out before Praat version 7.0
+/**********/
 		conststring32 paragraphs [1+5] = { };
 		if (script) {
 			paragraphs [1] = U"The script";
@@ -408,18 +411,18 @@ static void gui_trust (void *void_interpreter, conststring32 action) {
 				U"Yes, I allow this script or notebook to perform the action that it requests\n(and ask me again next time)";
 		conststring32 option3 =
 			script ?
-				U"Yes, and I even allow this script to CONTROL MY COMPUTER from now on\n"
-				"(i.e. to perform any action, including saving, deleting, calling system commands, and internetting,\n"
-				"because I fully trust the script authors’ skills and intentions)"
+				U"Yes, and I even allow this script to CONTROL MY COMPUTER from now on (i.e. to perform any action,\n"
+				"including saving, deleting, calling system commands, and internetting), because I FULLY TRUST\n"
+				"the skills and intentions of the authors of the script AND of all the scripts called by it."
 			: notebook ?
-				U"Yes, and I even allow this notebook to CONTROL MY COMPUTER from now on\n"
-				"(i.e. to perform any action, including saving, deleting, calling system commands, and internetting,\n"
-				"because I fully trust the notebook authors’ skills and intentions)"
+				U"Yes, and I even allow this notebook to CONTROL MY COMPUTER from now on (i.e. to perform any action,\n"
+				"including saving, deleting, calling system commands, and internetting), because I FULLY TRUST\n"
+				"the skills and intentions of the authors of the notebook AND of all the scripts and notebooks called by it."
 			:
-				U"Yes, and I even allow this script or notebook to CONTROL MY COMPUTER from now on\n"
-				"(i.e. to perform any action, including saving, deleting, calling system commands, and internetting,\n"
-				"because I fully trust the notebook authors’ skills and intentions)";
-		integer buttonClicked = GuiTrust_get (nullptr, nullptr,
+				U"Yes, and I even allow this script or notebook to CONTROL MY COMPUTER from now on (i.e. to perform any action,\n"
+				"including saving, deleting, calling system commands, and internetting), because I FULLY TRUST\n"
+				"the skills and intentions of the authors of it AND of all the scripts and notebooks called by it.";
+		const integer buttonClicked = GuiTrust_get (nullptr, nullptr,
 			paragraphs [1], paragraphs [2], paragraphs [3], paragraphs [4], paragraphs [5],
 			option1, option2, option3, nullptr, nullptr, interpreter
 		);
