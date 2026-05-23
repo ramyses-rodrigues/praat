@@ -1,7 +1,7 @@
 # Makefile of the library "external/clapack"
-# David Weenink and Paul Boersma, 16 May 2026
+# David Weenink and Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../../melder
+CPPFLAGS += -I ../../melder
 
 OBJECTS = blas.o \
 	lapack.o lapack_dg.o lapack_dlaq.o \
