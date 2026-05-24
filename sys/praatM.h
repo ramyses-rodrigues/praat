@@ -1250,23 +1250,35 @@
 	SAVE
 */
 
-#define SAVE_ONE(klas)  \
-	FIND_ONE (klas)
+#define SAVE_ONE(klas,trustMessage)  \
+	FIND_ONE (klas) \
+	Melder_checkTrust (_interpreter_, trustMessage U"\n", file);
 #define SAVE_ONE_END  \
 	END_NO_NEW_DATA
 
-#define SAVE_TWO(klas)  \
-	FIND_TWO (klas)
+#define SAVE_ONE_BY_NAME(klas,fileName,trustMessage)  \
+	FIND_ONE (klas) \
+	structMelderFile file { }; \
+	Melder_relativePathToFile (fileName, & file); \
+	Melder_checkTrust (interpreter, fileName, trustMessage U"\n", & file);
+#define SAVE_ONE_BY_NAME_END  \
+	END_NO_NEW_DATA
+
+#define SAVE_TWO(klas,trustMessage)  \
+	FIND_TWO (klas) \
+	Melder_checkTrust (_interpreter_, trustMessage U"\n", file);
 #define SAVE_TWO_END  \
 	END_NO_NEW_DATA
 
-#define SAVE_ALL(klas)  \
-	FIND_ALL (klas)
+#define SAVE_ALL(klas,trustMessage)  \
+	FIND_ALL (klas) \
+	Melder_checkTrust (_interpreter_, trustMessage U"\n", file);
 #define SAVE_ALL_END  \
 	END_NO_NEW_DATA
 
-#define SAVE_ALL_LISTED(klas,listClass)  \
-	FIND_ALL_LISTED (klas, listClass)
+#define SAVE_ALL_LISTED(klas,listClass,trustMessage)  \
+	FIND_ALL_LISTED (klas, listClass) \
+	Melder_checkTrust (_interpreter_, trustMessage U"\n", file);
 #define SAVE_ALL_LISTED_END  \
 	END_NO_NEW_DATA
 
@@ -1274,8 +1286,9 @@
 	APPEND
 */
 
-#define APPEND_ALL(klas)  \
-	FIND_ALL (klas)
+#define APPEND_ALL(klas,trustMessage)  \
+	FIND_ALL (klas) \
+	Melder_checkTrust (interpreter, trustMessage U"\n", file);
 #define APPEND_ALL_END  \
 	END_NO_NEW_DATA
 

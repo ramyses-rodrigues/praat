@@ -1,7 +1,7 @@
 # Makefile of the library "external/espeak"
-# David Weenink and Paul Boersma, 16 May 2026
+# David Weenink and Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../../kar -I ../../melder -I ../../sys -I ../../dwsys -I ../../stat
+CPPFLAGS += -I ../../kar -I ../../melder -I ../../sys -I ../../dwsys -I ../../stat
 
 OBJECTS = case.o categories.o common.o compiledict.o \
 	dictionary.o \

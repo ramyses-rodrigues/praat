@@ -427,7 +427,7 @@ DO
 // MARK: Save
 
 FORM_SAVE (SAVE_ONE__OTGrammar_writeToHeaderlessSpreadsheetFile, U"Write OTGrammar to spreadsheet", 0, U"txt") {
-	SAVE_ONE (OTGrammar)
+	SAVE_ONE (OTGrammar, U"save the selected OTGrammar object to the spreadsheet file")
 		OTGrammar_writeToHeaderlessSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }

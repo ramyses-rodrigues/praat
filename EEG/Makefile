@@ -1,7 +1,7 @@
 # Makefile of the library "EEG"
-# Paul Boersma, 16 May 2026
+# Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../fon -I ../foned
+CPPFLAGS += -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../fon -I ../foned
 
 OBJECTS = EEG.o EEGArea.o EEGAnalysisArea.o \
    EEGWindow.o ERPTier.o ERP.o ERPArea.o ERPWindow.o \

@@ -89,7 +89,8 @@ integer GuiTrust_get (GuiWindow optionalParent, Editor optionalTrustWindowOwning
 	conststring32 option1, conststring32 option2, conststring32 option3, conststring32 option4, conststring32 option5,
 	Interpreter interpreter
 ) {
-	Melder_assert (interpreter);
+	Melder_pre (interpreter);
+
 	GuiDialog me = GuiTrust_createDialog (optionalParent,
 			message1, message2, message3, message4, message5, option1, option2, option3, option4, option5);
 	GuiThing_show (me);

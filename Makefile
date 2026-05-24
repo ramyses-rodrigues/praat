@@ -1,7 +1,7 @@
 # File: Makefile
 
 # Makefile for Praat
-# Paul Boersma, 21 May 2026
+# Paul Boersma, 23 May 2026
 
 ##########################
 #
@@ -100,15 +100,15 @@ else ifeq ($(PRAAT_OS),linux)
 else ifeq ($(PRAAT_OS),raspberrypi)
   OS_IS_LINUX := 1
   SUBOS_IS_RASPBERRY_PI := 1
-  $(info OS given as Linux (Sub-OS Raspberry Pi))
+  $(info OS given as Linux (sub-OS Raspberry Pi))
 else ifeq ($(PRAAT_OS),chrome)
   OS_IS_LINUX := 1
   SUBOS_IS_CHROME := 1
-  $(info OS given as Linux (Sub-OS Chrome))
+  $(info OS given as Linux (sub-OS Chrome))
 else ifeq ($(PRAAT_OS),linuxone)
   OS_IS_LINUX := 1
   SUBOS_IS_LINUX_ONE := 1
-  $(info OS given as Linux (Sub-OS LinuxONE))
+  $(info OS given as Linux (sub-OS LinuxONE))
 # Second try: default setting, depending on heuristics.
 else ifeq ($(OS),Windows_NT)
   OS_IS_WINDOWS := 1
@@ -120,7 +120,7 @@ else
     TRY_RASPBERRY_PI_MODEL := $(shell cat /proc/device-tree/model 2>/dev/null)
     ifeq ($(findstring Raspberry Pi,$(TRY_RASPBERRY_PI_MODEL)),Raspberry Pi)
       SUBOS_IS_RASPBERRY_PI := 1
-      $(info OS detected as Linux (Sub-OS Raspberry Pi))
+      $(info OS detected as Linux (sub-OS Raspberry Pi))
     else
       $(info OS detected as Linux (but not Raspberry Pi))
     endif
@@ -152,6 +152,8 @@ ifeq ($(OS_IS_FREEBSD),1)
   # added to include and linker paths. (In the FreeBSD ports system,
   # this is already set so nothing is overridden)
   LOCALBASE ?= /usr/local
+
+  PKG_CONFIG ?= pkg-config
 
   # FreeBSD defaults to clang, not gcc
   CC ?= cc
@@ -344,7 +346,7 @@ else ifeq ($(OS_IS_LINUX),1)
 endif
 
 # Export some variables to the makefiles in the subdirectories.
-export CPPFLAGS   # listing of include files
+export CPPFLAGS   # listing of include files (plus any flags provided by any environment variables also called CPPFLAGS)
 export CC
 export CXX
 export CFLAGS

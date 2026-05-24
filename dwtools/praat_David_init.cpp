@@ -3503,37 +3503,37 @@ DIRECT (CONVERT_EACH_TO_ONE__LegendreSeries_to_Polynomial) {
 /********************* LongSound **************************************/
 
 FORM_READ (APPEND_ALL__LongSounds_appendToExistingSoundFile, U"LongSound: Append to existing sound file", 0, false) {
-	APPEND_ALL (Sampled)
+	APPEND_ALL (Sampled, U"append the selected LongSound object(s) to the existing sound file")
 		LongSounds_appendToExistingSoundFile (& list, file);
 	APPEND_ALL_END
 }
 
 FORM_SAVE (SAVE_TWO__LongSounds_saveAsStereoAiffFile, U"LongSound: Save as AIFF file", 0, U"aiff") {
-	SAVE_TWO (LongSound)
+	SAVE_TWO (LongSound, U"save the selected LongSound objects to the AIFF file")
 		LongSounds_writeToStereoAudioFile16 (me, you, Melder_AIFF, file);
 	SAVE_TWO_END
 }
 
 FORM_SAVE (SAVE_TWO__LongSounds_saveAsStereoAifcFile, U"LongSound: Save as AIFC file", 0, U"aifc") {
-	SAVE_TWO (LongSound)
+	SAVE_TWO (LongSound, U"save the selected LongSound objects to the AIFC file")
 		LongSounds_writeToStereoAudioFile16 (me, you, Melder_AIFC, file);
 	SAVE_TWO_END
 }
 
 FORM_SAVE (SAVE_TWO__LongSounds_saveAsStereoWavFile, U"LongSound: Save as WAV file", 0, U"wav") {
-	SAVE_TWO (LongSound)
+	SAVE_TWO (LongSound, U"save the selected LongSound objects to the WAV file")
 		LongSounds_writeToStereoAudioFile16 (me, you, Melder_WAV, file);
 	SAVE_TWO_END
 }
 
 FORM_SAVE (SAVE_TWO__LongSounds_saveAsStereoNextSunFile, U"LongSound: Save as NeXT/Sun file", 0, U"au") {
-	SAVE_TWO (LongSound)
+	SAVE_TWO (LongSound, U"save the selected LongSound objects to the NeXT/Sun file")
 		LongSounds_writeToStereoAudioFile16 (me, you, Melder_NEXT_SUN, file);
 	SAVE_TWO_END
 }
 
 FORM_SAVE (SAVE_TWO__LongSounds_saveAsStereoNistFile, U"LongSound: Save as NIST file", 0, U"nist") {
-	SAVE_TWO (LongSound)
+	SAVE_TWO (LongSound, U"save the selected LongSound objects to the NIST file")
 		LongSounds_writeToStereoAudioFile16 (me, you, Melder_NIST, file);
 	SAVE_TWO_END
 }
@@ -5516,7 +5516,7 @@ static void Sound_create_checkCommonFields (double startTime, double endTime, do
 }
 
 FORM_SAVE (SAVE__Sound_saveAsHighestQualityMP3File, U"Sound: Save as MP3 file", nullptr, U"mp3") {
-	SAVE_ONE (Sound)
+	SAVE_ONE (Sound, U"save the selected Sound object to the highest-quality MP3 file")
 		Sound_saveAsMP3File_VBR (me, file, 0.0);
 	SAVE_ONE_END
 }

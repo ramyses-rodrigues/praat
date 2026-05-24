@@ -1,7 +1,7 @@
 # Makefile of the library "external/lame"
-# David Weenink and Paul Boersma, 16 May 2026
+# David Weenink and Paul Boersma, 23 May 2026
 
-CPPFLAGS = -I ../../melder
+CPPFLAGS += -I ../../melder
 
 OBJECTS = bitstream.o encoder.o fft.o gain_analysis.o mpglib_interface.o id3tag.o lame.o \
 	newmdct.o psymodel.o quantize.o quantize_pvt.o set_get.o vbrquantize.o \
