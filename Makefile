@@ -343,6 +343,23 @@ else ifeq ($(OS_IS_LINUX),1)
   MAIN_ICON =
 
   INSTALL = install -p praat /usr/local/bin
+  INSTALL_METAINFO = install -d /usr/local/share/metainfo && install -m 644 org.praat.Praat.metainfo.xml /usr/local/share/metainfo
+  INSTALL_DESKTOP = install -d /usr/local/share/applications && install -m 644 main/praat.desktop /usr/local/share/applications/org.praat.Praat.desktop
+  INSTALL_ICONS = \
+	install -d /usr/local/share/icons/hicolor/scalable/apps && \
+	install -m 644 main/praat-480.svg /usr/local/share/icons/hicolor/scalable/apps/org.praat.Praat.svg && \
+	install -d /usr/local/share/icons/hicolor/16x16/apps && \
+	install -m 644 main/praat-16.png /usr/local/share/icons/hicolor/16x16/apps/org.praat.Praat.png && \
+	install -d /usr/local/share/icons/hicolor/32x32/apps && \
+	install -m 644 main/praat-32.png /usr/local/share/icons/hicolor/32x32/apps/org.praat.Praat.png && \
+	install -d /usr/local/share/icons/hicolor/48x48/apps && \
+	install -m 644 main/praat-48.png /usr/local/share/icons/hicolor/48x48/apps/org.praat.Praat.png && \
+	install -d /usr/local/share/icons/hicolor/128x128/apps && \
+	install -m 644 main/praat-128.png /usr/local/share/icons/hicolor/128x128/apps/org.praat.Praat.png && \
+	install -d /usr/local/share/icons/hicolor/256x256/apps && \
+	install -m 644 main/praat-256.png /usr/local/share/icons/hicolor/256x256/apps/org.praat.Praat.png && \
+	install -d /usr/local/share/icons/hicolor/512x512/apps && \
+	install -m 644 main/praat-512.png /usr/local/share/icons/hicolor/512x512/apps/org.praat.Praat.png
 endif
 
 # Export some variables to the makefiles in the subdirectories.
@@ -445,3 +462,6 @@ clean-self:
 
 install:
 	$(INSTALL)
+	$(INSTALL_METAINFO)
+	$(INSTALL_DESKTOP)
+	$(INSTALL_ICONS)
