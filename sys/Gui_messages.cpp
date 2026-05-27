@@ -386,7 +386,7 @@ static void gui_trust (void *void_interpreter, conststring32 action) {
 		if (script && script -> trusted || notebook && notebook -> trusted)
 			return;   // the request should be granted
 /**********/
-return;   // remove this line from Praat version 7.0
+//return;   // remove this line from Praat version 7.0
 /**********/
 		conststring32 paragraphs [1+5] = { };
 		if (script) {
