@@ -112,6 +112,28 @@ static void menu_cb_voiceless (PitchArea me, EDITOR_ARGS) {
 	MODIFY_DATA_END
 }
 
+// Ramyses: callback para o comando vozear trecho 
+static void menu_cb_voice (PitchArea me, EDITOR_ARGS) {
+	// Identifica intervalo de frames
+	const integer ileft = Melder_clippedLeft (1_integer, Sampled_xToHighIndex (my pitch(), my startSelection()));
+	const integer iright = Melder_clippedRight (Sampled_xToLowIndex (my pitch(), my endSelection()), my pitch() -> nx);
+	MODIFY_DATA (U"Voice")
+		for (integer iframe = ileft; iframe <= iright; iframe ++) { // varre todos os pitch_frames
+			const Pitch_Frame frame = & my pitch() -> frames [iframe]; // seleciona o pitch_frame atual
+			integer bestCandidate = -1;
+			for (integer cand = 1; cand <= frame -> nCandidates; cand ++) { // percorre todos os candidatos
+				if ((frame -> candidates [cand].strength > 0.5) &&
+					(frame -> candidates [cand]. frequency > 0.0) && 
+					( (bestCandidate == -1) || (frame -> candidates [cand].strength >  frame -> candidates [bestCandidate].strength) ) ) {
+					bestCandidate = cand;
+				}				
+			}
+			if (bestCandidate != -1) // busca pelo candidato de maior força
+					std::swap (frame -> candidates [1], frame -> candidates [bestCandidate]); // se encontrado, torna o candidato mais forte o primeiro candidato, ou seja, o candidato a ser mostrado
+		}
+	MODIFY_DATA_END
+}
+
 
 #pragma mark - PitchArea all menus
 
@@ -133,6 +155,9 @@ void structPitchArea :: v_createMenus () {
 	// Ramyses: Tecla de atalho DEL para "Unvoice"
 	FunctionAreaMenu_addCommand (menu, U"Unvoice", GuiMenu_DELETE,
 			menu_cb_voiceless, this);
+	// Ramyses: Tecla de atalho INSERT para comando "Voice"
+	FunctionAreaMenu_addCommand (menu, U"Voice", GuiMenu_INSERT,
+			menu_cb_voice, this);
 	FunctionAreaMenu_addCommand (menu, U"-- up and down --", 0, nullptr, this);
 	// Ramyses: Tecla de atalho ALT + SETA UP para "Octave Up"
 	FunctionAreaMenu_addCommand (menu, U"Octave up", GuiMenu_UP_ARROW | GuiMenu_OPTION,
