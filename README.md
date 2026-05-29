@@ -197,8 +197,7 @@ Ramyses: para instalar o toolchain mingw64:
 1. Instalar a extensão C/C++ (Microsoft);
 1-a. instalar MSYS2 do site (https://www.msys2.org/#installation)
 2. instalar pacote de compilação UCRT64, com o comando "pacman -S mingw-w64-ucrt-x86_64-gcc" (antes era "$ pacman -S mingw-w64-x86_64-gcc")
-3. instalar make: "pacman -S mingw-w64-ucrt-x86_64-make" (antes era "pacman -S make")
-4. instalar gdb: "pacman -S mingw-w64-ucrt-x86_64-gdb" (antes era "$ pacman -S mingw-w64-x86_64-gdb")
+comando para instalar libs do compilador: "pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-gdb"
 5. atualizar Msys2: "pacman -Suy"
 6. configurar a extensão Makefile, inserindo o caminho do arquivo Makefile na pasta raiz do Praat;
 7. configurar a extensão Makefile, inserindo o caminho do executável MAKE : Apontar para o arquivo "C:\msys64\ucrt64\bin\mingw32-make.exe"
