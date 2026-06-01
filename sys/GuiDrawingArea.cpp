@@ -361,7 +361,7 @@ Thing_implement (GuiDrawingArea, GuiControl, 0);
 			event. optionKeyPressed = GetKeyState (VK_MENU) < 0;
 			event. commandKeyPressed = GetKeyState (VK_CONTROL) < 0;
 			try {
-				my mouseCallback (my mouseBoss, & event);
+				my mouseCallback (my mouseBoss, & event); // Ramyses: FunctionEditor.cpp: <gui_drawingarea_cb_mouse(FunctionEditor, GuiDrawingArea_MouseEvent)>
 			} catch (MelderError) {
 				switch (phase) {
 					case structGuiDrawingArea_MouseEvent::Phase::CLICK:

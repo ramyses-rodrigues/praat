@@ -3034,6 +3034,33 @@ static void on_lbuttonUp (HWND window, int x, int y, UINT flags) {
 	} else
 		FORWARD_WM_LBUTTONUP (window, x, y, flags, DefWindowProc);
 }
+
+// Ramyses: implementado para manipular o clique com o botão direito do mouse, para mostrar um menu de contexto, por exemplo. O código é parecido com o do clique com o botão esquerdo, mas sem a parte de arrastar (drag), que não faz sentido para o botão direito.
+static void on_rbuttonDown (HWND window, BOOL doubleClick, int x, int y, UINT flags) {
+	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+	if (me) {
+		if (MEMBER (me, DrawingArea)) {
+			SetCapture (window);
+			_GuiWinDrawingArea_handleMouse (me, structGuiDrawingArea_MouseEvent::Phase::CLICK, x, y); // _GuiWinDrawingArea_handleMouse is called from here, line 490 of GuiDrawingArea.cpp
+		} else
+			FORWARD_WM_RBUTTONDOWN (window, doubleClick, x, y, flags, DefWindowProc);
+	} else
+		FORWARD_WM_RBUTTONDOWN (window, doubleClick, x, y, flags, DefWindowProc);
+}
+// // Ramyses: implementado para manipular o clique com o botão direito do mouse, para mostrar um menu de contexto, por exemplo. O código é parecido com o do clique com o botão esquerdo, mas sem a parte de arrastar (drag), que não faz sentido para o botão direito.
+// static void on_rbuttonUp (HWND window, int x, int y, UINT flags) {
+// 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+// 	if (me) {
+// 		if (MEMBER (me, DrawingArea)) {
+// 			ReleaseCapture ();
+// 			_GuiWinDrawingArea_handleMouse (
+// 			        me, structGuiDrawingArea_MouseEvent::Phase::DROP, x, y);
+// 		} else
+// 			FORWARD_WM_RBUTTONUP (window, x, y, flags, DefWindowProc);
+// 	} else
+// 		FORWARD_WM_RBUTTONUP (window, x, y, flags, DefWindowProc);
+// }
+
 static void on_paint (HWND window) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
@@ -3343,6 +3370,7 @@ static LRESULT CALLBACK windowProc(
 		
 		/*Ramyses - arrastar e soltar*/
 		HANDLE_MSG(window, WM_DROPFILES, on_dropFiles);
+		HANDLE_MSG (window, WM_RBUTTONDOWN, on_rbuttonDown); // clique com botão direito do mouse
 
 		HANDLE_MSG (window, WM_SIZE, on_size);
 		HANDLE_MSG (window, WM_KEYDOWN, on_key);
