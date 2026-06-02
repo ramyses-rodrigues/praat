@@ -88,6 +88,8 @@ autoSound MFCC_to_Sound (MFCC me) {
 		autoSound thee = Sound_create (my maximumNumberOfCoefficients, my xmin, my xmax, my nx, my dx, my x1);
 		for (integer iframe = 1; iframe <= my nx; iframe ++) {
 			const CC_Frame cf = & my frame [iframe];
+			if (cf -> c.size != my maximumNumberOfCoefficients)
+				Melder_crash (U"MFCC_to_Sound: ", cf -> c.size, U" ", my maximumNumberOfCoefficients);
 			thy z.column (iframe)  <<=  cf -> c.all();
 		}
 		return thee;
