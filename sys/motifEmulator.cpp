@@ -3038,6 +3038,20 @@ static void on_lbuttonUp (HWND window, int x, int y, UINT flags) {
 }
 
 // Ramyses: implementado para manipular o clique com o botão direito do mouse, para mostrar um menu de contexto, por exemplo. O código é parecido com o do clique com o botão esquerdo, mas sem a parte de arrastar (drag), que não faz sentido para o botão direito.
+/*
+															on_rbuttonDown
+																	|
+							_GuiWinDrawingArea_handleMouse (me, structGuiDrawingArea_MouseEvent::Phase::CLICK, x, y);
+																	|
+		my mouseCallback (my mouseBoss, & event); = gui_drawingarea_cb_mouse(FunctionEditor, GuiDrawingArea_MouseEvent) em FunctionEditor.cpp
+				|													|												|
+my v_clickSelectionViewer (x_fraction, y_fraction) ou my v_mouseInWideDataView (event, x_world, y_fraction) ou  my v_play (my tmin, my tmax); 
+				|													|												|
+				?							area -> v_mouse (event, x_world, localY_fraction)						?
+
+
+*/
+
 static void on_rbuttonDown (HWND window, BOOL doubleClick, int x, int y, UINT flags) {
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (me) {
