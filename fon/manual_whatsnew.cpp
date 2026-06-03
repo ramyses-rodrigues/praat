@@ -29,6 +29,16 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.4.67# (21 May 2026)
+• Include Anastasia Shchupak as Praat’s third author.
+• Made the Voice Report give “undefined” H1-minus-H2 values (instead of an error message) if there are zero pulses.
+
+##6.4.66# (18 May 2026)
+• Much faster automatic transcription on Windows and Linux.
+• Standalone diarization.
+• Corrected a crash in sorting an Eigen object (could affect discriminant analysis).
+• Removed a bug introduced in 6.4.52 by which running a log script in the Sound window would stop any pending pause window.
+
 ##6.4.65# (24 April 2026)
 • Fixed a bug that could lead to a “Text is not valid UTF-8” error message in automatic transcription.
 • More windows recognize Command-Q (##Quit Praat#).
@@ -1108,7 +1118,7 @@ then dragged the mouse out of that window, then released the mouse button, and t
 • Table window: added a preference for the interpretation of graphical style symbols (`%#^_@`).
 
 ##6.0.14# (11 February 2016)
-• Linux: corrected a bug by which the Tab short-cut for playing a sound would not work if the NumLock key was on.
+• Linux: corrected a bug by which the Tab shortcut for playing a sound would not work if the NumLock key was on.
 • Mac 64-bit: corrected a bug that could cause Praat to crash if the Tab key was pressed in a dialog window.
 
 ##6.0.13# (31 January 2016)

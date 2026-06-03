@@ -1,10 +1,10 @@
 /* praat_TextGrid_init.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma, 2025-2026 Anastasia Shchupak
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -95,7 +95,7 @@ DIRECT (HELP_IntervalTier_help) {
 }
 
 FORM_SAVE (SAVE_IntervalTier_writeToXwaves, U"Xwaves label file", nullptr, nullptr) {
-	SAVE_ONE (IntervalTier)
+	SAVE_ONE (IntervalTier, U"save the selected IntervalTier object to the Xwaves label file")
 		IntervalTier_writeToXwaves (me, file);
 	SAVE_ONE_END
 }
@@ -557,19 +557,29 @@ DIRECT (MODIFY_TextGrid_Sound_scaleTimes) {
 
 FORM (MODIFY_TextGrid_Sound_transcribeInterval, U"TextGrid & Sound: Transcribe interval", U"TextGrid & Sound: Transcribe interval") {
 	HEADING (U"Textgrid...")
-	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
-	BOOLEAN (includeWords, U"Include words", true)
-	BOOLEAN (includeDiarization, U"Include diarization", true)
+	BOOLEAN (includeWords, U"Include words", TranscriptionDefaults::includeWords)
+	BOOLEAN (includeDiarization, U"Include diarization", TranscriptionDefaults::includeDiarization)
 	HEADING (U"Speech activity detection...")
-	BOOLEAN (useVad, U"Allow silences", true)
-	POSITIVE (speechProbabilityThreshold, U"Speech probability threshold (0 - 1)", U"0.5")
-	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", U"0.1")
-	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", U"0.25")
-	POSITIVE (speechPad, U"Padding around speech segments (s)", U"0.03")
+	BOOLEAN (useVad, U"Allow silences", TranscriptionDefaults::useVad)
+	REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", VadDefaults::speechThreshold)
+	POSITIVE (minNonSpeechDuration, U"Min. non-speech interval (s)", VadDefaults::minNonSpeechDuration)
+	POSITIVE (minSpeechDuration, U"Min. speech interval (s)", VadDefaults::minSpeechDuration)
+	POSITIVE (speechPad, U"Padding around speech segments (s)", VadDefaults::speechPad)
 	HEADING (U"Transcription...")
 	LISTNUMSTR (modelIndex, modelName, U"Whisper model", constSTRVEC(), 1)
-	LISTNUMSTR (languageIndex, languageName, U"Language", constSTRVEC(), 1)
+	OPTIONMENUSTR (languageName, U"Language",
+		(int) NUMfindFirst (theSpeechRecognizerLanguageNames(), TranscriptionDefaults::languageName))
+	for (integer i = 1; i <= theSpeechRecognizerLanguageNames().size; i ++)
+		OPTION (theSpeechRecognizerLanguageNames() [i])
+	HEADING (U"Diarization...")
+	INTEGER (numSpeakers, U"Fixed number of speakers...", DiarizationDefaults::numSpeakers)
+	INTEGER (minSpeakers, U"left ... or range of numbers of speakers", DiarizationDefaults::minSpeakers)
+	INTEGER (maxSpeakers, U"right ... or range of numbers of speakers", DiarizationDefaults::maxSpeakers)
+	BOOLEAN (allowSpeakersOverlap, U"Allow speakers overlap", DiarizationDefaults::allowOverlap)
+	POSITIVE (clusterThreshold, U"Clustering threshold (0-2)", DiarizationDefaults::clusterThreshold)
+	POSITIVE (segmentationStep, U"Segmentation step (0-1)", DiarizationDefaults::segmentationStep)
 OK
 	static autoSTRVEC modelNames;
 	modelNames = copy_STRVEC (theCurrentSpeechRecognizerModelNames());   // cannot be called twice in the same scope
@@ -579,13 +589,34 @@ OK
 		U"You can install them into the subfolders “whispercpp” of the folder “models” in the Praat preferences folder."
 	);
 
-	SET_LIST (modelIndex, modelName, modelNames.get (), NUMfindFirst (modelNames.get (), theSpeechRecognizerDefaultModelName))
-	SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(),
-		NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+	SET_LIST (modelIndex, modelName, modelNames.get (), NUMfindFirst (modelNames.get (), TranscriptionDefaults::modelName))
 DO
 	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
 		TextGrid_Sound_transcribeInterval (me, you, tierNumber, intervalNumber, modelName, languageName, includeWords,
-				includeDiarization, useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
+			includeDiarization, useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad,
+			numSpeakers, minSpeakers, maxSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep);
+	MODIFY_FIRST_OF_ONE_AND_ONE_END
+}
+
+FORM (MODIFY_TextGrid_Sound_diarizeInterval, U"TextGrid & Sound: Diarize interval", U"TextGrid & Sound: Diarize interval") {
+	HEADING (U"Textgrid...")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
+	HEADING (U"Diarization...")
+	INTEGER (numSpeakers, U"Fixed number of speakers...", DiarizationDefaults::numSpeakers)
+	INTEGER (minSpeakers, U"left ... or range of numbers of speakers", DiarizationDefaults::minSpeakers)
+	INTEGER (maxSpeakers, U"right ... or range of numbers of speakers", DiarizationDefaults::maxSpeakers)
+	BOOLEAN (allowSpeakersOverlap, U"Allow speakers overlap", DiarizationDefaults::allowOverlap)
+	WORD (nonSpeechLabel, U"Non-speech interval label", DiarizationDefaults::nonSpeechLabel)
+	WORD (speechLabel, U"Speech interval label", DiarizationDefaults::speechLabel)
+	POSITIVE (clusterThreshold, U"Clustering threshold (0-2)", DiarizationDefaults::clusterThreshold)
+	POSITIVE (segmentationStep, U"Segmentation step (0-1)", DiarizationDefaults::segmentationStep)
+	OK
+DO
+	MODIFY_FIRST_OF_ONE_AND_ONE (TextGrid, Sound)
+		TextGrid_Sound_diarizeInterval (me, you, tierNumber, intervalNumber,
+				numSpeakers, minSpeakers, maxSpeakers, allowSpeakersOverlap,
+				nonSpeechLabel, speechLabel, clusterThreshold, segmentationStep);
 	MODIFY_FIRST_OF_ONE_AND_ONE_END
 }
 
@@ -716,7 +747,7 @@ DIRECT (MODIFY_SpellingChecker_replaceUserDictionary) {
 // MARK: Save
 
 FORM_SAVE (SAVE_TextGrid_writeToChronologicalTextFile, U"Text file", nullptr, nullptr) {
-	SAVE_ONE (TextGrid)
+	SAVE_ONE (TextGrid, U"save the selected TextGrid object to the chronological text file")
 		TextGrid_writeToChronologicalTextFile (me, file);
 	SAVE_ONE_END
 }
@@ -1806,6 +1837,7 @@ praat_addAction1 (classTextGrid, 0, U"Synthesize", nullptr, 0, nullptr);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Align interval...", nullptr, 0, MODIFY_TextGrid_Sound_alignInterval);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Scale times", nullptr, 0, MODIFY_TextGrid_Sound_scaleTimes);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Transcribe interval...", nullptr, 0, MODIFY_TextGrid_Sound_transcribeInterval);
+	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Diarize interval...", nullptr, 0, MODIFY_TextGrid_Sound_diarizeInterval);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Modify Sound", nullptr, 0, nullptr);
 	praat_addAction2 (classSound, 1, classTextGrid, 1, U"Clone time domain", nullptr, 0, MODIFY_TextGrid_Sound_cloneTimeDomain);
 	praat_addAction2 (classSpellingChecker, 1, classWordList, 1, U"Replace WordList", nullptr, 0, MODIFY_SpellingChecker_replaceWordList);

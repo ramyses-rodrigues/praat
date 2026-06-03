@@ -281,19 +281,19 @@ FORM_READ (READ_ONE__Table_readFromTabSeparatedFile, U"Read Table from tab-separ
 // MARK: Save
 
 FORM_SAVE (SAVE_ONE__Table_writeToTabSeparatedFile, U"Save Table as tab-separated file", nullptr, U"Table") {
-	SAVE_ONE (Table)
+	SAVE_ONE (Table, U"save the selected Table object to the tab-separated file")
 		Table_writeToTabSeparatedFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Table_writeToCommaSeparatedFile, U"Save Table as comma-separated file", nullptr, U"Table") {
-	SAVE_ONE (Table)
+	SAVE_ONE (Table, U"save the selected Table object to the comma-separated file")
 		Table_writeToCommaSeparatedFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_ONE__Table_writeToSemicolonSeparatedFile, U"Save Table as semicolon-separated file", nullptr, U"Table") {
-	SAVE_ONE (Table)
+	SAVE_ONE (Table, U"save the selected Table object to the semicolon-separated file")
 		Table_writeToSemicolonSeparatedFile (me, file);
 	SAVE_ONE_END
 }
@@ -1032,7 +1032,7 @@ FORM (CONVERT_EACH_TO_ONE__Table_downto_TableOfReal, U"Table: Down to TableOfRea
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Table)
-		const integer columnNumber = Table_columnNameToNumber_0 (me, columnForRowLabels);
+		const integer columnNumber = Table_columnNameToNumber_e (me, columnForRowLabels);
 		autoTableOfReal result = Table_to_TableOfReal (me, columnNumber);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
@@ -1051,8 +1051,8 @@ FORM (CONVERT_EACH_TO_ONE__Table_to_RealTier, U"Table: To RealTier", nullptr) {
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Table)
-		const integer timeColumn = Table_columnNameToNumber_0 (me, columnWithTimes);
-		const integer valueColumn = Table_columnNameToNumber_0 (me, columnWithValues);
+		const integer timeColumn = Table_columnNameToNumber_e (me, columnWithTimes);
+		const integer valueColumn = Table_columnNameToNumber_e (me, columnWithValues);
 		autoRealTier result = Table_to_RealTier (me, timeColumn, valueColumn, startTime, endTime);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }

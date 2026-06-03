@@ -35,13 +35,14 @@ The following people contributed source code to Praat:
 	@@Intro 7. Annotation|annotation@, @@Intro 8. Manipulation|speech manipulation@, @@voice|voice report@,
 	@@ExperimentMFC|listening experiments@,
 	@@articulatory synthesis@, @@OT learning|optimality-theoretic learning@,
-	tables, @formulas, @scripting, and adaptation of PortAudio, GLPK, regular expressions, eSpeak, Opus and LAME.
+	tables, @formulas, @scripting, and adaptation of PortAudio, GLPK, @@regular expressions@, @eSpeak, Opus and LAME.
 , David Weenink:
 	@@feedforward neural networks@, @@principal component analysis@, @@multidimensional scaling@, @@discriminant analysis@, @LPC,
 	@@KlattGrid|Acoustic synthesis (Klatt)@, automatic alignment, @VowelEditor, @FormantPath,
-	and adaptation of GSL, LAPACK, fftpack, regular expressions, eSpeak, Ogg Vorbis, Opus and LAME.
-, Anastasia Shchupak: automatic speech recognition with word-level timestamps, automatic speaker diarization,
-	and adaptation of Whisper.cpp, Silero VAD and Pyannote.
+	and adaptation of GSL, @LAPACK, fftpack, regular expressions, @eSpeak, Ogg Vorbis, Opus and LAME.
+, Anastasia Shchupak: @@TextGrid & Sound: Transcribe interval...|automatic speech recognition with word-level timestamps@,
+	automatic speaker diarization,
+	and adaptation of @@whisper.cpp@, @@Silero VAD@ and pyannote.audio.
 , Erez Volk: adaptation of FLAC and MAD.
 , Stefan de Konink and Franz Brauße: major help in port to GTK.
 , Tom Naughton: major help in port to Cocoa.
@@ -57,7 +58,7 @@ We included the following freely available software libraries in Praat (sometime
 	contains AMD software by the same author (@@GNU Lesser General Public License, version 2.1|LGPL 2.1@ or later).
 , PortAudio: Portable Audio Library by Ross Bencina, Phil Burk, Bjorn Roche, Dominic Mazzoni, Darren Gibbs,
 	version 19.7.0 of April 2021 (CC-BY-like license).
-, eSpeak(-NG): text-to-speech synthesizer by Jonathan Duddington and Reece Dunn,
+, @eSpeak(-NG): text-to-speech synthesizer by Jonathan Duddington and Reece Dunn,
 	development version 1.52 of August 2023, with language and voice data of 2024-08-24T19:38Z (@@General Public License, version 3|GPL 3@ or later).
 , MAD: MPEG Audio Decoder by Underbit Technologies (@@General Public License, version 2|GPL 2@ or later).
 , LAME: MP3 encoding by Mike Cheng, Mark Taylor, Takehiro Tominaga, Robert Hegemann, Gabriel Bouvigne, Alexander Leidinger,
@@ -74,14 +75,17 @@ We included the following freely available software libraries in Praat (sometime
 , @LAPACK: public-domain numeric algorithms by Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
 	Courant Institute, Argonne National Lab, and Rice University,
 	C edition by Peng Du, Keith Seymour and Julie Langdou, version 3.2.1 of June 2009.
-, Regular expressions by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (@@General Public License, version 2|GPL 2@ or later).
+, @@Regular expressions@ by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (@@General Public License, version 2|GPL 2@ or later).
 , Unicode Character Database by Unicode Inc., version 16.0 of August 2024 (@@Unicode Inc. license agreement@).
 , Quickselect and Median of ninthers, by Andrei Alexandrescu 2016 (@@Boost Software License 1.0@).
-, GGML (version 0.9.7) and Whisper.cpp (version 1.8.3), by Georgi Gerganov and many others (@@GGML and whisper.cpp MIT License@),
+, ggml: tensor library for machine learning by Georgi Gerganov and many others, version 0.9.7 (@@ggml and whisper.cpp MIT License|ggml MIT License@)
+, @@whisper.cpp@: automatic speech recognition, by Georgi Gerganov and many others, version 1.8.3 (@@ggml and whisper.cpp MIT License|whisper.cpp MIT License@),
 	using separately installed Whisper models by OpenAI (@@Whisper OpenAI MIT License@).
-, Silero VAD: Voice Activity Detection model (version 6.2.0) by the Silero Team,
-    embedded in GGML format (@@Silero VAD MIT License@).
-, Pyannote: automatic speaker diarization by Hervé Bredin, version 4.0.4 of February 2026.
+, @@Silero VAD@: speech activity detection model by Silero Team, version 6.2.0 of November 2025 (@@Silero VAD MIT License@).
+, pyannote.audio: automatic speaker diarization toolkit by Hervé Bredin, version 4.0.4 of February 2026 (@@pyannote.audio MIT License@).
+, WeSpeaker: speaker embedding learning toolkit by WeNet Community, version 1.2.0 of July 2023 (@@WeSpeaker Apache License 2.0@),
+    using speaker embedding model trained on VoxCeleb2 speaker recognition dataset by Joon Son Chung, Arsha Nagrani
+	and Andrew Zisserman (@@VoxCeleb CC-BY-4.0 license@).
 
 Our own parts of the source code of Praat are distributed either under the
 @@General Public License, version 2@ or later, or under the @@General Public License, version 3@ or later.
@@ -113,6 +117,7 @@ Finally we thank:
 , Daniel Hirst and Daniel McCloy, for managing the Praat Users List.
 , Rafael Laboissière and Andreas Tille, for maintaining the Debian package.
 , Jason Bacon and Adriaan de Groot, for maintaining the FreeBSD port.
+, Anna Simmons, for maintaining the Flathub package.
 , José Joaquín Atria and Ingmar Steiner, for setting up the source-code repository on GitHub.
 , Hundreds of Praat users, for sending suggestions and notifying us of problems and thus helping us to improve Praat.
 
@@ -127,11 +132,12 @@ See @Acknowledgments for details on the licenses of software libraries by others
 that are included in Praat.
 
 ################################################################################
-"GGML and whisper.cpp MIT License"
-© 2023–2024 the ggml authors; introductory paragraph by Paul Boersma 2025
+"ggml and whisper.cpp MIT License"
+© 2023–2024 The ggml authors; introductory paragraph by Paul Boersma 2025
 
-The Praat source code contains a copy of the Whisper.cpp software (see @Acknowledgments).
-Here is its license text:
+The Praat source code contains a copy of the ggml tensor library for machine learning
+and whisper.cpp software (see @Acknowledgments).
+Here is the ggml license text:
 
 `
 	MIT License
@@ -160,7 +166,7 @@ Here is its license text:
 © 2022 OpenAI; introductory paragraph by Anastasia Shchupak 2025
 
 Praat uses separately installed Whisper speech recognition models by OpenAI (see @Acknowledgments).
-Whisper.cpp, which is included in Praat, is a C/C++ port of OpenAI's Whisper.
+whisper.cpp, which is included in Praat, is a C/C++ port of OpenAI's Whisper.
 Here is the OpenAI Whisper license text:
 
 `
@@ -190,8 +196,8 @@ Here is the OpenAI Whisper license text:
 "Silero VAD MIT License"
 © 2020-present Silero Team; introductory paragraph by Anastasia Shchupak 2026
 
-Praat contains an embedded copy of the Silero VAD model for Voice Activity Detection (see @Acknowledgments).
-The original model by the Silero Team was converted to GGML format and embedded as a C data array.
+Praat contains an embedded copy of the Silero VAD model for speech activity detection (see @Acknowledgments).
+The original model by Silero Team was converted to ggml format and embedded as a C data array.
 Here is the Silero VAD license text:
 
 `
@@ -216,6 +222,314 @@ Here is the Silero VAD license text:
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 	SOFTWARE.
+`
+################################################################################
+"pyannote.audio MIT License"
+© 2020 CNRS; introductory paragraph by Anastasia Shchupak 2026
+
+Praat contains a C++/ggml port of the pyannote/speaker-diarization-3.1 pipeline
+from pyannote.audio speaker diarization toolkit (see @Acknowledgments).
+The pyannote/segmentation-3.0 segmentation model used by the pipeline was converted
+to ggml format and included into Praat.
+Here is the pyannote.audio license text:
+
+`
+	MIT License
+
+	Copyright (c) 2020 CNRS
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+`
+################################################################################
+"WeSpeaker Apache License 2.0"
+© WeNet Community; introductory paragraph by Anastasia Shchupak 2026
+
+Praat contains a C++/ggml port of the ResNet34 architecture with TSTP pooling
+from the WeSpeaker speaker embedding learning toolkit (see @Acknowledgments).
+This implementation is used for inference on the wespeaker-voxceleb-resnet34-LM
+speaker embedding model as a part of the pyannote/speaker-diarization-3.1 pipeline.
+The pretrained model weights, redistributed by pyannote.audio in PyTorch format,
+were converted to ggml format and embedded into Praat.
+These weights are distributed under the Creative Commons Attribution 4.0
+International License (see @@VoxCeleb CC-BY-4.0 license@).
+Here is the license text of the WeSpeaker speaker embedding learning toolkit:
+
+`
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+`
+################################################################################
+"VoxCeleb CC-BY-4.0 license"
+© Joon Son Chung, Arsha Nagrani and Andrew Zisserman; introductory paragraph by Anastasia Shchupak 2026
+
+The wespeaker-voxceleb-resnet34-LM speaker embedding model used in Praat was trained
+on the VoxCeleb2 Dev dataset (see @Acknowledgments). As stated by the WeSpeaker project
+documentation (https://github.com/wenet-e2e/wespeaker/blob/master/docs/pretrained.md),
+pretrained models inherit the license of their corresponding datasets.
+Here is the VoxCeleb license text:
+
+`
+	OXFORD VGG VoxCeleb Dataset
+
+	VoxCeleb1 contains over 100,000 utterances for 1,251 celebrities,
+	extracted from videos uploaded to YouTube.
+	VoxCeleb2 contains over a million utterances for 6,112 celebrities,
+	extracted from videos uploaded to YouTube.
+
+	The speakers span a wide range of different ethnicities, accents, professions and ages.
+
+	We provide YouTube URLs, associated face detections, and timestamps, as
+	well as cropped audio segments and cropped face videos from the
+	dataset.  The copyright of both the original and cropped versions
+	of the videos remains with the original owners.
+
+	The data is covered under a Creative Commons
+	Attribution 4.0 International license (Please read the
+	license terms here. https://creativecommons.org/licenses/by/4.0/).
+
+	Downloading this dataset implies agreement to follow the same
+	conditions for any modification and/or
+	re-distribution of the dataset in any form.
+
+	Additionally any entity using this dataset agrees to the following conditions:
+
+	THIS DATASET IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+	IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+	TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+	HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+	EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+	PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+	Please cite [1,2] below if you make use of the dataset.
+
+	[1] J. S. Chung, A. Nagrani, A. Zisserman
+	VoxCeleb2: Deep Speaker Recognition
+	INTERSPEECH, 2018.
+
+	[2] A. Nagrani, J. S. Chung, A. Zisserman
+	VoxCeleb: a large-scale speaker identification dataset
+	INTERSPEECH, 2017
 `
 ################################################################################
 "FLAC BSD 3-clause license"

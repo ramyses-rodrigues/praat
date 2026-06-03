@@ -1,9 +1,7 @@
 # Makefile of the library "external/whispercpp"
-# Anastasia Shchupak 2025,2026
+# Anastasia Shchupak, 23 May 2026
 
-include ../../makefile.defs
-
-CPPFLAGS = -I ../../melder -I ../../fon -I ../../sys
+CPPFLAGS += -I ../../melder -I ../../fon -I ../../sys
 
 WHISPER_AND_GGML_OBJECTS = \
 	whisper.o \

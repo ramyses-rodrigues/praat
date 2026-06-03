@@ -1,10 +1,10 @@
 /* praat_TableOfReal.cpp
  *
- * Copyright (C) 1992-2018,2021-2024 Paul Boersma
+ * Copyright (C) 1992-2018,2021-2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -473,7 +473,7 @@ DO
 }
 
 FORM_SAVE (SAVE_TableOfReal_writeToHeaderlessSpreadsheetFile, U"Save TableOfReal as spreadsheet", 0, U"txt") {
-	SAVE_ONE (TableOfReal)
+	SAVE_ONE (TableOfReal, U"save the selected TableOfReal object to the headerless spreadsheet file")
 		TableOfReal_writeToHeaderlessSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }

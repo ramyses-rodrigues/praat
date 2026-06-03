@@ -1,6 +1,6 @@
 /* VoiceAnalysis.cpp
  *
- * Copyright (C) 1992-2007,2011,2012,2015-2020,2025 Paul Boersma
+ * Copyright (C) 1992-2007,2011,2012,2015-2020,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -361,9 +361,9 @@ void Sound_Pitch_PointProcess_voiceReport (Sound sound, Pitch pitch, PointProces
 		/*
 			H1 minus H2.
 		*/
-		autoH1minusH2Tier h1minusH2 = PointProcess_Sound_to_H1minusH2Tier (pulses, sound, tmin, tmax, pmin, pmax, maximumPeriodFactor);
-		const double meanOfThePoints = RealTier_getMean_points (h1minusH2.get(), tmin, tmax);
-		const double meanOfTheCurve = RealTier_getMean_curve (h1minusH2.get(), tmin, tmax);
+		autoH1minusH2Tier h1minusH2 = PointProcess_Sound_to_H1minusH2Tier_u (pulses, sound, tmin, tmax, pmin, pmax, maximumPeriodFactor);
+		const double meanOfThePoints = RealTier_getMean_points_u (h1minusH2.get(), tmin, tmax);
+		const double meanOfTheCurve = RealTier_getMean_curve_u (h1minusH2.get(), tmin, tmax);
 		MelderInfo_writeLine (U"H1-minus-H2:");
 		MelderInfo_writeLine (U"   Mean of the points: ", Melder_fixed (meanOfThePoints, 3), U" dB");
 		MelderInfo_writeLine (U"   Mean of the curve: ", Melder_fixed (meanOfTheCurve, 3), U" dB");

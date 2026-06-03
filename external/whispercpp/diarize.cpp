@@ -20,11 +20,11 @@
  * ------------------------------------
  * Reimplements pyannote.audio SpeakerDiarization pipeline:
  *   Segmentation (pyannote/segmentation-3.0):
- *     WavNorm -> SincNet (GGML graph) -> LSTM (plain C++) -> Linear -> Classifier -> Log-softmax
+ *     WavNorm -> SincNet (ggml graph) -> LSTM (plain C++) -> Linear -> Classifier -> Log-softmax
  *     Input: 10s waveform at 16kHz -> Output: 589 frames × 7 powerset classes
  *
  *   Embedding (wespeaker-voxceleb-resnet34-LM):
- *     Fbank -> ResNet34 (GGML conv2d + plain C++) -> TSTP pooling -> Linear
+ *     Fbank -> ResNet34 (ggml conv2d + plain C++) -> TSTP pooling -> Linear
  *     Input: variable-length waveform -> Output: 256-d speaker embedding
  *
  *   Clustering:
@@ -53,6 +53,9 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <chrono>
+#include <atomic>
+#include <thread>
 
 #include "ggml.h"
 #include "ggml-alloc.h"
@@ -64,7 +67,7 @@
 #define GGML_FILE_MAGIC 0x67676d6c
 
 /*
-	Maximum size for GGML computation graphs.
+	Maximum size for ggml computation graphs.
 	sincnet_forward builds a graph with 58 nodes (44 nodes and 14 leafs).
 	conv2d_forward builds a graph with 9 nodes (7 nodes and 2 leafs).
 	These numbers were found out by including the following print after ggml_build_forward_expand():
@@ -73,6 +76,24 @@
 */
 #define SINCNET_MAX_NODES 64
 #define CONV2D_MAX_NODES 16
+
+/*
+	Performance counters for diarization timing breakdown.
+	These atomic accumulators record how much time each phase of segmentation
+	and embedding takes (in microseconds), summed across all operations of
+	a single diarize_full() run. They are reset at the start of each run and
+	printed if (Melder_debug == 2004) at the end. Atomic types are used to support multithreading.
+*/
+static std::atomic <int64_t> g_seg_sincnet_us {0};   // ggml SincNet forward
+static std::atomic <int64_t> g_seg_lstm_us    {0};   // plain-C++ bidirectional LSTM
+static std::atomic <int64_t> g_seg_linear_us  {0};   // plain-C++ linear layers + classifier
+static std::atomic <int>     g_seg_calls      {0};   // number of segmentation_forward() calls
+
+static std::atomic <int64_t> g_emb_fbank_us        {0};   // plain-C++ fbank feature extraction
+static std::atomic <int64_t> g_emb_conv1bn1relu_us {0};   // ResNet stem (ggml conv + plain-C++ BN/ReLU)
+static std::atomic <int64_t> g_emb_resnet_us       {0};   // ResNet layers 1–4 (mix of ggml and plain C++)
+static std::atomic <int64_t> g_emb_tail_us         {0};   // TSTP pooling + final linear layer
+static std::atomic <int>     g_emb_calls           {0};   // number of embedding_forward() calls
 
 // ============================================================================
 // Big-endian support
@@ -683,10 +704,14 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
     // 1. SincNet (GGML graph)
     std::vector<float> sincnet_out;
     int sn_time, sn_ch;
+
+	auto t0 = std::chrono::high_resolution_clock::now();
+
     if (!sincnet_forward(sctx, samples, n_samples, sincnet_out, sn_time, sn_ch)) {
         return false;
     }
-    trace (U"SincNet output: [", sn_time, U", ", sn_ch, U"]");
+	auto t1 = std::chrono::high_resolution_clock::now();
+	trace (U"SincNet output: [", sn_time, U", ", sn_ch, U"]");
 
     // SincNet output is [ne0=time, ne1=ch] in GGML memory order.
     // This is the same as [ch, time] in PyTorch.
@@ -703,6 +728,7 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
 
     // 2. LSTM (plain C++)
     const auto lstm_out = lstm_forward(model, lstm_in.data(), T);
+	auto t2 = std::chrono::high_resolution_clock::now();
     trace (U"LSTM output: [", T, U", ", hp.lstm_output_size(), U"]");
 
     // 3. Linear layers
@@ -725,9 +751,20 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
 
     // 5. Log-softmax activation
     result = log_softmax(cls_out.data(), T, hp.n_classes);
+	auto t3 = std::chrono::high_resolution_clock::now();
 
     n_frames = T;
     n_classes = hp.n_classes;
+
+	if (Melder_debug == 2004) {
+		auto us = [](auto a, auto b) {
+			return std::chrono::duration_cast<std::chrono::microseconds>(b - a).count();
+		};
+		g_seg_sincnet_us += us(t0, t1);
+		g_seg_lstm_us    += us(t1, t2);
+		g_seg_linear_us  += us(t2, t3);
+		++ g_seg_calls;
+	}
 
     return true;
 }
@@ -750,9 +787,12 @@ static void segmentation_init(segmentation_context & sctx, diarize_model_loader 
 }
 
 static void segmentation_free(segmentation_context & sctx) {
-    if (sctx.backend) ggml_backend_free(sctx.backend);
-    for (auto buf : sctx.model.buffers) ggml_backend_buffer_free(buf);
-    for (auto ctx : sctx.model.ctxs) ggml_free(ctx);
+    if (sctx.backend)
+    	ggml_backend_free(sctx.backend);
+    for (auto buf : sctx.model.buffers)
+    	ggml_backend_buffer_free(buf);
+    for (auto ctx : sctx.model.ctxs)
+    	ggml_free(ctx);
 }
 
 
@@ -1266,6 +1306,8 @@ static bool embedding_forward(embedding_context & ectx,
     auto & model = ectx.model;
     auto & hp = model.hparams;
 
+	auto t0 = std::chrono::high_resolution_clock::now();
+
     // 1. Fbank extraction
     std::vector<float> fbank;
     int num_frames;
@@ -1282,6 +1324,7 @@ static bool embedding_forward(embedding_context & ectx,
     for (int t = 0; t < W; t++)
         for (int f = 0; f < H; f++)
             cur[f * W + t] = fbank[t * H + f];
+	auto t1 = std::chrono::high_resolution_clock::now();
 
     // 3. Stem: conv1 + bn1 + relu
     {
@@ -1294,12 +1337,14 @@ static bool embedding_forward(embedding_context & ectx,
         cur = conv_out; C = OC; H = OH; W = OW;
     }
     trace (U"stem: (", N, U", ", C, U", ", H, U", ", W, U")");
+	auto t2 = std::chrono::high_resolution_clock::now();
 
     // 4. ResNet layers 1-4
     for (int layer = 1; layer <= 4; layer++) {
         if (!run_layer(ectx.backend, model, layer, cur, N, C, H, W)) return false;
         trace (U"layer ", layer, U": (", N, U", ", C, U", ", H, U", ", W, U")");
     }
+	auto t3 = std::chrono::high_resolution_clock::now();
 
     // 5. TSTP pooling
     std::vector<float> pool;
@@ -1311,11 +1356,25 @@ static bool embedding_forward(embedding_context & ectx,
                    (float*)model.tensors["resnet.seg_1.weight"]->data,
                    (float*)model.tensors["resnet.seg_1.bias"]->data,
                    hp.embed_dim, embedding_out);
+
+	auto t4 = std::chrono::high_resolution_clock::now();
+
     trace (U"embedding: (", N, U", ", hp.embed_dim, U")");
+
+	if (Melder_debug == 2004) {
+		auto us = [](auto a, auto b) {
+			return std::chrono::duration_cast<std::chrono::microseconds>(b - a).count();
+		};
+		g_emb_fbank_us  += us(t0, t1);
+		g_emb_conv1bn1relu_us += us(t1, t2);
+		g_emb_resnet_us += us(t2, t3);
+		g_emb_tail_us   += us(t3, t4);
+		++g_emb_calls;
+	}
 
     return true;
 }
-
+struct ggml_backend_cpu_context;
 // ============================================================================
 // Embedding: Init / Free
 // ============================================================================
@@ -1333,9 +1392,12 @@ static void embedding_init(embedding_context & ectx, diarize_model_loader * load
 }
 
 static void embedding_free(embedding_context & ectx) {
-    if (ectx.backend) ggml_backend_free(ectx.backend);
-    for (auto buf : ectx.model.buffers) ggml_backend_buffer_free(buf);
-    for (auto ctx : ectx.model.ctxs) ggml_free(ctx);
+    if (ectx.backend)
+    	ggml_backend_free(ectx.backend);
+    for (auto buf : ectx.model.buffers)
+    	ggml_backend_buffer_free(buf);
+    for (auto ctx : ectx.model.ctxs)
+    	ggml_free(ctx);
 }
 
 
@@ -1360,9 +1422,12 @@ struct diarization_params {
     bool    emb_exclude_overlap = true;
 
     // Clustering
-    double  cluster_threshold  = 0.7045654963945799;
+    double  cluster_threshold  = 0.7045654963945799;   // https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml
     int     cluster_min_size   = 12;
     float   min_active_ratio   = 0.2f;    // for filter_embeddings
+	int     num_speakers       = 0;   // unspecified
+	int     min_speakers       = 0;   // unspecified
+	int     max_speakers       = 0;   // unspecified
 
     // Post-processing
     float   min_duration_off   = 0.0f;
@@ -1652,13 +1717,92 @@ static void fcluster_distance(const std::vector<linkage_merge> & dend, int n, do
     for (int i = 0; i < n; i++) labels[i] = mp[labels[i]];
 }
 
+// Variant of fcluster_distance that cuts the dendrogram at an iteration
+// index instead of a distance. Performs merges 0..cut_index inclusive,
+// then assigns connected components.
+//   Mirrors pyannote's clustering.py:407-408 + fcluster trick:
+//     _dendrogram[:, 2] = np.arange(num_embeddings - 1)
+//     fcluster(_dendrogram, iteration, criterion="distance")
+static void fcluster_byiteration(const std::vector<linkage_merge> & dend, int n,
+								 int cut_index,
+								 std::vector<int32_t> & labels) {
+	int mx = 2 * n - 1;
+	std::vector<int> parent(mx);
+	for (int i = 0; i < mx; i++) parent[i] = i;
+	auto find = [&](int x) -> int {
+		while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x;
+	};
+	for (int i = 0; i < n - 1; i++) {
+		int a = (int)dend[i].idx1, b = (int)dend[i].idx2, ni = n + i;
+		parent[ni] = ni;
+		if (i <= cut_index) { parent[find(a)] = ni; parent[find(b)] = ni; }
+	}
+	labels.resize(n);
+	for (int i = 0; i < n; i++) labels[i] = find(i);
+	// Renumber 0..K-1 (same as fcluster_distance)
+	std::vector<int> uq;
+	for (int i = 0; i < n; i++) {
+		bool found = false;
+		for (int u : uq) { if (u == labels[i]) { found = true; break; } }
+		if (!found) uq.push_back(labels[i]);
+	}
+	std::vector<int> mp(mx, -1);
+	for (int k = 0; k < (int)uq.size(); k++) mp[uq[k]] = k;
+	for (int i = 0; i < n; i++) labels[i] = mp[labels[i]];
+}
+
+// Helper: count "large" clusters (size >= min_cluster_size) given labels.
+static int count_large_clusters(const std::vector<int32_t> & labels, int min_cluster_size) {
+	std::map<int32_t, int> counts;
+	for (auto l : labels) counts[l]++;
+	int n_large = 0;
+	for (auto & [_, c] : counts) if (c >= min_cluster_size) n_large++;
+	return n_large;
+}
+
+// Normalize cluster-count constraints. Mirrors pyannote's
+// AgglomerativeClustering.set_num_clusters (clustering.py:54).
+//   num, min, max are 0 when "not specified" by the caller.
+// On return, min and max are valid (1 <= min <= max <= n_embeddings)
+// and num is either 0 (range) or >0 (force exact count).
+static void set_num_clusters(int num_embeddings,
+							 int & num_clusters,
+							 int & min_clusters,
+							 int & max_clusters) {
+	// pyannote: min_clusters = num_clusters or min_clusters or 1
+	if (num_clusters > 0)         min_clusters = num_clusters;
+	else if (min_clusters <= 0)   min_clusters = 1;
+	min_clusters = std::max(1, std::min(num_embeddings, min_clusters));
+
+	// pyannote: max_clusters = num_clusters or max_clusters or num_embeddings
+	if (num_clusters > 0)         max_clusters = num_clusters;
+	else if (max_clusters <= 0)   max_clusters = num_embeddings;
+	max_clusters = std::max(1, std::min(num_embeddings, max_clusters));
+
+	if (min_clusters > max_clusters)
+		Melder_throw (U"min_speakers must be <= max_speakers (got min=", min_clusters,
+					  U", max=", max_clusters, U").");
+
+	if (min_clusters == max_clusters)
+		num_clusters = min_clusters;
+}
+
 static std::vector<int32_t> agglomerative_cluster(
     const float * embeddings_raw, int n, int dim,
-    double threshold, int min_cluster_size_param
+    double threshold, int min_cluster_size_param,
+    int num_clusters_in,    // 0 = unspecified
+    int min_clusters_in,    // 0 = unspecified
+    int max_clusters_in     // 0 = unspecified
 ) {
     int mcs = std::min(min_cluster_size_param, std::max(1, (int)std::round(0.1 * n)));
 
     if (n == 1) return {0};
+
+    // Normalize cluster-count constraints (mirrors clustering.py:259-263).
+    int num_clusters = num_clusters_in;
+    int min_clusters = min_clusters_in;
+    int max_clusters = max_clusters_in;
+    set_num_clusters(n, num_clusters, min_clusters, max_clusters);
 
     // L2-normalize
     std::vector<double> emb(n * dim);
@@ -1669,9 +1813,60 @@ static std::vector<int32_t> agglomerative_cluster(
     std::vector<linkage_merge> dend;
     centroid_linkage(emb.data(), n, dim, dend);
 
-    // fcluster
+    // Initial cut at threshold (clustering.py:385)
     std::vector<int32_t> clusters;
     fcluster_distance(dend, n, threshold, clusters);
+
+    // Count large clusters (clustering.py:387-394)
+    int n_large = count_large_clusters(clusters, mcs);
+
+    // Force num_clusters from min/max bounds when threshold cut is out of range
+    // (clustering.py:396-402).
+    if      (n_large < min_clusters) num_clusters = min_clusters;
+    else if (n_large > max_clusters) num_clusters = max_clusters;
+
+    // If num_clusters is now constrained and the threshold cut doesn't already
+    // produce that count, search the dendrogram for the best alternative cut
+    // (clustering.py:405-451).
+    if (num_clusters > 0 && n_large != num_clusters) {
+        // Sort iteration indices by |dend[i].distance - threshold| (closest first)
+        std::vector<int> order (n - 1);
+        for (int i = 0; i < n - 1; i++) order[i] = i;
+        std::sort (order.begin(), order.end(), [&](int a, int b) {
+            return std::abs(dend[a].distance - threshold)
+                 < std::abs(dend[b].distance - threshold);
+        });
+
+        int best_iteration       = n - 2;   // default: cut after all merges (1 cluster)
+        int best_n_large         = 1;
+        std::vector<int32_t> best_clusters = std::vector<int32_t>(n, 0);
+
+        for (int it : order) {
+            // Skip merges where the new cluster would be too small
+            // (clustering.py:419-421).
+            int new_size = (int) dend[it].count;
+            if (new_size < mcs) continue;
+
+            std::vector<int32_t> trial;
+            fcluster_byiteration(dend, n, it, trial);
+            int n_l = count_large_clusters(trial, mcs);
+
+            if (std::abs(n_l - num_clusters) < std::abs(best_n_large - num_clusters)) {
+                best_iteration = it;
+                best_n_large   = n_l;
+                best_clusters  = std::move(trial);
+            }
+            if (n_l == num_clusters) break;   // perfect candidate
+        }
+
+        clusters = std::move(best_clusters);
+        n_large  = best_n_large;
+    	if (num_clusters > 0 && n_large != num_clusters) {
+    		Melder_warning (U"Diarization: found only ", n_large,
+							U" clusters (requested ", num_clusters,
+							U"). Lowering 'cluster_min_size' might help.");
+    	}
+    }
 
     // Large/small split
     std::map<int32_t, int> cc;
@@ -1901,7 +2096,7 @@ static diarization_result run_diarization_pipeline(
     int num_speakers,                       // local speakers per chunk (3)
     int emb_dim,
     const diarization_params & params,
-    int max_speakers = 20                   // upper bound on global speakers
+	int max_simultaneous_speakers           // per-frame cap
 ) {
     //TRACE
     int step_frames = params.seg_step_frames();
@@ -1926,8 +2121,8 @@ static diarization_result run_diarization_pipeline(
     compute_speaker_count(binarized_segmentations, num_chunks, num_frames,
                           num_speakers, step_frames, total_frames, spk_count);
 
-    // Cap at max_speakers
-    for (auto & c : spk_count) c = std::min(c, (int32_t)max_speakers);
+	// Cap simultaneous (per-frame) speaker count
+	for (auto & c : spk_count) c = std::min(c, (int32_t)max_simultaneous_speakers);
 
     // Check if any speaker is ever active
     int max_count = *std::max_element(spk_count.begin(), spk_count.end());
@@ -1952,9 +2147,10 @@ static diarization_result run_diarization_pipeline(
     }
 
     // --- Cluster ---
-    auto train_clusters = agglomerative_cluster(
-        filt.filtered_embeddings.data(), filt.num_filtered, emb_dim,
-        params.cluster_threshold, params.cluster_min_size);
+	auto train_clusters = agglomerative_cluster(
+		filt.filtered_embeddings.data(), filt.num_filtered, emb_dim,
+		params.cluster_threshold, params.cluster_min_size,
+		params.num_speakers, params.min_speakers, params.max_speakers);
 
     int num_clusters = *std::max_element(train_clusters.begin(), train_clusters.end()) + 1;
     trace (U"diarize: ", num_clusters, U" clusters");
@@ -2023,6 +2219,10 @@ struct diarize_context {
 
     // Last result
     diarization_result   result;
+
+	// Threadpool
+	ggml_threadpool_t    threadpool = nullptr;
+	int                  current_n_threads = 0;
 };
 
 // ============================================================================
@@ -2039,15 +2239,40 @@ struct diarize_mem_stream {
 // ============================================================================
 extern "C" {
 
-struct diarize_params diarize_default_params(void) {
-    struct diarize_params p{};
+struct diarize_full_params diarize_default_params(void) {
+    struct diarize_full_params p{};
+	p.n_threads			= (int32_t) std::thread::hardware_concurrency() / 2;
     p.seg_duration      = 10.0f;
     p.seg_step_ratio    = 0.1f;
     p.cluster_threshold = 0.7045654963945799f;
     p.cluster_min_size  = 12;
     p.min_active_ratio  = 0.2f;
-    p.max_speakers      = 20;
-    return p;
+	p.num_speakers      = 0;
+	p.min_speakers      = 0;
+	p.max_speakers      = 0;
+	p.max_simultaneous_speakers = INT12_MAX;
+	return p;
+}
+
+static void ensure_n_threads (diarize_context *ctx, int n_threads) {
+	if (ctx->threadpool && ctx->current_n_threads == n_threads)   // already configured correctly
+		return;
+
+	if (ctx->threadpool) {
+		ggml_threadpool_free (ctx->threadpool);
+		ctx->threadpool = nullptr;
+	}
+
+	ggml_threadpool_params tp_params = ggml_threadpool_params_default (n_threads);
+	ctx->threadpool = ggml_threadpool_new (& tp_params);
+	ggml_backend_cpu_set_threadpool (ctx->seg_ctx.backend, ctx->threadpool);
+	ggml_backend_cpu_set_threadpool (ctx->emb_ctx.backend, ctx->threadpool);
+	ggml_backend_cpu_set_n_threads  (ctx->seg_ctx.backend, n_threads);
+	ggml_backend_cpu_set_n_threads  (ctx->emb_ctx.backend, n_threads);
+	ctx->current_n_threads = n_threads;
+
+	if (Melder_debug == 2004)
+		Melder_casual (U"Diarization: using ", n_threads, U" GGML CPU threads");
 }
 
 struct diarize_context * diarize_init(struct diarize_model_loader * seg_loader, struct diarize_model_loader * emb_loader) {
@@ -2171,6 +2396,10 @@ struct diarize_context * diarize_init_from_memory(const void * seg_data, size_t 
 
 void diarize_free(struct diarize_context * ctx) {
     if (!ctx) return;
+	if (ctx->threadpool) {
+		ggml_threadpool_free(ctx->threadpool);
+		ctx->threadpool = nullptr;
+	}
     if (ctx->models_loaded) {
         segmentation_free(ctx->seg_ctx);
         embedding_free(ctx->emb_ctx);
@@ -2179,25 +2408,47 @@ void diarize_free(struct diarize_context * ctx) {
 }
 
 void diarize_full(
-    struct diarize_context * ctx,
-    struct diarize_params    params,
-    const float            * samples,
-    int                      n_samples)
+    struct diarize_context		* ctx,
+    struct diarize_full_params  params,
+    const float					* samples,
+    int							n_samples)
 {
     //TRACE
+	if (Melder_debug == 2004) {
+		/*
+			Reset performance counters so timings reflect this run only and do not
+			accumulate across multiple calls within a single Praat session.
+		*/
+		g_seg_sincnet_us = 0;
+		g_seg_lstm_us    = 0;
+		g_seg_linear_us  = 0;
+		g_seg_calls      = 0;
+		g_emb_fbank_us   = 0;
+		g_emb_conv1bn1relu_us = 0;
+		g_emb_resnet_us  = 0;
+		g_emb_tail_us    = 0;
+		g_emb_calls      = 0;
+	}
+
     if (!ctx || !ctx->models_loaded || !samples || n_samples <= 0)
         Melder_throw (U"Invalid arguments in diarize_full.");
+
+	// Set up threadpool and n_threads
+	ensure_n_threads (ctx, params.n_threads);
 
     // Clear previous result
     ctx->result = {};
 
     // --- Pipeline parameters ---
-    diarization_params dp;
-    dp.seg_duration      = params.seg_duration;
-    dp.seg_step_ratio    = params.seg_step_ratio;
-    dp.cluster_threshold = (double)params.cluster_threshold;
-    dp.cluster_min_size  = params.cluster_min_size;
-    dp.min_active_ratio  = params.min_active_ratio;
+	diarization_params dp;
+	dp.seg_duration      = params.seg_duration;
+	dp.seg_step_ratio    = params.seg_step_ratio;
+	dp.cluster_threshold = (double)params.cluster_threshold;
+	dp.cluster_min_size  = params.cluster_min_size;
+	dp.min_active_ratio  = params.min_active_ratio;
+	dp.num_speakers      = params.num_speakers;
+	dp.min_speakers      = params.min_speakers;
+	dp.max_speakers      = params.max_speakers;
 
     const int sample_rate   = 16000;
     const int chunk_samples = (int)(dp.seg_duration * sample_rate);
@@ -2239,6 +2490,19 @@ void diarize_full(
 
         all_segmentations.insert(all_segmentations.end(), seg_out.begin(), seg_out.end());
     }
+
+	if (Melder_debug == 2004) {
+    	int n = g_seg_calls.load();
+    	int64_t s = g_seg_sincnet_us.load();
+    	int64_t l = g_seg_lstm_us.load();
+    	int64_t f = g_seg_linear_us.load();
+    	int64_t total = s + l + f;
+    	Melder_casual (U"=== Segmentation timing over ", n, U" chunks ===");
+    	Melder_casual (U"  SincNet (GGML):       ", s / 1000, U" ms  (", (total ? 100*s/total : 0), U"%)");
+    	Melder_casual (U"  LSTM (plain C++):     ", l / 1000, U" ms  (", (total ? 100*l/total : 0), U"%)");
+    	Melder_casual (U"  Linear+Cls (plain C++):", f / 1000, U" ms  (", (total ? 100*f/total : 0), U"%)");
+    	Melder_casual (U"  Total segmentation:   ", total / 1000, U" ms");
+	}
 
     int num_speakers = dp.seg_num_speakers;  // 3
 
@@ -2308,14 +2572,28 @@ void diarize_full(
         }
     }
 
-    // --- Step 4: Clustering + reconstruction pipeline ---
-    ctx->result = run_diarization_pipeline(
-        all_segmentations.data(),
-        all_binarized.data(),
-        all_embeddings.data(),
-        num_chunks, num_frames, num_classes, num_speakers, emb_dim,
-        dp, params.max_speakers);
+	if (Melder_debug == 2004) {
+		int n = g_emb_calls. load();
+		int64_t fb = g_emb_fbank_us.        load();
+		int64_t cb = g_emb_conv1bn1relu_us. load();
+		int64_t rn = g_emb_resnet_us.       load();
+		int64_t tl = g_emb_tail_us.         load();
+		int64_t total = fb + cb + rn + tl;
+		Melder_casual (U"=== Embedding timing over ", n, U" calls ===");
+		Melder_casual (U"  Fbank (plain C++):         ", fb / 1000, U" ms  (", (total ? 100*fb/total : 0), U"%)");
+		Melder_casual (U"  Conv1+bn+Relu (plain C++): ", cb / 1000, U" ms  (", (total ? 100*cb/total : 0), U"%)");
+		Melder_casual (U"  ResNet (GGML+C++):         ", rn / 1000, U" ms  (", (total ? 100*rn/total : 0), U"%)");
+		Melder_casual (U"  TSTP+Linear (C++):         ", tl / 1000, U" ms  (", (total ? 100*tl/total : 0), U"%)");
+		Melder_casual (U"  Total embedding:           ", total / 1000, U" ms");
+	}
 
+    // --- Step 4: Clustering + reconstruction pipeline ---
+	ctx->result = run_diarization_pipeline(
+		all_segmentations.data(),
+		all_binarized.data(),
+		all_embeddings.data(),
+		num_chunks, num_frames, num_classes, num_speakers, emb_dim,
+		dp, params.max_simultaneous_speakers);
     trace (U"diarize_full: ", ctx->result.num_speakers, U" speakers, ", ctx->result.segments.size(), U" segments");
 }
 

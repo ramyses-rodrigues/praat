@@ -105,13 +105,13 @@ FORM_READ (READ_ONE__Matrix_readAP, U"Read Matrix from LVS AP file", nullptr, tr
 // MARK: Save
 
 FORM_SAVE (SAVE_Matrix_writeToMatrixTextFile, U"Save Matrix as matrix text file", nullptr, U"mat") {
-	SAVE_ONE (Matrix)
+	SAVE_ONE (Matrix, U"save the selected Matrix object to the matrix text file")
 		Matrix_writeToMatrixTextFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Matrix_writeToHeaderlessSpreadsheetFile, U"Save Matrix as spreadsheet", nullptr, U"txt") {
-	SAVE_ONE (Matrix)
+	SAVE_ONE (Matrix, U"save the selected Matrix object to the headerless spreadsheet file")
 		Matrix_writeToHeaderlessSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }
@@ -259,49 +259,49 @@ DO
 
 DIRECT (REAL_Matrix_getLowestX) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = my xmin;
+		const double result = my xmin;
 	QUERY_ONE_FOR_REAL_END (U" (xmin)")
 }
 
 DIRECT (REAL_Matrix_getHighestX) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = my xmax;
+		const double result = my xmax;
 	QUERY_ONE_FOR_REAL_END (U" (xmax)")
 }
 
 DIRECT (REAL_Matrix_getLowestY) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = my ymin;
+		const double result = my ymin;
 	QUERY_ONE_FOR_REAL_END (U" (ymin)")
 }
 
 DIRECT (REAL_Matrix_getHighestY) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = my ymax;
-	QUERY_ONE_FOR_REAL_END (U" (xmax)")
+		const double result = my ymax;
+	QUERY_ONE_FOR_REAL_END (U" (ymax)")
 }
 
 DIRECT (INTEGER_Matrix_getNumberOfRows) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		integer result = my ny;
+		const integer result = my ny;
 	QUERY_ONE_FOR_REAL_END (U" rows")
 }
 
 DIRECT (INTEGER_Matrix_getNumberOfColumns) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		integer result = my nx;
+		const integer result = my nx;
 	QUERY_ONE_FOR_REAL_END (U" columns")
 }
 
 DIRECT (REAL_Matrix_getRowDistance) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = my dy;
+		const double result = my dy;
 	QUERY_ONE_FOR_REAL_END (U" (row distance)")
 }
 
 DIRECT (REAL_Matrix_getColumnDistance) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = my dx;
+		const double result = my dx;
 	QUERY_ONE_FOR_REAL_END (U" (column distance)")
 }
 
@@ -310,7 +310,7 @@ FORM (REAL_Matrix_getYofRow, U"Matrix: Get y of row", nullptr) {
 	OK
 DO
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = Matrix_rowToY (me, rowNumber);
+		const double result = Matrix_rowToY (me, rowNumber);
 	QUERY_ONE_FOR_REAL_END (U" (y of row ", rowNumber, U")")
 }
 
@@ -319,7 +319,7 @@ FORM (REAL_Matrix_getXofColumn, U"Matrix: Get x of column", nullptr) {
 	OK
 DO
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = Matrix_columnToX (me, columnNumber);
+		const double result = Matrix_columnToX (me, columnNumber);
 	QUERY_ONE_FOR_REAL_END (U" (x of column ", columnNumber, U")")
 }
 
@@ -329,9 +329,11 @@ FORM (REAL_Matrix_getValueInCell, U"Matrix: Get value in cell", nullptr) {
 	OK
 DO
 	QUERY_ONE_FOR_REAL (Matrix)
-		if (rowNumber > my ny) Melder_throw (U"Row number should not exceed number of rows.");
-		if (columnNumber > my nx) Melder_throw (U"Column number should not exceed number of columns.");
-		double result = my z [rowNumber] [columnNumber];
+		if (rowNumber > my ny)
+			Melder_throw (U"Row number should not exceed number of rows.");
+		if (columnNumber > my nx)
+			Melder_throw (U"Column number should not exceed number of columns.");
+		const double result = my z [rowNumber] [columnNumber];
 	QUERY_ONE_FOR_REAL_END (U" (value in column ", columnNumber, U" of row ", rowNumber, U")")
 }
 
@@ -341,7 +343,7 @@ FORM (REAL_Matrix_getValueAtXY, U"Matrix: Get value at xy", nullptr) {
 	OK
 DO
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = Matrix_getValueAtXY (me, x, y);
+		const double result = Matrix_getValueAtXY (me, x, y);
 	QUERY_ONE_FOR_REAL_END (U" (at x = ", x, U" and y = ", y, U")");
 }
 
@@ -349,7 +351,7 @@ DIRECT (REAL_Matrix_getMinimum) {
 	QUERY_ONE_FOR_REAL (Matrix)
 		double minimum = undefined, maximum = undefined;
 		Matrix_getWindowExtrema (me, 0, 0, 0, 0, & minimum, & maximum);
-		double result = minimum;
+		const double result = minimum;
 	QUERY_ONE_FOR_REAL_END (U" (minimum)");
 }
 
@@ -357,13 +359,13 @@ DIRECT (REAL_Matrix_getMaximum) {
 	QUERY_ONE_FOR_REAL (Matrix)
 		double minimum = undefined, maximum = undefined;
 		Matrix_getWindowExtrema (me, 0, 0, 0, 0, & minimum, & maximum);
-		double result = maximum;
+		const double result = maximum;
 	QUERY_ONE_FOR_REAL_END (U" (maximum)");
 }
 
 DIRECT (REAL_Matrix_getSum) {
 	QUERY_ONE_FOR_REAL (Matrix)
-		double result = Matrix_getSum (me);
+		const double result = Matrix_getSum (me);
 	QUERY_ONE_FOR_REAL_END (U" (sum)");
 }
 
@@ -713,49 +715,49 @@ DO
 }
 
 FORM_SAVE (SAVE_Photo_saveAsAppleIconFile, U"Save as Apple icon file", nullptr, U"icns") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the Apple icon file")
 		Photo_saveAsAppleIconFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsGIF, U"Save as GIF file", nullptr, U"gif") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the GIF file")
 		Photo_saveAsGIF (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsJPEG, U"Save as JPEG file", nullptr, U"jpg") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the JPEG file")
 		Photo_saveAsJPEG (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsJPEG2000, U"Save as JPEG-2000 file", nullptr, U"jpg") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the JPEG-2000 file")
 		Photo_saveAsJPEG2000 (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsPNG, U"Save as PNG file", nullptr, U"png") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the PNG file")
 		Photo_saveAsPNG (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsTIFF, U"Save as TIFF file", nullptr, U"tiff") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the TIFF file")
 		Photo_saveAsTIFF (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsWindowsBitmapFile, U"Save as Windows bitmap file", nullptr, U"bmp") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the Windows bitmap file")
 		Photo_saveAsWindowsBitmapFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Photo_saveAsWindowsIconFile, U"Save as Windows icon file", nullptr, U"ico") {
-	SAVE_ONE (Photo)
+	SAVE_ONE (Photo, U"save the selected Photo object to the Windows icon file")
 		Photo_saveAsWindowsIconFile (me, file);
 	SAVE_ONE_END
 }

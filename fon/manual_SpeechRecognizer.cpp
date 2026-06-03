@@ -44,7 +44,7 @@ Installing Whisper models
 =========================
 
 Before you can use the SpeechRecognizer, you need to install one or more Whisper model files
-(in GGML format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
+(in ggml format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
 in the Praat preferences folder.
 
 Whisper models come in several sizes, each offering a different trade-off between speed and accuracy.
@@ -82,7 +82,7 @@ Installing Whisper models
 =========================
 
 Before you can use the SpeechRecognizer, you need to install one or more Whisper model files
-(in GGML format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
+(in ggml format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
 in the Praat preferences folder.
 
 Whisper models come in several sizes, each offering a different trade-off between speed and accuracy.
@@ -110,7 +110,7 @@ to skip non-speech parts of the audio, which improves both speed and accuracy.
 The result is a flat text string containing the full transcription.
 
 ################################################################################
-"TextGrid & Sound: Transcribe interval"
+"TextGrid & Sound: Transcribe interval..."
 © Anastasia Shchupak 2026-03-15
 
 Transcribes the audio in a specific interval of the selected @@TextGrid@ using the @@whisper.cpp@ engine,
@@ -165,7 +165,7 @@ Installing Whisper models
 =========================
 
 Before you can use the SpeechRecognizer, you need to install one or more Whisper model files
-(in GGML format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
+(in ggml format, with extension ##.bin#) into the subfolder ##whispercpp# of the folder ##models#
 in the Praat preferences folder.
 
 Whisper models come in several sizes, each offering a different trade-off between speed and accuracy.
@@ -197,7 +197,7 @@ The sound is internally resampled to 16 kHz before being processed by the model.
 Settings
 ========
 
-##Speech probability threshold (0 - 1)
+##Speech probability threshold (0-1)
 :	determines the sensitivity of the speech detector. Higher values make the detector less sensitive,
 meaning that it requires stronger evidence of speech to mark a segment as speech. This reduces
 false positives (non-speech incorrectly labelled as speech), but may cause some speech to be missed.

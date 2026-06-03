@@ -1,11 +1,9 @@
 # Makefile of the library "kar"
-# Paul Boersma, 26 April 2024
+# Paul Boersma, 23 May 2026
 
-include ../makefile.defs
+CPPFLAGS += -I ../melder
 
 OBJECTS = ipaSerifRegularPS.o longchar.o wctype_portable.o
-
-CPPFLAGS = -I ../melder
 
 .PHONY: all clean
 

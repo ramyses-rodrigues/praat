@@ -1,5 +1,5 @@
 # editorScripts.praat
-# Paul Boersma, 5 February 2026
+# Paul Boersma, 14 May 2026
 
 exitScript: "Use only “Run selection”."
 
@@ -99,7 +99,7 @@ Draw: 0.0, 0.0, "yes", "yes", "yes"
 
 # From Objects to editor: with “pauseScript”.
 #
-# Try to run the following twice.
+# Try to run the following twice (click on Continue when prompted).
 
 sound = Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
 textGrid = To TextGrid: "Mary John Bell", "bell"

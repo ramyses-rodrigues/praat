@@ -1,12 +1,11 @@
 # test_Eigen.praat
 # djmw 20161116, 20180829, 20210609, 20260314
 
-goto veryEnd
 appendInfoLine: "test_Eigen.praat:"
 
 @testOlderFormats
 include readingAndWritingOfObjects.praat
-;@testReadAndWrite
+@testReadAndWrite
 
 @testInterface
 eps = 1e-7
@@ -34,7 +33,6 @@ procedure testOlderFormats
 	removeObject: .eigen
 	appendInfoLine: .test2$, " OK"
 	appendInfoLine: .test$ + " OK"
-
 endproc
 
 procedure testReadAndWrite
@@ -157,6 +155,11 @@ procedure testSymmetric_4by4
 	.eigen = To Eigen (special): "symmetric", 0, "no"
 	@testEqualityOfEigenvalues: .eigen, .eigenvalues#
 	@testOrthogonalityOfEigenvectors: .eigen
+	Sort: "yes"
+	.eigenvaluesr# =	{-1.8427929267829193,-0.24923615375564823,1.758549986173555,17.333479094364993}
+	@testEqualityOfEigenvalues: .eigen, .eigenvaluesr#
+	Sort: "no"
+	@testEqualityOfEigenvalues: .eigen, .eigenvalues#
 	removeObject: .mat, .eigen
 	appendInfoLine: .test$, " OK"
 endproc
@@ -343,4 +346,3 @@ procedure testEigenvaluesOfOneKacSylvesterMatrix: .n
 	endfor
 	appendInfoLine: " OK"	
 endproc
-label veryEnd

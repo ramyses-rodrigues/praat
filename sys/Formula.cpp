@@ -116,7 +116,7 @@ enum { NO_SYMBOL_,
 		ERB_, HERTZ_TO_ERB_, ERB_TO_HERTZ_,
 		SUM_, MEAN_, STDEV_, CENTER_, RANDOM_IMAX_,
 		EVALUATE_, EVALUATE_NOCHECK_, EVALUATE_STR_, EVALUATE_NOCHECK_STR_,
-		STRING_STR_, VERTICAL_STR_, NUMBERS_VEC_, SLEEP_, UNICODE_, UNICODE_STR_,
+		STRING_STR_, HORIZONTAL_STR_, VERTICAL_STR_, NUMBERS_VEC_, SLEEP_, UNICODE_, UNICODE_STR_,
 	#define HIGH_FUNCTION_1  UNICODE_STR_
 
 	/* Functions of 2 variables; if you add, update the #defines. */
@@ -296,7 +296,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"erb", U"hertzToErb", U"erbToHertz",
 	U"sum", U"mean", U"stdev", U"center", U"randomImax",
 	U"evaluate", U"evaluate_nocheck", U"evaluate$", U"evaluate_nocheck$",
-	U"string$", U"vertical$", U"numbers#", U"sleep", U"unicode", U"unicode$",
+	U"string$", U"horizontal$", U"vertical$", U"numbers#", U"sleep", U"unicode", U"unicode$",
 	U"arctan2", U"randomUniform", U"randomInteger", U"randomGauss", U"randomBinomial",
 	U"randomGamma",
 	U"chiSquareP", U"chiSquareQ", U"incompleteGammaP", U"invChiSquareQ", U"studentP", U"studentQ", U"invStudentQ",
@@ -4286,6 +4286,7 @@ static void do_writeFile () {
 	shared_do_writeFile (& text, numberOfArguments);
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName->getString(), & file);
+	Melder_checkTrust (theInterpreter, U"save some text to the file\n", & file);
 	MelderFile_writeText (& file, text.string, Melder_getOutputEncoding ());
 	pushNumber (1);
 }
@@ -4304,6 +4305,7 @@ static void do_writeFileLine () {
 	MelderString_appendCharacter (& text, U'\n');
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName->getString(), & file);
+	Melder_checkTrust (theInterpreter, U"save a line of text to the file\n", & file);
 	MelderFile_writeText (& file, text.string, Melder_getOutputEncoding ());
 	pushNumber (1);
 }
@@ -4321,6 +4323,7 @@ static void do_appendFile () {
 	shared_do_writeFile (& text, numberOfArguments);
 	structMelderFile file { };
 	Melder_relativePathToFile (elFileName->getString(), & file);
+	Melder_checkTrust (theInterpreter, U"append some text to the file\n", & file);
 	MelderFile_appendText (& file, text.string);
 	pushNumber (1);
 }
@@ -4339,6 +4342,7 @@ static void do_appendFileLine () {
 	MelderString_appendCharacter (& text, '\n');
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName->getString(), & file);
+	Melder_checkTrust (theInterpreter, U"append a line of text to the file\n", & file);
 	MelderFile_appendText (& file, text.string);
 	pushNumber (1);
 }
@@ -4505,6 +4509,7 @@ static void do_runSystem () {
 		else if (arg->which == Stackel_STRING)
 			MelderString_append (& text, arg->getString());
 	}
+	Melder_checkTrust (theInterpreter, U"run the system command:\n“", text.string, U"”");
 	try {
 		Melder_runSystem (text.string);
 	} catch (MelderError) {
@@ -4528,6 +4533,7 @@ static void do_runSystem_STR () {
 		else if (arg->which == Stackel_STRING)
 			MelderString_append (& text, arg->getString());
 	}
+	Melder_checkTrust (theInterpreter, U"run the system command:\n“", text.string, U"”");
 	autostring32 result;
 	try {
 		result = runSystem_STR (text.string);
@@ -4552,6 +4558,7 @@ static void do_runSystem_nocheck () {
 		else if (arg->which == Stackel_STRING)
 			MelderString_append (& text, arg->getString());
 	}
+	Melder_checkTrust (theInterpreter, U"run the system command:\n“", text.string, U"”");
 	try {
 		Melder_runSystem (text.string);
 	} catch (MelderError) {
@@ -4577,6 +4584,7 @@ static void do_runSubprocess () {
 		else if (arg->which == Stackel_STRING)
 			arguments [iarg] = Melder_dup (arg->getString());
 	}
+	Melder_checkTrust (theInterpreter, U"run the subprocess command:\n“", commandFile->getString(), U" ", flatten_STR (arguments.get(), U"˰").get(), U"”");
 	try {
 		Melder_runSubprocess (commandFile->getString(), numberOfArguments - 1, arguments.peek2());
 	} catch (MelderError) {
@@ -4602,6 +4610,7 @@ static void do_runSubprocess_STR () {
 		else if (arg->which == Stackel_STRING)
 			arguments [iarg] = Melder_dup (arg->getString());
 	}
+	Melder_checkTrust (theInterpreter, U"run the subprocess command:\n“", commandFile->getString(), U" ", flatten_STR (arguments.get(), U"˰").get(), U"”");
 	autostring32 result;
 	try {
 		result = runSubprocess_STR (commandFile->getString(), numberOfArguments - 1, arguments.peek2());
@@ -6009,6 +6018,7 @@ static void do_tryToWriteFile () {
 	if (s->which == Stackel_STRING) {
 		structMelderFile file { };
 		Melder_relativePathToFile (s->getString(), & file);
+		Melder_checkTrust (theInterpreter, U"try to write to the file\n", & file);
 		pushNumber (Melder_tryToWriteFile (& file));
 	} else {
 		Melder_throw (U"The function “tryToWriteFile” requires a string, not ", s->whichText(), U".");
@@ -6021,6 +6031,7 @@ static void do_tryToAppendFile () {
 	if (s->which == Stackel_STRING) {
 		structMelderFile file { };
 		Melder_relativePathToFile (s->getString(), & file);
+		Melder_checkTrust (theInterpreter, U"try to append to the file\n", & file);
 		pushNumber (Melder_tryToAppendFile (& file));
 	} else {
 		Melder_throw (U"The function “tryToAppendFile” requires a string, not ", s->whichText(), U".");
@@ -6779,10 +6790,18 @@ static void do_string_STR () {
 		Melder_throw (U"The function “string$” requires a number, not ", value->whichText(), U".");
 	}
 }
+static void do_horizontal_STR () {
+	const Stackel array = pop;
+	if (array->which == Stackel_STRING_ARRAY) {
+		pushString (horizontal_STR (array->stringArray));
+	} else {
+		Melder_throw (U"The function “horizontal$” requires a string array.");
+	}
+}
 static void do_vertical_STR () {
 	const Stackel array = pop;
 	if (array->which == Stackel_STRING_ARRAY) {
-		pushString (Melder_dup (Melder_STRVEC (array->stringArray)));
+		pushString (vertical_STR (array->stringArray));
 	} else {
 		Melder_throw (U"The function “vertical$” requires a string array.");
 	}
@@ -6873,6 +6892,7 @@ static void do_deleteFile () {
 	if (f->which == Stackel_STRING) {
 		structMelderFile file { };
 		Melder_relativePathToFile (f->getString(), & file);
+		Melder_checkTrust (theInterpreter, U"delete the file\n", & file);
 		MelderFile_delete (& file);
 		pushNumber (1);
 	} else {
@@ -6887,6 +6907,7 @@ static void do_moveAndOrRenameFile () {
 		structMelderFile fromFile { }, toFile { };
 		Melder_relativePathToFile (from->getString(), & fromFile);
 		Melder_relativePathToFile (to->getString(), & toFile);
+		Melder_checkTrust (theInterpreter, U"move or rename the file\n", & fromFile, U" to ", & toFile);
 		MelderFile_moveAndOrRename (& fromFile, & toFile);
 		pushNumber (1);
 	} else {
@@ -6900,6 +6921,7 @@ static void do_createFolder () {
 	if (f->which == Stackel_STRING) {
 		structMelderFolder folder { };
 		Melder_relativePathToFolder (f->getString(), & folder);
+		Melder_checkTrust (theInterpreter, U"create the folder\n", & folder);
 		MelderFolder_create (& folder);
 		pushNumber (1);
 	} else {
@@ -6913,6 +6935,7 @@ static void do_createDirectory () {
 	if (f->which == Stackel_STRING) {
 		structMelderFolder folder { };
 		Melder_relativePathToFolder (f->getString(), & folder);
+		Melder_checkTrust (theInterpreter, U"create the directory\n", & folder);
 		MelderFolder_create (& folder);
 		pushNumber (1);
 	} else {
@@ -7547,16 +7570,20 @@ static void do_askForTrust () {
 		} else
 			message [1] =  U"Your untitled script or notebook";
 		message [3] = U"requests permission to control your computer (e.g. it may want to overwrite files,\n"
-			"delete folders, run system commands, and/or access the internet).";
-		message [4] = U"Allow this only if you fully trust the intentions and skills of the author(s).";
+				"delete folders, run system commands, and/or access the internet).";
+		message [4] = U"Allow this only if you fully trust the intentions and skills of the author(s),\n"
+				"AND the intentions and skills of the author(s) of the script(s) called by this script directly or indirectly.";
 		conststring32 option1 = U"CANCEL\n(because I don’t completely trust the authors’ skills and/or intentions)";
 		conststring32 option2 =
 			theInterpreter -> scriptReference ?
-				U"Yes, I allow this script to CONTROL MY COMPUTER\n(because I fully trust its authors’ skills and intentions)"
+				U"Yes, I allow this script to CONTROL MY COMPUTER, because I fully trust the skills and\n"
+				"intentions of its authors AND of those of the authors of any scripts called by it directly or indirectly."
 			: theInterpreter -> notebookReference ?
-				U"Yes, I allow this notebook to CONTROL MY COMPUTER,\n(because I fully trust its authors’ skills and intentions)"
+				U"Yes, I allow this notebook to CONTROL MY COMPUTER, because I fully trust the skills and\n"
+				"intentions of its authors AND of those of the authors of any scripts called by it directly or indirectly."
 			:
-				U"Yes, I allow this script or notebook to CONTROL MY COMPUTER,\n(because I fully trust its authors’ skills and intentions)";
+				U"Yes, I allow this script or notebook to CONTROL MY COMPUTER, because I fully trust the skills and\n"
+				"intentions of its authors AND of those of the authors of any scripts called by it directly or indirectly.";
 		const bool trusted = GuiTrust_get (parentShell, optionalTrustWindowOwningEditor,
 			message [1], message [2], message [3], message [4], message [5],
 			option1, option2, nullptr, nullptr, nullptr, theInterpreter
@@ -9161,6 +9188,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case OBJECT_ROW_STR_: { do_object_row_STR ();
 } break; case OBJECT_COL_STR_: { do_object_col_STR ();
 } break; case STRING_STR_: { do_string_STR ();
+} break; case HORIZONTAL_STR_: { do_horizontal_STR ();
 } break; case VERTICAL_STR_: { do_vertical_STR ();
 } break; case NUMBERS_VEC_: { do_numbers_VEC ();
 } break; case SLEEP_: { do_sleep ();

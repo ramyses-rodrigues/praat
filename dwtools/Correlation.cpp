@@ -114,17 +114,20 @@ autoCorrelation SSCP_to_Correlation (SSCP me) {
 autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confidenceLevel, integer numberOfTests, int method) {
 	try {
 		const integer m_bonferroni = my numberOfRows * (my numberOfRows - 1) / 2;
-		Melder_require (confidenceLevel > 0 && confidenceLevel <= 1.0,
-			U"Confidence level should be in interval (0-1).");
+		Melder_require (confidenceLevel > 0.0,
+			U"The confidence level that you asked for should be greater than 0.0.");
+		Melder_require (confidenceLevel <= 1.0,
+			U"The confidence level that you asked for should not be greater than 1.0.");
 		Melder_require (my numberOfObservations > 4,
-			U"The number of observations should be greater than 4.");
+			U"The number of observations in the Correlation object should be greater than 4.");
 		Melder_require (numberOfTests >= 0,
-			U"The \"number of tests\" should not be less than zero.");
+			U"The number of tests that you asked for should not be less than zero.");
 
 		if (numberOfTests == 0)
 			numberOfTests = m_bonferroni;
 		if (numberOfTests > m_bonferroni)
-			Melder_warning (U"The \"number of tests\" should not exceed the number of elements in the Correlation object.");
+			Melder_warning (U"The number of tests that you asked for (", numberOfTests,
+					U") should not exceed the number of elements in the Correlation object (", m_bonferroni, U").");
 
 		autoTableOfReal thee = TableOfReal_create (my numberOfRows, my numberOfRows);
 
@@ -190,26 +193,17 @@ autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confiden
 /* Morrison, page 118 */
 void Correlation_testDiagonality_bartlett (Correlation me, integer numberOfContraints, double *out_chisq, double *out_prob, double *out_df) {
 	const integer p = my numberOfRows;
-	double chisq = undefined, prob = undefined;
 	const double df = p * (p -1) / 2.0;
 
-	if (numberOfContraints <= 0)
-		numberOfContraints = 1;
-
-	if (numberOfContraints > my numberOfObservations) {
-		Melder_warning (U"Correlation_testDiagonality_bartlett: number of constraints cannot exceed the number of observations.");
-		return;
-	}
-	if (my numberOfObservations >= numberOfContraints) {
-		const double ln_determinant = NUMdeterminant_fromSymmetricMatrix (my data.get());
-		chisq = - ln_determinant * (my numberOfObservations - numberOfContraints - (2.0 * p + 5.0) / 6.0);
-		if (out_prob)
-			prob = NUMchiSquareQ (chisq, df);
-	}
+	Melder_require (numberOfContraints > 0 && numberOfContraints <= my numberOfObservations,
+			U"Correlation_testDiagonality_bartlett: number of constraints should be in the interval [1, ", my numberOfObservations, U"].");
+	
+	const double ln_determinant = NUMdeterminant_fromSymmetricMatrix (my data.get());
+	const double chisq = - ln_determinant * (my numberOfObservations - numberOfContraints - (2.0 * p + 5.0) / 6.0);
+	if (out_prob)
+		*out_prob = NUMchiSquareQ (chisq, df);
 	if (out_chisq)
 		*out_chisq = chisq;
-	if (out_prob)
-		*out_prob = prob;
 	if (out_df)
 		*out_df = df;
 }

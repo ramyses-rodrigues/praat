@@ -836,7 +836,7 @@ FORM (REAL_PitchTier_getMean_curve, U"PitchTier: Get mean (curve)", U"PitchTier:
 	OK
 DO
 	QUERY_ONE_FOR_REAL (PitchTier)
-		double result = RealTier_getMean_curve (me, fromTime, toTime);
+		double result = RealTier_getMean_curve_u (me, fromTime, toTime);
 	QUERY_ONE_FOR_REAL_END (U" Hz")
 }
 	
@@ -845,7 +845,7 @@ FORM (REAL_PitchTier_getMean_points, U"PitchTier: Get mean (points)", U"PitchTie
 	OK
 DO
 	QUERY_ONE_FOR_REAL (PitchTier)
-		double result = RealTier_getMean_points (me, fromTime, toTime);
+		double result = RealTier_getMean_points_u (me, fromTime, toTime);
 	QUERY_ONE_FOR_REAL_END (U" Hz")
 }
 	
@@ -854,7 +854,7 @@ FORM (REAL_PitchTier_getStandardDeviation_curve, U"PitchTier: Get standard devia
 	OK
 DO
 	QUERY_ONE_FOR_REAL (PitchTier)
-		double result = RealTier_getStandardDeviation_curve (me, fromTime, toTime);
+		double result = RealTier_getStandardDeviation_curve_u (me, fromTime, toTime);
 	QUERY_ONE_FOR_REAL_END (U" Hz")
 }
 	
@@ -863,7 +863,7 @@ FORM (REAL_PitchTier_getStandardDeviation_points, U"PitchTier: Get standard devi
 	OK
 DO
 	QUERY_ONE_FOR_REAL (PitchTier)
-		double result = RealTier_getStandardDeviation_points (me, fromTime, toTime);
+		double result = RealTier_getStandardDeviation_points_u (me, fromTime, toTime);
 	QUERY_ONE_FOR_REAL_END (U" Hz")
 }
 	
@@ -1019,13 +1019,13 @@ DIRECT (HINT_PitchTier_Sound_viewAndEdit) {
 }
 
 FORM_SAVE (SAVE_PitchTier_writeToPitchTierSpreadsheetFile, U"Save PitchTier as spreadsheet", nullptr, U"PitchTier") {
-	SAVE_ONE (PitchTier)
+	SAVE_ONE (PitchTier, U"save the selected PitchTier object to the spreadsheet file")
 		PitchTier_writeToPitchTierSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_PitchTier_writeToHeaderlessSpreadsheetFile, U"Save PitchTier as spreadsheet", nullptr, U"txt") {
-	SAVE_ONE (PitchTier)
+	SAVE_ONE (PitchTier, U"save the selected PitchTier object to the headerless spreadsheet file")
 		PitchTier_writeToHeaderlessSpreadsheetFile (me, file);
 	SAVE_ONE_END
 }
@@ -1550,7 +1550,7 @@ FORM (NEW1_PointProcess_Sound_to_H1minusH2Tier, U"PointProcess & Sound: To H1min
 	OK
 DO
 	CONVERT_ONE_AND_ONE_TO_ONE (PointProcess, Sound)
-		autoH1minusH2Tier result = PointProcess_Sound_to_H1minusH2Tier (me, you, fromTime, toTime,
+		autoH1minusH2Tier result = PointProcess_Sound_to_H1minusH2Tier_u (me, you, fromTime, toTime,
 			shortestPeriod, longestPeriod, maximumPeriodFactor);
 	CONVERT_ONE_AND_ONE_TO_ONE_END (your name.get(), U"_", my name.get())
 }

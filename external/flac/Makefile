@@ -1,10 +1,7 @@
 # Makefile of the library "external/flac"
-# Erez Volk, March 2007
-# Paul Boersma, 21 June 2025
+# Erez Volk and Paul Boersma, 23 May 2026
 
-include ../../makefile.defs
-
-CPPFLAGS = -I ../../melder
+CPPFLAGS += -I ../../melder
 
 OBJECTS = \
 	flac_bitmath.o \

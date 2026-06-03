@@ -1,9 +1,7 @@
 # Makefile of the library "LPC"
-# David Weenink and Paul Boersma, 2 October 2025
+# David Weenink and Paul Boersma, 23 May 2026
 
-include ../makefile.defs
-
-CPPFLAGS = -I . -I ../kar -I ../melder -I ../fon -I ../foned -I ../dwtools -I ../sys -I ../dwsys -I ../stat \
+CPPFLAGS += -I . -I ../kar -I ../melder -I ../fon -I ../foned -I ../dwtools -I ../sys -I ../dwsys -I ../stat \
 	-I ..external/num
 
 OBJECTS = Cepstrum.o Cepstrumc.o Cepstrum_and_Spectrum.o \

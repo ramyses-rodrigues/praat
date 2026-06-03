@@ -1303,13 +1303,13 @@ DIRECT (MODIFY_Manipulation_removeOriginalSound) {
 }
 
 FORM_SAVE (SAVE_Manipulation_writeToBinaryFileWithoutSound, U"Binary file without Sound", nullptr, nullptr) {
-	SAVE_ONE (Manipulation)
+	SAVE_ONE (Manipulation, U"save the selected Manipulation object to the sound-less binary file")
 		Manipulation_writeToBinaryFileWithoutSound (me, file);
 	SAVE_ONE_END
 }
 
 FORM_SAVE (SAVE_Manipulation_writeToTextFileWithoutSound, U"Text file without Sound", nullptr, nullptr) {
-	SAVE_ONE (Manipulation)
+	SAVE_ONE (Manipulation, U"save the selected Manipulation object to the sound-less text file")
 		Manipulation_writeToTextFileWithoutSound (me, file);
 	SAVE_ONE_END
 }
@@ -2687,8 +2687,8 @@ FORM_READ (READ_ONE__Strings_readFromRawTextFile, U"Read Strings from raw text f
 
 // MARK: Save
 
-FORM_SAVE (SAVE_Strings_writeToRawTextFile, U"Save Strings as text file", nullptr, U"txt") {
-	SAVE_ONE (Strings)
+FORM_SAVE (SAVE_Strings_writeToRawTextFile, U"Save Strings as raw text file", nullptr, U"txt") {
+	SAVE_ONE (Strings, U"save the selected Strings object to the raw text file")
 		Strings_writeToRawTextFile (me, file);
 	SAVE_ONE_END
 }

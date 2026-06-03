@@ -1,10 +1,10 @@
 /* RealTier.cpp
  *
- * Copyright (C) 1992-2012,2014-2024 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -215,7 +215,7 @@ double RealTier_getArea (const constRealTier me, const double tmin, const double
 	return (double) area;
 }
 
-double RealTier_getMean_curve (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
+double RealTier_getMean_curve_u (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	const double area = RealTier_getArea (me, tmin, tmax);
 	if (isundef (area))
@@ -223,7 +223,7 @@ double RealTier_getMean_curve (const constRealTier me, /* mutable */ double tmin
 	return area / (tmax - tmin);
 }
 
-double RealTier_getStandardDeviation_curve (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
+double RealTier_getStandardDeviation_curve_u (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	const integer n = my points.size;
 	if (n == 0)
@@ -242,7 +242,7 @@ double RealTier_getStandardDeviation_curve (const constRealTier me, /* mutable *
 		Add the areas between the points.
 		This works even if imin is 0 (offleft) and/or imax is n + 1 (offright).
 	*/
-	const double mean = RealTier_getMean_curve (me, tmin, tmax);
+	const double mean = RealTier_getMean_curve_u (me, tmin, tmax);
 	/* mutable loop */ longdouble integral = 0.0;
 	for (integer i = imin; i < imax; i ++) {
 		double tleft, fleft, tright, fright;
@@ -277,7 +277,7 @@ double RealTier_getStandardDeviation_curve (const constRealTier me, /* mutable *
 	return sqrt (0.25 * (double) integral / (tmax - tmin));
 }
 
-double RealTier_getMean_points (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
+double RealTier_getMean_points_u (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	/* mutable init */ integer imin, imax;
 	const integer n = AnyTier_getWindowPoints (me->asConstAnyTier(), tmin, tmax, & imin, & imax);
@@ -289,13 +289,13 @@ double RealTier_getMean_points (const constRealTier me, /* mutable */ double tmi
 	return (double) sum / n;
 }
 
-double RealTier_getStandardDeviation_points (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
+double RealTier_getStandardDeviation_points_u (const constRealTier me, /* mutable */ double tmin, /* mutable */ double tmax) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	/* mutable init */ integer imin, imax;
 	const integer n = AnyTier_getWindowPoints (me->asConstAnyTier(), tmin, tmax, & imin, & imax);
 	if (n < 2)
 		return undefined;
-	const double mean = RealTier_getMean_points (me, tmin, tmax);
+	const double mean = RealTier_getMean_points_u (me, tmin, tmax);
 	/* mutable loop */ longdouble sum = 0.0;
 	for (integer i = imin; i <= imax; i ++) {
 		const double diff = my points.at [i] -> value - mean;

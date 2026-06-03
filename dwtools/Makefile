@@ -1,10 +1,7 @@
 # Makefile of the library "dwtools"
-# David Weenink and Paul Boersma
-# 31 December 2025
+# David Weenink and Paul Boersma, 23 May 2026
 
-include ../makefile.defs
-
-CPPFLAGS = -I . -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../fon -I ../LPC -I ../foned -I ../EEG \
+CPPFLAGS += -I . -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../fon -I ../LPC -I ../foned -I ../EEG \
 	-I ../external/clapack -I ../external/vorbis -I ../external/opusfile -I ../external/portaudio -I ../external/espeak \
 	-I ..external/num
 

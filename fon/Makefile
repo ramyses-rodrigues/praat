@@ -1,9 +1,7 @@
 # Makefile of the library "fon"
-# Paul Boersma, 18 May 2025
+# Paul Boersma and Anastasia Shchupak, 23 May 2026
 
-include ../makefile.defs
-
-CPPFLAGS = -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../LPC -I ../foned -I ../fon -I ../external/portaudio -I ../external/flac -I ../external/mp3 -I ../external/espeak -I ../external/whispercpp
+CPPFLAGS += -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../LPC -I ../foned -I ../fon -I ../external/portaudio -I ../external/flac -I ../external/mp3 -I ../external/espeak -I ../external/whispercpp
 
 OBJECTS = Transition.o Distributions_and_Transition.o \
    Function.o Sampled.o SampledXY.o Matrix.o Vector.o Polygon.o PointProcess.o \

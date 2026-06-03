@@ -1,11 +1,7 @@
-# makefile for libespeak
-# djmw 20230912
-# ppgb 20240105  compatible with 32-bit compilers (split off Russian)
-# ppgb 20240828  compatible with low-resource compilers (split off Faroese)
+# Makefile of the library "external/espeak"
+# David Weenink and Paul Boersma, 23 May 2026
 
-include ../../makefile.defs
-
-CPPFLAGS = -I ../../kar -I ../../melder -I ../../sys -I ../../dwsys -I ../../stat
+CPPFLAGS += -I ../../kar -I ../../melder -I ../../sys -I ../../dwsys -I ../../stat
 
 OBJECTS = case.o categories.o common.o compiledict.o \
 	dictionary.o \

@@ -1,6 +1,6 @@
 /* main_Praat.cpp
  *
- * Copyright (C) 1992-2008,2010-2021,2023-2025 Paul Boersma
+ * Copyright (C) 1992-2008,2010-2021,2023-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,19 +44,32 @@ static void logo (Graphics graphics) {
 		#else
 			false;
 		#endif
+	[[maybe_unused]] constexpr int x64_version =
+		#if defined (__AVX2__) && defined (__FMA__) && defined (__F16C__)
+			3;
+		#else
+			0;
+		#endif
 	const conststring32 builtFor =
 		#if defined (macintosh)
 			isArm64 ? U"ARM64 macOS" : U"Intel64 macOS";
 		#elif defined (_WIN32)
-			isArm64 ? U"ARM64 Windows" : sizeof (void *) == 4 ? U"Intel32 Windows" : U"Intel64 Windows";
+			isArm64 ? U"ARM64 Windows" :
+			sizeof (void *) == 4 ? U"Intel32 Windows" :
+			x64_version == 3 ? U"x64(v3) Windows" :
+			U"x64(v1) Windows";
 		#elif defined (__s390x__)
 			U"s390x Linux";
 		#elif defined (raspberrypi)
 			U"ARMV7 Raspberry Pi";
 		#elif defined (chrome)
-			isArm64 ? U"ARM64 Chromebook" : U"Intel64 Chromebook";
+			isArm64 ? U"ARM64 Chromebook" :
+			x64_version == 3 ? U"x64(v3) Chromebook" :
+			U"x64(v1) Chromebook";
 		#elif defined (linux)
-			isArm64 ? U"ARM64 Linux" : U"Intel64 Linux";
+			isArm64 ? U"ARM64 Linux" :
+			x64_version == 3 ? U"x64(v3) Linux" :
+			U"x64(v1) Linux";
 		#else
 			U"";
 			#error Unknown OS type.
@@ -65,7 +78,7 @@ static void logo (Graphics graphics) {
 	Graphics_setColour (graphics, Melder_BLACK);
 	Graphics_setFont (graphics, kGraphics_font::HELVETICA);
 	Graphics_setFontSize (graphics, 10.0);
-	Graphics_text (graphics, 0.5, 0.37, Melder_cat (U"Copyright © 1992–", Melder_appYear(), U" by Paul Boersma and David Weenink"));
+	Graphics_text (graphics, 0.5, 0.37, Melder_cat (U"Copyright © 1992–", Melder_appYear(), U" Paul Boersma, David Weenink, Anastasia Shchupak"));
 	Graphics_setFontSize (graphics, 10.0);
 	Graphics_setTextAlignment (graphics, Graphics_RIGHT, Graphics_HALF);
 	Graphics_text (graphics, 0.34, 0.28, U"Download sites:");

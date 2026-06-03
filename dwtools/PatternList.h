@@ -2,11 +2,11 @@
 #define _PatternList_h_
 /* Pattern.h
  *
- * Copyright (C) 1993-2019 David Weenink
+ * Copyright (C) 1993-2019,2021,2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -34,7 +34,7 @@ Thing_define (PatternList, Matrix) {
    ymax				:#patterns.
    dy				:1.
    y1				:1.
-   z [iy] [ix]		:the inputs. All elements in interval [0,1].
+   z [iy] [ix]		:the inputs. All elements in interval [0, 1].
 */
 
 autoPatternList PatternList_create (integer ny, integer nx);
@@ -54,6 +54,6 @@ autoMatrix PatternList_to_Matrix (PatternList me);
 autoPatternList ActivationList_to_PatternList (ActivationList me);
 
 bool _PatternList_checkElements (PatternList me);
-/* Return true if all elements are in interval [0,1] else 0. */
+/* Return true if all elements are in interval [0, 1] else 0. */
 
 #endif /* _PatternList_h_ */

@@ -37,9 +37,9 @@ OK
 		U"You can install them into the subfolders “whispercpp” of the folder “models” in the Praat preferences folder."
 	);
 
-	SET_LIST (modelIndex, modelName, modelNames.get(), NUMfindFirst (modelNames.get(), theSpeechRecognizerDefaultModelName))
+	SET_LIST (modelIndex, modelName, modelNames.get(), NUMfindFirst (modelNames.get(), TranscriptionDefaults::modelName))
 	SET_LIST (languageIndex, languageName, theSpeechRecognizerLanguageNames(),
-			NUMfindFirst (theSpeechRecognizerLanguageNames(), theSpeechRecognizerDefaultLanguageName))
+			NUMfindFirst (theSpeechRecognizerLanguageNames(), TranscriptionDefaults::languageName))
 DO
 	CREATE_ONE
 		autoSpeechRecognizer result = SpeechRecognizer_create (modelName, languageName);
@@ -62,22 +62,46 @@ DIRECT (QUERY_ONE_FOR_STRING__SpeechRecognizer_getLanguageName) {
 DIRECT (QUERY_ONE_AND_ONE_FOR_STRING__SpeechRecognizer_Sound_recognize) {
 	QUERY_ONE_AND_ONE_FOR_STRING (SpeechRecognizer, Sound)
 		bool useVad = true;
-		bool diarize = false;
-		SileroVadParams sileroVadParams;   // use default VAD parameters
-		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (me, you, useVad, sileroVadParams, diarize);
+		/*
+			Use default Silero VAD parameters.
+			FIXME make them configurable, like in other places
+		*/
+		double speechProbabilityThreshold = 0.5;   // probability threshold to decide that sound is speech
+		double minNonSpeechDuration = 0.1;   // min duration of a non-speech segment
+		double minSpeechDuration = 0.25;   // min duration of a speech segment
+		double speechPad = 0.03;   // padding added before and after each speech segment
+		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (me, you, useVad,
+				speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
 		conststring32 result = whisperTranscription.fullTranscription.text.get();
 	QUERY_ONE_AND_ONE_FOR_STRING_END
+}
+
+FORM (SETTINGS__SpeechRecognizerSettings, U"AI settings", nullptr) {
+	COMMENT (U"These settings determine how fast transcription and diarization")
+	COMMENT (U"procedures are performed on your computer.")
+	INTEGER (maxNumberOfThreadsForTranscription, U"Max. number of threads for transcription", U"0 (= automatic)")
+	INTEGER (maxNumberOfThreadsForDiarization, U"Max. number of threads for diarization", U"0 (= automatic)")
+OK
+	SET_INTEGER (maxNumberOfThreadsForTranscription, SpeechRecognizer_getMaxNumberOfThreadsForTranscription ())
+	SET_INTEGER (maxNumberOfThreadsForDiarization,   SpeechRecognizer_getMaxNumberOfThreadsForDiarization ())
+DO
+	PREFS
+		SpeechRecognizer_setMaxNumberOfThreadsForTranscription (maxNumberOfThreadsForTranscription);
+		SpeechRecognizer_setMaxNumberOfThreadsForDiarization   (maxNumberOfThreadsForDiarization);
+	PREFS_END
 }
 
 void praat_SpeechRecognizer_init () {
 	Thing_recognizeClassesByName (classSpeechRecognizer);
 
+	SpeechRecognizer_preferences ();
+
 	praat_addMenuCommand (U"Objects", U"New", U"Speech-to-text recognition", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"New", U"SpeechRecognizer help", nullptr, 1,
-				HELP__SpeechRecognizer_help);
+		praat_addMenuCommand (U"Objects", U"New", U"SpeechRecognizer help", nullptr, 1, HELP__SpeechRecognizer_help);
 		praat_addMenuCommand (U"Objects", U"New", U"-- new SpeechRecognizer --", nullptr, 1, nullptr);
-		praat_addMenuCommand (U"Objects", U"New", U"Create SpeechRecognizer...", nullptr, 1,
-				CREATE_ONE__SpeechRecognizer_create);
+		praat_addMenuCommand (U"Objects", U"New", U"Create SpeechRecognizer...", nullptr, 1, CREATE_ONE__SpeechRecognizer_create);
+	praat_addMenuCommand (U"Objects", U"Settings", U"-- AI settings --", nullptr, 0, nullptr);
+	praat_addMenuCommand (U"Objects", U"Settings", U"AI settings...", nullptr, 0, SETTINGS__SpeechRecognizerSettings);
 
 	praat_addAction1 (classSpeechRecognizer, 0, U"SpeechRecognizer help", nullptr, 0,
 			HELP__SpeechRecognizer_help);

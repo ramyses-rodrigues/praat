@@ -1,6 +1,6 @@
 /* KlattGrid.cpp
  *
- * Copyright (C) 2008-2023 David Weenink, 2015,2017,2022-2025 Paul Boersma
+ * Copyright (C) 2008-2023 David Weenink, 2015,2017,2022-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -903,7 +903,7 @@ static double nrfunction (double x, double *dfx, void *closure) {
 static double get_collisionPoint_x (double n, double m, double collisionPhase) {
 	double y = undefined;
 	/*
-	Domain [0,1]:
+	Domain [0, 1]:
 	The glottal flow is given by:
 	U(y) = y^n - y^m               0<= y <= x, and m > n
 			(x^n - x^m)exp(-a(y-x))  y >= x, where a = 1 / collisionPhase

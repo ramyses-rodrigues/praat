@@ -1,7 +1,5 @@
 # Makefile of the library "external/portaudio"
-# Paul Boersma, 3 November 2021
-
-include ../../makefile.defs
+# Paul Boersma, 16 May 2026
 
 OBJECTS = \
 	pa_unix_hostapis.o pa_unix_util.o pa_linux_alsa.o pa_jack.o pa_ringbuffer.o \

@@ -1,5 +1,5 @@
 # test_Correlation.praat
-# djmw 20110518
+# djmw 20110518, 20260511
 
 printline test_Correlation
 
@@ -19,6 +19,9 @@ c32 = Get value... 3 2
 assert fixed$(c21,3) = c21ref$
 assert fixed$(c31,3) = c31ref$
 assert fixed$(c32,3) = c32ref$
+
+asserterror Correlation_testDiagonality_bartlett: number of constraints should be in the interval [1, 600].
+p = Get diagonality (bartlett): 1000
 
 plus t
 Remove
