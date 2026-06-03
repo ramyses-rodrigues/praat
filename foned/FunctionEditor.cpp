@@ -1504,7 +1504,7 @@ bool structFunctionEditor :: v_mouseInWideDataView (GuiDrawingArea_MouseEvent ev
 			if (area && area -> isClickAnchor) { // aqui o praat descobre qual área foi clicada, e chama a função de mouse dessa área
 				const double localY_fraction = area -> y_fraction_globalToLocal (globalY_fraction);
 				FunctionArea_setViewport (area);   // for Graphics_dxWCtoMM and the like
-				result = area -> v_mouse (event, x_world, localY_fraction); // chama a função de mouse da área clicada: em geral, SoundArea, TextgridArea, PitchArea, etc, que herdam de FunctionArea
+				result = area -> v_mouse (event, x_world, localY_fraction); // Ramyses: chama a função de mouse da área clicada: em geral, SoundArea, TextgridArea, PitchArea, etc, que herdam de FunctionArea
 				break;
 			}
 		}
