@@ -6921,8 +6921,10 @@ static void do_createFolder () {
 	if (f->which == Stackel_STRING) {
 		structMelderFolder folder { };
 		Melder_relativePathToFolder (f->getString(), & folder);
-		Melder_checkTrust (theInterpreter, U"create the folder\n", & folder);
-		MelderFolder_create (& folder);
+		if (! MelderFolder_exists (& folder)) {   // don't check for trust of the folder exists
+			Melder_checkTrust (theInterpreter, U"create the folder\n", & folder);
+			MelderFolder_create (& folder);
+		}
 		pushNumber (1);
 	} else {
 		Melder_throw (U"The function “createFolder” requires a string, not ", f->whichText(), U".");
@@ -6935,9 +6937,11 @@ static void do_createDirectory () {
 	if (f->which == Stackel_STRING) {
 		structMelderFolder folder { };
 		Melder_relativePathToFolder (f->getString(), & folder);
-		Melder_checkTrust (theInterpreter, U"create the directory\n", & folder);
-		MelderFolder_create (& folder);
+		if (! MelderFolder_exists (& folder)) {   // don't check for trust of the folder exists
+			Melder_checkTrust (theInterpreter, U"create the directory\n", & folder);
+			MelderFolder_create (& folder);
 		pushNumber (1);
+		}
 	} else {
 		Melder_throw (U"The function “createDirectory” requires a string, not ", f->whichText(), U".");
 	}
