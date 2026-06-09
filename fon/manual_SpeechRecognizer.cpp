@@ -182,7 +182,7 @@ contains a slash. This is to prevent endlessly growing names of the derived tier
 © Anastasia Shchupak 2026-06-01
 
 Praat uses the @@whisper.cpp@ implementation of the @@Silero VAD@ speech activity detector.
-The pre-trained Silero VAD model weights are converted to ggml format and compiled into Praat,
+The pre-trained Silero VAD model weights have been converted to ggml format and compiled into Praat,
 so no external model files are required. The sound is automatically resampled to 16 kHz
 (the sampling frequency expected by the Silero VAD model) before being processed by the model.
 
@@ -573,7 +573,7 @@ OpenAI’s Whisper implementation is in Python (PyTorch).
 
 Praat uses whisper.cpp, a lightweight C/C++ port of Whisper built on top of the ggml tensor library
 for machine learning, developed by Georgi Gerganov and many other contributors (see
-@Acknowledgments). The original OpenAI Whisper models are converted to ggml format for use with
+@Acknowledgments). The original OpenAI Whisper models must be converted to ggml format for use with
 whisper.cpp.
 
 For how transcription is used in Praat, see the @@Speech recognition@ tutorial.
