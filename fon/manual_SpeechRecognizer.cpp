@@ -89,16 +89,16 @@ as many of them as you like; Praat will let you select one before you start tran
 
 1.2. Transcribing into a TextGrid
 =================================
-You need a @Sound and a @TextGrid for this Sound (transcription writes
-into an existing TextGrid; it does not create one). The TextGrid should have at least one interval
-tier: transcription is run on one selected interval, so you need an interval tier to contain
-this interval. To transcribe the whole Sound, you can use an interval tier without internal
-boundaries and thus consisting of only one interval spanning the whole Sound (interval 1).
+You need a @Sound and a @TextGrid for this Sound (transcription modifies an existing TextGrid;
+it does not create one). The TextGrid should have at least one interval tier: transcription is
+run on one selected interval, so you need an interval tier to contain this interval. To
+transcribe the whole Sound, you can use an interval tier without internal boundaries and thus
+consisting of only one interval spanning the whole Sound (interval 1).
 
 There are two ways to start transcription into a TextGrid:
 1. from the @TextGridEditor;
-2. from the object list, when you select the TextGrid and the Sound together and choose
-@@TextGrid & Sound: Transcribe interval...@.
+2. from the @@Objects window@, when you select the TextGrid and the Sound together and choose
+@@TextGrid & Sound: Transcribe interval...@ from the @@Dynamic menu@.
 
 These two ways achieve exactly the same result, and which one you use is a matter of preference.
 They differ only in their interface. In the TextGridEditor, you adjust the settings via the separate
@@ -112,8 +112,8 @@ Sound (by selecting both the TextGrid and the Sound before clicking ##View & Edi
 ##Transcription settings...#.
 
 Before running transcription, you should check and adapt the ##Transcription settings...#. These
-settings are preserved across transcription runs and across Praat sessions, so you can skip this
-step if you want to reuse the settings from the last time you transcribed.
+settings are preserved across transcription runs and across Praat sessions, so you can skip
+this step later when you want to reuse the settings from the last time you transcribed.
 
 Two main settings for transcription are ##Whisper model# and #Language:
 1. ##Whisper model# lists all the models you installed in ##1.1. Installing Whisper models#; now is
@@ -158,20 +158,79 @@ speakers.
 (%%Mary/sp1/w% for speaker 1, %%Mary/sp2/w% for speaker 2, ...), which is inserted directly after
 their sentence tier.
 
-With the transcription settings configured, you are now ready to start the
-transcription. Select the interval you want to transcribe and choose ##Transcribe interval# from
-the #Interval menu. This runs the transcription, which takes some time; how long it takes depends
-on the length of the selected interval, the model chosen, and whether diarization
-is included. Note that you cannot transcribe an interval belonging to a tier whose name already
-contains a slash. This is to prevent endlessly growing names of the derived tiers.
+With the transcription settings configured, you are now ready to start the transcription. Select
+the interval you want to transcribe and choose ##Transcribe interval# from the #Interval menu.
+This runs the transcription, which takes some time; how long it takes depends on the length of
+the selected interval, the Whisper model, and whether diarization is included. Note that you
+cannot transcribe an interval belonging to a tier whose name already contains a slash. This
+is to prevent endlessly growing names of the derived tiers.
 
 1.3. Transcribing into plain text
 =================================
+You can also transcribe a whole @Sound into plain text. For this you need a @SpeechRecognizer
+object. You can create one by choosing @@Create SpeechRecognizer...@ from the @@New menu@
+in the @@Objects window@. A command window will appear containing two settings: ##Whisper model#
+and #Language, both of which work exactly as in ##1.2. Transcribing into a TextGrid#. After you
+click #OK, you will find a new #SpeechRecognizer object in the object list.
 
+To transcribe, select the SpeechRecognizer object and the Sound object together and choose
+##SpeechRecognizer & Sound: Transcribe# from the @@Dynamic menu@. The result of transcription will
+be written to the @@Info window@. Note that the ##Allow silences# setting is not available here:
+@@speech activity detection with Silero VAD|Silero VAD@ is always on, with default settings.
 
 2. Automatic speaker diarization
 ================================
+Speaker diarization in Praat detects different speakers in a @Sound. For each detected speaker, it
+produces %%speech segments%, which are time intervals during which this speaker is active.
+Diarization can be done as part of transcription or standalone. In both cases, it modifies an
+existing @TextGrid, producing one interval tier per detected speaker, with that speaker’s speech
+segments as intervals.
 
+Speaker diarization as part of transcription is described in ##1.2. Transcribing into a TextGrid#.
+The rest of this chapter is about standalone diarization.
+
+As with transcription, to perform diarization, you need a @Sound and a @TextGrid for this
+Sound (diarization modifies an existing TextGrid; it does not create one). The TextGrid should
+have at least one interval tier: diarization is run on one selected interval, so you need an
+interval tier to contain this interval. To diarize the whole Sound, you can use an interval
+tier without internal boundaries and thus consisting of only one interval spanning the whole
+Sound (interval 1).
+
+There are two ways to start diarization:
+1. from the @TextGridEditor;
+2. from the @@Objects window@, when you select the TextGrid and the Sound together and choose
+@@TextGrid & Sound: Diarize interval...@ from the @@Dynamic menu@.
+
+These two ways achieve exactly the same result, and which one you use is a matter of preference.
+They differ only in their interface. In the TextGridEditor, you adjust the settings via the separate
+command ##Diarization settings...# (see below) and select the interval by clicking on it. Via
+##TextGrid & Sound: Diarize interval...#, all the settings appear in this command window, which
+also has two extra settings: ##Tier number# and ##Interval number#.
+
+To perform diarization from the TextGridEditor, you need to open the TextGrid together with the
+Sound (by selecting both the TextGrid and the Sound before clicking ##View & Edit#). Then the
+#Interval menu has two actions related to diarization: ##Diarize interval# and
+##Diarization settings...#.
+
+Before running diarization, you should check and adapt the ##Diarization settings...#. These
+settings are preserved across diarization runs and across Praat sessions, so you can skip
+this step later when you want to reuse the settings from the last time you diarized.
+
+This tutorial does not describe the diarization settings, because they are described in
+@@speaker diarization with adapted pyannote.audio@.
+
+With the diarization settings configured, you are now ready to start the diarization. Select
+the interval you want to diarize and choose ##Diarize interval# from the #Interval menu.
+This runs the diarization, which takes some time; how long it takes depends on the length of
+the selected interval. Note that you cannot run diarization on an interval belonging to a tier
+whose name already contains a slash. This is to prevent endlessly growing names of the derived
+tiers.
+
+The resulting TextGrid has the following structure. Let’s assume that the interval selected for
+diarization belongs to tier %Mary. The tier %Mary is renamed to %%Mary/sp1%. Additional speakers
+get new tiers %%Mary/sp2%, %%Mary/sp3%, etc. Each speaker’s tier contains alternating intervals:
+non-speech and speech intervals labelled with the configured settings ##Non-speech interval
+label# and ##Speech interval label# respectively.
 
 3. Performance
 ==============
@@ -188,12 +247,12 @@ so no external model files are required. The sound is automatically resampled to
 
 Purpose
 =======
-to detect which portions of a sound contain speech. The output is a list of speech segments,
+to detect which parts of a sound contain speech. The output is a list of speech segments,
 each defined by a start and an end time.
 
 Algorithm
 =========
-The Silero VAD model processes the audio in fixed frames of 512 samples (32 ms, since the sound
+The Silero VAD model processes the sound in fixed frames of 512 samples (32 ms, since the sound
 is resampled to 16 kHz). For each frame, it outputs a probability that the frame contains speech.
 Based on this output, the list of speech segments is constructed as described below. This
 description reflects the whisper.cpp implementation, which differs slightly from Silero’s
@@ -225,7 +284,7 @@ Settings
 ##Min. gap between speech segments (s)
 :   the minimum duration of a gap between two speech segments. You might want to increase this value
 	if short silences within speech (e.g. plosive closures) are splitting speech into multiple
-	segments. Note that gaps shorter than 0.2 s are removed from the output (with their adjacent
+	segments. Notranscriptionte that gaps shorter than 0.2 s are removed from the output (with their adjacent
 	speech segments merged), regardless of this setting.
 
 ##Min. speech segment (s)
@@ -237,16 +296,18 @@ Settings
 
 Availability in Praat
 =====================
-Silero VAD speech activity detection is available in two ways in Praat:
-- as part of transcription, see @@transcription with whisper.cpp@;
-- standalone, see @@Sound: To TextGrid (speech activity, Silero)...@.
+Silero VAD speech activity detection is available in Praat:
+- as part of transcription, running just before it to remove non-speech regions from the
+  analysed sound (see @@transcription with whisper.cpp@);
+- standalone, producing a new @TextGrid with non-speech and speech intervals (see @@Sound: To
+  TextGrid (speech activity, Silero)...@).
 
 ################################################################################
 "Sound: To TextGrid (speech activity, Silero)..."
 © Anastasia Shchupak 2026-06-01
 
 A command that creates a @TextGrid with one interval tier from every selected @Sound object.
-The interval tier contains speech and non-speech intervals with boundaries determined by the
+The interval tier contains non-speech and speech intervals with boundaries determined by the
 Silero VAD model (for the algorithm and settings, see @@speech activity detection with Silero VAD@).
 The labels of the intervals are specified by the settings ##Non-speech interval label# and ##Speech
 interval label#.
@@ -274,9 +335,11 @@ Settings
 "transcription with whisper.cpp"
 © Anastasia Shchupak 2026-06-01
 
-Praat performs speech transcription using @@whisper.cpp@. This page documents the transcription
-settings. If you are new to speech recognition in Praat, see the @@Speech recognition@ tutorial
-first.
+Praat can perform automatic transcription of a sound using @@whisper.cpp@. To do this, at least
+one Whisper model must be installed on your computer. You can find the details about how to
+install models and how to use transcription in the @@Speech recognition@ tutorial. The sound is
+automatically resampled to 16 kHz (the sampling frequency expected by whisper.cpp) before being
+transcribed. This page documents the transcription settings.
 
 Behaviour
 =========
@@ -313,7 +376,7 @@ Settings
 :	if on, @@speech activity detection with Silero VAD@ runs before transcription to identify
 	speech regions. Only those regions are then passed to the Whisper model. This generally
 	improves both speed and accuracy of transcription. Speed is improved by reducing the length of
-	the audio sent to the model, and accuracy by preventing the model from hallucinating text for
+	the sound sent to the model, and accuracy by preventing the model from hallucinating text for
 	silent regions.
 
 ,
@@ -353,8 +416,8 @@ Transcription with whisper.cpp is available in two ways in Praat:
 "TextGrid & Sound: Transcribe interval..."
 © Anastasia Shchupak 2026-06-01
 
-This command transcribes the portion of the @Sound that corresponds to a specified interval of
-the @TextGrid and writes the result back into the TextGrid.
+This command takes a specified interval of the @TextGrid, transcribes the corresponding part
+of the @Sound, and writes the result back into the TextGrid.
 
 Settings
 ========
@@ -378,9 +441,15 @@ speaker embedding, see @@WeSpeaker@), have been converted to ggml format and com
 so no external model files are required. The sound is automatically resampled to 16 kHz
 (the sampling frequency expected by both models) before being processed.
 
+Speaker diarization in Praat always modifies an existing TextGrid, producing one tier per
+detected speaker. Diarization can be done as part of transcription (so that transcribed text is
+split between speaker tiers) or standalone (so that each speaker tier contains the intervals
+labelled as non-speech or speech). See @@Speech recognition@ tutorial for details on how to use it.
+Its settings and algorithm are described below.
+
 Purpose
 =======
-to detect which portions of a sound contain speech and to attribute each portion to one or more
+to detect which parts of a sound contain speech and to attribute each part to one or more
 speakers. The output is a list of segments, each segment defined by a start time, an end time and
 a speaker identifier. Speaker identifiers are natural numbers (1, 2, 3, ...); they are arbitrary
 labels that roughly follow the order in which the speakers first appear.
@@ -390,7 +459,7 @@ Settings
 ##Fixed number of speakers...
 :   if set to a positive integer, the algorithm aims to produce exactly this many speakers. Takes
 	precedence over the ##... or range of numbers of speakers# setting below. This is a target,
-	not a guarantee: if the Sound does not have that many distinct voices, fewer speakers may be
+	not a guarantee: if the sound does not have that many distinct voices, fewer speakers may be
 	produced (and a warning is shown).
 
 ##... or range of numbers of speakers
@@ -468,20 +537,21 @@ result is a list of segments, each attributed to one speaker.
 
 Availability in Praat
 =====================
-Speaker diarization is available in two ways in Praat:
-- as part of transcription, see @@transcription with whisper.cpp@;
-- standalone, if you select a @Sound together with its @TextGrid and choose
+For diarization as part of transcription, see @@transcription with whisper.cpp@.
+
+Standalone diarization is available in two ways:
+- if you select a @Sound together with its @TextGrid and choose
   @@TextGrid & Sound: Diarize interval...|Diarize interval...@;
-- standalone, via ##Diarize interval# from the #Interval menu in the @TextGridEditor.
-  The settings for this command are set via ##Diarization settings...# in the same menu
-  and are remembered across Praat sessions.
+- via ##Diarize interval# from the #Interval menu in the @TextGridEditor. The settings for this
+  command are set via ##Diarization settings...# in the same menu and are remembered across Praat
+  sessions.
 
 ################################################################################
 "TextGrid & Sound: Diarize interval..."
 © Anastasia Shchupak 2026-06-01
 
-This command performs speaker diarization on the portion of the @Sound that corresponds to a
-selected interval of the @TextGrid and writes the result back into the TextGrid.
+This command takes a specified interval of the @TextGrid, runs diarization on the corresponding part
+of the @Sound, and writes the result back into the TextGrid.
 
 Settings
 ========
@@ -498,11 +568,9 @@ see @@speaker diarization with adapted pyannote.audio@ for their meaning.
 "SpeechRecognizer"
 © Anastasia Shchupak 2026-03-15
 
-The SpeechRecognizer is one of the @@types of objects@ in Praat.
-It performs automatic transcription (speech-to-text) on a @Sound object, using the @@whisper.cpp@
-engine, and therefore our SpeechRecognizer is an interface to whisper.cpp.
-
-If you are new to speech recognition in Praat, see the @@Speech recognition@ tutorial first.
+One of the @@types of objects@ in Praat. It performs @@transcription with whisper.cpp@ on a
+@Sound object. If you are new to speech recognition in Praat, see the @@Speech recognition@
+tutorial first.
 
 Commands
 ========
@@ -510,44 +578,34 @@ Commands
 Creation:
 ,	@@Create SpeechRecognizer...@
 
-Recognition:
-,	@@SpeechRecognizer & Sound: Transcribe|Transcribe@
+Transcription:
+,	@@SpeechRecognizer & Sound: Transcribe@
 
 ################################################################################
 "Create SpeechRecognizer..."
 © Anastasia Shchupak 2026-03-15
 
-Creates the @@whisper.cpp@ speech recognizer.
+Creates the @SpeechRecognizer object.
 If you are new to speech recognition in Praat, see the @@Speech recognition@ tutorial first.
 
 Settings
 ========
-
 ##Whisper model
-:	determines which Whisper model to use for recognition.
-The list is populated with the ##.bin# files found in the ##whispercpp# subfolder
-of the ##models# folder in the Praat preferences folder.
-Models that contain ##.en# in their name are English-only; all other models are multilingual.
-
 ##Language
-:	determines the language to be recognized.
-Choose ##Autodetect language# to let the model detect the language automatically.
-If you know the language of the audio, selecting it explicitly may improve recognition accuracy.
-Note that English-only models (those with ##.en# in the name) can only be used with
-##Autodetect language# or ##English#.
+:	for both settings see @@transcription with whisper.cpp@.
 
 ################################################################################
 "SpeechRecognizer & Sound: Transcribe"
 © Anastasia Shchupak 2026-03-15
 
-Performs speech recognition on the selected @Sound using the selected @SpeechRecognizer,
-and writes the recognized text to the Info window.
+@@transcription with whisper.cpp|Transcribes@ selected @Sound using selected @SpeechRecognizer
+object and writes the result of transcription to the @@Info window@.
 
 The sound is automatically resampled to 16 kHz (the sampling frequency expected by @@whisper.cpp@)
-if its original sampling frequency differs.
+before being processed.
 
-The recognition uses the @@speech activity detection with Silero VAD@ built into @@whisper.cpp@
-to skip non-speech parts of the audio, which improves both speed and accuracy.
+The transcription uses the @@speech activity detection with Silero VAD@ built into @@whisper.cpp@
+to skip non-speech parts of the sound, which improves both speed and accuracy.
 
 The result is a flat text string containing the full transcription.
 
@@ -567,7 +625,7 @@ tutorial. For the algorithm and settings, see @@speech activity detection with S
 "whisper.cpp"
 © Anastasia Shchupak 2026-06-01
 
-Whisper is an automatic speech recognition (ASR) system by OpenAI for transcribing speech audio
+Whisper is an automatic speech recognition (ASR) system by OpenAI for transcribing speech
 into text; see @@Radford et al. (2022)@ for the model architecture, training and evaluation.
 OpenAI’s Whisper implementation is in Python (PyTorch).
 
