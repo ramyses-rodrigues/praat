@@ -1861,11 +1861,10 @@ static std::vector<int32_t> agglomerative_cluster(
 
         clusters = std::move(best_clusters);
         n_large  = best_n_large;
-    	if (num_clusters > 0 && n_large != num_clusters) {
-    		Melder_warning (U"Diarization: found only ", n_large,
-							U" clusters (requested ", num_clusters,
-							U"). Lowering 'cluster_min_size' might help.");
-    	}
+
+    	const bool max_only_constraint = (num_clusters_in == 0 && min_clusters_in == 0 && max_clusters_in > 0);
+    	if (!max_only_constraint && num_clusters > 0 && n_large != num_clusters)
+    		Melder_warning (U"Diarization: detected only ", n_large, U" speakers (requested ", num_clusters, U").");
     }
 
     // Large/small split
