@@ -4434,6 +4434,7 @@ static void do_runScript () {
 	try {
 		const Editor optionalNewInterpreterOwningWindow = theInterpreter -> optionalDynamicEnvironmentEditor();
 		Melder_assert (theInterpreter -> owningInterpreterStack);
+		Melder_assert (theInterpreter -> owningInterpreterStack -> current_a() == theInterpreter);   // the parent interpreter
 		praat_runScript (theInterpreter -> owningInterpreterStack, fileName->getString(), numberOfArguments - 1, & theStack [stackPointer + 1], optionalNewInterpreterOwningWindow);
 		theLevel -= 1;
 	} catch (MelderError) {
