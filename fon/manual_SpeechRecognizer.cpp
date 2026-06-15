@@ -133,7 +133,7 @@ diarization#, influence how the TextGrid is modified, so they are explained belo
 
 The structure of the resulting TextGrid depends on the combination of ##Include words# and ##Include
 diarization# settings. There are four possible combinations of these two settings. Let’s assume
-that the interval selected for transcription belongs to tier %Mary and walk through all
+that the interval selected for transcription belongs to tier “Mary” and walk through all
 four combinations.
 
 1. If both settings are off: the interval is split into many intervals, one interval per sentence,
@@ -141,21 +141,23 @@ each of them containing the text of the sentence (sentence boundaries come from 
 that whisper.cpp returns). No new tiers are inserted.
 
 2. If only ##Include words# is on: the original interval is split as in case 1, plus a tier called
-%%Mary/word% is added just below %Mary, with one interval per word.
+“Mary/word” is added just below “Mary”, with one interval per word.
 
-3. If only ##Include diarization# is on: %Mary is renamed to %%Mary/sp1%, and if diarization
+3. If only ##Include diarization# is on: “Mary is renamed to “Mary/sp1”, and if diarization
 detected more than one speaker, then more tiers are added so that there are as many tiers as
-detected speakers: %%Mary/sp2%, %%Mary/sp3%, and so on, one tier per detected speaker. Each
+detected speakers: “Mary/sp2”, “Mary/sp3”, and so on, one tier per detected speaker. Each
 speaker’s tier contains the intervals with the sentences or parts of sentences spoken by that
 speaker. It is possible that a sentence is not completely spoken by one speaker. In this case the
  sentence is shown in pieces. For example, speaker 1 started this sentence, but halfway through it,
 speaker 2 took over and finished it. Then the interval containing the first part of the sentence on
-%%Mary/sp1% will end with “...”, and the interval containing the end of the sentence on
-%%Mary/sp2% will start with “...”, so you can see it is the same sentence split between two
+“Mary/sp1” will end with “...”, and the interval containing the end of the sentence on
+“Mary/sp2” will start with “...”, so you can see it is the same sentence split between two
 speakers.
+If diarization detects less than two speakers, a warning is shown and the
+result is the same as in case 1 or 2: no speaker tiers are created.
 
 4. If both settings are on: in addition to a sentence tier, each speaker also gets a word tier
-(%%Mary/sp1/w% for speaker 1, %%Mary/sp2/w% for speaker 2, ...), which is inserted directly after
+(“Mary/sp1/w” for speaker 1, “Mary/sp2/w” for speaker 2, ...), which is inserted directly after
 their sentence tier.
 
 With the transcription settings configured, you are now ready to start the transcription. Select
@@ -175,7 +177,7 @@ click #OK, you will find a new #SpeechRecognizer object in the object list.
 
 To transcribe, select the SpeechRecognizer object and the Sound object together and choose
 ##SpeechRecognizer & Sound: Transcribe# from the @@Dynamic menu@. The result of transcription will
-be written to the @@Info window@. Note that the ##Allow silences# setting is not available here:
+be written to the @@Info window@. Note that the ##Exclude non-speech# setting is not available here:
 @@speech activity detection with Silero VAD|Silero VAD@ is always on, with default settings.
 
 2. Automatic speaker diarization
@@ -274,23 +276,23 @@ The result is a list of speech segments.
 
 Settings
 ========
-##Speech probability threshold (0-1)
+##Speech probability threshold (0-1)# (standard value: 0.5)
 :   determines the sensitivity of the speech detector. Higher values make the detector less
 	sensitive, meaning that a frame requires a higher speech probability to be considered part of
 	a speech segment. This reduces false positives (non-speech incorrectly classified as speech),
 	but may cause some speech to be missed. Lower values make the detector more sensitive. The
 	default of 0.5 works well for most use cases.
 
-##Min. gap between speech segments (s)
+##Min. gap between speech segments (s)# (standard value: 0.1)
 :   the minimum duration of a gap between two speech segments. You might want to increase this value
 	if short silences within speech (e.g. plosive closures) are splitting speech into multiple
-	segments. Notranscriptionte that gaps shorter than 0.2 s are removed from the output (with their adjacent
+	segments. Note that gaps shorter than 0.2 s are removed from the output (with their adjacent
 	speech segments merged), regardless of this setting.
 
-##Min. speech segment (s)
+##Min. speech segment (s)# (standard value: 0.25)
 :   the minimum duration of a speech segment. Shorter segments are discarded.
 
-##Padding around speech segments (s)
+##Padding around speech segments (s)# (standard value: 0.03)
 :   extends each detected speech segment by this amount on both sides. You might want to increase
 	this value if speech onsets and offsets are being clipped.
 
@@ -314,21 +316,22 @@ interval label#.
 
 Settings
 ========
-##Speech probability threshold (0-1)#
+##Speech probability threshold (0-1)# (standard value: 0.5)
+:	see @@speech activity detection with Silero VAD@.
 
-##Min. gap between speech segments (s)#
+##Min. gap between speech segments (s)# (standard value: 0.1)
+:	see @@speech activity detection with Silero VAD@.
 
-##Min. speech segment (s)#
+##Min. speech segment (s)# (standard value: 0.25)
+:	see @@speech activity detection with Silero VAD@.
 
-##Padding around speech segments (s)
-:   see @@speech activity detection with Silero VAD@.
+##Padding around speech segments (s)# (standard value: 0.03)
+:	see @@speech activity detection with Silero VAD@.
 
-,
-
-##Non-speech interval label
+##Non-speech interval label# (standard value: “”)
 :	the label assigned to intervals classified as non-speech in the resulting TextGrid.
 
-##Speech interval label
+##Speech interval label# (standard value: “speech”)
 :	the label assigned to intervals classified as speech in the resulting TextGrid.
 
 ################################################################################
@@ -350,58 +353,58 @@ for the details of the transcription output under different combinations of thes
 
 Settings
 ========
-##Whisper model
+##Whisper model#
 :	determines which Whisper model is used.
 	The list is populated with the `.bin` files found in the `whispercpp` subfolder of the
 	`models` folder in the Praat preferences folder. See the @@Speech recognition@ tutorial for
 	details on how to install models.
 
-##Language
+##Language# (standard value: ##Autodetect language#)
 :	determines the language to be used for transcription.
 	Choose ##Autodetect language# to let the model detect the language automatically. If you know
 	the language you want to use for transcription, selecting it explicitly may improve
 	transcription accuracy. Note that English-only models (those with ##.en# in the name) can only
 	be used with ##Autodetect language# or ##English#.
 
-##Include words
+##Include words# (standard: on)
 :	if on, each transcribed word is given a start and an end time, computed using whisper.cpp’s
 	internal dynamic time warping (DTW) algorithm.
 
-##Include diarization
-:	if on, speaker diarization is run alongside transcription (see @@speaker diarization with
-	adapted pyannote.audio@). The results of both are later combined to attribute portions of
-	transcribed speech to different speakers.
-
-##Allow silences
+##Exclude non-speech# (standard: on)
 :	if on, @@speech activity detection with Silero VAD@ runs before transcription to identify
 	speech regions. Only those regions are then passed to the Whisper model. This generally
 	improves both speed and accuracy of transcription. Speed is improved by reducing the length of
 	the sound sent to the model, and accuracy by preventing the model from hallucinating text for
 	silent regions.
 
-,
+##Speech probability threshold (0-1)# (standard value: 0.5)
+:	see @@speech activity detection with Silero VAD@.
 
-##Speech probability threshold (0-1)#
+##Min. gap between speech segments (s)# (standard value: 0.1)
+:	see @@speech activity detection with Silero VAD@.
 
-##Min. gap between speech segments (s)#
+##Min. speech segment (s)# (standard value: 0.25)
+:	see @@speech activity detection with Silero VAD@.
 
-##Min. speech segment (s)#
+##Padding around speech segments (s)# (standard value: 0.03)
+:	see @@speech activity detection with Silero VAD@.
 
-##Padding around speech segments (s)
-:   see @@speech activity detection with Silero VAD@.
+##Include diarization# (standard: off)
+:	if on, speaker diarization is run alongside transcription (see @@speaker diarization with
+	adapted pyannote.audio@). The results of both are later combined to attribute portions of
+	transcribed speech to different speakers.
 
-,
+##Max. number of speakers (≥ 2)# (standard value: 2)
+:	see @@speaker diarization with adapted pyannote.audio@.
 
-##Fixed number of speakers...#
+##Allow speakers to overlap# (standard: on)
+:	see @@speaker diarization with adapted pyannote.audio@.
 
-##... or range of numbers of speakers#
+##Clustering threshold (0-2)# (standard value: 0.7)
+:	see @@speaker diarization with adapted pyannote.audio@.
 
-##Allow speakers to overlap#
-
-##Clustering threshold (0-2)#
-
-##Segmentation step (0-1)
-:   see @@speaker diarization with adapted pyannote.audio@.
+##Segmentation step (0-1)# (standard value: 0.1)
+:	see @@speaker diarization with adapted pyannote.audio@.
 
 Availability in Praat
 =====================
@@ -456,30 +459,20 @@ labels that roughly follow the order in which the speakers first appear.
 
 Settings
 ========
-##Fixed number of speakers...
-:   if set to a positive integer, the algorithm aims to produce exactly this many speakers. Takes
-	precedence over the ##... or range of numbers of speakers# setting below. This is a target,
-	not a guarantee: if the sound does not have that many distinct voices, fewer speakers may be
-	produced (and a warning is shown).
+##Max. number of speakers (≥ 2)# (standard value: 2)
+:	an upper bound on the number of speakers the algorithm may produce. Must be at least 2.
 
-##... or range of numbers of speakers
-:   a minimum and a maximum for the number of speakers the algorithm may produce. You can set only
-	the minimum, only the maximum, or both; a value of 0 for any of the bounds leaves that bound
-	unconstrained. Note that if ##Fixed number of speakers...# is set, this setting will be ignored.
-
-##Allow speakers to overlap
+##Allow speakers to overlap# (standard: on)
 :   if on, two speakers may be active at the same moment (not more than two though, as this is the
 	limit of the segmentation model). If off, every moment is attributed to a single speaker, the
 	one most active at that moment, according to the segmentation model.
 
-##Clustering threshold (0-2)
-:	if two groups at stage 3 of the algorithm (see below) are closer than this threshold, then they
-	are merged. Lower values produce more speakers, higher values produce fewer speakers. When the
-	number of speakers is constrained by ##Fixed number of speakers...# or by ##... or range of
-	numbers of speakers#, this threshold no longer determines how many speakers are found
-	(however, it still influences the process of group forming).
+##Clustering threshold (0-2)# (standard value: 0.7)
+:	lower values produce more speakers (up to ##Max. number of speakers (≥ 2)#), higher values
+	produce fewer speakers. Consider lowering this value if fewer speakers are detected than
+	the actual number of speakers in your sound.
 
-##Segmentation step (0-1)
+##Segmentation step (0-1)# (standard value: 0.1)
 :   the spacing between consecutive overlapping 10-second chunks, as a fraction of the chunk length
 	(see stage 1 of the algorithm). A value of 1.0 means no overlap; lower values mean more
 	overlap. Less overlap is faster (but generally less accurate), so this is the setting to
@@ -518,14 +511,16 @@ rest are set aside for now.
 The reliable embeddings from all chunks are L2-normalized and grouped by similarity using
 agglomerative hierarchical clustering: the two most similar groups are merged repeatedly,
 stopping when the closest remaining groups are further apart than ##Clustering threshold (0-2)#.
-Similarity between two groups is measured by the distance between their centres (more similar =
-less distance). Because the embeddings are L2-normalized, the distance between any two of
+Similarity between two groups is measured by the Euclidean distance between their centres (more
+similar = less distance). Because the embeddings are L2-normalized, the distance between any two of
 them lies between 0 (identical) and 2 (opposite).
 
-Each final group is one speaker; the number of groups can be influenced by ##Fixed number of
-speakers...# and ##... or range of numbers of speakers# settings. Finally, the unreliable
-embeddings (those not used to form the groups) are attached to their nearest groups. In this way,
-each chunk-local speaker is assigned to a global speaker.
+Each final group is one speaker; if after reaching the threshold there are still more groups
+than ##Max. number of speakers (≥ 2)#, the merging continues past the threshold until the resulting
+number of groups does not exceed that maximum.
+
+Finally, the unreliable embeddings (those not used to form the groups) are attached
+to their nearest groups. In this way, each chunk-local speaker is assigned to a global speaker.
 
 ##4. Reconstruction#. Each chunk consists of frames, and because the chunks overlap, each frame
 on the global timeline is covered by several chunks. Such a frame receives, for every speaker,
@@ -551,7 +546,8 @@ Standalone diarization is available in two ways:
 © Anastasia Shchupak 2026-06-01
 
 This command takes a specified interval of the @TextGrid, runs diarization on the corresponding part
-of the @Sound, and writes the result back into the TextGrid.
+of the @Sound, and writes the result back into the TextGrid. The labels of the intervals are
+specified by the settings ##Non-speech interval label# and ##Speech interval label#.
 
 Settings
 ========
@@ -561,8 +557,23 @@ Settings
 ##Interval number
 :	the number of the interval to be diarized.
 
-The remaining settings in this dialog control the speaker diarization itself;
-see @@speaker diarization with adapted pyannote.audio@ for their meaning.
+##Max. number of speakers (≥ 2)# (standard value: 2)
+:	see @@speaker diarization with adapted pyannote.audio@.
+
+##Allow speakers to overlap# (standard: on)
+:	see @@speaker diarization with adapted pyannote.audio@.
+
+##Clustering threshold (0-2)# (standard value: 0.7)
+:	see @@speaker diarization with adapted pyannote.audio@.
+
+##Segmentation step (0-1)# (standard value: 0.1)
+:	see @@speaker diarization with adapted pyannote.audio@.
+
+##Non-speech interval label# (standard value: “”)
+:	the label assigned to intervals classified as non-speech in the resulting TextGrid.
+
+##Speech interval label# (standard value: “speech”)
+:	the label assigned to intervals classified as speech in the resulting TextGrid.
 
 ################################################################################
 "SpeechRecognizer"
