@@ -143,18 +143,17 @@ that whisper.cpp returns). No new tiers are inserted.
 2. If only ##Include words# is on: the original interval is split as in case 1, plus a tier called
 “Mary/word” is added just below “Mary”, with one interval per word.
 
-3. If only ##Include diarization# is on: “Mary is renamed to “Mary/sp1”, and if diarization
-detected more than one speaker, then more tiers are added so that there are as many tiers as
-detected speakers: “Mary/sp2”, “Mary/sp3”, and so on, one tier per detected speaker. Each
-speaker’s tier contains the intervals with the sentences or parts of sentences spoken by that
-speaker. It is possible that a sentence is not completely spoken by one speaker. In this case the
- sentence is shown in pieces. For example, speaker 1 started this sentence, but halfway through it,
-speaker 2 took over and finished it. Then the interval containing the first part of the sentence on
-“Mary/sp1” will end with “...”, and the interval containing the end of the sentence on
-“Mary/sp2” will start with “...”, so you can see it is the same sentence split between two
-speakers.
+3. If only ##Include diarization# is on (and diarization detects at least two speakers): “Mary is
+renamed to “Mary/sp1” and additional tiers “Mary/sp2”, “Mary/sp3”, ... are added, one tier per
+detected speaker. Each speaker’s tier contains the intervals with the sentences or parts of
+sentences spoken by that speaker. It is possible that a sentence is not completely spoken by one
+speaker. In this case the sentence is shown in pieces. For example, speaker 1 started this sentence,
+but halfway through it, speaker 2 took over and finished it. Then the interval containing the first
+part of the sentence on “Mary/sp1” will end with “...”, and the interval containing the end of the
+sentence on “Mary/sp2” will start with “...”, so you can see it is the same sentence split between
+two speakers.
 If diarization detects less than two speakers, a warning is shown and the
-result is the same as in case 1 or 2: no speaker tiers are created.
+result is the same as in case 1 or 2: no renaming, no new tiers.
 
 4. If both settings are on: in addition to a sentence tier, each speaker also gets a word tier
 (“Mary/sp1/w” for speaker 1, “Mary/sp2/w” for speaker 2, ...), which is inserted directly after
@@ -460,17 +459,19 @@ labels that roughly follow the order in which the speakers first appear.
 Settings
 ========
 ##Max. number of speakers (≥ 2)# (standard value: 2)
-:	an upper bound on the number of speakers the algorithm may produce. Must be at least 2.
+:	an upper bound on the number of speakers the algorithm may produce. Must be at least 2. There
+	is no matching “minimum number of speakers” setting; if you want to push the algorithm towards
+	distinguishing more speakers, you might try lowering the ##Clustering threshold#.
 
 ##Allow speakers to overlap# (standard: on)
-:   if on, two speakers may be active at the same moment (not more than two though, as this is the
-	limit of the segmentation model). If off, every moment is attributed to a single speaker, the
-	one most active at that moment, according to the segmentation model.
+:   if on, maximum two speakers may be active at the same moment. If off, every moment is
+	attributed to a single speaker, the one most active at that moment.
 
 ##Clustering threshold (0-2)# (standard value: 0.7)
-:	lower values produce more speakers (up to ##Max. number of speakers (≥ 2)#), higher values
-	produce fewer speakers. Consider lowering this value if fewer speakers are detected than
-	the actual number of speakers in your sound.
+:	controls the number of speakers returned by the algorithm. Lower values produce more speakers
+	(but anyway up to ##Max. number of speakers (≥ 2)#); higher values produce fewer speakers.
+	This is the setting that can push the number of detected speakers up, so consider lowering
+	its value if fewer speakers are detected than are actually present in your sound.
 
 ##Segmentation step (0-1)# (standard value: 0.1)
 :   the spacing between consecutive overlapping 10-second chunks, as a fraction of the chunk length

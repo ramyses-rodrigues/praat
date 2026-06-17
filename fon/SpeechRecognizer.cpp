@@ -345,7 +345,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			double tmax;   // DTW timestamp (end of token), in seconds
 			bool isSilence;
 			bool isNewWord;
-			bool isLastTokenInSentence;
 		};
 		autovector <Token> whisperTokens = newvectorzero <Token> (0);
 
@@ -399,13 +398,11 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 					Token& lastToken = whisperTokens [whisperTokens.size];
 					lastToken. tmax = (lastToken. tmax + currentTokenTmax) / 2;
 					lastToken. textWithPunctuation = Melder_dup (Melder_cat (lastToken. textWithPunctuation.get(), textWithPunctuation.get()));
-					lastToken. isLastTokenInSentence = endsWithTerminalPunctuation (lastToken. textWithPunctuation.get());
 				} else {
 					Token *token = whisperTokens. append();
 					token -> tmax = currentTokenTmax;
 					token -> isSilence = ! textWithPunctuationLength;   // if there is no text in a token, mark it as a silence as well
 					token -> isNewWord = isNewWord;
-					token -> isLastTokenInSentence = endsWithTerminalPunctuation (textWithPunctuation.get());
 					token -> textWithPunctuation = textWithPunctuation.move();
 					token -> textWithoutPunctuation = textWithoutPunctuation.move();
 				}
@@ -461,7 +458,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				silence -> tmax = tmax;
 				silence -> isSilence = true;
 				silence -> isNewWord = true;
-				silence -> isLastTokenInSentence = false;
 				return silence;
 			};
 
@@ -477,7 +473,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				token -> tmax = tmax;
 				token -> isSilence = whisperToken. isSilence;
 				token -> isNewWord = whisperToken. isNewWord;
-				token -> isLastTokenInSentence = whisperToken. isLastTokenInSentence;
 				return token;
 			};
 
@@ -556,9 +551,10 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 
 			const bool isSilentToken = allTokens [i]. isSilence;
 			const bool isNewWord = allTokens [i]. isNewWord;
-			const bool isLastTokenInSentence = allTokens [i]. isLastTokenInSentence;
 			const conststring32 tokenTextWithPunctuation = allTokens [i]. textWithPunctuation.get();
 			const conststring32 tokenTextWithoutPunctuation = allTokens [i]. textWithoutPunctuation.get();
+			const bool isLastTokenInWord = (i == allTokens.size) || allTokens [i + 1]. isNewWord;
+			const bool isLastTokenInSentence = isLastTokenInWord && endsWithTerminalPunctuation (tokenTextWithPunctuation);
 
 			/*
 				Add token text to the sentence and to the full transcription text, unless it is a silence token.
@@ -604,15 +600,23 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			*/
 			const bool isLastTokenOverall = (i == allTokens.size);
 			if (isLastTokenInSentence || isLastTokenOverall || (isSilentToken && isFirstTokenInSentence)) {
-				SpeechSegment *sentence = sentences. append();
-				sentence -> text = Melder_dup (sentenceText.string);
-				sentence -> tmin = sentenceTmin;
-				sentence -> tmax = tokenTmax;
-				trace (U"Sentence: ", sentences.size, U": \"", sentence -> text.get(), U"\" [ ", sentence -> tmin, U" - ", sentence -> tmax, U" ]");
-				MelderString_empty (& sentenceText);
-				isFirstTokenInSentence = true;   // current sentence is finalized, start with the new one on the next iteration
-				if (isFirstSentence && ! isSilentToken)
-					isFirstSentence = false;
+				if (tokenTmax > sentenceTmin) {
+					SpeechSegment *sentence = sentences. append();
+					sentence -> text = Melder_dup (sentenceText.string);
+					sentence -> tmin = sentenceTmin;
+					sentence -> tmax = tokenTmax;
+					trace (U"Sentence: ", sentences.size, U": \"", sentence -> text.get(), U"\" [ ", sentence -> tmin, U" - ", sentence -> tmax, U" ]");
+					MelderString_empty (& sentenceText);
+					isFirstTokenInSentence = true;   // current sentence is finalized, start with the new one on the next iteration
+					if (isFirstSentence && ! isSilentToken)
+						isFirstSentence = false;
+				} else if (sentences.size > 0) {
+					SpeechSegment& lastSentence = sentences [sentences.size];
+					lastSentence.text = Melder_dup (Melder_cat (lastSentence.text.get(), U" ", sentenceText.string));
+					MelderString_empty (& sentenceText);
+					isFirstTokenInSentence = true;   // current sentence is finalized, start with the new one on the next iteration
+				} else
+					isFirstTokenInSentence = false;   // continue with the current sentence
 			} else {
 				isFirstTokenInSentence = false;   // continue with the current sentence
 			}
