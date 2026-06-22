@@ -2007,23 +2007,23 @@ void structTextGridArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (boundaryMenu, U"New boundary or point:", 0, nullptr, this);
 		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on selected tier", GuiMenu_ENTER | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnSelectedTier, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 1", GuiMenu_COMMAND | GuiMenu_F1 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 1", GuiMenu_COMMAND_EXTRA | '1' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier1, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 2", GuiMenu_COMMAND | GuiMenu_F2 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 2", GuiMenu_COMMAND_EXTRA | '2' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier2, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 3", GuiMenu_COMMAND | GuiMenu_F3 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 3", GuiMenu_COMMAND_EXTRA | '3' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier3, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 4", GuiMenu_COMMAND | GuiMenu_F4 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 4", GuiMenu_COMMAND_EXTRA | '4' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier4, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 5", GuiMenu_COMMAND | GuiMenu_F5 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 5", GuiMenu_COMMAND_EXTRA | '5' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier5, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 6", GuiMenu_COMMAND | GuiMenu_F6 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 6", GuiMenu_COMMAND_EXTRA | '6' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier6, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 7", GuiMenu_COMMAND | GuiMenu_F7 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 7", GuiMenu_COMMAND_EXTRA | '7' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier7, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 8", GuiMenu_COMMAND | GuiMenu_F8 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 8", GuiMenu_COMMAND_EXTRA | '8' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier8, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on all tiers", GuiMenu_COMMAND | GuiMenu_F9 | GuiMenu_DEPTH_1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on all tiers", GuiMenu_COMMAND_EXTRA | '9' | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnAllTiers, this);
 		FunctionAreaMenu_addCommand (boundaryMenu, U"- Modify boundary or point:", 0, nullptr, this);
 		if (our borrowedSoundArea && ! Thing_isa (our borrowedSoundArea, classLongSoundArea)) {
