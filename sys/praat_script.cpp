@@ -116,7 +116,7 @@ Editor praat_findEditorById (integer id) {
 static int parseCommaSeparatedArguments (Interpreter interpreter, char32 *arguments, structStackel *args) {
 	int narg = 0, depth = 0;
 	for (char32 *p = arguments; ; p ++) {
-		bool endOfArguments = *p == U'\0';
+		const bool endOfArguments = ( *p == U'\0' );
 		if (endOfArguments || (*p == U',' && depth == 0)) {
 			if (narg == MAXIMUM_NUMBER_OF_FIELDS)
 				Melder_throw (U"Cannot have more than ", MAXIMUM_NUMBER_OF_FIELDS, U" arguments");
