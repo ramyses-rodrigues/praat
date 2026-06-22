@@ -1,6 +1,6 @@
 /* SoundAnalysisArea.cpp
  *
- * Copyright (C) 1992-2026 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma, 2026 yjzxkxdn (spectrogram colour schemes)
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -930,7 +930,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 		POSITIVE (viewTo,       U"right View range (Hz)", my default_spectrogram_viewTo())
 		POSITIVE (windowLength, U"Window length (s)",     my default_spectrogram_windowLength())
 		POSITIVE (dynamicRange, U"Dynamic range (dB)",    my default_spectrogram_dynamicRange())
-		OPTIONMENU_ENUM (kSpec_colourMap, colourMap, U"Colour map", my default_spectrogram_colourMap())
+		OPTIONMENU_ENUM (kSpectrogram_colourMap, colourMap, U"Colour map", my default_spectrogram_colourMap())
 		MUTABLE_COMMENT (note1, U"")
 		MUTABLE_COMMENT (note2, U"")
 	EDITOR_OK
@@ -938,7 +938,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 		SET_REAL (viewTo,       my instancePref_spectrogram_viewTo())
 		SET_REAL (windowLength, my instancePref_spectrogram_windowLength())
 		SET_REAL (dynamicRange, my instancePref_spectrogram_dynamicRange())
-		SET_ENUM (colourMap, kSpec_colourMap, my instancePref_spectrogram_colourMap())
+		SET_ENUM (colourMap, kSpectrogram_colourMap, my instancePref_spectrogram_colourMap())
 		if (my instancePref_spectrogram_timeSteps()          != Melder_atof (my default_spectrogram_timeSteps()) ||
 			my instancePref_spectrogram_frequencySteps()     != Melder_atof (my default_spectrogram_frequencySteps()) ||
 			my instancePref_spectrogram_method()             != my default_spectrogram_method() ||
