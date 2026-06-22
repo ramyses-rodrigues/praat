@@ -1,10 +1,10 @@
 /* SoundAnalysisArea_prefs.h
  *
- * Copyright (C) 2013,2015-2017,2020,2022-2024 Paul Boersma
+ * Copyright (C) 2013,2015-2017,2020,2022-2024,2026 Paul Boersma, 2026 yjzxkxdn (spectrogram colour schemes)
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -36,7 +36,7 @@ Prefs_begin (SoundAnalysisArea)
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_preemphasis,         2, U"6.0")   // dB/octave
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_dynamicCompression,  2, U"0.0")   // 0..1
 	InstancePrefs_addBool    (SoundAnalysisArea, spectrogram_picture_garnish,     1, true)
-	InstancePrefs_addEnum    (SoundAnalysisArea, spectrogram_colourMap,           1, kSpec_colourMap, GREY)
+	InstancePrefs_addEnum    (SoundAnalysisArea, spectrogram_colourMap,           1, kSpectrogram_colourMap, GREY)
 	InstancePrefs_addBool    (SoundAnalysisArea, pitch_show,                      1, true)
 	InstancePrefs_addEnum    (SoundAnalysisArea, pitch_method,                    2, kSoundAnalysisArea_pitch_analysisMethod, DEFAULT)
 	InstancePrefs_addDouble  (SoundAnalysisArea, pitch_filteredAC_floor,          1, U"50.0")   // Hz

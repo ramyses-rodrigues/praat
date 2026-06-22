@@ -1,10 +1,10 @@
 /* Spectrogram.cpp
  *
- * Copyright (C) 1992-2008,2011,2012,2015-2020,2022-2024 Paul Boersma
+ * Copyright (C) 1992-2008,2011,2012,2015-2020,2022-2024,2026 Paul Boersma, 2026 yjzxkxdn (colour schemes)
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -18,9 +18,9 @@
 
 #include "Spectrogram.h"
 #include "enums_getText.h"
-#include "Spec_enums.h"
+#include "Spectrogram_enums.h"
 #include "enums_getValue.h"
-#include "Spec_enums.h"
+#include "Spectrogram_enums.h"
 
 Thing_implement (Spectrogram, Matrix, 2);
 
@@ -64,7 +64,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 	const double dynamic,
 	const double preemphasis_dbPerOctave,
 	const double dynamicCompression,
-	kSpec_colourMap colourMap
+	kSpectrogram_colourMap colourMap
 ) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	SampledXY_unidirectionalAutowindowY (me, & fmin, & fmax);
@@ -147,7 +147,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 	/*
 		Select different drawing methods based on the type of color mapping
 	*/
-	if (colourMap == kSpec_colourMap::GREY) {
+	if (colourMap == kSpectrogram_colourMap::GREY) {
 		Graphics_image (g, part.all(),
 			Matrix_columnToX (me, itmin - 0.5),
 			Matrix_columnToX (me, itmax + 0.5),
@@ -188,7 +188,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 			};
 			
 			switch (colourMap) {
-				case kSpec_colourMap::VIRIDIS: {
+				case kSpectrogram_colourMap::VIRIDIS: {
 					// Viridis (Matplotlib)
 					constexpr double viridis[][3] = {
 						{0.267004, 0.004874, 0.329415},
@@ -533,7 +533,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue  = viridis[i][2] + frac * (viridis[i+1][2] - viridis[i][2]);
 					break;
 				}
-				case kSpec_colourMap::JET: {
+				case kSpectrogram_colourMap::JET: {
 					// Jet (MATLAB)
 					const std::vector<std::pair<double, double>> red_pts = {
 						{0.00, 0.0},
@@ -563,7 +563,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue  = interp(t, blue_pts);
 					break;
 				}
-				case kSpec_colourMap::HOT: {
+				case kSpectrogram_colourMap::HOT: {
 					// Hot
 					// From _hot_data (note: only the first and second value in each tuple matter;
 					// Matplotlib uses (x, left_value, right_value), but for continuous colormaps they are equal)
@@ -589,42 +589,42 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue  = interp(t, blue_pts);
 					break;
 				}
-				case kSpec_colourMap::COOL: {
+				case kSpectrogram_colourMap::COOL: {
 					// Cool
 					colour.red = t;
 					colour.green = 1.0 - t;
 					colour.blue = 1.0;
 					break;
 				}
-				case kSpec_colourMap::SPRING: {
+				case kSpectrogram_colourMap::SPRING: {
 					// Spring
 					colour.red = 1.0;
 					colour.green = t;
 					colour.blue = 1.0 - t;
 					break;
 				}
-				case kSpec_colourMap::SUMMER: {
+				case kSpectrogram_colourMap::SUMMER: {
 					// Summer
 					colour.red = t;
 					colour.green = 0.5 + t/2.0;
 					colour.blue = 0.4;
 					break;
 				}
-				case kSpec_colourMap::AUTUMN: {
+				case kSpectrogram_colourMap::AUTUMN: {
 					// Autumn
 					colour.red = 1.0;
 					colour.green = t;
 					colour.blue = 0.0;
 					break;
 				}
-				case kSpec_colourMap::WINTER: {
+				case kSpectrogram_colourMap::WINTER: {
 					// Winter
 					colour.red = 0.0;
 					colour.green = t;
 					colour.blue = 1.0 - t/2.0;
 					break;
 				}
-				case kSpec_colourMap::BONE: {
+				case kSpectrogram_colourMap::BONE: {
 					// Bone
 					const std::vector<std::pair<double, double>> red_pts = {
 						{0.0,       0.0},
@@ -648,7 +648,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue  = interp(t, blue_pts);
 					break;
 				}
-				case kSpec_colourMap::COPPER: {
+				case kSpectrogram_colourMap::COPPER: {
 					// Copper
 					const std::vector<std::pair<double, double>> red_pts = {
 						{0.0,       0.0},
@@ -669,7 +669,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue  = interp(t, blue_pts);
 					break;
 				}
-				case kSpec_colourMap::PINK: {
+				case kSpectrogram_colourMap::PINK: {
 					// Pink
 					const std::vector<std::pair<double, double>> red_pts = {
 						{0.000000, 0.117800},
@@ -874,7 +874,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue  = interp(t, blue_pts);
 					break;
 				}
-				case kSpec_colourMap::PARULA: {
+				case kSpectrogram_colourMap::PARULA: {
 					// Parula (MATLAB)
 					constexpr double parula[][3] = {
 						{0.2081, 0.1663, 0.5292},
@@ -951,7 +951,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 					colour.blue = parula[i][2] + frac * (parula[i+1][2] - parula[i][2]);
 					break;
 				}
-				case kSpec_colourMap::TURBO: {
+				case kSpectrogram_colourMap::TURBO: {
 					// Turbo (Google)
 					constexpr double turbo[][3] = {
 							{0.18995, 0.07176, 0.23217},
@@ -1231,17 +1231,15 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 			return colour;
 		};
 		
-		for (integer ifreq = 1; ifreq <= nf; ifreq++) {
-			for (integer itime = 1; itime <= nt; itime++) {
-				colourMatrix[ifreq][itime] = getColour(part[ifreq][itime]);
-			}
-		}
+		for (integer ifreq = 1; ifreq <= nf; ifreq ++)
+			for (integer itime = 1; itime <= nt; itime ++)
+				colourMatrix [ifreq] [itime] = getColour (part [ifreq] [itime]);
 		
-		Graphics_image_colour(g, colourMatrix.get(),
-			Matrix_columnToX(me, itmin - 0.5),
-			Matrix_columnToX(me, itmax + 0.5),
-			Matrix_rowToY(me, ifmin - 0.5),
-			Matrix_rowToY(me, ifmax + 0.5),
+		Graphics_image_colour (g, colourMatrix.get(),
+			Matrix_columnToX (me, itmin - 0.5),
+			Matrix_columnToX (me, itmax + 0.5),
+			Matrix_rowToY (me, ifmin - 0.5),
+			Matrix_rowToY (me, ifmax + 0.5),
 			min_val, max_val
 		);
 	}
@@ -1251,7 +1249,7 @@ void Spectrogram_paint (const constSpectrogram me, const Graphics g,
 	const double tmin, const double tmax, const double fmin, const double fmax,
 	const double maximum, const bool autoscaling,
 	const double dynamic, const double preemphasis, const double dynamicCompression,
-	const bool garnish, kSpec_colourMap colourMap)
+	const bool garnish, kSpectrogram_colourMap colourMap)
 {
 	Graphics_setInner (g);
 	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap);
