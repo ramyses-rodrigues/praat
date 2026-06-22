@@ -642,11 +642,11 @@ void TextGrid_Sound_transcribeInterval (
 
 				autoMelderString fullText;
 				if (firstWordInSubsentence != firstWordInSentence)   // before
-					MelderString_append (& fullText, U"...");
+					MelderString_append (& fullText, U"... ");
 				MelderString_append (& fullText, subsentenceText.string);   // text
 				if (lastWordInSubsentence == lastWordInSentence)   // after
 					MelderString_append (& fullText, U".");
-				else
+				else   // also after
 					MelderString_append (& fullText, U"...");
 
 				const integer subsentenceIntervalNumber = IntervalTier_hasTime (speakerSubsentenceTier, subsentenceTmin);

@@ -567,7 +567,7 @@ FORM (MODIFY_TextGrid_Sound_transcribeInterval, U"TextGrid & Sound: Transcribe i
 		OPTION (theSpeechRecognizerLanguageNames() [i])
 	BOOLEAN (includeWords, U"Include words", TranscriptionDefaults::includeWords)
 	HEADING (U"Non-speech detection...")
-	BOOLEAN (useVad, U"Exclude non-speech", TranscriptionDefaults::useVad)
+	BOOLEAN (useVad, U"Detect non-speech", TranscriptionDefaults::useVad)
 	REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", VadDefaults::speechThreshold)
 	POSITIVE (minNonSpeechDuration, U"Min. gap between speech segments (s)", VadDefaults::minNonSpeechDuration)
 	POSITIVE (minSpeechDuration, U"Min. speech segment (s)", VadDefaults::minSpeechDuration)
