@@ -64,11 +64,12 @@ autoSpectrogram Spectrogram_create (double tmin, double tmax, integer nt, double
 void Spectrogram_paintInside (constSpectrogram me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
 	double dynamicRange, double preemphasis, double dynamicCompression, 
-	kSpectrogram_colourMap colourMap = kSpectrogram_colourMap::GREY);
+	kSpectrogram_colourMap colourMap, bool invertColours);
 void Spectrogram_paint (constSpectrogram me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
 	double dynamicRange, double preemphasis, double dynamicCompression,
-	bool garnish, kSpectrogram_colourMap colourMap = kSpectrogram_colourMap::GREY);
+	kSpectrogram_colourMap colourMap, bool invertColours,
+	bool garnish);
 /*
 	Function:
 		Draw me to a Graphics.

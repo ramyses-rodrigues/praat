@@ -64,7 +64,8 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 	const double dynamic,
 	const double preemphasis_dbPerOctave,
 	const double dynamicCompression,
-	kSpectrogram_colourMap colourMap
+	kSpectrogram_colourMap colourMap,
+	bool invertColours
 ) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	SampledXY_unidirectionalAutowindowY (me, & fmin, & fmax);
@@ -1249,10 +1250,11 @@ void Spectrogram_paint (const constSpectrogram me, const Graphics g,
 	const double tmin, const double tmax, const double fmin, const double fmax,
 	const double maximum, const bool autoscaling,
 	const double dynamic, const double preemphasis, const double dynamicCompression,
-	const bool garnish, kSpectrogram_colourMap colourMap)
+	kSpectrogram_colourMap colourMap, bool invertColours,
+	const bool garnish)
 {
 	Graphics_setInner (g);
-	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap);
+	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap, invertColours);
 	Graphics_unsetInner (g);
 	if (garnish) {
 		Graphics_drawInnerBox (g);

@@ -37,7 +37,7 @@ Thing_define (SoundAnalysisArea, FunctionArea) {
 		return our soundOrLongSound() && Thing_isa (our soundOrLongSound(), classLongSound) ? (LongSound) our soundOrLongSound() : nullptr;
 	}
 
-	autoSpectrogram d_spectrogram;
+	autoSampledXY d_spectrogram;
 	double d_spectrogram_cursor;
 	autoPitch d_pitch;
 	autoIntensity d_intensity;

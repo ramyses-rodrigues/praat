@@ -2171,7 +2171,10 @@ FORM (GRAPHICS_Spectrogram_paint, U"Spectrogram: Paint", U"Spectrogram: Paint...
 DO
 	GRAPHICS_EACH (Spectrogram)
 		Spectrogram_paint (me, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-				maximum, autoscaling, dynamicRange, preEmphasis, dynamicCompression, garnish);
+			maximum, autoscaling, dynamicRange, preEmphasis, dynamicCompression,
+			kSpectrogram_colourMap::GREY, false,
+			garnish
+		);
 	GRAPHICS_EACH_END
 }
 
