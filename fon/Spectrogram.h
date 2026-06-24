@@ -97,5 +97,18 @@ autoMatrix Spectrogram_to_Matrix (constSpectrogram me);
 	with deep copy of all its attributes, except class information and methods.
 */
 
+Collection_define (SpectrogramList, OrderedOf, Spectrogram) {
+};
+
+void SpectrogramList_paintInside (constSpectrogramList me, Graphics g,
+	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
+	double dynamicRange, double preemphasis, double dynamicCompression, 
+	kSpectrogram_colourMap colourMap, bool invertColours);
+void SpectrogramList_paint (constSpectrogramList me, Graphics g,
+	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
+	double dynamicRange, double preemphasis, double dynamicCompression,
+	kSpectrogram_colourMap colourMap, bool invertColours,
+	bool garnish);
+
 /* End of file Spectrogram.h */
 #endif

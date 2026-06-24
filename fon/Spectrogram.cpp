@@ -1246,6 +1246,133 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 	}
 }
 
+void SpectrogramList_paintInside (const constSpectrogramList me, const Graphics g,
+	/* mutable autowindow */ double tmin, /* mutable autowindow */ double tmax,
+	/* mutable autowindow */ double fmin, /* mutable autowindow */ double fmax,
+	/* mutable autoscaling */ double maximum,
+	const bool autoscaling,
+	const double dynamic,
+	const double preemphasis_dbPerOctave,
+	const double dynamicCompression,
+	kSpectrogram_colourMap colourMap,
+	bool invertColours
+) {
+	TRACE
+	Spectrogram thee = my at [1];
+	Melder_assert (thee);
+	if (my size != 3) {
+		Spectrogram_paintInside (thee, g, tmin, tmax, fmin, fmax, maximum, autoscaling,
+				dynamic, preemphasis_dbPerOctave, dynamicCompression, colourMap, invertColours);
+		return;
+	}
+	Function_unidirectionalAutowindow (thee, & tmin, & tmax);
+	SampledXY_unidirectionalAutowindowY (thee, & fmin, & fmax);
+	integer itmin, itmax, ifmin, ifmax;
+	const integer nt = Matrix_getWindowSamplesX (thee, tmin - 0.49999 * thy dx, tmax + 0.49999 * thy dx, & itmin, & itmax);
+	const integer nf = Matrix_getWindowSamplesY (thee, fmin - 0.49999 * thy dy, fmax + 0.49999 * thy dy, & ifmin, & ifmax);
+	if (nt == 0 || nf == 0)
+		return;
+	Graphics_setWindow (g, tmin, tmax, fmin, fmax);
+	autoVEC dynamicFactors = zero_VEC (nt);
+	autoMAT part [1+3];
+
+	if (autoscaling)
+		maximum = 0.0;
+	for (integer ichan = 1; ichan <= 3; ichan ++) {
+		trace (U"channel ", ichan);
+		Spectrogram she = my at [ichan];
+		Melder_assert (she);
+		part [ichan] = part_MAT (her z.get(), ifmin, ifmax, itmin, itmax);
+		Melder_assert (part [ichan].nrow != 0 && part [ichan].ncol != 0);
+		const integer ifshift = ifmin - 1;
+		/*
+			Pre-emphasis in place; also compute maximum after pre-emphasis.
+		*/
+		for (integer ifreq = 1; ifreq <= nf; ifreq ++) {
+			const double frequency = Matrix_rowToY (she, ifreq + ifshift);
+			/*
+				The preemphasis term for a frequency of 1000 Hz is always 0 dB;
+				the preemphasis term (in dB) for a frequency f is then
+					preemphasis_dbPerOctave * log2 (f / 1000 Hz)
+				To speed this up, we convert to natural logarithms, according to
+					log2 (x) = ln (x) / ln (2)
+				Before taking the logarithm, we add a tiny number, namely 1e-308,
+				so that for a frequency of 0 Hz the preemphasis term is typically 6.0 * log2 (1e-308) = -6139 dB,
+				or 0 dB in case the preemphasis is 0 dB/octave.
+				For purposes of preemphasis, negative frequencies (which don't normally occur) are treated as 0 Hz.
+			*/
+			const double preemphasisTerm_db = (preemphasis_dbPerOctave / NUMln2) * log (Melder_clippedLeft (0.0, frequency) / 1000.0 + 1e-308);
+			for (integer itime = 1; itime <= nt; itime ++) {
+				const double psd_pascal2PerHz = part [ichan] [ifreq] [itime];
+				/*
+					The power spectral density in dB is
+						psd_db = 10.0 * log10 (psd_pascal2PerHz / referencePsd_pascal2)
+					To speed this up, we convert to natural logarithms, according to
+						log10 (x) = ln (x) / ln (10)
+					Before taking the logarithm, we add a tiny number, namely 1e-308,
+					so that in silence the PSD (before adding preemphasis) is -3080 dB;
+					this becomes visible if you `Paint` the Spectrogram under the following settings:
+					- `autoscaling` off
+					- `maximum` 0.0 dB/Hz
+					- `pre-emphasis` 0 dB/oct
+					- `dynamic compression` 0
+					Then when the `dynamic range` passes 3080 dB, you will start to see some light grey.
+				*/
+				constexpr double oneByReferencePsd_pascal2 = 1.0 / 4.0e-10;
+				const double psd_db = (10.0/NUMln10) * log (oneByReferencePsd_pascal2 * psd_pascal2PerHz + 1e-308) + preemphasisTerm_db;
+				if (psd_db > dynamicFactors [itime])
+					dynamicFactors [itime] = psd_db;   // local maximum over all channels (so that the relative strengths of the channels are preserved)
+				part [ichan] [ifreq] [itime] = psd_db;
+			}
+		}
+		/*
+			Compute global maximum (over all times and channels).
+		*/
+		if (autoscaling) {
+			for (integer itime = 1; itime <= nt; itime ++)
+				if (dynamicFactors [itime] > maximum)
+					maximum = dynamicFactors [itime];
+		}
+	}
+	/*
+		Dynamic compression in place.
+	*/
+	for (integer itime = 1; itime <= nt; itime ++)
+		dynamicFactors [itime] = dynamicCompression * (maximum - dynamicFactors [itime]);
+	for (integer ichan = 1; ichan <= 3; ichan ++)
+		for (integer itime = 1; itime <= nt; itime ++)
+			for (integer ifreq = 1; ifreq <= nf; ifreq ++)
+				part [ichan] [ifreq] [itime] += dynamicFactors [itime];
+	/*
+		Calculate the minimum and maximum values for normalization.
+	*/
+	double min_val = maximum - dynamic;
+	double max_val = maximum;
+	double range_val = max_val - min_val;
+	
+	if (range_val <= 0.0) {
+		range_val = 1.0;
+	}
+	/*
+		Select different drawing methods based on the type of color mapping
+	*/
+	auto colourMatrix = automatrix<MelderColour> (nf, nt, MelderArray::kInitializationType::RAW);
+	for (integer irow = 1; irow <= nf; irow ++) {
+		for (integer icol = 1; icol <= nt; icol ++) {
+			colourMatrix [irow] [icol]. red   = part [1] [irow] [icol];
+			colourMatrix [irow] [icol]. green = part [2] [irow] [icol];
+			colourMatrix [irow] [icol]. blue  = part [3] [irow] [icol];
+		}
+	}
+	Graphics_image_colour (g, colourMatrix.all(),
+		Matrix_columnToX (thee, itmin - 0.5),
+		Matrix_columnToX (thee, itmax + 0.5),
+		Matrix_rowToY (thee, ifmin - 0.5),
+		Matrix_rowToY (thee, ifmax + 0.5),
+		min_val, max_val
+	);
+}
+
 void Spectrogram_paint (const constSpectrogram me, const Graphics g,
 	const double tmin, const double tmax, const double fmin, const double fmax,
 	const double maximum, const bool autoscaling,
@@ -1255,6 +1382,25 @@ void Spectrogram_paint (const constSpectrogram me, const Graphics g,
 {
 	Graphics_setInner (g);
 	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap, invertColours);
+	Graphics_unsetInner (g);
+	if (garnish) {
+		Graphics_drawInnerBox (g);
+		Graphics_textBottom (g, true, U"Time (s)");
+		Graphics_marksBottom (g, 2, true, true, false);
+		Graphics_marksLeft (g, 2, true, true, false);
+		Graphics_textLeft (g, true, U"Frequency (Hz)");
+	}
+}
+
+void SpectrogramList_paint (const constSpectrogramList me, const Graphics g,
+	const double tmin, const double tmax, const double fmin, const double fmax,
+	const double maximum, const bool autoscaling,
+	const double dynamic, const double preemphasis, const double dynamicCompression,
+	kSpectrogram_colourMap colourMap, bool invertColours,
+	const bool garnish)
+{
+	Graphics_setInner (g);
+	SpectrogramList_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap, invertColours);
 	Graphics_unsetInner (g);
 	if (garnish) {
 		Graphics_drawInnerBox (g);
@@ -1284,5 +1430,7 @@ autoMatrix Spectrogram_to_Matrix (constSpectrogram me) {
 		Melder_throw (me, U": not converted to Matrix.");
 	}
 }
+
+Thing_implement (SpectrogramList, Ordered, 0);
 
 /* End of Spectrogram.cpp */ 

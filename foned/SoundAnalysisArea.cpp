@@ -43,7 +43,7 @@ Thing_implement (SoundAnalysisArea, FunctionArea, 0);
 #include "SoundAnalysisArea_prefs.h"
 
 void structSoundAnalysisArea :: v_reset_analysis () {
-	our d_spectrogram. reset();
+	our d_spectrogramList. reset();
 	our d_pitch. reset();
 	our d_intensity. reset();
 	our d_formant. reset();
@@ -142,11 +142,11 @@ static void tryToComputeSpectrogram (SoundAnalysisArea me) {
 	const double margin = ( my instancePref_spectrogram_windowShape() == kSound_to_Spectrogram_windowShape::GAUSSIAN ?
 			my instancePref_spectrogram_windowLength() : 0.5 * my instancePref_spectrogram_windowLength() );
 	try {
+		my d_spectrogramList = SpectrogramList_create ();   // also throws away the old one
 		autoSound sound = extractSoundOrNull (me, my startWindow() - margin, my endWindow() + margin);
 		if (! sound)
 			return;
 		if (sound -> ny == 3 && my instancePref_spectrogram_threeChannelsIsRGB()) {
-			autoPhoto photo;
 			for (integer ichan = 1; ichan <= 3; ichan ++) {
 				autoSound channel = Sound_extractChannel (sound.get(), ichan);
 				autoSpectrogram spectrogram = Sound_to_Spectrogram_e (channel.get(),
@@ -156,25 +156,22 @@ static void tryToComputeSpectrogram (SoundAnalysisArea me) {
 					my instancePref_spectrogram_viewTo() / my instancePref_spectrogram_frequencySteps(),
 					my instancePref_spectrogram_windowShape(), 8.0, 8.0
 				);
-				if (! photo)
-					photo = Photo_create (spectrogram -> xmin, spectrogram -> xmax, spectrogram -> nx, spectrogram -> dx, spectrogram -> x1,
-							spectrogram -> ymin, spectrogram -> ymax, spectrogram -> ny, spectrogram -> dy, spectrogram -> y1);
-				( ichan == 1 ? photo -> d_red : ichan == 2 ? photo -> d_green : photo -> d_blue) = spectrogram.move();
+				spectrogram -> xmin = my startWindow();
+				spectrogram -> xmax = my endWindow();
+				my d_spectrogramList -> addItem_move (spectrogram.move());
 			}
-			my d_spectrogram = photo.move();
 		} else {
-			my d_spectrogram = Sound_to_Spectrogram_e (sound.get(),
+			autoSpectrogram spectrogram = Sound_to_Spectrogram_e (sound.get(),
 				my instancePref_spectrogram_windowLength(),
 				my instancePref_spectrogram_viewTo(),
 				(my endWindow() - my startWindow()) / my instancePref_spectrogram_timeSteps(),
 				my instancePref_spectrogram_viewTo() / my instancePref_spectrogram_frequencySteps(),
 				my instancePref_spectrogram_windowShape(), 8.0, 8.0
 			);
+			my d_spectrogramList -> addItem_move (spectrogram.move());
 		}
-		my d_spectrogram -> xmin = my startWindow();
-		my d_spectrogram -> xmax = my endWindow();
 	} catch (MelderError) {
-		my d_spectrogram. reset();   // signal a failure
+		my d_spectrogramList. reset();   // signal a failure
 		Melder_clearError ();
 	}
 }
@@ -305,7 +302,7 @@ static void tryToComputePulses (SoundAnalysisArea me) {
 	but will (try to) create an Analysis if it does not exist.
 */
 static void tryToHaveSpectrogram (SoundAnalysisArea me) {
-	if (! my d_spectrogram && my endWindow() - my startWindow() <= my instancePref_longestAnalysis())
+	if (! my d_spectrogramList && my endWindow() - my startWindow() <= my instancePref_longestAnalysis())
 		tryToComputeSpectrogram (me);
 }
 static void tryToHavePitch (SoundAnalysisArea me) {
@@ -340,7 +337,7 @@ void SoundAnalysisArea_haveVisibleSpectrogram (SoundAnalysisArea me) {
 	if (! my instancePref_spectrogram_show())
 		Melder_throw (U"No spectrogram is visible.\nFirst choose \"Show spectrogram\" from the Spectrogram menu.");
 	tryToHaveSpectrogram (me);
-	if (! my d_spectrogram)
+	if (! my d_spectrogramList)
 		Melder_throw (U"The spectrogram is not defined at the edge of the sound.");
 }
 void SoundAnalysisArea_haveVisiblePitch (SoundAnalysisArea me) {
@@ -874,8 +871,8 @@ static void do_log (SoundAnalysisArea me, int which) {
 			SoundAnalysisArea_haveVisibleSpectrogram (me);
 			if (part != SoundAnalysisArea_PART_CURSOR)
 				Melder_throw (U"Click inside the spectrogram first.");
-			if (Thing_cast_0 (Spectrogram, spectrogram, my d_spectrogram.get()))
-				value = Matrix_getValueAtXY (spectrogram, tmin, my d_spectrogram_cursor);
+			if (my d_spectrogramList->size == 1)
+				value = Matrix_getValueAtXY (my d_spectrogramList->at [1], tmin, my d_spectrogram_cursor);
 			else
 				value = undefined;
 		}
@@ -985,7 +982,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 		my setInstancePref_spectrogram_viewTo (viewTo);
 		my setInstancePref_spectrogram_windowLength (windowLength);
 		my setInstancePref_spectrogram_dynamicRange (dynamicRange);
-		my d_spectrogram. reset();
+		my d_spectrogramList. reset();
 		FunctionEditor_redraw (my functionEditor());
 	EDITOR_END
 }
@@ -1003,7 +1000,7 @@ static void menu_cb_spectrogramColourSettings (SoundAnalysisArea me, EDITOR_ARGS
 		my setInstancePref_spectrogram_colourMap (colourMap);
 		my setInstancePref_spectrogram_invertColours (invertColours);
 		my setInstancePref_spectrogram_threeChannelsIsRGB (threeChannelsIsRGB);
-		my d_spectrogram. reset();
+		my d_spectrogramList. reset();
 		FunctionEditor_redraw (my functionEditor());
 	EDITOR_END
 }
@@ -1041,7 +1038,7 @@ static void menu_cb_advancedSpectrogramSettings (SoundAnalysisArea me, EDITOR_AR
 		my setInstancePref_spectrogram_maximum (maximum);
 		my setInstancePref_spectrogram_preemphasis (preemphasis);
 		my setInstancePref_spectrogram_dynamicCompression (dynamicCompression);
-		my d_spectrogram. reset();
+		my d_spectrogramList. reset();
 		FunctionEditor_redraw (my functionEditor());
 	EDITOR_END
 }
@@ -1060,8 +1057,8 @@ static void QUERY_DATA_FOR_REAL__getSpectralPowerAtCursorCross (SoundAnalysisAre
 		if (part != SoundAnalysisArea_PART_CURSOR)
 			Melder_throw (U"Click inside the spectrogram first.");
 		double result = undefined;
-		if (Thing_cast_0 (Spectrogram, spectrogram, my d_spectrogram.get()))
-			result = Matrix_getValueAtXY (spectrogram, tmin, my d_spectrogram_cursor);
+		if (my d_spectrogramList)
+			result = Matrix_getValueAtXY (my d_spectrogramList->at [1], tmin, my d_spectrogram_cursor);
 	QUERY_DATA_FOR_REAL_END (U" Pa2/Hz (at time = ", tmin, U" seconds and frequency = ", my d_spectrogram_cursor, U" Hz)");
 }
 
@@ -1082,8 +1079,8 @@ static void CONVERT_DATA_TO_ONE__ExtractVisibleSpectrogram (SoundAnalysisArea me
 	CONVERT_DATA_TO_ONE
 		SoundAnalysisArea_haveVisibleSpectrogram (me);
 		autoSpectrogram result;
-		if (Thing_cast_0 (Spectrogram, spectrogram, my d_spectrogram.get()))
-			result = Data_copy (spectrogram);
+		if (my d_spectrogramList->size == 1)
+			result = Data_copy (my d_spectrogramList->at [1]);
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
@@ -1131,15 +1128,14 @@ static void menu_cb_paintVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS) 
 		my setInstancePref_spectrogram_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisibleSpectrogram (me);
 		DataGui_openPraatPicture (me);
-		if (Thing_cast_0 (Spectrogram, spectrogram, my d_spectrogram.get()))
-			Spectrogram_paint (spectrogram, my pictureGraphics(), my startWindow(), my endWindow(),
-				my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
-				my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
-				my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
-				my instancePref_spectrogram_dynamicCompression(),
-				my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours(),
-				garnish
-			);
+		SpectrogramList_paint (my d_spectrogramList.get(), my pictureGraphics(), my startWindow(), my endWindow(),
+			my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
+			my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
+			my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
+			my instancePref_spectrogram_dynamicCompression(),
+			my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours(),
+			garnish
+		);
 		FunctionArea_garnishPicture (me);
 		DataGui_closePraatPicture (me);
 	EDITOR_END
@@ -2625,21 +2621,14 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 	}
 	if (my instancePref_spectrogram_show())
 		tryToHaveSpectrogram (me);
-	if (my instancePref_spectrogram_show() && my d_spectrogram) {
-		if (Thing_cast_0 (Spectrogram, spectrogram, my d_spectrogram.get())) {
-			Spectrogram_paintInside (spectrogram, my graphics(), my startWindow(), my endWindow(),
-				my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
-				my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
-				my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
-				my instancePref_spectrogram_dynamicCompression(),
-				my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours()
-			);
-			if (my instancePref_spectrogram_invertColours())
-				spectrogram -> z.all()  *=  -1.0;
-		} else if (Thing_cast_0 (Photo, photo, my d_spectrogram.get())) {
-			Photo_paintImageInside (photo, my graphics(), my startWindow(), my endWindow(),
-					my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo());
-		}
+	if (my instancePref_spectrogram_show() && my d_spectrogramList) {
+		SpectrogramList_paintInside (my d_spectrogramList.get(), my graphics(), my startWindow(), my endWindow(),
+			my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
+			my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
+			my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
+			my instancePref_spectrogram_dynamicCompression(),
+			my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours()
+		);
 	}
 	if (my instancePref_pitch_show())
 		tryToHavePitch (me);

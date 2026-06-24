@@ -424,7 +424,7 @@ void TextGrid_Sound_transcribeInterval (
 		/* mutable search */ integer newTierNumber = 0;
 		if (overwrite) {
 			for (integer i = 1; i <= my tiers->size; i ++) {
-				Function tier = my tiers -> at [i];
+				Function tier = my tiers->at [i];
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
@@ -440,7 +440,7 @@ void TextGrid_Sound_transcribeInterval (
 			Thing_setName (newTier.get(), tierName.string);
 			newTierNumber = prevTierNumber + 1;
 			my tiers -> addItemAtPosition_move (newTier.move(), newTierNumber);
-			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers -> size);
+			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers->size);
 		}
 		return newTierNumber;
 	};
@@ -537,7 +537,7 @@ void TextGrid_Sound_transcribeInterval (
 			autoMelderString wordTierName;
 			MelderString_copy (& wordTierName, headTier -> name.get(), U"/word");
 			const integer wordTierNumber = getIntervalTier(wordTierName, headTierNumber, true);
-			const auto wordTier = static_cast <IntervalTier> (my tiers -> at [wordTierNumber]);
+			const auto wordTier = static_cast <IntervalTier> (my tiers->at [wordTierNumber]);
 
 			/*
 				Insert the interval, and split this big interval into the set of intervals, one interval per word.
@@ -567,12 +567,12 @@ void TextGrid_Sound_transcribeInterval (
 			autoMelderString speakerSentenceTierName;
 			MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp1");
 			Thing_setName (headTier, speakerSentenceTierName.string);   // rename the head tier to make it "diarized tier" to prevent running diarization on it in the future
-			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers -> at [headTierNumber]);
+			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers->at [headTierNumber]);
 			for (integer i = 2; i <= numberOfSpeakers; i ++) {
 				MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp", i);
 				const integer speakerSentenceTierNumber = getIntervalTier(
 						speakerSentenceTierName, headTierNumber + i - 2, false);
-				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerSentenceTierNumber]);
+				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerSentenceTierNumber]);
 			}
 
 			/*
@@ -724,7 +724,7 @@ void TextGrid_Sound_transcribeInterval (
 					MelderString_copy (& speakerWordTierName, headTierName.get(), U"/sp", i, U"/w");
 					const integer speakerWordTierNumber = getIntervalTier(   // headTierNumber headTierNumber+(1+1) headTierNumber+(1+1)+(1+1)
 							speakerWordTierName, headTierNumber + 2 * (i - 1), false);
-					speakerWordTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerWordTierNumber]);
+					speakerWordTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerWordTierNumber]);
 				}
 
 				/*
@@ -763,7 +763,7 @@ void TextGrid_Sound_diarizeInterval (
 		/* mutable search */ integer newTierNumber = 0;
 		if (overwrite) {
 			for (integer i = 1; i <= my tiers->size; i ++) {
-				Function tier = my tiers -> at [i];
+				Function tier = my tiers->at [i];
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
@@ -779,7 +779,7 @@ void TextGrid_Sound_diarizeInterval (
 			Thing_setName (newTier.get(), tierName.string);
 			newTierNumber = prevTierNumber + 1;
 			my tiers -> addItemAtPosition_move (newTier.move(), newTierNumber);
-			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers -> size);
+			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers->size);
 		}
 		return newTierNumber;
 	};
@@ -822,14 +822,14 @@ void TextGrid_Sound_diarizeInterval (
 		autoMelderString speakerTierName;
 		MelderString_copy (& speakerTierName, headTierName.get(), U"/sp1");
 		Thing_setName (headTier, speakerTierName.string);   // rename the head tier to make it "diarized tier" to prevent running diarization on it in the future
-		speakerTiers [1] = static_cast <IntervalTier> (my tiers -> at [headTierNumber]);
+		speakerTiers [1] = static_cast <IntervalTier> (my tiers->at [headTierNumber]);
 		splitIntervalIntoWhisperSegments (speakerTiers [1], headTierNumber, originalTmin, originalTmax, speakerSegments [1]);
 
 		for (integer i = 2; i <= numberOfSpeakers; i ++) {
 			MelderString_copy (& speakerTierName, headTierName.get(), U"/sp", i);
 			const integer speakerTierNumber = getIntervalTier(
 					speakerTierName, headTierNumber + i - 2, false);
-			speakerTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerTierNumber]);
+			speakerTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerTierNumber]);
 			splitIntervalIntoWhisperSegments (speakerTiers [i], speakerTierNumber, originalTmin, originalTmax, speakerSegments [i]);
 		}
 	} catch (MelderError) {
