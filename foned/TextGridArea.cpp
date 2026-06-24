@@ -1466,7 +1466,7 @@ static void menu_cb_TranscriptionSettings (TextGridArea me, EDITOR_ARGS) {
 		}
 		BOOLEAN (includeWords, U"Include words", my default_transcribe_includeWords())
 		HEADING (U"Non-speech detection...")
-		BOOLEAN (useVad, U"Exclude non-speech", my default_transcribe_useVad())
+		BOOLEAN (useVad, U"Detect non-speech", my default_transcribe_useVad())
 		REAL (speechProbabilityThreshold, U"Speech probability threshold (0-1)", my default_vad_speechThreshold())
 		POSITIVE (minNonSpeechDuration, U"Min. gap between speech segments (s)", my default_vad_minNonSpeech())
 		POSITIVE (minSpeechDuration, U"Min. speech segment (s)", my default_vad_minSpeech())

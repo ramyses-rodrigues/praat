@@ -240,7 +240,7 @@ static void SpeechRecognizer_runWhisper (constSpeechRecognizer me, constSound so
 	*/
 	integer n_threads = SpeechRecognizer_getMaxNumberOfThreadsForTranscription ();
 	if (n_threads <= 0)
-		n_threads = MelderThread_getNumberOfProcessors () / 2;
+		n_threads = TranscriptionDefaults::n_threads;
 
 	/*
 		Set Whisper parameters.
@@ -757,7 +757,7 @@ autovector <autovector <SpeechSegment>> doDiarization (constSound sound,
 		*/
 		integer n_threads = SpeechRecognizer_getMaxNumberOfThreadsForDiarization ();
 		if (n_threads <= 0)
-			n_threads = MelderThread_getNumberOfProcessors () / 2;
+			n_threads = DiarizationDefaults::n_threads;
 
 		supressGgmlLogging ();
 		autoDiarizeContext diarizeContext = diarize_init_from_memory (

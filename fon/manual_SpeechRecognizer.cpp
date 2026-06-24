@@ -57,16 +57,15 @@ inside it another one called `whispercpp`. If you are on Windows, you will now h
 something like `C:\Users\Your Name\Praat\models\whispercpp`.
 
 Models can be downloaded from `https://huggingface.co/ggerganov/whisper.cpp`. This
-page contains Whisper models in ggml format (files with extension `.bin`), which is what whisper
-.cpp uses. Note that the original Whisper models, by OpenAI, are distributed in PyTorch format
+page contains Whisper models in ggml format (files with extension `.bin`), which is what
+whisper.cpp uses. Note that the original Whisper models, by OpenAI, are distributed in PyTorch format
 (files with extension `.pt`) and cannot be used in Praat directly: they first need to be
 converted to ggml format. The files on the page above are results of such conversions.
 
 The list of available models is quite long, and you might wonder how to choose one. You will
 probably want to experiment with different models to find a good balance between speed and
-accuracy for your specific task, but below you can read a brief overview to help you get
-started. If you want to learn more about the performance of different models, please read ##3.
-Performance#.
+accuracy for your specific task, but below you can read a brief overview which can help you get
+started.
 
 A model is English-only if its name contains `.en` (e.g. `ggml-small.en.bin`); all other models are
 multilingual. Size-wise, the models range from `tiny` (about 75 MB) through `base`, `small` and
@@ -89,6 +88,8 @@ as many of them as you like; Praat will let you select one before you start tran
 
 1.2. Transcribing into a TextGrid
 =================================
+1.2.1. How to start
+===================
 You need a @Sound and a @TextGrid for this Sound (transcription modifies an existing TextGrid;
 it does not create one). The TextGrid should have at least one interval tier: transcription is
 run on one selected interval, so you need an interval tier to contain this interval. To
@@ -96,146 +97,445 @@ transcribe the whole Sound, you can use an interval tier without internal bounda
 consisting of only one interval spanning the whole Sound (interval 1).
 
 There are two ways to start transcription into a TextGrid:
-1. from the @TextGridEditor;
-2. from the @@Objects window@, when you select the TextGrid and the Sound together and choose
-@@TextGrid & Sound: Transcribe interval...@ from the @@Dynamic menu@.
+1. from the @TextGridEditor, via the ##Transcribe interval# command in the #Interval menu; you can
+get into the TextGridEditor by selecting the TextGrid and the Sound together in the @@Objects
+window@ and choosing ##View & Edit# from the @@Dynamic menu@;
+2. from the Objects window itself, when you select the TextGrid and the Sound together and choose
+@@TextGrid & Sound: Transcribe interval...@.
 
 These two ways achieve exactly the same result, and which one you use is a matter of preference.
-They differ only in their interface. In the TextGridEditor, you adjust the settings via the separate
-command ##Transcription settings...# (see below) and select the interval by clicking on it. Via
-##TextGrid & Sound: Transcribe interval...#, all the settings appear in this command window, which
-also has two extra settings: ##Tier number# and ##Interval number#.
+They differ only in how you select the interval you want to transcribe (see ##1.2.4. Transcribe!#),
+and whether the configured transcription settings are persistent across Praat sessions (see the
+next two paragraphs).
 
-To perform transcription from the TextGridEditor, you need to open the TextGrid together with the
-Sound (by selecting both the TextGrid and the Sound before clicking ##View & Edit#). Then the
-#Interval menu has two actions related to transcription: ##Transcribe interval# and
-##Transcription settings...#.
+To perform transcription from the TextGridEditor, you first need to adjust the settings via
+the separate command ##Transcription settings...# (in the #Interval menu). These settings are
+preserved across transcription runs and across Praat sessions, so you can skip this step later
+when you want to reuse the settings from the last time you transcribed. Note that the settings in
+the ##Diarization...# block can also be configured via ##Diarization settings...# (also in the
+#Interval menu), which is used by standalone diarization (see ##2. Automatic speaker diarization#).
+This means that a change in diarization settings made in either place affects both
+transcription-with-diarization and standalone diarization.
 
-Before running transcription, you should check and adapt the ##Transcription settings...#. These
-settings are preserved across transcription runs and across Praat sessions, so you can skip
-this step later when you want to reuse the settings from the last time you transcribed.
+If you are running transcription from the Objects window, all the transcription settings appear
+in the ##Transcribe interval...# command window. In this window, settings are preserved across
+transcription runs but not across Praat sessions.
 
-Two main settings for transcription are ##Whisper model# and #Language:
-1. ##Whisper model# lists all the models you installed in ##1.1. Installing Whisper models#; now is
+1.2.2. How to configure settings
+================================
+There are three blocks of settings: ##Transcription...#, ##Non-speech detection...# and
+##Diarization...#. The last two configure optional steps in the transcription process; each
+step can be switched on and off by the first setting in its block.
+
+The ##Transcription...# block has three settings: ##Whisper model#, #Language and ##Include words#.
+
+##Whisper model# lists all the models you installed in ##1.1. Installing Whisper models#; now is
 the time to choose the model that you want to use. If you find yourself at this step with an empty
-model list, this means something went wrong at the installation step. You can go back
-to ##1.1. Installing Whisper models# and check the folder names and that the downloaded models are
-there. After that, reopen ##Transcription settings...#; your installed model(s) will appear in
+model list, this means something went wrong at the installation step. You can go back to
+##1.1. Installing Whisper models# to check that the downloaded model(s) are placed in the proper
+folder. After that, reopen ##Transcription settings...#; your installed model(s) will appear in
 the list.
-2. #Language is the language you want to recognize; you can select it from the list of all
+
+#Language is the language you want to recognize; you can select it from the list of all
 available languages or keep the default ##Autodetect language# (note that for an English-only model
 you are not allowed to select a language other than #English or the default ##Autodetect
 language#).
 
-This tutorial does not describe all transcription settings, because they are described in
-@@transcription with whisper.cpp@. However, two of them, ##Include words# and ##Include
-diarization#, influence how the TextGrid is modified, so they are explained below.
+The third transcription setting is ##Include words#. If this setting is on, an extra tier is
+added to the TextGrid below the sentence tier, with one interval per word. If diarization is also
+included (described below), each speaker gets their own word tier. Examples 2 and 4 below show the
+resulting TextGrids when ##Include words# is on without and with diarization respectively.
 
-The structure of the resulting TextGrid depends on the combination of ##Include words# and ##Include
-diarization# settings. There are four possible combinations of these two settings. Let’s assume
-that the interval selected for transcription belongs to tier “Mary” and walk through all
-four combinations.
+##Non-speech detection...# is switched on and off by its first setting ##Detect non-speech#: when
+it is on, the non-speech parts are first removed from the Sound, before it is passed to a Whisper
+model. This both speeds up transcription and prevents the model from inventing text in the
+non-speech parts. Another benefit of using non-speech detection is that it makes sentence and
+word boundaries more precise; without it, the text might be stretched over the silent parts of
+the Sound. See @@speech activity detection with Silero VAD@ for the description of the
+settings influencing non-speech detection.
 
-1. If both settings are off: the interval is split into many intervals, one interval per sentence,
-each of them containing the text of the sentence (sentence boundaries come from the punctuation
-that whisper.cpp returns). No new tiers are inserted.
+##Diarization...# is switched on and off by its first setting ##Include diarization#: when it is
+on, diarization is also run on the Sound (independently of transcription). The results from both
+transcription and diarization are then combined: transcribed text is divided between the detected
+speakers. See @@speaker diarization with adapted pyannote.audio@ and ##2.2 How to configure
+settings# for the description of the diarization settings.
 
-2. If only ##Include words# is on: the original interval is split as in case 1, plus a tier called
-“Mary/word” is added just below “Mary”, with one interval per word.
+1.2.3. Examples
+===============
+The structure of the resulting TextGrid depends on the combination of ##Include words# and
+##Include diarization# settings. Four examples below show the different TextGrid outcomes for
+different combinations of these two settings when the interval selected for transcription spans
+the whole tier “Mary”.
 
-3. If only ##Include diarization# is on (and diarization detects at least two speakers): “Mary is
-renamed to “Mary/sp1” and additional tiers “Mary/sp2”, “Mary/sp3”, ... are added, one tier per
-detected speaker. Each speaker’s tier contains the intervals with the sentences or parts of
-sentences spoken by that speaker. It is possible that a sentence is not completely spoken by one
-speaker. In this case the sentence is shown in pieces. For example, speaker 1 started this sentence,
-but halfway through it, speaker 2 took over and finished it. Then the interval containing the first
-part of the sentence on “Mary/sp1” will end with “...”, and the interval containing the end of the
-sentence on “Mary/sp2” will start with “...”, so you can see it is the same sentence split between
-two speakers.
-If diarization detects less than two speakers, a warning is shown and the
-result is the same as in case 1 or 2: no renaming, no new tiers.
+##Example 1#: both ##Include words# and ##Include diarization# are off. The interval selected for
+transcription is split into many intervals: one interval for each sentence containing the sentence
+text, with empty intervals for non-speech parts. Sentence boundaries are defined by the punctuation
+that whisper.cpp returns. No new tiers are inserted.
+{- 6.0x3.0
+	tierName$ = "Mary"
+	textgrid = Create TextGrid: 0, 11, tierName$, ""
+	Insert boundary: 1, 0.8
+	Insert boundary: 1, 8.4
+	Insert boundary: 1, 8.5
+	Insert boundary: 1, 9.5
+	Set interval text: 1, 2, "I start the sentence and I finish it."
+	Set interval text: 1, 4, "Right."
+	Draw: 0.0, 0.0, 1, 1, 1
+	Axes: 0, 100, 0, 7
+	One mark right: 0.7, 0, 0, 0, tierName$
+	selectObject: textgrid
+	Remove
+}
 
-4. If both settings are on: in addition to a sentence tier, each speaker also gets a word tier
-(“Mary/sp1/w” for speaker 1, “Mary/sp2/w” for speaker 2, ...), which is inserted directly after
-their sentence tier.
+##Example 2#: ##Include words# is on and ##Include diarization# is off. The original interval
+is split into sentences as in ##Example 1#, plus a tier called “Mary/word” is added just below
+“Mary”, with one interval per word.
+{- 6.0x3.0
+	tier1Name$ = "Mary"
+	tier2Name$ = "Mary/word"
+	textgrid = Create TextGrid: 0, 11, tier1Name$ + " " + tier2Name$, ""
+	Insert boundary: 1, 0.8
+	Insert boundary: 1, 8.4
+	Insert boundary: 1, 8.5
+	Insert boundary: 1, 9.5
+	Insert boundary: 2, 0.8
+	Insert boundary: 2, 1.6
+	Insert boundary: 2, 2.3
+	Insert boundary: 2, 2.7
+	Insert boundary: 2, 3.2
+	Insert boundary: 2, 4.8
+	Insert boundary: 2, 5.1
+	Insert boundary: 2, 5.7
+	Insert boundary: 2, 6.5
+	Insert boundary: 2, 6.7
+	Insert boundary: 2, 7.8
+	Insert boundary: 2, 8.1
+	Insert boundary: 2, 8.4
+	Insert boundary: 2, 8.5
+	Insert boundary: 2, 9.5
+	Set interval text: 1, 2, "I start the sentence and I finish it."
+	Set interval text: 1, 4, "Right."
+	Set interval text: 2, 2, "I"
+	Set interval text: 2, 3, "start"
+	Set interval text: 2, 5, "the"
+	Set interval text: 2, 6, "sentence"
+	Set interval text: 2, 8, "and"
+	Set interval text: 2, 10, "I"
+	Set interval text: 2, 11, "finish"
+	Set interval text: 2, 13, "it"
+	Set interval text: 2, 15, "Right"
+	Draw: 0.0, 0.0, 1, 1, 1
+	Axes: 0, 100, 0, 7
+	One mark right: 0.6, 0, 0, 0, tier2Name$
+	One mark right: 1.7, 0, 0, 0, tier1Name$
+	selectObject: textgrid
+	Remove
+}
 
-With the transcription settings configured, you are now ready to start the transcription. Select
-the interval you want to transcribe and choose ##Transcribe interval# from the #Interval menu.
-This runs the transcription, which takes some time; how long it takes depends on the length of
-the selected interval, the Whisper model, and whether diarization is included. Note that you
-cannot transcribe an interval belonging to a tier whose name already contains a slash. This
-is to prevent endlessly growing names of the derived tiers.
+##Example 3#: ##Include words# is off and ##Include diarization# is on (and diarization detects
+ at least two speakers). Tier “Mary” is renamed to “Mary/sp1” and additional tiers “Mary/sp2”,
+“Mary/sp3”, ... are added, one tier per detected speaker. Each speaker’s tier contains the
+intervals with the sentences spoken by that speaker. It is possible that a sentence is started by
+one speaker and finished by another one. In this case the sentence is split between these
+speakers’ tiers.
+{- 6.0x3.0
+	tier1Name$ = "Mary/sp1"
+	tier2Name$ = "Mary/sp2"
+	textgrid = Create TextGrid: 0, 11, tier1Name$ + " " + tier2Name$, ""
+	Insert boundary: 1, 0.8
+	Insert boundary: 1, 4.8
+	Insert boundary: 2, 5.1
+	Insert boundary: 2, 8.4
+	Insert boundary: 1, 8.5
+	Insert boundary: 1, 9.5
+	Set interval text: 1, 2, "I start the sentence..."
+	Set interval text: 2, 2, "... and I finish it."
+	Set interval text: 1, 4, "Right."
+	Draw: 0.0, 0.0, 1, 1, 1
+	Axes: 0, 100, 0, 7
+	One mark right: 0.6, 0, 0, 0, tier2Name$
+	One mark right: 1.7, 0, 0, 0, tier1Name$
+	selectObject: textgrid
+	Remove
+}
+
+##Example 4#: both ##Include words# and ##Include diarization# are on. In addition to a
+sentence tier, each speaker also gets a word tier (“Mary/sp1/w” for speaker 1, “Mary/sp2/w” for
+speaker 2, ...), which is inserted directly after their sentence tier.
+{- 6.0x3.0
+	tier1Name$ = "Mary/sp1"
+	tier2Name$ = "Mary/sp1/w"
+	tier3Name$ = "Mary/sp2"
+	tier4Name$ = "Mary/sp2/w"
+	textgrid = Create TextGrid: 0, 11, tier1Name$ + " " + tier2Name$ + " " + tier3Name$ + " " + tier4Name$, ""
+	Insert boundary: 1, 0.8
+	Insert boundary: 1, 4.8
+	Insert boundary: 3, 5.1
+	Insert boundary: 3, 8.4
+	Insert boundary: 1, 8.5
+	Insert boundary: 1, 9.5
+	Set interval text: 1, 2, "I start the sentence..."
+	Set interval text: 3, 2, "... and I finish it."
+	Set interval text: 1, 4, "Right."
+	Insert boundary: 2, 0.8
+	Insert boundary: 2, 1.6
+	Insert boundary: 2, 2.3
+	Insert boundary: 2, 2.7
+	Insert boundary: 2, 3.2
+	Insert boundary: 2, 4.8
+	Insert boundary: 2, 8.5
+	Insert boundary: 2, 9.5
+	Insert boundary: 4, 5.1
+	Insert boundary: 4, 5.7
+	Insert boundary: 4, 6.5
+	Insert boundary: 4, 6.7
+	Insert boundary: 4, 7.8
+	Insert boundary: 4, 8.1
+	Insert boundary: 4, 8.4
+	Set interval text: 2, 2, "I"
+	Set interval text: 2, 3, "start"
+	Set interval text: 2, 5, "the"
+	Set interval text: 2, 6, "sentence"
+	Set interval text: 4, 2, "and"
+	Set interval text: 4, 4, "I"
+	Set interval text: 4, 5, "finish"
+	Set interval text: 4, 7, "it"
+	Set interval text: 2, 8, "Right"
+	Draw: 0.0, 0.0, 1, 1, 1
+	Axes: 0, 100, 0, 7
+	One mark right: 0.45, 0, 0, 0, tier4Name$
+	One mark right: 1.3, 0, 0, 0, tier3Name$
+	One mark right: 2.15, 0, 0, 0, tier2Name$
+	One mark right: 3, 0, 0, 0, tier1Name$
+	selectObject: textgrid
+	Remove
+}
+
+1.2.4. Transcribe!
+==================
+With the transcription settings configured, you are now ready to start the transcription.
+
+If you are transcribing from the TextGridEditor, select the interval you want to transcribe by
+clicking on it and choose ##Transcribe interval# from the #Interval menu.
+
+If you are transcribing from the Objects window, use the settings ##Tier number# and ##Interval
+number# at the top of the ##Transcribe interval...# command window to specify the interval you
+want to transcribe.
+
+In either case, note that you cannot transcribe an interval belonging to a tier whose name already
+contains a slash. This is to prevent endlessly growing names of the derived tiers.
+
+Running transcription takes some time; how long it takes depends on the length of the selected
+interval, the Whisper model, and whether diarization is included. Please read ##3. Performance#
+if you would like to make transcription run faster.
 
 1.3. Transcribing into plain text
 =================================
 You can also transcribe a whole @Sound into plain text. For this you need a @SpeechRecognizer
 object. You can create one by choosing @@Create SpeechRecognizer...@ from the @@New menu@
 in the @@Objects window@. A command window will appear containing two settings: ##Whisper model#
-and #Language, both of which work exactly as in ##1.2. Transcribing into a TextGrid#. After you
+and #Language, both of which are described in ##1.2.2. How to configure settings#. After you
 click #OK, you will find a new #SpeechRecognizer object in the object list.
 
 To transcribe, select the SpeechRecognizer object and the Sound object together and choose
 ##SpeechRecognizer & Sound: Transcribe# from the @@Dynamic menu@. The result of transcription will
-be written to the @@Info window@. Note that the ##Exclude non-speech# setting is not available here:
+be written to the @@Info window@. Note that the ##Detect non-speech# setting is not available here:
 @@speech activity detection with Silero VAD|Silero VAD@ is always on, with default settings.
 
 2. Automatic speaker diarization
 ================================
-Speaker diarization in Praat detects different speakers in a @Sound. For each detected speaker, it
-produces %%speech segments%, which are time intervals during which this speaker is active.
-Diarization can be done as part of transcription or standalone. In both cases, it modifies an
-existing @TextGrid, producing one interval tier per detected speaker, with that speaker’s speech
-segments as intervals.
+Diarization in Praat detects different speakers in a @Sound. For each detected speaker, it
+identifies %%speech segments%, which are time intervals during which this speaker is active.
+Diarization can be done as part of transcription or standalone. In either case, it modifies an
+existing @TextGrid, producing one interval tier for each detected speaker.
 
-Speaker diarization as part of transcription is described in ##1.2. Transcribing into a TextGrid#.
-The rest of this chapter is about standalone diarization.
+Diarization settings (see ##2.2. How to configure settings#) are shared between standalone
+diarization and diarization as part of transcription. Everything else in this chapter is specific
+to standalone diarization; the transcription-with-diarization case is described in ##1.2.
+Transcribing into a TextGrid#.
 
-As with transcription, to perform diarization, you need a @Sound and a @TextGrid for this
-Sound (diarization modifies an existing TextGrid; it does not create one). The TextGrid should
-have at least one interval tier: diarization is run on one selected interval, so you need an
-interval tier to contain this interval. To diarize the whole Sound, you can use an interval
-tier without internal boundaries and thus consisting of only one interval spanning the whole
-Sound (interval 1).
+2.1. How to start
+=================
+To perform diarization, you need a @Sound and a @TextGrid for this Sound (diarization modifies an
+existing TextGrid; it does not create one). The TextGrid should have at least one interval tier:
+diarization is run on one selected interval, so you need an interval tier to contain this
+interval. To diarize the whole Sound, you can use an interval tier without internal boundaries
+and thus consisting of only one interval spanning the whole Sound (interval 1).
 
 There are two ways to start diarization:
-1. from the @TextGridEditor;
-2. from the @@Objects window@, when you select the TextGrid and the Sound together and choose
-@@TextGrid & Sound: Diarize interval...@ from the @@Dynamic menu@.
+1. from the @TextGridEditor, via the ##Diarize interval# command in the #Interval menu; you can
+get into the TextGridEditor by selecting the TextGrid and the Sound together in the @@Objects
+window@ and choosing ##View & Edit# from the @@Dynamic menu@;
+2. from the Objects window itself, when you select the TextGrid and the Sound together and choose
+@@TextGrid & Sound: Diarize interval...@.
 
 These two ways achieve exactly the same result, and which one you use is a matter of preference.
-They differ only in their interface. In the TextGridEditor, you adjust the settings via the separate
-command ##Diarization settings...# (see below) and select the interval by clicking on it. Via
-##TextGrid & Sound: Diarize interval...#, all the settings appear in this command window, which
-also has two extra settings: ##Tier number# and ##Interval number#.
+They differ only in how you select the interval you want to diarize (see ##2.4. Diarize!#),
+and whether the configured diarization settings are persistent across Praat sessions (see the
+next two paragraphs).
 
-To perform diarization from the TextGridEditor, you need to open the TextGrid together with the
-Sound (by selecting both the TextGrid and the Sound before clicking ##View & Edit#). Then the
-#Interval menu has two actions related to diarization: ##Diarize interval# and
-##Diarization settings...#.
+To perform diarization from the TextGridEditor, you first need to adjust the settings via
+the separate command ##Diarization settings...# (in the #Interval menu). These settings are
+preserved across diarization runs and across Praat sessions, so you can skip this step later
+when you want to reuse the settings from your last diarization run. Note that the diarization
+settings are shared between standalone diarization and transcription-with-diarization. So if you
+last changed them via ##Transcription settings...#, it is worth checking them before you run
+diarization.
 
-Before running diarization, you should check and adapt the ##Diarization settings...#. These
-settings are preserved across diarization runs and across Praat sessions, so you can skip
-this step later when you want to reuse the settings from the last time you diarized.
+If you are running diarization from the Objects window, all the diarization settings appear
+in the ##Diarize interval...# command window. In this window, settings are preserved across
+diarization runs but not across Praat sessions.
 
-This tutorial does not describe the diarization settings, because they are described in
-@@speaker diarization with adapted pyannote.audio@.
+2.2. How to configure settings
+==============================
+##Non-speech interval label# and ##Speech interval label# are the labels in the resulting TextGrid
+assigned to intervals classified as non-speech and speech respectively. These two settings only
+influence the visual appearance of the result of diarization but not the result itself.
 
-With the diarization settings configured, you are now ready to start the diarization. Select
-the interval you want to diarize and choose ##Diarize interval# from the #Interval menu.
-This runs the diarization, which takes some time; how long it takes depends on the length of
-the selected interval. Note that you cannot run diarization on an interval belonging to a tier
-whose name already contains a slash. This is to prevent endlessly growing names of the derived
-tiers.
+##Max. number of speakers (≥ 2)# and ##Clustering threshold (0-2)# both influence how many
+speakers diarization detects. ##Max. number of speakers (≥ 2)# defines an upper limit on the number
+of detected speakers, and while there is no equivalent setting for the lower limit, ##Clustering
+threshold (0-2)# can be used to push this number up. These two settings can be used to improve the
+quality of diarization if you know exactly how many speakers are in your Sound. If this is
+the case, you might find the following recipe useful:
+1. set the ##Max. number of speakers (≥ 2)# to the number of active speakers;
+2. do a test diarization run on (a part of) your Sound;
+3. if fewer speakers were detected than are active in the Sound, then try lowering the
+##Clustering threshold (0-2)#, perhaps making it 0.1 lower than it is now.
 
-The resulting TextGrid has the following structure. Let’s assume that the interval selected for
-diarization belongs to tier %Mary. The tier %Mary is renamed to %%Mary/sp1%. Additional speakers
-get new tiers %%Mary/sp2%, %%Mary/sp3%, etc. Each speaker’s tier contains alternating intervals:
-non-speech and speech intervals labelled with the configured settings ##Non-speech interval
-label# and ##Speech interval label# respectively.
+Repeat steps 2 and 3 until diarization detects the correct number of speakers.
+
+Tweaking the ##Clustering threshold (0-2)# might especially help when the voices of the speakers
+are similar, or when recording is done in a noisy environment. If you would like to know the
+details of what clustering threshold is and why it works this way, please read the #Algorithm
+section of @@speaker diarization with adapted pyannote.audio@, specifically the part about
+#Clustering.
+
+The ##Allow speakers to overlap# setting does what its name suggests: if it is on, diarization
+can detect when two speakers are speaking at the same time. Note that diarization does not detect
+overlap of three or more speakers.
+
+The last setting, ##Segmentation step (0-1)#, can be used to find a balance between speed and
+accuracy. You can read more about it in ##3. Performance#. To start with, you can keep its
+standard value of 0.1.
+
+2.3. Example
+============
+This example shows the result of a standalone diarization run on the same Sound as in ##1.2.3.
+Examples#; the interval selected for diarization spans the whole tier “Mary”. Diarization detects
+two speakers, so tier “Mary” is renamed to “Mary/sp1”, and the second tier “Mary/sp2” is added.
+Each speaker’s tier contains alternating intervals: non-speech and speech intervals labelled with
+the configured ##Non-speech interval label# (blank in this case) and ##Speech interval label#
+(“speech” in this case), respectively.
+{- 6.0x3.0
+	tier1Name$ = "Mary/sp1"
+	tier2Name$ = "Mary/sp2"
+	textgrid = Create TextGrid: 0, 11, tier1Name$ + " " + tier2Name$, ""
+	Insert boundary: 1, 0.8
+	Insert boundary: 1, 4.8
+	Insert boundary: 2, 5.1
+	Insert boundary: 2, 8.4
+	Insert boundary: 1, 8.5
+	Insert boundary: 1, 9.5
+	Set interval text: 1, 2, "speech"
+	Set interval text: 2, 2, "speech"
+	Set interval text: 1, 4, "speech"
+	Draw: 0.0, 0.0, 1, 1, 1
+	Axes: 0, 100, 0, 7
+	One mark right: 0.6, 0, 0, 0, tier2Name$
+	One mark right: 1.7, 0, 0, 0, tier1Name$
+	selectObject: textgrid
+	Remove
+}
+
+2.4. Diarize!
+=============
+With the diarization settings configured, you are now ready to start the diarization.
+
+If you are diarizing from the TextGridEditor, select the interval you want to diarize by
+clicking on it and choose ##Diarize interval# from the #Interval menu.
+
+If you are diarizing from the Objects window, use the settings ##Tier number# and ##Interval
+number# at the top of the ##Diarize interval...# command window to specify the interval you
+want to diarize.
+
+In either case, note that you cannot diarize an interval belonging to a tier whose name already
+contains a slash. This is to prevent endlessly growing names of the derived tiers.
+
+Running diarization takes some time; how long it takes depends on the length of the selected
+interval and on the diarization settings. Please read ##3. Performance# if you would like to make
+diarization run faster.
 
 3. Performance
 ==============
+Speech recognition tools in Praat rely on neural models, which consume a lot of computational
+resources. So the time spent on transcription and diarization might become an obstacle to using
+them, especially if you need to analyse a corpus or a large set of recordings. This chapter offers
+some advice on how you can try to make speech recognition tools run faster.
 
+3.1. AI settings
+================
+Most modern computers have several %%physical processors%. Each physical processor can process one
+or two threads that run computations in parallel. The number of threads that a computer can run
+in parallel is the number of its %%logical processors%.
+
+A reasonable assumption would be that transcription and diarization run fastest when Praat uses as
+many threads as the computer has logical processors. However, in practice, using that many threads
+can cause a dramatic slowdown on some computers. The question is then: exactly how many threads
+is best to use? Unfortunately, the answer depends on the computer’s hardware architecture in ways
+that are difficult to predict in advance. But it appears from our tests that half of the
+available logical processors is a safe starting point that avoids the worst slowdowns, so this is
+the default Praat uses for both transcription and diarization. If you suspect that this default
+is not optimal for your computer, or if you would like to experiment, you can change it in ##AI
+settings...#, which you can find in the #Settings submenu of the @@Praat menu@. But keep in mind
+that it is probably better not to use more threads than the number of logical processors your
+computer has.
+
+The optimal number of threads can differ between transcription and diarization, because they use
+different models and parallelize their work in different ways. So it is better to tune them
+separately:
+- to tune transcription, change its ##Max. number of threads# and measure the time spent on
+transcription %without diarization;
+- to tune diarization, change its ##Max. number of threads# and measure the time spent on
+standalone diarization.
+
+3.2. Other ways to make transcription faster
+============================================
+The choice of Whisper model has a strong influence on how long transcription takes. If your
+transcription is too slow, you can try to switch to a smaller or a quantized model. You can read
+more about available models in ##1.1. Installing Whisper models#.
+
+Switching on ##Detect non-speech# (see ##1.2.2. How to configure settings#) also speeds up
+transcription, especially on a Sound that contains a lot of parts without speech. This is because
+non-speech parts are removed before the Sound is passed to a Whisper model, making the sound that
+is actually analysed shorter. This is the setting which you may want to have always on, because
+it also improves accuracy of the detected word and sentence boundaries.
+
+If you use transcription with diarization (##Include diarization# setting is on), then the
+overall time also depends on how fast diarization is.
+
+3.3. Other ways to make diarization faster
+==========================================
+The ##Segmentation step (0-1)# setting (described in detail in @@speaker diarization with adapted
+pyannote.audio@) controls the overlap between successive 10-second analysis windows and therefore
+the overall number of analysis windows that the segmentation model processes. The segmentation
+step itself is a distance between the starts of two consecutive windows as a fraction of the
+window length, but the smaller this distance, the bigger the overlap.
+
+For example, a segmentation step of 0.1 makes this distance 1 second, so that two consecutive
+windows have a 90\%  overlap. Doubling the step value to 0.2 reduces the overlap to 80\%  and
+halves the overall number of analysis windows the model has to process; as a result
+diarization runs roughly twice as fast. Increasing the step value to 0.5 further reduces
+the analysis window overlap, making diarization run approximately five times faster.
+
+But the price for this speedup is reduced accuracy. After processing all analysis windows, the
+diarization algorithm reconstructs the result for the whole Sound by averaging the model’s
+predictions across the all the analysis windows. Less window overlap
+means averaging across fewer windows, which produces less accurate results.
+
+If you want to speed up your diarization, you may experiment with increasing this value. But
+perhaps it’s best to keep it below 0.5 so that every moment in the sound is analysed at least in
+two analysis windows.
 
 ################################################################################
 "speech activity detection with Silero VAD"
@@ -369,7 +669,7 @@ Settings
 :	if on, each transcribed word is given a start and an end time, computed using whisper.cpp’s
 	internal dynamic time warping (DTW) algorithm.
 
-##Exclude non-speech# (standard: on)
+##Detect non-speech# (standard: on)
 :	if on, @@speech activity detection with Silero VAD@ runs before transcription to identify
 	speech regions. Only those regions are then passed to the Whisper model. This generally
 	improves both speed and accuracy of transcription. Speed is improved by reducing the length of
@@ -436,25 +736,23 @@ whisper.cpp@ for their meaning.
 "speaker diarization with adapted pyannote.audio"
 © Anastasia Shchupak 2026-06-01
 
+Speaker diarization detects which parts of a sound contain speech, and attributes each
+part to one or more speakers. The output is a list of segments, each segment defined by a start
+time, an end time and a speaker identifier. Speaker identifiers are natural numbers (1, 2, 3, ...);
+they are arbitrary labels that roughly follow the order in which the speakers first appear in the
+sound.
+
+Diarization in Praat always modifies an existing TextGrid by producing one tier per detected
+speaker. It can be done as part of transcription (so that the transcribed text is split between
+speaker tiers) or standalone (so that each speaker tier contains the intervals labelled as
+non-speech or speech). See @@Speech recognition@ tutorial for details on how to use it.
+
 Praat performs speaker diarization using a C++/ggml adaptation of @@pyannote.audio@’s
 `pyannote/speaker-diarization-3.1` pipeline. The two neural models used by the pipeline,
 `pyannote/segmentation-3.0` (for segmentation) and `wespeaker-voxceleb-resnet34-LM` (for
 speaker embedding, see @@WeSpeaker@), have been converted to ggml format and compiled into Praat,
 so no external model files are required. The sound is automatically resampled to 16 kHz
 (the sampling frequency expected by both models) before being processed.
-
-Speaker diarization in Praat always modifies an existing TextGrid, producing one tier per
-detected speaker. Diarization can be done as part of transcription (so that transcribed text is
-split between speaker tiers) or standalone (so that each speaker tier contains the intervals
-labelled as non-speech or speech). See @@Speech recognition@ tutorial for details on how to use it.
-Its settings and algorithm are described below.
-
-Purpose
-=======
-to detect which parts of a sound contain speech and to attribute each part to one or more
-speakers. The output is a list of segments, each segment defined by a start time, an end time and
-a speaker identifier. Speaker identifiers are natural numbers (1, 2, 3, ...); they are arbitrary
-labels that roughly follow the order in which the speakers first appear.
 
 Settings
 ========
@@ -464,72 +762,234 @@ Settings
 	distinguishing more speakers, you might try lowering the ##Clustering threshold#.
 
 ##Allow speakers to overlap# (standard: on)
-:   if on, maximum two speakers may be active at the same moment. If off, every moment is
+:   if on, at most two speakers may be active at the same moment. If off, every moment is
 	attributed to a single speaker, the one most active at that moment.
 
 ##Clustering threshold (0-2)# (standard value: 0.7)
-:	controls the number of speakers returned by the algorithm. Lower values produce more speakers
-	(but anyway up to ##Max. number of speakers (≥ 2)#); higher values produce fewer speakers.
-	This is the setting that can push the number of detected speakers up, so consider lowering
-	its value if fewer speakers are detected than are actually present in your sound.
+:	controls the number of detected speakers. Lower thresholds produce more speakers (but anyway
+	up to ##Max. number of speakers (≥ 2)#); higher thresholds produce fewer speakers. This is
+	the setting that can push the number of detected speakers up, so consider lowering its value
+	if fewer speakers are detected than are actually present in your sound.
 
 ##Segmentation step (0-1)# (standard value: 0.1)
-:   the spacing between consecutive overlapping 10-second chunks, as a fraction of the chunk length
-	(see stage 1 of the algorithm). A value of 1.0 means no overlap; lower values mean more
-	overlap. Less overlap is faster (but generally less accurate), so this is the setting to
-	lower when you want to speed diarization up.
+:   the distance between the starts of consecutive overlapping analysis windows, as a fraction of
+	the analysis window’s length. The sound is analysed in 10-second overlapping segments called
+	%%analysis windows%; because of the overlap, each moment in time is covered by several
+	analysis windows. A smaller segmentation step ensures more analysis windows with more overlap,
+	which is generally more accurate but takes longer. A larger segmentation step ensures fewer
+	windows with less overlap, which is faster but generally less accurate. You may try
+	increasing this value if you want diarization to run faster, but it’s best to keep it below 0.5
+	so that every moment in the sound is covered by at least two analysis windows.
 
 Algorithm
 =========
-The algorithm has four stages. It is a port of @@pyannote.audio@s `pyannote/speaker-diarization-3.1`
-pipeline (see @@Bredin (2023)@) with some adaptations.
+The algorithm is a port of @@pyannote.audio@’s `pyannote/speaker-diarization-3.1` pipeline (see
+@@Bredin (2023)@) with some adaptations. It has four stages.
 
-##1. Segmentation#. The sound is divided into overlapping 10-second chunks. The distance between
-the starts of two consecutive chunks is a fraction of the chunk length defined by ##Segmentation
-step (0-1)#. For example, a segmentation step of 0.1 makes this distance 1 second, so that
-consecutive chunks have a 90\%  overlap.
+##1. Segmentation#. The sound is divided into overlapping 10-second %%analysis windows%. The
+distance between the starts of two consecutive windows is defined by the ##Segmentation step
+(0-1)# as a fraction of the window length. For example, a segmentation step of 0.1 makes this
+distance 1 second, so that consecutive windows have a 90\%  overlap.
 
-Each chunk is then sent to the segmentation model, which divides it into 589 frames (each frame
-spanning about 0.017 s) and assigns a label to each frame in the following way. The model assumes
-that there are at most three speakers in a chunk, of whom at most two can be active in the same
-frame. For every frame, it gives a probability to each of seven possible combinations of active
-speakers: {∅}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}. The most probable combination is taken as
-that frame’s label. The speaker numbers 1, 2 and 3 are local to each chunk: speaker 1 in one chunk
-is not necessarily the same person as speaker 1 in another. Linking these local speakers across
-chunks is the task of the remaining stages.
+The sound from each analysis window is then sent to the %%segmentation model%, which divides it
+into 589 frames (each frame spanning approximately 17 milliseconds) and assigns a label to each
+frame in the following way:
+- the model assumes that there are at most three speakers in one analysis window, of whom at most
+two can be active in each frame;
+- for every frame, the model computes a 7-dimensional vector of probabilities for the following
+combinations of active speakers: {}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3};
+- the most probable combination is then taken as that frame’s label.
 
-##2. Speaker embeddings#. For each chunk, every speaker who actually speaks in it is turned into
-an %embedding (a 256-dimensional vector) by the embedding model. The model takes as input an
-audio piece assembled from the parts of the chunk where the speaker is active, and outputs that
-vector. The model works in such a way that two embeddings from the same speaker (from different
-chunks) tend to be closer to each other than two embeddings from two different speakers. This
-property of the model makes the next stage possible.
+The speaker numbers 1, 2 and 3 are local to each analysis window: speaker 1 in one window is not
+necessarily the same person as speaker 1 in another. Mapping the window-local speakers to the
+global ones is the task of stages 2 and 3.
 
-##3. Clustering#. The previous stage produces one embedding for each active speaker in each chunk.
-Of these, only the ones backed by enough non-overlapping speech are treated as “reliable”; the
-rest are set aside for now.
+##2. Speaker embeddings#. The previous stage determined which speaker is active in which frame
+(for every analysis window). Now, for each window and each speaker active somewhere in it, the
+frames where this speaker is active are glued together into a single sound, which is then sent
+to the %%embedding model%. For every such sound, the model produces an %embedding: a
+256-dimensional vector representing one particular speaker in one particular analysis window.
+The embeddings of the same speaker (from different analysis windows) tend to be closer to
+each other than the embeddings of different speakers. This makes the next stage possible.
 
-The reliable embeddings from all chunks are L2-normalized and grouped by similarity using
-agglomerative hierarchical clustering: the two most similar groups are merged repeatedly,
-stopping when the closest remaining groups are further apart than ##Clustering threshold (0-2)#.
-Similarity between two groups is measured by the Euclidean distance between their centres (more
-similar = less distance). Because the embeddings are L2-normalized, the distance between any two of
-them lies between 0 (identical) and 2 (opposite).
+##3. Clustering#. The previous stage produces one embedding for each active speaker in each
+analysis window (so, up to three embeddings per window). The embeddings that are backed by
+enough non-overlapping speech are considered to be “reliable” and are used in the clustering
+process; the others are set aside for now.
 
-Each final group is one speaker; if after reaching the threshold there are still more groups
-than ##Max. number of speakers (≥ 2)#, the merging continues past the threshold until the resulting
-number of groups does not exceed that maximum.
+The reliable embeddings from all analysis windows are first L2-normalized so that they are all
+located on a 256-dimensional unit hypersphere. They are then grouped using %%agglomerative
+hierarchical clustering with centroid linkage%. Grouping starts with each embedding forming its
+own group (with the centre of the group being the embedding itself). At each step, the two groups
+whose centres are the closest (as measured by Euclidean distance between them) are merged, and
+the centre of the newly formed group is the mean of all the embeddings in this group. This centre
+is not L2-normalized, therefore the centres of merged groups lie inside the 256-dimensional
+hypersphere and become slightly shorter with every merge. This process stops when the distance
+between the next two closest groups is larger than the ##Clustering threshold (0-2)#.
 
-Finally, the unreliable embeddings (those not used to form the groups) are attached
-to their nearest groups. In this way, each chunk-local speaker is assigned to a global speaker.
+Because the embeddings are L2-normalized, the distance between any two of them lies between 0
+(identical) and 2 (opposite), which explains the range of possible values for the clustering
+threshold.
 
-##4. Reconstruction#. Each chunk consists of frames, and because the chunks overlap, each frame
-on the global timeline is covered by several chunks. Such a frame receives, for every speaker,
-the average of the activations the covering chunks gave that speaker (using the global speaker
-numbers from stage 3). It is then assigned to the speaker with the highest average activation
-(or, where overlap is allowed and two people are talking, to the two highest). Finally, for each
-speaker, every run of consecutive frames in which that speaker is active becomes one %segment. The
-result is a list of segments, each attributed to one speaker.
+Each final group represents one speaker; if after reaching the threshold there are still more groups
+than ##Max. number of speakers (≥ 2)#, the merging continues until the resulting number of groups
+does not exceed that maximum.
+
+Finally, the unreliable embeddings (those not used to form the groups) are attached to their
+nearest groups. In this way, each window-local speaker is assigned to a global speaker.
+
+The two figures below show an example of the clustering process for four embeddings in a
+two-dimensional space. Each group centre is drawn as a solid arrow surrounded by a grey circle whose
+radius is the clustering threshold (here 0.7, the default). Two groups can be merged only if
+both their centres lie inside each other’s grey circles (or, in other words, if they are closer
+than the clustering threshold).
+
+The ##left figure# shows the initial four group centres (the same as the four embeddings). The
+closest two group centres are drawn in red; these groups are merged first. The next merge
+involves the groups with the next two closest centres (those drawn in blue). The ##right figure#
+shows the state after the two merges: the solid arrows are the centres of the two newly formed
+groups; the dotted arrows are the original embeddings making up each group. Now, neither of the
+two group centres lies inside the grey circle surrounding the other one. So the two groups are
+further apart than the clustering threshold; therefore, the clustering process stops, leaving
+these two groups as the final result.
+
+{- 5.5x3
+	b1 = 35
+	b2 = 75
+	r1 = 235
+	r2 = 245
+	b1x = cos(b1*pi/180)
+	b1y = sin(b1*pi/180)
+	b2x = cos(b2*pi/180)
+	b2y = sin(b2*pi/180)
+	r1x = cos(r1*pi/180)
+	r1y = sin(r1*pi/180)
+	r2x = cos(r2*pi/180)
+	r2y = sin(r2*pi/180)
+	threshold = 0.7
+
+	# ==== LEFT ========
+	Select inner viewport: 0, 2.5, 0.25, 2.75
+	Axes: -1.5, 1.5, -1.5, 1.5
+	Solid line
+
+	# thresholds
+	Line width: 0.6
+	Colour: "Grey"
+	Paint circle: 0.9, b1x, b1y, threshold
+	Paint circle: 0.9, b2x, b2y, threshold
+	Paint circle: 0.9, r1x, r1y, threshold
+	Paint circle: 0.9, r2x, r2y, threshold
+	Draw circle: b1x, b1y, threshold
+	Draw circle: b2x, b2y, threshold
+	Draw circle: r1x, r1y, threshold
+	Draw circle: r2x, r2y, threshold
+
+	# axes
+	Line width: 1
+	Colour: "Grey"
+	Draw line: -1.3, 0, 1.3, 0
+	Draw line: 0, -1.3, 0, 1.3
+	Text special: 1.03, "left", 0, "bottom", "Times", 10, "0", "1"
+	Text special: -1.03, "right", 0, "bottom", "Times", 10, "0", "\-m1"
+	Text special: 0.03, "left", 1.01, "bottom", "Times", 10, "0", "1"
+	Text special: -0.03, "right", -1.02, "top", "Times", 10, "0", "\-m1"
+
+	# unit hypersphere
+	Line width: 2
+	Colour: "Black"
+	Draw circle: 0, 0, 1
+
+	# blue vectors
+	Colour: "Blue"
+	Line width: 2
+	Draw arrow: 0.0, 0.0, b1x, b1y
+	Draw arrow: 0.0, 0.0, b2x, b2y
+
+	# red vectors
+	Colour: "Red"
+	Line width: 2
+	Draw arrow: 0.0, 0.0, r1x, r1y
+	Draw arrow: 0.0, 0.0, r2x, r2y
+
+	# ==== RIGHT ========
+	b3x = (b1x + b2x) / 2
+	b3y = (b1y + b2y) / 2
+	r3x = (r1x + r2x) / 2
+	r3y = (r1y + r2y) / 2
+
+	Select inner viewport: 3, 5.5, 0.25, 2.75
+	Axes: -1.5, 1.5, -1.5, 1.5
+	Solid line
+
+	# thresholds
+	Line width: 0.6
+	Colour: "Grey"
+	Paint circle: 0.9, b3x, b3y, threshold
+	Paint circle: 0.9, r3x, r3y, threshold
+	Draw circle: b3x, b3y, threshold
+	Draw circle: r3x, r3y, threshold
+
+	# axes
+	Line width: 1
+	Colour: "Grey"
+	Draw line: -1.3, 0, 1.3, 0
+	Draw line: 0, -1.3, 0, 1.3
+	Text special: 1.03, "left", 0, "bottom", "Times", 10, "0", "1"
+	Text special: -1.03, "right", 0, "bottom", "Times", 10, "0", "\-m1"
+	Text special: 0.03, "left", 1.01, "bottom", "Times", 10, "0", "1"
+	Text special: -0.03, "right", -1.02, "top", "Times", 10, "0", "\-m1"
+
+	# unit hypersphere
+	Line width: 2
+	Colour: "Black"
+	Draw circle: 0, 0, 1
+
+	# blue vectors
+	Dotted line
+	Colour: "Blue"
+	Line width: 1
+	Draw arrow: 0.0, 0.0, b1x, b1y
+	Draw arrow: 0.0, 0.0, b2x, b2y
+	Solid line
+	Line width: 2
+	Draw arrow: 0.0, 0.0, b3x, b3y
+
+	# red vectors
+	Dotted line
+	Colour: "Red"
+	Line width: 1
+	Draw arrow: 0.0, 0.0, r1x, r1y
+	Draw arrow: 0.0, 0.0, r2x, r2y
+	Solid line
+	Line width: 2
+	Draw arrow: 0.0, 0.0, r3x, r3y
+}
+
+##4. Reconstruction#. At stage 1, each analysis window was divided into 589 frames of
+approximately 17 milliseconds, and each window-frame received a 7-dimensional vector with
+probabilities of different combinations of local speakers being active. Because the analysis
+windows overlap, each frame on the global timeline is covered by several windows. The goal of
+the current stage is to combine the window-frame information across all covering windows, using the
+local-to-global speaker mapping established at stage 3.
+
+Using the 7-dimensional vectors from stage 1, for each speaker in each window-frame, %%soft
+activations% are computed, by adding together the probabilities of all combinations in which that
+speaker is active. This is a number between 0 and 1 (where 0 means definitely silent and 1 means
+definitely active). These local speakers’ soft activations are then attributed to the global
+speakers using the mapping from stage 3. After that they are averaged across all the covering
+windows, to produce an %%average activation% for each global speaker in each global frame.
+
+Separately, the number of simultaneously active speakers in each global frame is found in a
+similar way. Each window-frame had a winning combination of active speakers (the frame label from
+stage 1), containing 0, 1 or 2 speakers. For each global frame, this number is averaged across
+all covering windows, rounded, and capped at 1 when ##Allow speakers to overlap# is off. The
+resulting number determines how many speakers (those with the highest average activations) are
+marked active in this frame.
+
+Finally, for each speaker, every uninterrupted sequence of frames in which that speaker is active
+becomes one %segment. The result is a list of segments, where each segment is attributed to one
+speaker.
 
 Availability in Praat
 =====================
@@ -628,10 +1088,10 @@ The result is a flat text string containing the full transcription.
 Silero VAD is a pre-trained speech activity detector created by Silero Team; see
 @@Silero Team (2024)@ for the model and documentation. VAD stands for “voice activity detection”,
 but we use “speech activity detection” instead, because Silero VAD detects unvoiced parts of speech
-as well as voiced ones. The Silero VAD model is compiled into Praat (see @Acknowledgments).
+as well as voiced parts. The Silero VAD model is compiled into Praat (see @Acknowledgments).
 
-For how speech activity detection with Silero VAD is used in Praat, see the @@Speech recognition@
-tutorial. For the algorithm and settings, see @@speech activity detection with Silero VAD@.
+For how Silero VAD is used in Praat, as well as its algorithm and settings, see @@speech activity
+detection with Silero VAD@.
 
 ################################################################################
 "whisper.cpp"
