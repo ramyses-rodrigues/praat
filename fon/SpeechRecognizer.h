@@ -108,6 +108,7 @@ namespace TranscriptionDefaults {
 	inline constexpr bool includeWords = true;
 	inline constexpr bool includeDiarization = false;
 	inline constexpr bool useVad = true;
+	inline const integer n_threads = MelderThread_getNumberOfProcessors () / 2;
 }
 
 namespace VadDefaults {
@@ -126,6 +127,7 @@ namespace DiarizationDefaults {
 	inline constexpr conststring32 speechLabel = U"speech";
 	inline constexpr conststring32 clusterThreshold = U"0.7";
 	inline constexpr conststring32 segmentationStep = U"0.1";
+	inline const integer n_threads = MelderThread_getNumberOfProcessors () / 2;
 }
 
 struct SpeechSegment {

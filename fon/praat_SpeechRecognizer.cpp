@@ -79,8 +79,12 @@ DIRECT (QUERY_ONE_AND_ONE_FOR_STRING__SpeechRecognizer_Sound_recognize) {
 FORM (SETTINGS__SpeechRecognizerSettings, U"AI settings", nullptr) {
 	COMMENT (U"These settings determine how fast transcription and diarization")
 	COMMENT (U"procedures are performed on your computer.")
-	INTEGER (maxNumberOfThreadsForTranscription, U"Max. number of threads for transcription", U"0 (= automatic)")
-	INTEGER (maxNumberOfThreadsForDiarization, U"Max. number of threads for diarization", U"0 (= automatic)")
+	HEADING (U"Transcription...")
+	INTEGER (maxNumberOfThreadsForTranscription, U"Max. number of threads", U"0 (= auto)")
+	CAPTION (Melder_cat (U"(“auto” is ", TranscriptionDefaults::n_threads, U" on this computer)"))
+	HEADING (U"Diarization...")
+	INTEGER (maxNumberOfThreadsForDiarization, U"Max. number of threads", U"0 (= auto)")
+	CAPTION (Melder_cat (U"(“auto” is ", DiarizationDefaults::n_threads, U" on this computer)"))
 OK
 	SET_INTEGER (maxNumberOfThreadsForTranscription, SpeechRecognizer_getMaxNumberOfThreadsForTranscription ())
 	SET_INTEGER (maxNumberOfThreadsForDiarization,   SpeechRecognizer_getMaxNumberOfThreadsForDiarization ())
