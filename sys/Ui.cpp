@@ -221,9 +221,11 @@ static void UiField_setDefault (UiField me) {
 		break;
 		case _kUiField_type::REAL_:
 		case _kUiField_type::REAL_OR_UNDEFINED_:
+		case _kUiField_type::NONNEGATIVE_:
 		case _kUiField_type::POSITIVE_:
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::WORD_:
 		case _kUiField_type::SENTENCE_:
 		case _kUiField_type::COLOUR_:
@@ -238,6 +240,7 @@ static void UiField_setDefault (UiField me) {
 		}
 		break;
 		case _kUiField_type::REALVECTOR_:
+		case _kUiField_type::NONNEGATIVEVECTOR_:
 		case _kUiField_type::POSITIVEVECTOR_:
 		{
 			GuiOptionMenu_setValue (my optionMenu, (int) my realVectorDefaultFormat);
@@ -245,7 +248,8 @@ static void UiField_setDefault (UiField me) {
 		}
 		break;
 		case _kUiField_type::INTEGERVECTOR_:
-		case _kUiField_type::NATURALVECTOR_:
+		case _kUiField_type::NATURAL0VECTOR_:
+		case _kUiField_type::NATURAL1VECTOR_:
 		{
 			GuiOptionMenu_setValue (my optionMenu, (int) my integerVectorDefaultFormat);
 			GuiText_setString (my text, my stringDefaultValue.get());
@@ -303,12 +307,15 @@ static void UiField_widgetToValue (UiField me) {
 		break;
 		case _kUiField_type::REAL_:
 		case _kUiField_type::REAL_OR_UNDEFINED_:
+		case _kUiField_type::NONNEGATIVE_:
 		case _kUiField_type::POSITIVE_:
 		{
 			autostring32 text = GuiText_getString (my text);   // the text as typed by the user
 			Interpreter_numericExpression (nullptr, text.get(), & my realValue);
 			if (isundef (my realValue) && my type != _kUiField_type::REAL_OR_UNDEFINED_)
 				Melder_throw (U"“", my name.get(), U"” has the value “undefined”.");
+			if (my type == _kUiField_type::NONNEGATIVE_ && my realValue < 0.0)
+				Melder_throw (U"“", my name.get(), U"” should be greater than or equal to 0.0.");
 			if (my type == _kUiField_type::POSITIVE_ && my realValue <= 0.0)
 				Melder_throw (U"“", my name.get(), U"” should be greater than 0.0.");
 			if (my realVariable)
@@ -316,7 +323,8 @@ static void UiField_widgetToValue (UiField me) {
 		}
 		break;
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::CHANNEL_:
 		{
 			autostring32 text = GuiText_getString (my text);
@@ -331,7 +339,11 @@ static void UiField_widgetToValue (UiField me) {
 				Melder_require (my integerValue == realValue,
 					U"“", my name.get(), U"” should be a whole number.");
 			}
-			if (my type == _kUiField_type::NATURAL_) {
+			if (my type == _kUiField_type::NATURAL0_) {
+				Melder_require (my integerValue >= 0,
+					U"“", my name.get(), U"” should be a nonnegative whole number.");
+			}
+			if (my type == _kUiField_type::NATURAL1_) {
 				Melder_require (my integerValue >= 1,
 					U"“", my name.get(), U"” should be a positive whole number.");
 			}
@@ -365,6 +377,7 @@ static void UiField_widgetToValue (UiField me) {
 		}
 		break;
 		case _kUiField_type::REALVECTOR_:
+		case _kUiField_type::NONNEGATIVEVECTOR_:
 		case _kUiField_type::POSITIVEVECTOR_:
 		{
 			autostring32 stringValue = GuiText_getString (my text);
@@ -385,6 +398,10 @@ static void UiField_widgetToValue (UiField me) {
 					Melder_crash (U"Unknown real vector format.");
 				}
 			}
+			if (my type == _kUiField_type::NONNEGATIVEVECTOR_)
+				for (integer i = 1; i <= my realVectorValue.size; i ++)
+					if (my realVectorValue [i] < 0.0)
+						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my realVectorValue [i], U" but should be greater than or equal to 0.0.");
 			if (my type == _kUiField_type::POSITIVEVECTOR_)
 				for (integer i = 1; i <= my realVectorValue.size; i ++)
 					if (my realVectorValue [i] <= 0.0)
@@ -394,7 +411,8 @@ static void UiField_widgetToValue (UiField me) {
 		}
 		break;
 		case _kUiField_type::INTEGERVECTOR_:
-		case _kUiField_type::NATURALVECTOR_:
+		case _kUiField_type::NATURAL0VECTOR_:
+		case _kUiField_type::NATURAL1VECTOR_:
 		{
 			autostring32 stringValue = GuiText_getString (my text);
 			kUi_integerVectorFormat format = (kUi_integerVectorFormat) GuiOptionMenu_getValue (my optionMenu);
@@ -417,7 +435,11 @@ static void UiField_widgetToValue (UiField me) {
 					Melder_crash (U"Unknown integer vector format.");
 				}
 			}
-			if (my type == _kUiField_type::NATURALVECTOR_)
+			if (my type == _kUiField_type::NATURAL0VECTOR_)
+				for (integer i = 1; i <= my integerVectorValue.size; i ++)
+					if (my integerVectorValue [i] < 0)
+						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my integerVectorValue [i], U" but should be greater than or equal to 0.");
+			if (my type == _kUiField_type::NATURAL1VECTOR_)
 				for (integer i = 1; i <= my integerVectorValue.size; i ++)
 					if (my integerVectorValue [i] <= 0)
 						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my integerVectorValue [i], U" but should be greater than 0.");
@@ -687,6 +709,7 @@ static void UiForm_okOrApply (UiForm me, GuiButton button, int hide) {
 					break;
 					case _kUiField_type::REAL_:
 					case _kUiField_type::REAL_OR_UNDEFINED_:
+					case _kUiField_type::NONNEGATIVE_:
 					case _kUiField_type::POSITIVE_:
 					{
 						UiHistory_write (next -- ? U", " : U" ");
@@ -694,7 +717,8 @@ static void UiForm_okOrApply (UiForm me, GuiButton button, int hide) {
 					}
 					break;
 					case _kUiField_type::INTEGER_:
-					case _kUiField_type::NATURAL_:
+					case _kUiField_type::NATURAL0_:
+					case _kUiField_type::NATURAL1_:
 					case _kUiField_type::CHANNEL_:
 					{
 						UiHistory_write (next -- ? U", " : U" ");
@@ -715,6 +739,7 @@ static void UiForm_okOrApply (UiForm me, GuiButton button, int hide) {
 					}
 					break;
 					case _kUiField_type:: REALVECTOR_:
+					case _kUiField_type:: NONNEGATIVEVECTOR_:
 					case _kUiField_type:: POSITIVEVECTOR_:
 					{
 						if (NUMisEmpty (field -> realVectorValue.get())) {
@@ -728,7 +753,8 @@ static void UiForm_okOrApply (UiForm me, GuiButton button, int hide) {
 						}
 					} break;
 					case _kUiField_type:: INTEGERVECTOR_:
-					case _kUiField_type:: NATURALVECTOR_:
+					case _kUiField_type:: NATURAL0VECTOR_:
+					case _kUiField_type:: NATURAL1VECTOR_:
 					{
 						if (NUMisEmpty (field -> integerVectorValue.get())) {
 							UiHistory_write (next -- ? U", zero# (0)" : U" zero# (0)");
@@ -965,6 +991,17 @@ UiField UiForm_addRealOrUndefined (UiForm me, double *variable, conststring32 va
 	return thee;
 }
 
+UiField UiForm_addNonnegative (UiForm me, double *variable, conststring32 variableName,
+	conststring32 labelText, conststring32 defaultValue)
+{
+	UiField thee = UiForm_addField (me, _kUiField_type::NONNEGATIVE_, labelText);
+	my referenceToLatestUsedChoiceOrOptionMenu = nullptr;
+	thy stringDefaultValue = Melder_dup (defaultValue);
+	thy realVariable = variable;
+	thy variableName = variableName;
+	return thee;
+}
+
 UiField UiForm_addPositive (UiForm me, double *variable, conststring32 variableName,
 	conststring32 labelText, conststring32 defaultValue)
 {
@@ -987,10 +1024,21 @@ UiField UiForm_addInteger (UiForm me, integer *variable, conststring32 variableN
 	return thee;
 }
 
-UiField UiForm_addNatural (UiForm me, integer *variable, conststring32 variableName,
+UiField UiForm_addNatural0 (UiForm me, integer *variable, conststring32 variableName,
 	conststring32 labelText, conststring32 defaultValue)
 {
-	UiField thee = UiForm_addField (me, _kUiField_type::NATURAL_, labelText);
+	UiField thee = UiForm_addField (me, _kUiField_type::NATURAL0_, labelText);
+	my referenceToLatestUsedChoiceOrOptionMenu = nullptr;
+	thy stringDefaultValue = Melder_dup (defaultValue);
+	thy integerVariable = variable;
+	thy variableName = variableName;
+	return thee;
+}
+
+UiField UiForm_addNatural1 (UiForm me, integer *variable, conststring32 variableName,
+	conststring32 labelText, conststring32 defaultValue)
+{
+	UiField thee = UiForm_addField (me, _kUiField_type::NATURAL1_, labelText);
 	my referenceToLatestUsedChoiceOrOptionMenu = nullptr;
 	thy stringDefaultValue = Melder_dup (defaultValue);
 	thy integerVariable = variable;
@@ -1128,6 +1176,19 @@ UiField UiForm_addRealVector (UiForm me, constVEC *variable, conststring32 varia
 	return thee;
 }
 
+UiField UiForm_addNonnegativeVector (UiForm me, constVEC *variable, conststring32 variableName,
+	conststring32 labelText, kUi_realVectorFormat defaultFormat, conststring32 defaultValue, integer numberOfLines)
+{
+	UiField thee = UiForm_addField (me, _kUiField_type::NONNEGATIVEVECTOR_, labelText);
+	my referenceToLatestUsedChoiceOrOptionMenu = nullptr;
+	thy realVectorDefaultFormat = defaultFormat;
+	thy stringDefaultValue = Melder_dup (defaultValue);
+	thy realVectorVariable = variable;
+	thy variableName = variableName;
+	thy numberOfLines = Melder_clipped (1_integer, numberOfLines, 33_integer);
+	return thee;
+}
+
 UiField UiForm_addPositiveVector (UiForm me, constVEC *variable, conststring32 variableName,
 	conststring32 labelText, kUi_realVectorFormat defaultFormat, conststring32 defaultValue, integer numberOfLines)
 {
@@ -1154,10 +1215,23 @@ UiField UiForm_addIntegerVector (UiForm me, constINTVEC *variable, conststring32
 	return thee;
 }
 
-UiField UiForm_addNaturalVector (UiForm me, constINTVEC *variable, conststring32 variableName,
+UiField UiForm_addNatural0Vector (UiForm me, constINTVEC *variable, conststring32 variableName,
 	conststring32 labelText, kUi_integerVectorFormat defaultFormat, conststring32 defaultValue, integer numberOfLines)
 {
-	UiField thee = UiForm_addField (me, _kUiField_type::NATURALVECTOR_, labelText);
+	UiField thee = UiForm_addField (me, _kUiField_type::NATURAL0VECTOR_, labelText);
+	my referenceToLatestUsedChoiceOrOptionMenu = nullptr;
+	thy integerVectorDefaultFormat = defaultFormat;
+	thy stringDefaultValue = Melder_dup (defaultValue);
+	thy integerVectorVariable = variable;
+	thy variableName = variableName;
+	thy numberOfLines = Melder_clipped (1_integer, numberOfLines, 33_integer);
+	return thee;
+}
+
+UiField UiForm_addNatural1Vector (UiForm me, constINTVEC *variable, conststring32 variableName,
+	conststring32 labelText, kUi_integerVectorFormat defaultFormat, conststring32 defaultValue, integer numberOfLines)
+{
+	UiField thee = UiForm_addField (me, _kUiField_type::NATURAL1VECTOR_, labelText);
 	my referenceToLatestUsedChoiceOrOptionMenu = nullptr;
 	thy integerVectorDefaultFormat = defaultFormat;
 	thy stringDefaultValue = Melder_dup (defaultValue);
@@ -1355,8 +1429,8 @@ void UiForm_finish (UiForm me) {
 		const bool thouHastVerticallyAddedLabel =
 			thy type == _kUiField_type::TEXT_ || thy type == _kUiField_type::FORMULA_ ||
 			thy type == _kUiField_type::INFILE_ || thy type == _kUiField_type::OUTFILE_ || thy type == _kUiField_type::FOLDER_ ||
-			thy type == _kUiField_type::REALVECTOR_ || thy type == _kUiField_type::POSITIVEVECTOR_ ||
-			thy type == _kUiField_type::INTEGERVECTOR_ || thy type == _kUiField_type::NATURALVECTOR_ ||
+			thy type == _kUiField_type::REALVECTOR_ || thy type == _kUiField_type::NONNEGATIVEVECTOR_ || thy type == _kUiField_type::POSITIVEVECTOR_ ||
+			thy type == _kUiField_type::INTEGERVECTOR_ || thy type == _kUiField_type::NATURAL0VECTOR_ || thy type == _kUiField_type::NATURAL1VECTOR_ ||
 			thy type == _kUiField_type::REALMATRIX_ ||
 			thy type == _kUiField_type::STRINGARRAY_
 		;
@@ -1402,9 +1476,11 @@ void UiForm_finish (UiForm me) {
 		{
 			case _kUiField_type::REAL_:
 			case _kUiField_type::REAL_OR_UNDEFINED_:
+			case _kUiField_type::NONNEGATIVE_:
 			case _kUiField_type::POSITIVE_:
 			case _kUiField_type::INTEGER_:
-			case _kUiField_type::NATURAL_:
+			case _kUiField_type::NATURAL0_:
+			case _kUiField_type::NATURAL1_:
 			case _kUiField_type::WORD_:
 			case _kUiField_type::SENTENCE_:
 			case _kUiField_type::COLOUR_:
@@ -1450,6 +1526,7 @@ void UiForm_finish (UiForm me) {
 			}
 			break;
 			case _kUiField_type::REALVECTOR_:
+			case _kUiField_type::NONNEGATIVEVECTOR_:
 			case _kUiField_type::POSITIVEVECTOR_:
 			{
 				MelderString_copy (& theFinishBuffer, thy labelText.get());
@@ -1472,7 +1549,8 @@ void UiForm_finish (UiForm me) {
 			}
 			break;
 			case _kUiField_type::INTEGERVECTOR_:
-			case _kUiField_type::NATURALVECTOR_:
+			case _kUiField_type::NATURAL0VECTOR_:
+			case _kUiField_type::NATURAL1VECTOR_:
 			{
 				MelderString_copy (& theFinishBuffer, thy labelText.get());
 				appendColon ();
@@ -1820,23 +1898,27 @@ static void UiField_api_header_C (UiField me, UiField next, bool isLastNonLabelF
 	/*
 		Write the type of the field.
 	*/
-	bool isText = false, isBoolean = false, isEnum = false, isPositive = false;
+	bool isText = false, isBoolean = false, isEnum = false, isNonnegative = false, isPositive = false;
 	switch (my type)
 	{
 		case _kUiField_type::REAL_:
 		case _kUiField_type::REAL_OR_UNDEFINED_:
+		case _kUiField_type::NONNEGATIVE_:
 		case _kUiField_type::POSITIVE_:
 		{
 			MelderInfo_write (U"\tdouble ");
-			isPositive = ( my type == _kUiField_type::POSITIVE_);
+			isNonnegative = ( my type == _kUiField_type::NONNEGATIVE_ );
+			isPositive = ( my type == _kUiField_type::POSITIVE_ );
 		}
 		break;
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::CHANNEL_:
 		{
 			MelderInfo_write (U"\tint64_t ");
-			isPositive = ( my type == _kUiField_type::NATURAL_);
+			isNonnegative = ( my type == _kUiField_type::NATURAL0_ );
+			isPositive = ( my type == _kUiField_type::NATURAL1_ );
 		}
 		break;
 		case _kUiField_type::WORD_:
@@ -1947,6 +2029,8 @@ static void UiField_api_header_C (UiField me, UiField next, bool isLastNonLabelF
 		}
 
 		MelderInfo_write (U"   // ");
+		if (isNonnegative)
+			MelderInfo_write (U"nonnegative, ");
 		if (isPositive)
 			MelderInfo_write (U"positive, ");
 		if (unitsContainRange)
@@ -2005,6 +2089,7 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 	{
 		case _kUiField_type::REAL_:
 		case _kUiField_type::REAL_OR_UNDEFINED_:
+		case _kUiField_type::NONNEGATIVE_:
 		case _kUiField_type::POSITIVE_:
 		{
 			if (arg -> which != Stackel_NUMBER)
@@ -2012,14 +2097,17 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 			my realValue = arg -> number;
 			if (isundef (my realValue) && my type != _kUiField_type::REAL_OR_UNDEFINED_)
 				Melder_throw (U"Argument “", my name.get(), U"” has the value “undefined”.");
+			if (my type == _kUiField_type::NONNEGATIVE_ && my realValue < 0.0)
+				Melder_throw (U"Argument “", my name.get(), U"” must be greater than or equal to 0.0.");
 			if (my type == _kUiField_type::POSITIVE_ && my realValue <= 0.0)
-				Melder_throw (U"Argument “", my name.get(), U"” must be greater than 0.");
+				Melder_throw (U"Argument “", my name.get(), U"” must be greater than 0.0.");
 			if (my realVariable)
 				*my realVariable = my realValue;
 		}
 		break;
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::CHANNEL_:
 		{
 			if (arg -> which == Stackel_STRING) {
@@ -2042,7 +2130,9 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 				my integerValue = Melder_iround (realValue);
 				Melder_require (my integerValue == realValue,
 					U"Argument “", my name.get(), U"” should be a whole number.");
-				if (my type == _kUiField_type::NATURAL_ && my integerValue < 1)
+				if (my type == _kUiField_type::NATURAL0_ && my integerValue < 0)
+					Melder_throw (U"Argument “", my name.get(), U"” should be a nonnegative whole number.");
+				if (my type == _kUiField_type::NATURAL1_ && my integerValue < 1)
 					Melder_throw (U"Argument “", my name.get(), U"” should be a positive whole number.");
 			} else {
 				Melder_throw (U"Argument “", my name.get(), U"” should be a number, not ", arg -> whichText(), U".");
@@ -2067,6 +2157,7 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 		}
 		break;
 		case _kUiField_type::REALVECTOR_:
+		case _kUiField_type::NONNEGATIVEVECTOR_:
 		case _kUiField_type::POSITIVEVECTOR_:
 		{
 			if (arg -> which != Stackel_NUMERIC_VECTOR && arg -> which != Stackel_STRING)
@@ -2079,6 +2170,10 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 			} else {
 				my realVectorValue = copy_VEC (arg -> numericVector);
 			}
+			if (my type == _kUiField_type::NONNEGATIVEVECTOR_)
+				for (integer i = 1; i <= my realVectorValue.size; i ++)
+					if (my realVectorValue [i] < 0.0)
+						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my realVectorValue [i], U" but should be greater than or equal to 0.0.");
 			if (my type == _kUiField_type::POSITIVEVECTOR_)
 				for (integer i = 1; i <= my realVectorValue.size; i ++)
 					if (my realVectorValue [i] <= 0.0)
@@ -2088,7 +2183,8 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 		}
 		break;
 		case _kUiField_type::INTEGERVECTOR_:
-		case _kUiField_type::NATURALVECTOR_:
+		case _kUiField_type::NATURAL0VECTOR_:
+		case _kUiField_type::NATURAL1VECTOR_:
 		{
 			if (arg -> which != Stackel_NUMERIC_VECTOR && arg -> which != Stackel_STRING)
 				Melder_throw (U"Argument “", my name.get(), U"” should be a numeric vector, not ", arg -> whichText(), U".");
@@ -2102,7 +2198,11 @@ static void UiField_argToValue (UiField me, Stackel arg, Interpreter /* interpre
 						U"Element ", i, U" of vector “", my name.get(), U"” is ", arg -> numericVector [i], U" but should be a whole number.");
 				}
 			}
-			if (my type == _kUiField_type::NATURALVECTOR_)
+			if (my type == _kUiField_type::NATURAL0VECTOR_)
+				for (integer i = 1; i <= my integerVectorValue.size; i ++)
+					if (my integerVectorValue [i] < 0)
+						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my integerVectorValue [i], U" but should be greater than or equal to 0.");
+			if (my type == _kUiField_type::NATURAL1VECTOR_)
 				for (integer i = 1; i <= my integerVectorValue.size; i ++)
 					if (my integerVectorValue [i] <= 0)
 						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my integerVectorValue [i], U" but should be greater than 0.");
@@ -2289,6 +2389,7 @@ static void UiField_stringToValue (UiField me, conststring32 string, Interpreter
 	{
 		case _kUiField_type::REAL_:
 		case _kUiField_type::REAL_OR_UNDEFINED_:
+		case _kUiField_type::NONNEGATIVE_:
 		case _kUiField_type::POSITIVE_:
 		{
 			if (str32spn (string, U" \t") == Melder_length (string))
@@ -2296,14 +2397,17 @@ static void UiField_stringToValue (UiField me, conststring32 string, Interpreter
 			Interpreter_numericExpression (interpreter, string, & my realValue);
 			if (isundef (my realValue) && my type != _kUiField_type::REAL_OR_UNDEFINED_)
 				Melder_throw (U"“", my name.get(), U"” has the value “undefined”.");
+			if (my type == _kUiField_type::NONNEGATIVE_ && my realValue < 0.0)
+				Melder_throw (U"“", my name.get(), U"” must be greater than or equal to 0.0.");
 			if (my type == _kUiField_type::POSITIVE_ && my realValue <= 0.0)
-				Melder_throw (U"“", my name.get(), U"” must be greater than 0.");
+				Melder_throw (U"“", my name.get(), U"” must be greater than 0.0.");
 			if (my realVariable)
 				*my realVariable = my realValue;
 		}
 		break;
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::CHANNEL_: {
 			if (str32spn (string, U" \t") == Melder_length (string))
 				Melder_throw (U"Argument “", my name.get(), U"” empty.");
@@ -2318,7 +2422,9 @@ static void UiField_stringToValue (UiField me, conststring32 string, Interpreter
 				Interpreter_numericExpression (interpreter, string, & realValue);
 				my integerValue = Melder_iround (realValue);
 			}
-			if (my type == _kUiField_type::NATURAL_ && my integerValue < 1)
+			if (my type == _kUiField_type::NATURAL0_ && my integerValue < 0)
+				Melder_throw (U"“", my name.get(), U"” should be a nonnegative whole number.");
+			if (my type == _kUiField_type::NATURAL1_ && my integerValue < 1)
 				Melder_throw (U"“", my name.get(), U"” should be a positive whole number.");
 			if (my integerVariable)
 				*my integerVariable = my integerValue;
@@ -2338,9 +2444,14 @@ static void UiField_stringToValue (UiField me, conststring32 string, Interpreter
 		}
 		break;
 		case _kUiField_type::REALVECTOR_:
+		case _kUiField_type::NONNEGATIVEVECTOR_:
 		case _kUiField_type::POSITIVEVECTOR_:
 		{
 			my realVectorValue = splitByWhitespace_VEC (string);
+			if (my type == _kUiField_type::NONNEGATIVEVECTOR_)
+				for (integer i = 1; i <= my realVectorValue.size; i ++)
+					if (my realVectorValue [i] < 0.0)
+						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my realVectorValue [i], U" but should be greater than or equal to 0.0.");
 			if (my type == _kUiField_type::POSITIVEVECTOR_)
 				for (integer i = 1; i <= my realVectorValue.size; i ++)
 					if (my realVectorValue [i] <= 0.0)
@@ -2350,10 +2461,15 @@ static void UiField_stringToValue (UiField me, conststring32 string, Interpreter
 		}
 		break;
 		case _kUiField_type::INTEGERVECTOR_:
-		case _kUiField_type::NATURALVECTOR_:
+		case _kUiField_type::NATURAL0VECTOR_:
+		case _kUiField_type::NATURAL1VECTOR_:
 		{
 			my integerVectorValue = splitByWhitespaceWithRanges_INTVEC (string);
-			if (my type == _kUiField_type::NATURALVECTOR_)
+			if (my type == _kUiField_type::NATURAL0VECTOR_)
+				for (integer i = 1; i <= my integerVectorValue.size; i ++)
+					if (my integerVectorValue [i] < 0)
+						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my integerVectorValue [i], U" but should be greater than or equal to 0.");
+			if (my type == _kUiField_type::NATURAL1VECTOR_)
 				for (integer i = 1; i <= my integerVectorValue.size; i ++)
 					if (my integerVectorValue [i] <= 0)
 						Melder_throw (U"Element ", i, U" of vector “", my name.get(), U"” is ", my integerVectorValue [i], U" but should be greater than 0.");
@@ -2551,6 +2667,7 @@ void UiForm_setReal (UiForm me, double *p_variable, double value) {
 			{
 				case _kUiField_type::REAL_:
 				case _kUiField_type::REAL_OR_UNDEFINED_:
+				case _kUiField_type::NONNEGATIVE_:
 				case _kUiField_type::POSITIVE_:
 				{
 					if (value == Melder_atof (field -> stringDefaultValue.get())) {
@@ -2589,6 +2706,7 @@ void UiForm_setRealAsString (UiForm me, double *p_variable, conststring32 string
 			{
 				case _kUiField_type::REAL_:
 				case _kUiField_type::REAL_OR_UNDEFINED_:
+				case _kUiField_type::NONNEGATIVE_:
 				case _kUiField_type::POSITIVE_:
 				{
 					GuiText_setString (field -> text, stringValue);
@@ -2612,7 +2730,8 @@ void UiForm_setInteger (UiForm me, integer *p_variable, integer value) {
 			switch (field -> type)
 			{
 				case _kUiField_type::INTEGER_:
-				case _kUiField_type::NATURAL_:
+				case _kUiField_type::NATURAL0_:
+				case _kUiField_type::NATURAL1_:
 				case _kUiField_type::CHANNEL_:
 				{
 					if (value == Melder_atoi (field -> stringDefaultValue.get())) {
@@ -2647,7 +2766,8 @@ void UiForm_setIntegerAsString (UiForm me, integer *p_variable, conststring32 st
 			switch (field -> type)
 			{
 				case _kUiField_type::INTEGER_:
-				case _kUiField_type::NATURAL_:
+				case _kUiField_type::NATURAL0_:
+				case _kUiField_type::NATURAL1_:
 				case _kUiField_type::CHANNEL_:
 				{
 					GuiText_setString (field -> text, stringValue);
@@ -2891,6 +3011,7 @@ double UiForm_getReal_check (UiForm me, conststring32 fieldName) {
 	{
 		case _kUiField_type::REAL_:
 		case _kUiField_type::REAL_OR_UNDEFINED_:
+		case _kUiField_type::NONNEGATIVE_:
 		case _kUiField_type::POSITIVE_:
 		{
 			return field -> realValue;
@@ -2913,7 +3034,8 @@ integer UiForm_getInteger (UiForm me, conststring32 fieldName) {
 	switch (field -> type)
 	{
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::CHANNEL_:
 		case _kUiField_type::BOOLEAN_:
 		case _kUiField_type::CHOICE_:
@@ -2936,7 +3058,8 @@ integer UiForm_getInteger_check (UiForm me, conststring32 fieldName) {
 	switch (field -> type)
 	{
 		case _kUiField_type::INTEGER_:
-		case _kUiField_type::NATURAL_:
+		case _kUiField_type::NATURAL0_:
+		case _kUiField_type::NATURAL1_:
 		case _kUiField_type::CHANNEL_:
 		case _kUiField_type::BOOLEAN_:
 		case _kUiField_type::CHOICE_:
@@ -3036,6 +3159,7 @@ VEC UiForm_getRealVector (UiForm me, conststring32 fieldName) {
 	switch (field -> type)
 	{
 		case _kUiField_type::REALVECTOR_:
+		case _kUiField_type::NONNEGATIVEVECTOR_:
 		case _kUiField_type::POSITIVEVECTOR_:
 		{
 			return field -> realVectorValue.get();
@@ -3056,7 +3180,8 @@ INTVEC UiForm_getIntegerVector (UiForm me, conststring32 fieldName) {
 	switch (field -> type)
 	{
 		case _kUiField_type::INTEGERVECTOR_:
-		case _kUiField_type::NATURALVECTOR_:
+		case _kUiField_type::NATURAL0VECTOR_:
+		case _kUiField_type::NATURAL1VECTOR_:
 		{
 			return field -> integerVectorValue.get();
 		}
@@ -3102,21 +3227,23 @@ void UiForm_Interpreter_addVariables (UiForm me, Interpreter interpreter) {
 		}
 		switch (field -> type)
 		{
+			case _kUiField_type::REAL_:
+			case _kUiField_type::REAL_OR_UNDEFINED_:
+			case _kUiField_type::NONNEGATIVE_:
+			case _kUiField_type::POSITIVE_:
+			{
+				InterpreterVariable var = Interpreter_lookUpVariable (interpreter, lowerCaseFieldName.string);
+				var -> numericValue = field -> realValue;
+			}
+			break;
 			case _kUiField_type::INTEGER_:
-			case _kUiField_type::NATURAL_:
+			case _kUiField_type::NATURAL0_:
+			case _kUiField_type::NATURAL1_:
 			case _kUiField_type::CHANNEL_:
 			case _kUiField_type::BOOLEAN_:
 			{
 				InterpreterVariable var = Interpreter_lookUpVariable (interpreter, lowerCaseFieldName.string);
 				var -> numericValue = field -> integerValue;
-			}
-			break;
-			case _kUiField_type::REAL_:
-			case _kUiField_type::REAL_OR_UNDEFINED_:
-			case _kUiField_type::POSITIVE_:
-			{
-				InterpreterVariable var = Interpreter_lookUpVariable (interpreter, lowerCaseFieldName.string);
-				var -> numericValue = field -> realValue;
 			}
 			break;
 			case _kUiField_type::CHOICE_:
@@ -3153,6 +3280,7 @@ void UiForm_Interpreter_addVariables (UiForm me, Interpreter interpreter) {
 			}
 			break;
 			case _kUiField_type::REALVECTOR_:
+			case _kUiField_type::NONNEGATIVEVECTOR_:
 			case _kUiField_type::POSITIVEVECTOR_:
 			{
 				MelderString_appendCharacter (& lowerCaseFieldName, U'#');
@@ -3161,7 +3289,8 @@ void UiForm_Interpreter_addVariables (UiForm me, Interpreter interpreter) {
 			}
 			break;
 			case _kUiField_type::INTEGERVECTOR_:
-			case _kUiField_type::NATURALVECTOR_:
+			case _kUiField_type::NATURAL0VECTOR_:
+			case _kUiField_type::NATURAL1VECTOR_:
 			{
 				MelderString_appendCharacter (& lowerCaseFieldName, U'#');
 				InterpreterVariable var = Interpreter_lookUpVariable (interpreter, lowerCaseFieldName.string);
