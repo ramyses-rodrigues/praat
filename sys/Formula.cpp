@@ -184,7 +184,7 @@ enum { NO_SYMBOL_,
 		RANDOM_GAMMA_VEC_, RANDOM_GAMMA_MAT_,
 		SOLVE_SPARSE_VEC_, SOLVE_NONNEGATIVE_VEC_,
 		PEAKS_MAT_,
-		SIZE_, NUMBER_OF_ROWS_, NUMBER_OF_COLUMNS_, COMBINE_VEC_, PART_VEC_, PART_MAT_, EDITOR_,
+		SIZE_, NUMBER_OF_ROWS_, NUMBER_OF_COLUMNS_, COMBINE_VEC_, BLAKE3_VEC_, PART_VEC_, PART_MAT_, EDITOR_,
 		RANDOM__INITIALIZE_WITH_SEED_UNSAFELY_BUT_PREDICTABLY_, RANDOM__INITIALIZE_SAFELY_AND_UNPREDICTABLY_,
 		HASH_, HEX_STR_, UNHEX_STR_,
 		EMPTY_STRVEC_, READ_LINES_FROM_FILE_STRVEC_,
@@ -348,7 +348,7 @@ static const conststring32 Formula_instructionNames [] = { U"",
 	U"randomGauss#", U"randomGauss##",
 	U"randomGamma#", U"randomGamma##", U"solveSparse#", U"solveNonnegative#",
 	U"peaks##",
-	U"size", U"numberOfRows", U"numberOfColumns", U"combine#", U"part#", U"part##", U"editor",
+	U"size", U"numberOfRows", U"numberOfColumns", U"combine#", U"blake3#", U"part#", U"part##", U"editor",
 	U"random_initializeWithSeedUnsafelyButPredictably", U"random_initializeSafelyAndUnpredictably",
 	U"hash", U"hex$", U"unhex$",
 	U"empty$#", U"readLinesFromFile$#",
@@ -5450,6 +5450,18 @@ static void do_combine_VEC () {
 	}
 	pushNumericVector (result.move());
 }
+static void do_blake3_VEC () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	const integer numberOfArguments = Melder_iround (narg->number);
+	Melder_require (narg->number == 1,
+		U"The function “blake3#” requires exactly one argument (namely a matrix), not the ", narg->number, U" given.");
+	const Stackel arg = pop;
+	Melder_require (arg->which == Stackel_NUMERIC_MATRIX,
+		U"The argument of the function “blake3#” should be a numeric matrix, not ", arg->whichText(), U".");
+	const constMAT mat = arg->numericMatrix;
+	pushNumericVector (blake3_VEC (mat));
+}
 static void do_part_VEC () {
 	/*
 		Check the number of arguments: always 3.
@@ -9195,6 +9207,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case NUMBER_OF_ROWS_: { do_numberOfRows ();
 } break; case NUMBER_OF_COLUMNS_: { do_numberOfColumns ();
 } break; case COMBINE_VEC_: { do_combine_VEC ();
+} break; case BLAKE3_VEC_: { do_blake3_VEC ();
 } break; case PART_VEC_: { do_part_VEC ();
 } break; case PART_MAT_: { do_part_MAT ();
 } break; case EDITOR_: { do_editor ();
