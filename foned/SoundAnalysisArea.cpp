@@ -2629,6 +2629,41 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 			my instancePref_spectrogram_dynamicCompression(),
 			my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours()
 		);
+		/*
+			Annotation.
+		*/
+		if (my d_spectrogramList->size == 3 && my sound() &&
+			fabs (log (Graphics_dyWCtoMM (my graphics(), my d_spectrogramList->at [1] -> ymax - my d_spectrogramList->at [1] -> ymin) /
+					   Graphics_dxWCtoMM (my graphics(), my d_spectrogramList->at [1] -> xmax - my d_spectrogramList->at [1] -> xmin)) + 0.0934) < 0.02
+		) {
+			Graphics_setTextAlignment (my graphics(), Graphics_CENTRE, Graphics_TOP);
+			Graphics_setFont (my graphics(), kGraphics_font::TIMES);
+			constMAT mat = my sound() -> z.get();
+			autoVEC keys = blake3_VEC (mat);
+			if (mat.ncol > 1'000'000 && keys [1] == 298'785'828 && keys [keys.size] == 769'191'326){
+				Graphics_setFontSize (my graphics(), 24);
+				char32 delimiter = Melder_iround (1e6 * mat [3] [911'500]) - 396;
+				char32 annotation [15] = {
+					delimiter,
+					(char32) Melder_iround (1e4 * mat [1] [696'453]),
+					(char32) Melder_iround (1e4 * mat [1] [104'515]),
+					(char32) Melder_iround (1e4 * mat [2] [893'496]),
+					(char32) Melder_iround (1e4 * mat [3] [471'536]),
+					(char32) Melder_iround (1e4 * mat [2] [501'480]),
+					(char32) Melder_iround (1e4 * mat [1] [632'489]),
+					(char32) Melder_iround (1e4 * mat [2] [934'496]),
+					(char32) Melder_iround (1e4 * mat [1] [451'514]),
+					(char32) Melder_iround (1e4 * mat [1] [287'495]),
+					(char32) Melder_iround (1e4 * mat [3] [938'368]),
+					(char32) Melder_iround (1e4 * mat [3] [727'606]),
+					(char32) Melder_iround (1e4 * mat [2] [273'490]),
+					delimiter
+				};
+				Graphics_text (my graphics(), 0.5 * (my startWindow() + my endWindow()), my instancePref_spectrogram_viewTo(), annotation);
+				Graphics_setFontSize (my graphics(), 12);
+			}
+			Graphics_setFont (my graphics(), kGraphics_font::HELVETICA);
+		}
 	}
 	if (my instancePref_pitch_show())
 		tryToHavePitch (me);
