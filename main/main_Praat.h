@@ -24,10 +24,10 @@
 	and `Info.plist Preprocessor Prefix File` to `main/main_Praat.h`.
 */
 #define PRAAT_NAME  Praat
-#define PRAAT_VERSION_STR  7.0beta
-#define PRAAT_VERSION_NUM  7000
+#define PRAAT_VERSION_STR  6.6.30
+#define PRAAT_VERSION_NUM  6630
 #define PRAAT_YEAR  2026
 #define PRAAT_MONTH  6
-#define PRAAT_DAY  12
+#define PRAAT_DAY  30
 
 /* End of file main_Praat.h */

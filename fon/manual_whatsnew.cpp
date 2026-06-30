@@ -29,6 +29,11 @@ R"~~~(
 
 Latest changes in Praat.
 
+##6.6.30# (30 June 2026)
+• Tutorial documentation on @@speech recognition@.
+• Removed a crashing bug when cross-correlating or convolving two MFCC objects.
+• A bit of spectrogram colouring.
+
 ##6.4.67# (21 May 2026)
 • Include Anastasia Shchupak as Praat’s third author.
 • Made the Voice Report give “undefined” H1-minus-H2 values (instead of an error message) if there are zero pulses.
