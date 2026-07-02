@@ -3096,13 +3096,13 @@ void Interpreter_resume (Interpreter me) {
 									InterpreterVariable var = Interpreter_hasVariable (me, variableName);
 									if (! var)
 										Melder_throw (U"Variable ", variableName, U" undefined.");
-									MelderFile_appendText (& file, var -> stringValue.get());
+									MelderFile_appendText_e (& file, var -> stringValue.get());
 								} else {
 									if (theCurrentPraatObjects != & theForegroundPraatObjects) Melder_throw (U"Commands that write to a file are not available inside pictures.");
 									InterpreterVariable var = Interpreter_hasVariable (me, variableName);
 									if (! var)
 										Melder_throw (U"Variable ", variableName, U" undefined.");
-									MelderFile_writeText (& file, var -> stringValue.get(), Melder_getOutputEncoding ());
+									MelderFile_writeText_e (& file, var -> stringValue.get(), Melder_getOutputEncoding ());
 								}
 							} else if (isCommand (p)) {
 								/*

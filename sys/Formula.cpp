@@ -4285,7 +4285,7 @@ static void do_writeFile () {
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName->getString(), & file);
 	Melder_checkTrust (theInterpreter, U"save some text to the file\n", & file);
-	MelderFile_writeText (& file, text.string, Melder_getOutputEncoding ());
+	MelderFile_writeText_e (& file, text.string, Melder_getOutputEncoding ());
 	pushNumber (1);
 }
 static void do_writeFileLine () {
@@ -4304,7 +4304,7 @@ static void do_writeFileLine () {
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName->getString(), & file);
 	Melder_checkTrust (theInterpreter, U"save a line of text to the file\n", & file);
-	MelderFile_writeText (& file, text.string, Melder_getOutputEncoding ());
+	MelderFile_writeText_e (& file, text.string, Melder_getOutputEncoding ());
 	pushNumber (1);
 }
 static void do_appendFile () {
@@ -4322,7 +4322,7 @@ static void do_appendFile () {
 	structMelderFile file { };
 	Melder_relativePathToFile (elFileName->getString(), & file);
 	Melder_checkTrust (theInterpreter, U"append some text to the file\n", & file);
-	MelderFile_appendText (& file, text.string);
+	MelderFile_appendText_e (& file, text.string);
 	pushNumber (1);
 }
 static void do_appendFileLine () {
@@ -4341,7 +4341,7 @@ static void do_appendFileLine () {
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName->getString(), & file);
 	Melder_checkTrust (theInterpreter, U"append a line of text to the file\n", & file);
-	MelderFile_appendText (& file, text.string);
+	MelderFile_appendText_e (& file, text.string);
 	pushNumber (1);
 }
 static void do_pauseScript () {

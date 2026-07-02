@@ -201,8 +201,9 @@ public:
 /* Read and write whole text files. */
 autostring32 MelderFile_readText (MelderFile file, autostring8 *string8 = nullptr);
 void Melder_fwrite32to8 (conststring32 string, FILE *f);
-void MelderFile_writeText (MelderFile file, conststring32 text, kMelder_textOutputEncoding outputEncoding);
-void MelderFile_appendText (MelderFile file, conststring32 text);
+void MelderFile_writeText_e (MelderFile file, conststring32 text, kMelder_textOutputEncoding outputEncoding);
+void MelderFile_writeText_i (MelderFile file, conststring32 text, kMelder_textOutputEncoding outputEncoding);
+void MelderFile_appendText_e (MelderFile file, conststring32 text);
 
 /* End of file melder_files.h */
 #endif
