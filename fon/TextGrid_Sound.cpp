@@ -478,7 +478,7 @@ void TextGrid_Sound_transcribeInterval (
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
 		Melder_require (intervalNumber <= headTier -> intervals.size, U"Interval ", intervalNumber, U" does not exist.");
-		Melder_require (speechProbabilityThreshold >= 0.0 && speechProbabilityThreshold <= 1.0,
+		Melder_require (speechProbabilityThreshold <= 1.0,
 				U"The speech probability threshold should be in the interval [0, 1].");
 		Melder_require (maxNumSpeakers >= 2, U"The maximum number of speakers should be at least 2.");
 		Melder_require (clusterThreshold <= 2.0, U"The clustering threshold should not be greater than 2.0.");
