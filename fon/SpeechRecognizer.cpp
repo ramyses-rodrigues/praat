@@ -493,13 +493,20 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				/*
 					Append a silence token if we progressed into the next VAD segment and current token is more than just one punctuation symbol.
 				*/
-				if (currentVadSegment < numberOfVadSegments && whisperTokens [i]. tmax > vadSegments [currentVadSegment + 1]. vadStart) {
+				while (currentVadSegment < numberOfVadSegments && whisperTokens [i]. tmax > vadSegments [currentVadSegment + 1]. vadStart) {
 					if (Melder_debug == 2003 && allTokens.size >= 1)
 						allTokens [allTokens.size]. tmax = vadSegments [currentVadSegment]. origEnd;   // extend the last token to the end of current VAD segment
-					Token *silence = appendSilence (vadSegments [currentVadSegment + 1]. origStart);   // insert silence between current and next VAD segments
+					const double silenceTill = vadSegments [currentVadSegment + 1]. origStart;
+					Token *silence;
+					if (allTokens.size >= 1 && allTokens [allTokens.size]. isSilence) {
+						silence = &allTokens [allTokens.size];
+						silence -> tmax = silenceTill;   // extend the last silence to the end of current VAD segment
+					}
+					else
+						silence = appendSilence (silenceTill);   // insert silence between current and next VAD segments
 					trace (U"Segment ", i, U"; between VAD segments ", currentVadSegment, U" and ", currentVadSegment + 1,
-							U"; silent token ", allTokens.size, U": text = \"", silence -> textWithPunctuation.get(),
-							U"\", tmax = ", silence -> tmax);
+					   U"; silent token ", allTokens.size, U": text = \"", silence -> textWithPunctuation.get(),
+					   U"\", tmax = ", silence -> tmax);
 					currentVadSegment ++;
 				}
 

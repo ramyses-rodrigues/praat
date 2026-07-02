@@ -115,7 +115,7 @@ namespace VadDefaults {
 	inline constexpr conststring32 speechThreshold = U"0.5";
 	inline constexpr conststring32 minNonSpeechDuration = U"0.1";
 	inline constexpr conststring32 minSpeechDuration = U"0.25";
-	inline constexpr conststring32 speechPad = U"0.03";
+	inline constexpr conststring32 speechPad = U"0.0";
 	inline constexpr conststring32 nonSpeechLabel = U"";
 	inline constexpr conststring32 speechLabel = U"speech";
 }
