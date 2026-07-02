@@ -908,7 +908,7 @@ static void do_log (SoundAnalysisArea me, int which) {
 		structMelderFile file { };
 		str32cat (format, U"\n");
 		Melder_relativePathToFile (which == 1 ? my instancePref_log1_fileName() : my instancePref_log2_fileName(), & file);
-		MelderFile_appendText (& file, format);
+		MelderFile_appendText_e (& file, format);
 	}
 }
 

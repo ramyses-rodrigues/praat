@@ -236,7 +236,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 				Melder_throw (U"The script command “fappendinfo” is not available inside pictures.");
 			structMelderFile file { };
 			Melder_relativePathToFile (command + 12, & file);
-			MelderFile_appendText (& file, Melder_getInfo ());
+			MelderFile_appendText_e (& file, Melder_getInfo ());
 		} else if (str32nequ (command, U"unix ", 5)) {
 			Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
 				U"The script command “unix” is not available inside manuals.");
@@ -361,7 +361,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 			if (*p == U' ' || *p == U'\t') {
 				structMelderFile file { };
 				Melder_relativePathToFile (path, & file);
-				MelderFile_appendText (& file, p + 1);
+				MelderFile_appendText_e (& file, p + 1);
 			}
 		} else {
 			/*
