@@ -1,15 +1,12 @@
 # meson.build of the external library "blake3"
 # Paul Boersma, 27 June 2026
 
-blake3_objects = '''
-	blake3.cpp blake3_dispatch.cpp blake3_portable.cpp'''.split()
-	
-
-sources = whisper_and_ggml_objects + ggml_cpu_objects + model_objects
+sources = '''
+	blake3.c blake3_dispatch.c blake3_portable.c'''.split()
 
 libblake3 = static_library (
 	'blake3',
-	sources : blake3_objects,
+	sources : sources,
 	include_directories : [melder_inc]
 )
 

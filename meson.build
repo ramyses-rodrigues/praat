@@ -83,6 +83,6 @@ foreach dir : praat_external_dirs
 endforeach
 
 praat_libs_dep = [libartsynth_dep, libdwsys_dep, libdwtools_dep, libEEG_dep, libFFNet_dep, libfon_dep, libfoned_dep, libgram_dep, libkar_dep, libLPC_dep, libmelder_dep, libsensors_dep, libstat_dep, libsys_dep]
-praat_external_libs_dep = [libclapack_dep, libespeak_dep, libflac_dep, libgsl_dep, libglpk_dep, liblame_dep, libmp3_dep, libnum_dep, libopusfile_dep, libportaudio_dep, libvorbis_dep, libwhisper_dep, libblake3_dep]
+praat_external_libs_dep = [libclapack_dep, libblake3_dep, libespeak_dep, libflac_dep, libgsl_dep, libglpk_dep, liblame_dep, libmp3_dep, libnum_dep, libopusfile_dep, libportaudio_dep, libvorbis_dep, libwhisper_dep]
 
 subdir ('main')
