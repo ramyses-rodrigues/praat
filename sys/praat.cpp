@@ -529,7 +529,7 @@ static void praat_exit (int exit_code) {
 				because if we arrive here, we are sure to have created a new pid file
 				in the current computer session).
 			*/
-			if (! MelderFile_isNull (& pidFile)) {
+			if (! MelderFile_isNull (& pidFile7)) {
 				try {
 					/*
 						To see whether we own the pid file,
@@ -538,14 +538,14 @@ static void praat_exit (int exit_code) {
 						and the pid file was written by the latest invocation of the program,
 						which owns the pid (this means sendpraat can only send to the latest Praat if more than one are open).
 					*/
-					autofile f = Melder_fopen (& pidFile, "r");
+					autofile f = Melder_fopen (& pidFile7, "r");
 					int pidOfLatestPraatInvocation;
 					if (fscanf (f, "%d", & pidOfLatestPraatInvocation) < 1)
 						throw MelderError ();
-					f.close (& pidFile);
+					f.close (& pidFile7);
 					int pidOfCurrentPraatIncoation = getpid ();
 					if (pidOfLatestPraatInvocation == pidOfCurrentPraatIncoation)
-						MelderFile_delete (& pidFile);   // ...then we own the pid file and can delete it
+						MelderFile_delete (& pidFile7);   // ...then we own the pid file and can delete it
 				} catch (MelderError) {
 					Melder_clearError ();   // if the pid file is somehow missing or corrupted, we just ignore that
 				}
@@ -934,18 +934,18 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 			trace (U"client event called");
 			autofile f;
 			try {
-				f = Melder_fopen (& messageFile, "r");
+				f = Melder_fopen (& messageFile7, "r");
 			} catch (MelderError) {
 				Melder_clearError ();
 				return true;   // OK
 			}
 			integer pid = 0;
 			int narg = fscanf (f, "#%td", & pid);
-			f.close (& messageFile);
+			f.close (& messageFile7);
 			{// scope
 				autoPraatBackground background;
 				try {
-					praat_executeScript_noGUI (& messageFile);
+					praat_executeScript_noGUI (& messageFile7);
 				} catch (MelderError) {
 					Melder_flushError (Melder_upperCaseAppName(), U": message not completely handled.");
 				}
@@ -959,7 +959,7 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 	static int cb_userMessage () {
 		autoPraatBackground background;
 		try {
-			praat_executeScript_noGUI (& messageFile);
+			praat_executeScript_noGUI (& messageFile7);
 		} catch (MelderError) {
 			Melder_flushError (Melder_upperCaseAppName(), U": message not completely handled.");
 		}
@@ -1209,7 +1209,7 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 	#elif defined (UNIX)
 		integer versionOfRunningPraat = 0;   // mutable, to be filled in from file
 		try {
-			autofile f = Melder_fopen (& pidFile, "r");
+			autofile f = Melder_fopen (& pidFile7, "r");
 			int numberOfRead = fscanf (f, "%td %td", & pidOfRunningPraat, & versionOfRunningPraat);
 			if (numberOfRead < 1) {
 				trace (U"No PID in PID file, "
@@ -1406,12 +1406,12 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 	#elif defined (UNIX)
 		autofile f;
 		try {
-			f = Melder_fopen (& messageFile, "w");
+			f = Melder_fopen (& messageFile7, "w");
 			fprintf (f, "%s", text8.get());
-			f.close (& messageFile);
+			f.close (& messageFile7);
 		} catch (MelderError) {
 			Melder_clearError ();
-			Melder_casual (U"Cannot write message file \"", MelderFile_messageName (& messageFile),
+			Melder_casual (U"Cannot write message file \"", MelderFile_messageName (& messageFile7),
 					U"\" (no privilege to write to folder, or disk full).");
 			return false;
 		}
@@ -1423,12 +1423,12 @@ static bool tryToSwitchToRunningPraat (bool foundTheOpenOption, bool foundTheSen
 	#elif defined (_WIN32)
 		autofile f;
 		try {
-			f = Melder_fopen (& messageFile, "w");
+			f = Melder_fopen (& messageFile7, "w");
 			fprintf (f, "%s", text8.get());
-			f.close (& messageFile);
+			f.close (& messageFile7);
 		} catch (MelderError) {
 			Melder_clearError ();
-			Melder_casual (U"Cannot write message file \"", MelderFile_messageName (& messageFile),
+			Melder_casual (U"Cannot write message file \"", MelderFile_messageName (& messageFile7),
 					U"\" (no privilege to write to folder, or disk full).");
 			return false;
 		}
@@ -1919,9 +1919,9 @@ void praat_init (conststring32 title,
 				though they will be responded to much later.
 			*/
 			try {
-				autofile f = Melder_fopen (& pidFile, "w");
+				autofile f = Melder_fopen (& pidFile7, "w");
 				fprintf (f, "%td %td", integer (getpid ()), integer (Melder_appVersion()));
-				f.close (& pidFile);
+				f.close (& pidFile7);
 			} catch (MelderError) {
 				Melder_clearError ();
 			}
