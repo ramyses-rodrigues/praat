@@ -591,7 +591,7 @@ Settings
 ##Min. speech segment (s)# (standard value: 0.25)
 :   the minimum duration of a speech segment. Shorter segments are discarded.
 
-##Padding around speech segments (s)# (standard value: 0.03)
+##Padding around speech segments (s)# (standard value: 0.0)
 :   extends each detected speech segment by this amount on both sides. You might want to increase
 	this value if speech onsets and offsets are being clipped.
 
@@ -624,7 +624,7 @@ Settings
 ##Min. speech segment (s)# (standard value: 0.25)
 :	see @@speech activity detection with Silero VAD@.
 
-##Padding around speech segments (s)# (standard value: 0.03)
+##Padding around speech segments (s)# (standard value: 0.0)
 :	see @@speech activity detection with Silero VAD@.
 
 ##Non-speech interval label# (standard value: “”)
@@ -685,7 +685,7 @@ Settings
 ##Min. speech segment (s)# (standard value: 0.25)
 :	see @@speech activity detection with Silero VAD@.
 
-##Padding around speech segments (s)# (standard value: 0.03)
+##Padding around speech segments (s)# (standard value: 0.0)
 :	see @@speech activity detection with Silero VAD@.
 
 ##Include diarization# (standard: off)
