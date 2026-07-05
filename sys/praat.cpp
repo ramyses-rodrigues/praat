@@ -2008,7 +2008,7 @@ void praat_init (conststring32 title,
 		GuiThing_show (raam);
 		#ifdef UNIX
 			if (! praatP.ignorePreferenceFiles)
-				Preferences_read_i (& prefsFile);
+				Preferences_read_i (& prefsFile7);
 		#endif
 		#if ! defined (macintosh)
 			trace (U"initializing the Gui late (Windows and Linux)");
