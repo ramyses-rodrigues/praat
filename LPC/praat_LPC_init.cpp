@@ -93,19 +93,19 @@ FORM (GRAPHICS_EACH__FormantPath_drawAsGrid, U"FormantPath: Draw as grid", nullp
 	REAL (tmin, U"left Time range (s)", U"0.0")
 	REAL (tmax, U"right Time range (s)", U"0.1")
 	POSITIVE (fmax, U"Maximum frequency", U"6200.0")
-	NATURAL (fromFormant, U"left Formant range", U"1")
-	NATURAL (toFormant, U"right Formant range", U"5")
+	NATURAL1 (fromFormant, U"left Formant range", U"1")
+	NATURAL1 (toFormant, U"right Formant range", U"5")
 	BOOLEAN (showBandwidths, U"Show bandwidths", true)
 	COLOUR (odd, U"Colour of F1, F3, F5", U"red")
 	COLOUR (even, U"Colour of F2, F4", U"purple")
-	INTEGER (numberOfRows, U"Number of rows", U"0")
-	INTEGER (numberOfColumns, U"Number of columns", U"0")
+	NATURAL0 (numberOfRows, U"Number of rows", U"0")
+	NATURAL0 (numberOfColumns, U"Number of columns", U"0")
 	POSITIVE (xSpaceFraction, U"X space fraction", U"0.1")
 	POSITIVE (ySpaceFraction, U"Y space fraction", U"0.2")
 	POSITIVE (lineEvery_Hz, U"Horizontal line every (Hz)", U"1000.0")
 	REAL (xCursor, U"X cursor line at (s)", U"-0.1 (= no line)")
 	REAL (yCursor, U"Y cursor at (Hz)", U"-100.0 (= no line)")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3 3")
 	BOOLEAN (markCandidatesWithinPath, U"Mark candidates within path", false)
 	COLOUR (markColour, U"Mark colour", U"{0.984,0.984, 0.7}")
 	BOOLEAN (showStress, U"Show stress", true)
@@ -131,11 +131,11 @@ FORM (NEW__FormantPath_downTo_Table_optimalInterval, U"FormantPath: Down to Tabl
 	POSITIVE (powerf, U"Power", U"1.25")
 	BOOLEAN (includeFrameNumber, U"Include frame number", false)
 	BOOLEAN (includeTime, U"Include time", true)
-	NATURAL (numberOfTimeDecimals, U"Number of time decimals", U"6")
+	NATURAL0 (numberOfTimeDecimals, U"Number of time decimals", U"6")
 	BOOLEAN (includeIntensity, U"Include intensity", false)
-	NATURAL (numberOfIntensityDecimals, U"Number of intensity decimals", U"3")
+	NATURAL0 (numberOfIntensityDecimals, U"Number of intensity decimals", U"3")
 	BOOLEAN (includeNumberOfFormants, U"Include number of formants", true)
-	NATURAL (numberOfFrequencyDecimals, U"Number of frequency decimals", U"3")
+	NATURAL0 (numberOfFrequencyDecimals, U"Number of frequency decimals", U"3")
 	BOOLEAN (includeBandwidths, U"Include bandwidths", true)
 	BOOLEAN (includeOptimumCeiling, U"Include optimal ceiling", true)
 	BOOLEAN (includeMinimumStress, U"Include minimum stress", false)
@@ -153,11 +153,11 @@ DO
 FORM (NEW__FormantPath_downTo_Table_stresses, U"FormantPath: Down to Table (stresses)", U"FormantPath: Down to Table (stresses)...") {
 	REAL (tmin, U"left Time range (s)", U"0.1")
 	REAL (tmax, U"right Time range (s)", U"0.2")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
-	NATURAL (numberOfStressDecimals, U"Number of stress decimals", U"2")
+	NATURAL0 (numberOfStressDecimals, U"Number of stress decimals", U"2")
 	BOOLEAN (includeIntervalTimes, U"Include interval times", true)
-	NATURAL (numberOfTimeDecimals, U"Number of time decimals", U"6")
+	NATURAL0 (numberOfTimeDecimals, U"Number of time decimals", U"6")
 	OK
 DO
 	CONVERT_EACH_TO_ONE (FormantPath)
@@ -181,7 +181,7 @@ DIRECT (QUERY_ONE_FOR_REAL_VECTOR__FormantPath_listCeilingFrequencies) {
 FORM (QUERY_ONE_FOR_REAL__FormantPath_getOptimalCeiling, U"FormantPath: Get optimal ceiling", U"") {
 	REAL (tmin, U"left Time range (s)", U"0.0")
 	REAL (tmax, U"right Time range (s)", U"0.0 (= all)")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO
@@ -193,8 +193,8 @@ DO
 FORM (QUERY_ONE_FOR_REAL__FormantPath_getStressOfCandidate, U"FormantPath: Get stress of candidate", U"") {
 	REAL (tmin, U"left Time range (s)", U"0.0")
 	REAL (tmax, U"right Time range (s)", U"0.0 (= all)")
-	NATURAL (candidate, U"Candidate number", U"5")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
+	NATURAL1 (candidate, U"Candidate number", U"5")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO
@@ -206,7 +206,7 @@ DO
 FORM (QUERY_ONE_FOR_REAL_VECTOR__FormantPath_listStressOfCandidates, U"FormantPath: List stress of candidates", U"") {
 	REAL (tmin, U"left Time range (s)", U"0.0")
 	REAL (tmax, U"right Time range (s)", U"0.0 (= all)")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO
@@ -218,7 +218,7 @@ DO
 FORM (MODIFY_EACH__FormantPath_setPath, U"FormantPath: Set path", U"") {
 	REAL (tmin, U"left Time range (s)", U"0.0")
 	REAL (tmax, U"right Time range (s)", U"0.0 (= all)")
-	NATURAL (candidate, U"Candidate number", U"5")
+	NATURAL1 (candidate, U"Candidate number", U"5")
 	OK
 DO
 	MODIFY_EACH (FormantPath)
@@ -229,7 +229,7 @@ DO
 FORM (MODIFY_EACH__FormantPath_setOptimalPath, U"", U"") {
 	REAL (tmin, U"left Time range (s)", U"0.0")
 	REAL (tmax, U"right Time range (s)", U"0.0 (= all)")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO
@@ -240,7 +240,7 @@ DO
 
 FORM (CONVERT_EACH_TO_ONE__FormantPath_to_Matrix_stress, U"FormantPath: To Matrix (stress)", nullptr) {
 	POSITIVE (windowLength, U"Window length", U"0.025")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO
@@ -250,7 +250,7 @@ DO
 }
 
 FORM (CONVERT_EACH_TO_ONE__FormantPath_to_Matrix_qsums, U"FormantPath: To Matrix (qsums)", nullptr) {
-	INTEGER (numberOfTracks, U"Number of tracks", U"4")
+	NATURAL0 (numberOfTracks, U"Number of tracks", U"4")
 	OK
 DO
 	CONVERT_EACH_TO_ONE (FormantPath)
@@ -259,7 +259,7 @@ DO
 }
 
 FORM (CONVERT_EACH_TO_ONE__FormantPath_to_Matrix_transition,  U"FormantPath: To Matrix (transition)", nullptr) {
-	INTEGER (numberOfTracks, U"Number of tracks", U"4")
+	NATURAL0 (numberOfTracks, U"Number of tracks", U"4")
 	BOOLEAN (maximumCosts, U"Maximum costs", false)
 	OK
 DO
@@ -278,7 +278,7 @@ FORM (CONVERT_EACH_TO_ONE__FormantPath_to_Matrix_deltas,  U"FormantPath: To Matr
 	POSITIVE (intensityModulationStepSize, U"Intensity modulation step size (dB)", U"5.0")
 	COMMENT (U"Global stress parameters:")
 	POSITIVE (windowLength, U"Window length", U"0.035")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO
@@ -304,7 +304,7 @@ FORM (MODIFY_EACH__FormantPath_pathFinder,  U"FormantPath: Path finder", nullptr
 	POSITIVE (intensityModulationStepSize, U"Intensity modulation step size (dB)", U"5.0")
 	COMMENT (U"Global stress parameters:")
 	POSITIVE (windowLength, U"Window length", U"0.035")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3")
+	NATURAL1VECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3")
 	POSITIVE (powerf, U"Power", U"1.25")
 	OK
 DO

@@ -759,10 +759,9 @@ autoTableOfReal FFNet_extractWeights (FFNet me, integer layer) {
 
 autoFFNet PatternList_Categories_to_FFNet (PatternList me, Categories you, integer numberOfUnits1, integer numberOfUnits2) {
 	try {
-		numberOfUnits1 = numberOfUnits1 > 0 ? numberOfUnits1 : 0;
-		numberOfUnits2 = numberOfUnits2 > 0 ? numberOfUnits2 : 0;
+		Melder_assert (numberOfUnits1 >= 0 && numberOfUnits2 >= 0);
 		autoCategories uniq = Categories_selectUniqueItems (you);
-		const integer numberOfOutputs = uniq->size;
+		const integer numberOfOutputs = uniq -> size;
 		Melder_require (numberOfOutputs > 0,
 			U"The Categories should not be empty.");
 		autoFFNet result = FFNet_create (my nx, numberOfUnits1, numberOfUnits2, numberOfOutputs, false);
