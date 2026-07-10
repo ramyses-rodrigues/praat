@@ -357,8 +357,10 @@ else ifeq ($(OS_IS_LINUX),1)
 ifeq ($(OS_IS_LINUX),1)
   BINARIES = $(shell find . -maxdepth 1 -name praat -o -name praat_nogui -o -name praat_barren)
   INSTALL_BIN = $(INSTALL) -pDm0755 $(BINARIES) -t $(BINDIR)
+  INSTALL_BASHCOMPLETION = $(INSTALL) -Dm0644 main/praat.bash-completion $(DATADIR)/bash-completion/completions/praat
 else
   INSTALL_BIN = $(INSTALL) -pDm0755 praat -t $(BINDIR)
+  INSTALL_BASHCOMPLETION =
 endif
   INSTALL_METAINFO = $(INSTALL) -Dm0644 org.praat.Praat.metainfo.xml -t $(DATADIR)/metainfo
   INSTALL_DESKTOP = $(INSTALL) -Dm0644 main/praat.desktop $(DATADIR)/applications/org.praat.Praat.desktop
@@ -478,3 +480,4 @@ install:
 	$(INSTALL_METAINFO)
 	$(INSTALL_DESKTOP)
 	$(INSTALL_ICONS)
+	$(INSTALL_BASHCOMPLETION)
