@@ -353,17 +353,23 @@ else ifeq ($(OS_IS_LINUX),1)
   ICON =
   MAIN_ICON =
 
-  INSTALL = install -pDm0755 praat -t $(BINDIR)
-  INSTALL_METAINFO = install -Dm0644 org.praat.Praat.metainfo.xml -t $(DATADIR)/metainfo
-  INSTALL_DESKTOP = install -Dm0644 main/praat.desktop $(DATADIR)/applications/org.praat.Praat.desktop
+  INSTALL ?= install
+ifeq ($(OS_IS_LINUX),1)
+  BINARIES = $(shell find . -maxdepth 1 -name praat -o -name praat_nogui -o -name praat_barren)
+  INSTALL_BIN = $(INSTALL) -pDm0755 $(BINARIES) -t $(BINDIR)
+else
+  INSTALL_BIN = $(INSTALL) -pDm0755 praat -t $(BINDIR)
+endif
+  INSTALL_METAINFO = $(INSTALL) -Dm0644 org.praat.Praat.metainfo.xml -t $(DATADIR)/metainfo
+  INSTALL_DESKTOP = $(INSTALL) -Dm0644 main/praat.desktop $(DATADIR)/applications/org.praat.Praat.desktop
   INSTALL_ICONS = \
-	install -Dm0644 main/praat-480.svg $(DATADIR)/icons/hicolor/scalable/apps/org.praat.Praat.svg && \
-	install -Dm0644 main/praat-16.png $(DATADIR)/icons/hicolor/16x16/apps/org.praat.Praat.png && \
-	install -Dm0644 main/praat-32.png $(DATADIR)/icons/hicolor/32x32/apps/org.praat.Praat.png && \
-	install -Dm0644 main/praat-48.png $(DATADIR)/icons/hicolor/48x48/apps/org.praat.Praat.png && \
-	install -Dm0644 main/praat-128.png $(DATADIR)/icons/hicolor/128x128/apps/org.praat.Praat.png && \
-	install -Dm0644 main/praat-256.png $(DATADIR)/icons/hicolor/256x256/apps/org.praat.Praat.png && \
-	install -Dm0644 main/praat-512.png $(DATADIR)/icons/hicolor/512x512/apps/org.praat.Praat.png
+	$(INSTALL) -Dm0644 main/praat-480.svg $(DATADIR)/icons/hicolor/scalable/apps/org.praat.Praat.svg && \
+	$(INSTALL) -Dm0644 main/praat-16.png $(DATADIR)/icons/hicolor/16x16/apps/org.praat.Praat.png && \
+	$(INSTALL) -Dm0644 main/praat-32.png $(DATADIR)/icons/hicolor/32x32/apps/org.praat.Praat.png && \
+	$(INSTALL) -Dm0644 main/praat-48.png $(DATADIR)/icons/hicolor/48x48/apps/org.praat.Praat.png && \
+	$(INSTALL) -Dm0644 main/praat-128.png $(DATADIR)/icons/hicolor/128x128/apps/org.praat.Praat.png && \
+	$(INSTALL) -Dm0644 main/praat-256.png $(DATADIR)/icons/hicolor/256x256/apps/org.praat.Praat.png && \
+	$(INSTALL) -Dm0644 main/praat-512.png $(DATADIR)/icons/hicolor/512x512/apps/org.praat.Praat.png
 endif
 
 # Export some variables to the makefiles in the subdirectories.
@@ -468,7 +474,7 @@ clean-self:
 	$(MAKE) -C main clean
 
 install:
-	$(INSTALL)
+	$(INSTALL_BIN)
 	$(INSTALL_METAINFO)
 	$(INSTALL_DESKTOP)
 	$(INSTALL_ICONS)
