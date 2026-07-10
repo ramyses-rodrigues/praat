@@ -397,7 +397,7 @@ all: all-external all-self
 		external/opusfile/libopusfile.a \
 		external/whispercpp/libwhisper.a \
 		external/blake3/libblake3.a \
-		$(NON_PRAAT_LIBRARIES)
+               $(NON_PRAAT_LIBRARIES) $(LDFLAGS)
 
 all-external:
 	$(MAKE) -C external/clapack
