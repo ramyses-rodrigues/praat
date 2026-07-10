@@ -264,9 +264,10 @@ else ifeq ($(OS_IS_LINUX),1)
 
   # Default settings for where the executable will be installed,
   # overridable by environment variables (or on the `make` command line).
+  DESTDIR ?=
   PREFIX ?= /usr/local
-  BINDIR ?= $(PREFIX)/bin
-  DATADIR ?= $(PREFIX)/share
+  BINDIR ?= $(DESTDIR)$(PREFIX)/bin
+  DATADIR ?= $(DESTDIR)$(PREFIX)/share
 
   PKG_CONFIG ?= pkg-config
 
