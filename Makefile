@@ -315,8 +315,8 @@ else ifeq ($(OS_IS_LINUX),1)
     SHARED_COMPILER_FLAGS += -Dchrome
   endif
 
-  CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=missing-prototypes -Werror=implicit
-  CXXFLAGS := -std=c++17 $(SHARED_COMPILER_FLAGS) -Wshadow
+  CFLAGS += -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=missing-prototypes -Werror=implicit
+  CXXFLAGS += -std=c++17 $(SHARED_COMPILER_FLAGS) -Wshadow
 
   ifeq ($(PRAAT_COMPILER),clang)
     CC := clang
