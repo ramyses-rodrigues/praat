@@ -261,6 +261,7 @@ static void SpeechRecognizer_runWhisper (constSpeechRecognizer me, constSound so
 		params. vad_params. min_speech_duration_ms = static_cast <int> (minSpeechDuration * 1000.0);
 		params. vad_params. min_silence_duration_ms = static_cast <int> (minNonSpeechDuration * 1000.0);
 		params. vad_params. speech_pad_ms = static_cast <int> (speechPad * 1000.0);
+		params. vad_params. samples_overlap = 0.1f;   // this is the default, but brought here to remember that it is configurable
 	}
 	if (whisper_is_multilingual (my whisperContext.get ())) {
 		if (my d_languageName && ! str32str (my d_languageName.get(), U"Autodetect")) {
@@ -301,10 +302,10 @@ static bool isPurePunctuation(const conststring32 token) {
 	if (! token || token [0] == U'\0')
 		return false;
 
-	for (int i = 0; i < Melder_length (token); i ++) {
+	const integer lengthOfToken = Melder_length (token);
+	for (integer i = 0; i < lengthOfToken; i ++)
 		if (Melder_isAlphanumeric (token [i]))
 			return false;
-	}
 	return true;
 }
 
@@ -338,8 +339,146 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			return transcription;
 		}
 
+		const int numberOfVadSegments = whisper_full_n_vad_segments (my whisperContext.get());
+		struct VadSegment {
+			double origStart;
+			double origEnd;
+			double vadStart;
+			double vadEnd;
+		};
+		autovector <VadSegment> vadSegments = newvectorzero <VadSegment> (numberOfVadSegments);
+		for (integer i = 1; i <= numberOfVadSegments; i ++) {
+			vadSegments [i]. origStart = std::min (
+					static_cast <double> (whisper_full_get_vad_segment_orig_start (my whisperContext.get(), i - 1)) / 100.0,
+					sound -> xmax
+				);
+			vadSegments [i]. origEnd = std::min (
+					static_cast <double> (whisper_full_get_vad_segment_orig_end (my whisperContext.get(), i - 1)) / 100.0,
+					sound -> xmax
+				);
+			vadSegments [i]. vadStart  =
+					static_cast <double> (whisper_full_get_vad_segment_vad_start (my whisperContext.get(), i - 1)) / 100.0;
+			vadSegments [i]. vadEnd  =
+					static_cast <double> (whisper_full_get_vad_segment_vad_end (my whisperContext.get(), i - 1)) / 100.0;
+			trace (U"VAD segment ", i, U", orig_start = ", vadSegments [i]. origStart, U", orig_end = ", vadSegments [i]. origEnd,
+					U", vad_start = ", vadSegments [i]. vadStart, U", vad_end = ", vadSegments [i]. vadEnd);
+		}
+
 		/*
-			Group Whisper tokens into words, repairing incomplete UTF8 tokens.
+			Lambda for VAD time to real time conversion.
+		*/
+		auto vadToRealTime = [& vadSegments, useVad] (double vadTime) {
+			if (! useVad || ! vadSegments.size)
+				return vadTime;   // no VAD: VAD time is the real time
+
+			/* mutable scan */ integer k = 1;
+			while (k < vadSegments.size && vadSegments [k + 1]. vadStart <= vadTime)
+				k ++;
+			return vadTime + vadSegments [k]. origStart - vadSegments [k]. vadStart;
+		};
+
+		/*
+			Lambda for finding the end of the VAD segment (in VAD time) that contains vadTime.
+			Note that vadSegments [k]. vadEnd is not used. This is because whisper.cpp pads each VAD segment
+			with 0.1 seconds of context on the right side, and vadEnd points to the end of that padding.
+			Whisper.cpp additionally adds 0.1 seconds of zeroes after each padded VAD segment,
+			resulting in 0.2 seconds of "non-speech" between VAD segments.
+			A vadTime in these 0.2 seconds after a VAD segment is also considered belonging to this segment.
+		*/
+		auto vadSegmentEnd = [& vadSegments] (double vadTime) {
+			Melder_assert (vadTime >= vadSegments [1]. vadStart);
+			/* mutable scan */ integer k = 1;
+			while (k < vadSegments.size && vadSegments [k + 1]. vadStart <= vadTime)
+				k ++;
+			return vadSegments [k]. vadStart + (vadSegments [k]. origEnd - vadSegments [k]. origStart);
+		};
+
+		/*
+			Collect all the tokens into a flat list, repairing incomplete UTF8 tokens.
+		*/
+		struct RawToken {
+			autostring32 text;   // leading space intact
+			double tmax;
+			integer whisperSegment;
+		};
+		autovector <RawToken> rawTokens = newvectorzero <RawToken> (0);
+
+		/* mutable accumulate */ std::string partialTokenText;   // here we will accumulate whisper token texts until it is a proper UTF8 string
+		const whisper_token firstSpecialTokenId = whisper_token_eot (my whisperContext.get());   // see struct whisper_vocab in whisper.cpp
+
+		for (integer i = 0; i < numberOfSegments; i ++) {
+			/* mutable flag for tracing */ bool isFirstPartialTokenInSegment = true;
+			for (integer j = 0; j < whisper_full_n_tokens (my whisperContext.get(), static_cast<int> (i)); j ++) {
+				const whisper_token_data tokenData = whisper_full_get_token_data (
+						my whisperContext.get(),  static_cast<int> (i),  static_cast<int> (j));
+				if (tokenData. id >= firstSpecialTokenId) {
+					trace (U"Skipping special token: ", tokenData. id);
+					continue;   // skip special tokens
+				}
+
+				/*
+					Clamp the tail of the previous segment.
+				*/
+				if (isFirstPartialTokenInSegment) {
+					if (rawTokens.size >= 1) {
+						/* mutable search */ integer lastPreserved = rawTokens.size;
+						/*
+							Find last segment's tokens to keep before clamping by the beginning of the current Whisper segment.
+						*/
+						const integer previousSegment = rawTokens [rawTokens.size]. whisperSegment;
+						/* mutable, may be lowered */ double border = std::min (tokenData. t0 / 100.0, tokenData. t_dtw / 100.0);
+						while (lastPreserved >= 1 && rawTokens [lastPreserved]. whisperSegment == previousSegment
+								&& rawTokens [lastPreserved]. tmax > border)
+							lastPreserved --;
+						/*
+							Also apply Inter-VAD segment clamping: the tail of the previous Whisper segment must stay
+							in the VAD segment where the preserved part of the tail ends.
+						*/
+						if (useVad && vadSegments.size >= 1 && lastPreserved >= 1 && lastPreserved < rawTokens.size) {
+							const double ceiling = vadSegmentEnd (rawTokens [lastPreserved]. tmax);
+							if (ceiling < border) {
+								border = ceiling;
+								while (lastPreserved >= 1 && rawTokens [lastPreserved]. whisperSegment == previousSegment
+										&& rawTokens [lastPreserved]. tmax > border)
+									lastPreserved --;
+							}
+						}
+						if (lastPreserved < rawTokens.size)   // there is something to clamp
+							trace (U"Clamping ", rawTokens.size - lastPreserved, U" tail token(s) of segment ", previousSegment, U" to ", vadToRealTime (border));
+						for (integer m = lastPreserved + 1; m <= rawTokens.size; m ++)
+							rawTokens [m]. tmax = border;   // actual clamping
+					}
+					trace (U"Segment ", i, U" first-token t0 = ", vadToRealTime (tokenData. t0 / 100.0),
+							U", segment_t0 = ", whisper_full_get_segment_t0 (my whisperContext.get(), i) / 100.0,
+							U", segment_t1 = ", whisper_full_get_segment_t1 (my whisperContext.get(), i) / 100.0);
+					isFirstPartialTokenInSegment = false;
+				}
+
+				partialTokenText += whisper_full_get_token_text (my whisperContext.get(), i, j);
+				const double currentTokenTmax = tokenData. t_dtw / 100.0;
+
+				if (! Melder_str8IsValidUtf8 (partialTokenText.c_str()))
+					continue;   // continue accumulating token texts until partialTokenText is a proper UTF8 string
+
+				/*
+					Now partialTokenText is valid UTF8.
+				*/
+				RawToken *rawToken = rawTokens. append();
+				rawToken -> text = Melder_8to32_e (partialTokenText.c_str());
+				rawToken -> tmax = currentTokenTmax;
+				rawToken -> whisperSegment = i;
+				partialTokenText. clear();
+
+				trace (U"Segment ", i, U"; original token in it ", j, U": text = \"", rawToken -> text.get(),
+					U"\", t_dtw = ", vadToRealTime (currentTokenTmax),
+					U"\", t0 = ", vadToRealTime (tokenData. t0 / 100.0),
+					U"\", t1 = ", vadToRealTime (tokenData. t1 / 100.0)
+				);
+			}
+		}
+
+		/*
+			Group Whisper tokens into words.
 		*/
 		struct WhisperToken {
 			autostring32 text;
@@ -353,71 +492,55 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 		};
 
 		autovector <WhisperWord> whisperWords = newvectorzero <WhisperWord> (0);
-		/* mutable accumulate */ std::string partialTokenText;   // here we will accumulate whisper token texts until it is a proper UTF8 string
-		const whisper_token firstSpecialTokenId = whisper_token_eot (my whisperContext.get());   // eot is the first special token (see struct whisper_vocab in whisper.cpp)
-		for (int i = 0; i < numberOfSegments; i ++) {
-			const int numberOfTokensInCurrentSegment = whisper_full_n_tokens (my whisperContext.get(), i);
-			/* mutable flag for tracing */ bool isFirstPartialTokenInSegment = true;
-			for (int j = 0; j < numberOfTokensInCurrentSegment; j ++) {
-				const whisper_token_data tokenData = whisper_full_get_token_data (my whisperContext.get(), i, j);
-				if (tokenData. id >= firstSpecialTokenId) {
-					trace (U"Skipping special token: ", tokenData. id);
-					continue;   // skip special tokens
-				}
+		for (integer i = 1; i <= rawTokens.size; i ++) {
+			RawToken& rawToken = rawTokens [i];
 
-				if (isFirstPartialTokenInSegment) {   // remember the start of the first token in a segment
-					trace (U"Segment ", i, U" first-token t0 = ", tokenData.t0 / 100.0,
-						U", segment_t0 = ", whisper_full_get_segment_t0 (my whisperContext.get(), i) / 100.0,
-						U", segment_t1 = ", whisper_full_get_segment_t1 (my whisperContext.get(), i) / 100.0
-					);
-					isFirstPartialTokenInSegment = false;
-				}
+			/*
+				Create a new WhisperWord if
+				- the current token starts with a space or if autovector <WhisperWord> whisperWords is still empty
+				- and the previous word is not a standalone "-".
+				Otherwise, append the current token to the existing word.
+			*/
+			const bool isNewWord = rawToken. text.get() [0] == U' ';
+			const bool isLastWordDash = whisperWords.size >= 1 &&
+					Melder_length (whisperWords [whisperWords.size]. textWithPunctuation.get()) == 1 &&
+					whisperWords [whisperWords.size]. textWithPunctuation.get() [0] == U'-';
 
-				partialTokenText += whisper_full_get_token_text (my whisperContext.get(), i, j);
-				const double currentTokenTmax = tokenData. t_dtw / 100.0;
+			WhisperWord *word;
+			if ((isNewWord || whisperWords.size == 0) && ! isLastWordDash)
+				word = whisperWords. append();
+			else
+				word = &whisperWords [whisperWords.size];
+			WhisperToken *token = word -> whisperTokens.append();
 
-				if (! Melder_str8IsValidUtf8 (partialTokenText.c_str()))
-					continue;   // continue accumulating token texts until partialTokenText is a proper UTF8 string
+			token -> text = Melder_dup (rawToken. text.get() + (isNewWord ? 1 : 0));
+			word -> textWithPunctuation = Melder_dup (Melder_cat (word -> textWithPunctuation.get(), token -> text.get()));
+			token -> tmax = rawToken. tmax;
+			if (word -> whisperTokens.size >= 2 && isPurePunctuation (token -> text.get())
+					&& token -> text.get() [0] != U')' && token -> text.get() [0] != U']')
+				word -> tmax = (word -> tmax + token -> tmax) / 2;
+			else
+				word -> tmax = token -> tmax;
+		}
 
-				/*
-					Now partialTokenText is valid UTF8, so it is ready to become fullTokenText.
-				*/
-				autostring32 fullTokenText = Melder_8to32_e (partialTokenText.c_str());
-				partialTokenText. clear();
-
-				trace (U"Segment ", i, U"; original token in it ", j, U": text = \"", fullTokenText.get(),
-					U"\", t_dtw = ", currentTokenTmax,
-					U"\", t0 = ", tokenData. t0 / 100.0,
-					U"\", t1 = ", tokenData. t1 / 100.0
-				);
-
-				/*
-					Create a new Word if
-					- the current token starts with a space or if autovector <Word> words is still empty
-					- and the previous word is not a standalone "-".
-					Otherwise, append the current token to the existing word.
-				*/
-				const bool isNewWord = fullTokenText.get() [0] == U' ';
-				const bool isLastWordDash = whisperWords.size >= 1 &&
-						Melder_length (whisperWords [whisperWords.size]. textWithPunctuation.get()) == 1 &&
-						whisperWords [whisperWords.size]. textWithPunctuation.get() [0] == U'-';
-
-				WhisperWord *word;
-				if ((isNewWord || whisperWords.size == 0) && ! isLastWordDash)
-					word = whisperWords. append();
-				else
-					word = &whisperWords [whisperWords.size];
-				WhisperToken *token = word -> whisperTokens.append();
-				token -> text = Melder_dup (fullTokenText.get() + (isNewWord ? 1 : 0 ));
-				token -> tmax = currentTokenTmax;
-
-				word -> textWithPunctuation = Melder_dup (Melder_cat (word -> textWithPunctuation.get(), token -> text.get()));
-				if (word -> whisperTokens.size >= 2 && isPurePunctuation (token -> text.get())
-						&& token -> text.get() [0] != U')' && token -> text.get() [0] != U']')
-					word -> tmax = (word -> tmax + currentTokenTmax) / 2;
-				else
-					word -> tmax = currentTokenTmax;
+		/*
+			Resolve zero-length words. There might be runs of consecutive words sharing the same tmax (they can be results
+			of clamping or just poor DTW). Distribute them equally over the time from the preceding word's tmax till their tmax,
+			so that there are no zero-length words anymore.
+		*/
+		/* mutable scan */ integer iword = 1;
+		while (iword <= whisperWords.size) {
+			/* mutable scan */ integer k = iword + 1;
+			while (k <= whisperWords.size && whisperWords [k]. tmax == whisperWords [iword]. tmax)
+				k ++;
+			const integer n = k - iword;
+			if (n >= 2) {
+				const double prevTmax = ( iword > 1 ? whisperWords [iword - 1]. tmax : 0.0 );
+				const double interval = (whisperWords [iword]. tmax - prevTmax) / n;
+				for (integer l = 1; l < n; l ++)
+					whisperWords [iword + l - 1]. tmax = prevTmax + interval * l;
 			}
+			iword = k;
 		}
 
 		/*
@@ -428,7 +551,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			double tmax;
 		};
 		autovector <WordInterval> wordIntervals;
-		const int numberOfVadSegments = whisper_full_n_vad_segments (my whisperContext.get());
 
 		if (! useVad || ! numberOfVadSegments) {
 			/*
@@ -445,29 +567,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				and insert silence tokens between consecutive VAD segments.
 			*/
 			wordIntervals = newvectorzero <WordInterval> (0);
-			struct VadSegment {
-				double origStart;
-				double origEnd;
-				double vadStart;
-				double vadEnd;
-			};
-			autovector <VadSegment> vadSegments = newvectorzero <VadSegment> (numberOfVadSegments);
-			for (integer i = 1; i <= numberOfVadSegments; i ++) {
-				vadSegments [i]. origStart = std::min (
-						static_cast <double> (whisper_full_get_vad_segment_orig_start (my whisperContext.get(), i - 1)) / 100.0,
-						sound ->xmax
-					);
-				vadSegments [i]. origEnd = std::min (
-						static_cast <double> (whisper_full_get_vad_segment_orig_end (my whisperContext.get(), i - 1)) / 100.0,
-						sound ->xmax
-					);
-				vadSegments [i]. vadStart  =
-						static_cast <double> (whisper_full_get_vad_segment_vad_start (my whisperContext.get(), i - 1)) / 100.0;
-				vadSegments [i]. vadEnd  =
-						static_cast <double> (whisper_full_get_vad_segment_vad_end (my whisperContext.get(), i - 1)) / 100.0;
-				trace (U"VAD segment ", i, U", orig_start = ", vadSegments [i]. origStart, U", orig_end = ", vadSegments [i]. origEnd,
-						U", vad_start = ", vadSegments [i]. vadStart, U", vad_end = ", vadSegments [i]. vadEnd);
-			}
 
 			/*
 				Lambda to append a silent interval with the given tmax to wordIntervals.
@@ -492,7 +591,7 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			auto appendWord = [& wordIntervals, & vadSegments, & appendSilence] (WhisperWord& word, integer vadSegment) {
 				Melder_assert (word. tmax >= vadSegments [vadSegment]. vadStart);
 				const double tmax = std::min (
-						word. tmax + vadSegments [vadSegment]. origStart - vadSegments [vadSegment]. vadStart,   // original tmax
+						word. tmax - vadSegments [vadSegment]. vadStart + vadSegments [vadSegment]. origStart,   // original tmax
 						vadSegments [vadSegment]. origEnd);   // clamp to the size of VAD interval
 
 				const conststring32 text = word. textWithPunctuation.get();
