@@ -15,11 +15,11 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install dependencies
-      run: sudo apt-get install -y libgtk-3-dev libasound2-dev libpulse-dev libjack-dev xvfb
+      run: sudo apt-get install -y libgtk-3-dev libasound2-dev libpulse-dev libjack-dev cage
 
     - name: Compile binary
       run: make
 
     - name: Run test script
       run: |
-          xvfb-run --auto-servernum ./praat --FULL-TRUST --run test/runAllTests_batch.praat
+          WLR_BACKENDS=headless cage -- ./praat --FULL-TRUST --run test/runAllTests_batch.praat
