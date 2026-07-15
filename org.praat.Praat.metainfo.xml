@@ -72,6 +72,16 @@ SPDX-License-Identifier: MIT
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="6.6.30" date="2026-06-30">
+      <url type="details">https://github.com/praat/praat.github.io/releases/tag/v6.6.30</url>
+      <description>
+        <ul>
+          <li>Tutorial documentation on speech recognition.</li>
+          <li>Removed a crashing bug when cross-correlating or convolving two MFCC objects.</li>
+          <li>A bit of spectrogram colouring.</li>
+        </ul>
+      </description>
+    </release>
     <release version="6.4.67" date="2026-05-21">
       <url type="details">https://github.com/praat/praat.github.io/releases/tag/v6.4.67</url>
       <description>
