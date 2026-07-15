@@ -316,8 +316,8 @@ else ifeq ($(OS_IS_LINUX),1)
     SHARED_COMPILER_FLAGS += -Dchrome
   endif
 
-  CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=missing-prototypes -Werror=implicit
-  CXXFLAGS := -std=c++17 $(SHARED_COMPILER_FLAGS) -Wshadow
+  CFLAGS += -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=missing-prototypes -Werror=implicit
+  CXXFLAGS += -std=c++17 $(SHARED_COMPILER_FLAGS) -Wshadow
 
   ifeq ($(PRAAT_COMPILER),clang)
     CC := clang
@@ -406,7 +406,7 @@ all: all-external all-self
 		external/opusfile/libopusfile.a \
 		external/whispercpp/libwhisper.a \
 		external/blake3/libblake3.a \
-		$(NON_PRAAT_LIBRARIES)
+               $(NON_PRAAT_LIBRARIES) $(LDFLAGS)
 
 all-external:
 	$(MAKE) -C external/clapack
