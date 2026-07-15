@@ -14,14 +14,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libasound2-dev libpulse-dev libjack-dev cage
-
     - name: Compile binary
-      run: make
+      run: make PRAAT_GRAPHICS=barren PRAAT_AUDIO=none
 
     - name: Run test script
-      run: |
-          WLR_BACKENDS=headless cage -- ./praat --FULL-TRUST --run test/runAllTests_batch.praat
-          # Praat requires a display server, even if the GUI doesn't launch.
-          # cage is a simple Wayland compositor, and WLR_BACKENDS=headless means it doesn't need a physical screen.
+      run: ./praat_barren --FULL-TRUST --run test/runAllTests_batch.praat
