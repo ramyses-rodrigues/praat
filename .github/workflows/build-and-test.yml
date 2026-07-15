@@ -23,3 +23,5 @@ jobs:
     - name: Run test script
       run: |
           WLR_BACKENDS=headless cage -- ./praat --FULL-TRUST --run test/runAllTests_batch.praat
+          # Praat requires a display server, even if the GUI doesn't launch.
+          # cage is a simple Wayland compositor, and WLR_BACKENDS=headless means it doesn't need a physical screen.
