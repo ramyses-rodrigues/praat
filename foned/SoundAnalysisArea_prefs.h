@@ -27,8 +27,8 @@ Prefs_begin (SoundAnalysisArea)
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_viewTo,              2, U"5000.0")   // Hz
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_windowLength,        2, U"0.005")   // seconds
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_dynamicRange,        2, U"70.0")   // dB
-	InstancePrefs_addInteger (SoundAnalysisArea, spectrogram_timeSteps,           2, U"1000")
-	InstancePrefs_addInteger (SoundAnalysisArea, spectrogram_frequencySteps,      2, U"250")
+	InstancePrefs_addInteger (SoundAnalysisArea, spectrogram_timeSteps,           3, U"1500")
+	InstancePrefs_addInteger (SoundAnalysisArea, spectrogram_frequencySteps,      3, U"500")
 	InstancePrefs_addEnum    (SoundAnalysisArea, spectrogram_method,              2, kSound_to_Spectrogram_method, DEFAULT)
 	InstancePrefs_addEnum    (SoundAnalysisArea, spectrogram_windowShape,         2, kSound_to_Spectrogram_windowShape, DEFAULT)
 	InstancePrefs_addBool    (SoundAnalysisArea, spectrogram_autoscaling,         2, true)
