@@ -207,7 +207,7 @@
       <url type="details">https://github.com/praat/praat.github.io/releases/tag/v6.4.50</url>
       <description>
         <ul>
-          <li>A bit of speech recognition via Whisper.cpp (adapted to Praat by Anastasia Shchupak), such as **Transcribe interval** in the TextGrid window. This works after you install one or more Whisper-cpp models, such as `ggml-base.bin` (from `https://huggingface.co/ggerganov/whisper.cpp`) in the `models` subfolder of the preferences folder.</li>
+          <li>A bit of speech recognition via Whisper.cpp (adapted to Praat by Anastasia Shchupak), such as **Transcribe interval** in the TextGrid window. This works after you install one or more Whisper-cpp models, such as Georgi Gerganov's `ggml-base.bin` in the `models` subfolder of the preferences folder.</li>
         </ul>
       </description>
     </release>
