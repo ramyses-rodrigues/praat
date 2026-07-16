@@ -2007,8 +2007,19 @@ void praat_init (conststring32 title,
 		trace (U"showing the Objects window");
 		GuiThing_show (raam);
 		#ifdef UNIX
-			if (! praatP.ignorePreferenceFiles)
-				Preferences_read_i (& prefsFile7);
+			if (! praatP.ignorePreferenceFiles) {
+				/*
+					TODO: explain why this is needed here.
+					could have to do with e.g. the font size setting in praat_picture_init, though that shoudl also be handlable by praat_picture_prefsChanged
+					or don't Graphics_setFontSize and/or Picture_setMouseSelectsInnerViewport work in that situation?
+				*/
+				if (Melder_appVersion() < 7000) {
+					Preferences_read_i (& prefsFile5);
+				} else {
+					Preferences_read_i (& prefsFile5);   // Read the old settings first...
+					Preferences_read_i (& prefsFile7);   // ... and the new settings second.
+				}
+			}
 		#endif
 		#if ! defined (macintosh)
 			trace (U"initializing the Gui late (Windows and Linux)");
