@@ -312,10 +312,11 @@ static bool isPurePunctuation(const conststring32 token) {
 WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, constSound sound, const bool useVad,
 		const double speechProbabilityThreshold, const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad) {
 	try {
-		//TRACE
+		TRACE
 		Melder_require (my whisperContext.get(),
-				U"This SpeechRecognizer object is not usable anymore as it ran out of memory. ",
-				U"Please remove it and create a new one.");
+			U"This SpeechRecognizer object is not usable anymore as it ran out of memory. ",
+			U"Please remove it and create a new one."
+		);
 		trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
 
 		/*
@@ -449,8 +450,9 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 							rawTokens [m]. tmax = border;   // actual clamping
 					}
 					trace (U"Segment ", i, U" first-token t0 = ", vadToRealTime (tokenData. t0 / 100.0),
-							U", segment_t0 = ", whisper_full_get_segment_t0 (my whisperContext.get(), i) / 100.0,
-							U", segment_t1 = ", whisper_full_get_segment_t1 (my whisperContext.get(), i) / 100.0);
+						U", segment_t0 = ", whisper_full_get_segment_t0 (my whisperContext.get(), i) / 100.0,
+						U", segment_t1 = ", whisper_full_get_segment_t1 (my whisperContext.get(), i) / 100.0
+					);
 					isFirstPartialTokenInSegment = false;
 				}
 
@@ -591,8 +593,9 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			auto appendWord = [& wordIntervals, & vadSegments, & appendSilence] (WhisperWord& word, integer vadSegment) {
 				Melder_assert (word. tmax >= vadSegments [vadSegment]. vadStart);
 				const double tmax = std::min (
-						word. tmax - vadSegments [vadSegment]. vadStart + vadSegments [vadSegment]. origStart,   // original tmax
-						vadSegments [vadSegment]. origEnd);   // clamp to the size of VAD interval
+					word. tmax - vadSegments [vadSegment]. vadStart + vadSegments [vadSegment]. origStart,   // original tmax
+					vadSegments [vadSegment]. origEnd
+				);   // clamp to the size of VAD interval
 
 				const conststring32 text = word. textWithPunctuation.get();
 				if (text [0] == U'\0' || text [0] == U'(' || text [0] == U'[')
@@ -624,8 +627,8 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 					firstContentToken ++;
 				const double firstContentTokenTmax = word. whisperTokens [firstContentToken]. tmax;   // first token that is not a pure punctuation
 
-				const bool landsInCurrentVadSegment = currentVadSegment == numberOfVadSegments ||
-						firstContentTokenTmax < vadSegments [currentVadSegment + 1]. vadStart && Melder_isPunctuationOrSymbol (lastToken [0]);
+				const bool landsInCurrentVadSegment = ( currentVadSegment == numberOfVadSegments ||
+						firstContentTokenTmax < vadSegments [currentVadSegment + 1]. vadStart && Melder_isPunctuationOrSymbol (lastToken [0]) );
 
 				if (! landsInCurrentVadSegment)
 					while (currentVadSegment < numberOfVadSegments && word. tmax > vadSegments [currentVadSegment + 1]. vadStart) {
@@ -729,8 +732,9 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 		transcription. sentences = sentences.move();
 
 		trace (U"Full transcription:",
-				U" [ ", transcription. fullTranscription. tmin, U" - ",
-				transcription. fullTranscription. tmax, U" ]", transcription. fullTranscription. text.get());
+			U" [ ", transcription. fullTranscription. tmin, U" - ",
+			transcription. fullTranscription. tmax, U" ]", transcription. fullTranscription. text.get()
+		);
 
 		return transcription;
 
@@ -740,7 +744,8 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 }
 
 autovector <SpeechSegment> doSileroVad (constSound sound, const double speechProbabilityThreshold, const double minNonSpeechDuration,
-		const double minSpeechDuration, const double speechPad, const conststring32 nonSpeechLabel, const conststring32 speechLabel) {
+	const double minSpeechDuration, const double speechPad, const conststring32 nonSpeechLabel, const conststring32 speechLabel
+) {
 	//TRACE
 	trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
 	supressGgmlLogging ();
