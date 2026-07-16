@@ -161,7 +161,7 @@ void TextGrid_anySound_alignInterval (
 		TextInterval interval = headTier -> intervals.at [intervalNumber];
 		if (! includeWords && ! includePhonemes)
 			Melder_throw (U"Nothing to be done, because you asked neither for word alignment nor for phoneme alignment.");
-		if (str32str (headTier -> name.get(), U"/"))
+		if (Melder_stringMatchesCriterion (headTier -> name.get(), kMelder_string::CONTAINS, U"/", true))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a word or phoneme tier from it.");
 		trace (U"tier ", tierNumber, U" interval ", intervalNumber,
 				U" (", interval -> xmin, U" .. ", interval -> xmax, U" “", interval -> text.get(), U"”)");
@@ -488,12 +488,12 @@ void TextGrid_Sound_transcribeInterval (
 		const double originalTmin = originalInterval -> xmin;
 		const double originalTmax = originalInterval -> xmax;
 
-		if (str32str (headTier -> name.get(), U"/"))
+		if (Melder_stringMatchesCriterion (headTierName.get(), kMelder_string::CONTAINS, U"/", true))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a word tier from it.");
 
 		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
 		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
-			kSound_windowShape::RECTANGULAR, 1.0, false);
+				kSound_windowShape::RECTANGULAR, 1.0, false);
 		autoSpeechRecognizer speechRecognizer = SpeechRecognizer_create (modelName, languageName);
 
 		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (speechRecognizer.get(), soundPart.get(),
@@ -650,7 +650,7 @@ void TextGrid_Sound_transcribeInterval (
 					MelderString_append (& fullText, U"...");
 
 				const integer subsentenceIntervalNumber = IntervalTier_hasTime (speakerSubsentenceTier, subsentenceTmin);
-				TextInterval_setText (speakerSubsentenceTier -> intervals. at [subsentenceIntervalNumber], fullText.string);
+				TextInterval_setText (speakerSubsentenceTier -> intervals.at [subsentenceIntervalNumber], fullText.string);
 			};
 
 			/*
@@ -693,9 +693,9 @@ void TextGrid_Sound_transcribeInterval (
 					Iterate over all the words in the current sentence, inserting all the subsentence intervals except the last one.
 				*/
 				for (integer i = firstWordInSentence + 1; i <= lastWordInSentence; i ++) {
-					const integer currentSpeaker = wordsWithContext [i] .resolvedSpeaker;
+					const integer currentSpeaker = wordsWithContext [i]. resolvedSpeaker;
 					if (currentSpeaker != subsentenceSpeaker) {
-						insertSubsentenceToSpeakerTier(subsentenceSpeaker, subsentenceText,
+						insertSubsentenceToSpeakerTier (subsentenceSpeaker, subsentenceText,
 								firstWordInSubsentence, i - 1, firstWordInSentence, lastWordInSentence);
 						subsentenceSpeaker = currentSpeaker;
 						firstWordInSubsentence = i;
@@ -708,7 +708,7 @@ void TextGrid_Sound_transcribeInterval (
 				/*
 					Insert the last interval subsentence.
 				*/
-				insertSubsentenceToSpeakerTier(subsentenceSpeaker, subsentenceText,
+				insertSubsentenceToSpeakerTier (subsentenceSpeaker, subsentenceText,
 						firstWordInSubsentence, lastWordInSentence, firstWordInSentence, lastWordInSentence);
 			}
 
@@ -731,15 +731,15 @@ void TextGrid_Sound_transcribeInterval (
 					Insert words into speaker word tiers.
 				*/
 				for (integer s = 1; s <= wordsWithContext.size; s ++) {
-					const integer resolvedSpeaker = wordsWithContext [s] .resolvedSpeaker;
-					const double tmin = originalTmin + wordsWithContext [s] .whisperSegment -> tmin;
-					const double tmax = originalTmin + wordsWithContext [s] .whisperSegment -> tmax;
-					const conststring32 text = wordsWithContext [s] .whisperSegment -> text.get();
+					const integer resolvedSpeaker = wordsWithContext [s]. resolvedSpeaker;
+					const double tmin = originalTmin + wordsWithContext [s]. whisperSegment -> tmin;
+					const double tmax = originalTmin + wordsWithContext [s]. whisperSegment -> tmax;
+					const conststring32 text = wordsWithContext [s]. whisperSegment -> text.get();
 
 					Melder_assert (tmin < tmax);
 					IntervalTier_insertIntervalDestructively (speakerWordTiers [resolvedSpeaker], tmin, tmax);
 					const integer wordIntervalNumber = IntervalTier_hasTime (speakerWordTiers [resolvedSpeaker], tmin);
-					TextInterval_setText (speakerWordTiers [resolvedSpeaker] -> intervals. at [wordIntervalNumber], text);
+					TextInterval_setText (speakerWordTiers [resolvedSpeaker] -> intervals.at [wordIntervalNumber], text);
 				}
 			}
 		}
@@ -799,7 +799,7 @@ void TextGrid_Sound_diarizeInterval (
 		const double originalTmin = originalInterval -> xmin;
 		const double originalTmax = originalInterval -> xmax;
 
-		if (str32str (headTier -> name.get(), U"/"))
+		if (Melder_stringMatchesCriterion (headTierName.get(), kMelder_string::CONTAINS, U"/", true))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a speaker tier from it.");
 
 		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
@@ -807,8 +807,9 @@ void TextGrid_Sound_diarizeInterval (
 				kSound_windowShape::RECTANGULAR, 1.0, false);
 
 		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (soundPart.get(),
-				maxNumSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep,
-				nonSpeechLabel, speechLabel);
+			maxNumSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep,
+			nonSpeechLabel, speechLabel
+		);
 
 		integer numberOfSpeakers = speakerSegments.size;
 		if (numberOfSpeakers < 1)
