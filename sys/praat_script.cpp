@@ -858,6 +858,7 @@ static void secondPassThroughScript (UiForm sendingForm, integer /* narg */, Sta
 	Interpreter_getArgumentsFromDialog (interpreter.get(), sendingForm);
 	autoPraatBackground background;
 	interpreterStack -> emptyAll ();
+	Interpreter_rememberScript (interpreter.get(), & file, false);
 	interpreterStack -> runDown (interpreter.move(), text.move(), false);
 }
 
@@ -910,6 +911,7 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 			{// scope
 				autoPraatBackground background;
 				interpreterStack -> emptyAll ();
+				Interpreter_rememberScript (interpreter.get(), file, false);
 				interpreterStack -> runDown (interpreter.move(), text.move(), false);
 			}
 		}
