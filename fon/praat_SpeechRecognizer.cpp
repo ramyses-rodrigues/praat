@@ -34,7 +34,7 @@ OK
 
 	Melder_require (modelNames.size > 0,
 		U"Found no Whisper-cpp models to do speech recognition with.\n"
-		U"You can install them into the subfolders “whispercpp” of the folder “models” in the Praat preferences folder."
+		U"You can install them into the subfolder “whispercpp” of the folder “models” in the Praat preferences folder."
 	);
 
 	SET_LIST (modelIndex, modelName, modelNames.get(), NUMfindFirst (modelNames.get(), TranscriptionDefaults::modelName))
