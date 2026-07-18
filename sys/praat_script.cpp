@@ -116,7 +116,7 @@ Editor praat_findEditorById (integer id) {
 static int parseCommaSeparatedArguments (Interpreter interpreter, char32 *arguments, structStackel *args) {
 	int narg = 0, depth = 0;
 	for (char32 *p = arguments; ; p ++) {
-		bool endOfArguments = *p == U'\0';
+		const bool endOfArguments = ( *p == U'\0' );
 		if (endOfArguments || (*p == U',' && depth == 0)) {
 			if (narg == MAXIMUM_NUMBER_OF_FIELDS)
 				Melder_throw (U"Cannot have more than ", MAXIMUM_NUMBER_OF_FIELDS, U" arguments");
@@ -236,7 +236,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 				Melder_throw (U"The script command “fappendinfo” is not available inside pictures.");
 			structMelderFile file { };
 			Melder_relativePathToFile (command + 12, & file);
-			MelderFile_appendText (& file, Melder_getInfo ());
+			MelderFile_appendText_e (& file, Melder_getInfo ());
 		} else if (str32nequ (command, U"unix ", 5)) {
 			Melder_require (praat_commandsWithExternalSideEffectsAreAllowed (),
 				U"The script command “unix” is not available inside manuals.");
@@ -361,7 +361,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 			if (*p == U' ' || *p == U'\t') {
 				structMelderFile file { };
 				Melder_relativePathToFile (path, & file);
-				MelderFile_appendText (& file, p + 1);
+				MelderFile_appendText_e (& file, p + 1);
 			}
 		} else {
 			/*
@@ -599,9 +599,7 @@ void praat_runScript (InterpreterStack interpreterStack, conststring32 fileName,
 			Interpreter_readParameters (me.get(), text.get());   // TODO: should become a field of structInterpreter
 			my text = text.move();
 			Interpreter_getArgumentsFromArgs (me.get(), narg, args);   // interpret caller-relative paths for infile/outfile/folder arguments
-			autoScript script = Script_createFromFile (& file);
-			Script_rememberDuringThisAppSession_move (script.move());
-			my scriptReference = Script_find (MelderFile_peekPath (& file));
+			Interpreter_rememberScript (me.get(), & file, ! parentInterpreter -> scriptReference || parentInterpreter -> scriptReference -> trusted);
 			interpreterStack -> runDown (me.move(), autostring32(), false);   // back to the default directory of the caller
 		} catch (MelderError) {
 			Melder_throw (U"Script ", & file, U" not completed.");   // don't refer to 'fileName', because its contents may have changed
@@ -666,7 +664,7 @@ void praat_runNotebook (InterpreterStack interpreterStack, conststring32 fileNam
 	}
 }
 
-void praat_executeScriptFromCommandLine (conststring32 fileName, integer argc, char **argv) {
+void praat_executeScriptFromCommandLine (conststring32 fileName, integer argc, char **argv, bool fullTrust) {
 	static autoInterpreterStack interpreterStack = InterpreterStack_create (Editor (nullptr));
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName, & file);
@@ -684,6 +682,7 @@ void praat_executeScriptFromCommandLine (conststring32 fileName, integer argc, c
 		Interpreter_readParameters (interpreter.get(), text.get());
 		Interpreter_getArgumentsFromCommandLine (interpreter.get(), argc, argv);   // interpret caller-relative paths for infile/outfile/folder arguments
 		autoMelderFileSetCurrentFolder folder (& file);   // so that script-relative file names can be used inside the script
+		Interpreter_rememberScript (interpreter.get(), & file, fullTrust);
 		interpreterStack -> runDown (interpreter.move(), text.move(), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script ", & file, U" not completed.");   // don't refer to 'fileName', because its contents may have changed
@@ -859,6 +858,7 @@ static void secondPassThroughScript (UiForm sendingForm, integer /* narg */, Sta
 	Interpreter_getArgumentsFromDialog (interpreter.get(), sendingForm);
 	autoPraatBackground background;
 	interpreterStack -> emptyAll ();
+	Interpreter_rememberScript (interpreter.get(), & file, false);
 	interpreterStack -> runDown (interpreter.move(), text.move(), false);
 }
 
@@ -893,10 +893,7 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 			optionalInterpreterOwningEditor,
 			file   // so that callee-relative file names can be used inside the script
 		);
-
-		autoScript script = Script_createFromFile (file);
-		Script_rememberDuringThisAppSession_move (script.move());
-		interpreter -> scriptReference = Script_find (MelderFile_peekPath (file));
+		Interpreter_rememberScript (interpreter.get(), file, false);   // this is early, but possible here because the name of the script cannot change
 
 		const integer numberOfParameters = Interpreter_readParameters (interpreter.get(), text.get());
 		if (numberOfParameters > 0) {
@@ -914,6 +911,7 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 			{// scope
 				autoPraatBackground background;
 				interpreterStack -> emptyAll ();
+				Interpreter_rememberScript (interpreter.get(), file, false);
 				interpreterStack -> runDown (interpreter.move(), text.move(), false);
 			}
 		}

@@ -161,7 +161,7 @@ void TextGrid_anySound_alignInterval (
 		TextInterval interval = headTier -> intervals.at [intervalNumber];
 		if (! includeWords && ! includePhonemes)
 			Melder_throw (U"Nothing to be done, because you asked neither for word alignment nor for phoneme alignment.");
-		if (str32str (headTier -> name.get(), U"/"))
+		if (Melder_stringMatchesCriterion (headTier -> name.get(), kMelder_string::CONTAINS, U"/", true))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a word or phoneme tier from it.");
 		trace (U"tier ", tierNumber, U" interval ", intervalNumber,
 				U" (", interval -> xmin, U" .. ", interval -> xmax, U" “", interval -> text.get(), U"”)");
@@ -411,9 +411,9 @@ void TextGrid_Sound_transcribeInterval (
 	const TextGrid me, const Sound sound,
 	const integer tierNumber, const integer intervalNumber,
 	const conststring32 modelName, const conststring32 languageName,
-	const bool includeWords, const bool diarize, const bool useVad, const double speechProbabilityThreshold,
+	const bool includeWords, const bool useVad, const double speechProbabilityThreshold,
 	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad,
-	const integer numSpeakers, const integer minSpeakers, const integer maxSpeakers, const bool allowSpeakersOverlap,
+	const bool includeDiarization, const integer maxNumSpeakers, const bool allowSpeakersOverlap,
 	const double clusterThreshold, const double segmentationStep
 ) {
 	/*
@@ -424,7 +424,7 @@ void TextGrid_Sound_transcribeInterval (
 		/* mutable search */ integer newTierNumber = 0;
 		if (overwrite) {
 			for (integer i = 1; i <= my tiers->size; i ++) {
-				Function tier = my tiers -> at [i];
+				Function tier = my tiers->at [i];
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
@@ -440,7 +440,7 @@ void TextGrid_Sound_transcribeInterval (
 			Thing_setName (newTier.get(), tierName.string);
 			newTierNumber = prevTierNumber + 1;
 			my tiers -> addItemAtPosition_move (newTier.move(), newTierNumber);
-			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers -> size);
+			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers->size);
 		}
 		return newTierNumber;
 	};
@@ -478,13 +478,9 @@ void TextGrid_Sound_transcribeInterval (
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
 		Melder_require (intervalNumber <= headTier -> intervals.size, U"Interval ", intervalNumber, U" does not exist.");
-		Melder_require (speechProbabilityThreshold >= 0.0 && speechProbabilityThreshold <= 1.0,
+		Melder_require (speechProbabilityThreshold <= 1.0,
 				U"The speech probability threshold should be in the interval [0, 1].");
-		Melder_require (numSpeakers >= 0, U"The number of speakers should be either a positive number, or zero for automatic detection.");
-		Melder_require (minSpeakers >= 0, U"The minimum number of speakers should be either a positive number, or zero for no lower bound.");
-		Melder_require (maxSpeakers >= 0, U"The maximum number of speakers should be either a positive number, or zero for no upper bound.");
-		Melder_require (minSpeakers <= maxSpeakers || minSpeakers == 0 || maxSpeakers == 0,
-				U"The minimum number of speakers should not exceed the maximum number of speakers.");
+		Melder_require (maxNumSpeakers >= 2, U"The maximum number of speakers should be at least 2.");
 		Melder_require (clusterThreshold <= 2.0, U"The clustering threshold should not be greater than 2.0.");
 		Melder_require (segmentationStep <= 1.0, U"The segmentation step should not be greater than 1.0.");
 
@@ -492,30 +488,35 @@ void TextGrid_Sound_transcribeInterval (
 		const double originalTmin = originalInterval -> xmin;
 		const double originalTmax = originalInterval -> xmax;
 
-		if (str32str (headTier -> name.get(), U"/"))
+		if (Melder_stringMatchesCriterion (headTierName.get(), kMelder_string::CONTAINS, U"/", true))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a word tier from it.");
 
 		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
 		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
-			kSound_windowShape::RECTANGULAR, 1.0, false);
+				kSound_windowShape::RECTANGULAR, 1.0, false);
 		autoSpeechRecognizer speechRecognizer = SpeechRecognizer_create (modelName, languageName);
 
 		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (speechRecognizer.get(), soundPart.get(),
 				useVad, speechProbabilityThreshold, minNonSpeechDuration, minSpeechDuration, speechPad);
 		autovector <autovector <SpeechSegment>> pyannoteDiarization;
-		if (diarize)
-			pyannoteDiarization = doDiarization (soundPart.get(), numSpeakers, minSpeakers, maxSpeakers, allowSpeakersOverlap,
-					clusterThreshold, segmentationStep, U"", U"s");
+		if (includeDiarization)
+			pyannoteDiarization = doDiarization (soundPart.get(), maxNumSpeakers,
+					allowSpeakersOverlap, clusterThreshold, segmentationStep, U"", U"s");
 
 		autovector <SpeechSegment> wordSegments = whisperTranscription. words.move();
 		autovector <SpeechSegment> sentenceSegments = whisperTranscription. sentences.move();
 		autovector <autovector <SpeechSegment>> speakerSegments = pyannoteDiarization.move();
 
 		integer numberOfSpeakers = speakerSegments.size;
-		/* mutable conditional init */ bool doDiarize = diarize;
-		if (diarize && numberOfSpeakers < 1) {
-			Melder_warning (U"Diarization detected 0 speakers. Diarization tiers are not created.");
-			doDiarize = false;   // falling back to just transcription without diarization
+		/* mutable conditional init */ bool doDiarize = includeDiarization;
+		if (doDiarize) {
+			if (numberOfSpeakers == 0) {
+				Melder_warning (U"Diarization detected 0 speakers. Diarization tiers are not created.");
+				doDiarize = false;   // falling back to just transcription without diarization
+			} else if (numberOfSpeakers == 1) {
+				Melder_warning (U"Diarization detected 1 speaker. Diarization tiers are not created.");
+				doDiarize = false;   // falling back to just transcription without diarization
+			}
 		}
 
 		/*
@@ -536,7 +537,7 @@ void TextGrid_Sound_transcribeInterval (
 			autoMelderString wordTierName;
 			MelderString_copy (& wordTierName, headTier -> name.get(), U"/word");
 			const integer wordTierNumber = getIntervalTier(wordTierName, headTierNumber, true);
-			const auto wordTier = static_cast <IntervalTier> (my tiers -> at [wordTierNumber]);
+			const auto wordTier = static_cast <IntervalTier> (my tiers->at [wordTierNumber]);
 
 			/*
 				Insert the interval, and split this big interval into the set of intervals, one interval per word.
@@ -566,12 +567,12 @@ void TextGrid_Sound_transcribeInterval (
 			autoMelderString speakerSentenceTierName;
 			MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp1");
 			Thing_setName (headTier, speakerSentenceTierName.string);   // rename the head tier to make it "diarized tier" to prevent running diarization on it in the future
-			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers -> at [headTierNumber]);
+			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers->at [headTierNumber]);
 			for (integer i = 2; i <= numberOfSpeakers; i ++) {
 				MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp", i);
 				const integer speakerSentenceTierNumber = getIntervalTier(
 						speakerSentenceTierName, headTierNumber + i - 2, false);
-				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerSentenceTierNumber]);
+				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerSentenceTierNumber]);
 			}
 
 			/*
@@ -641,15 +642,15 @@ void TextGrid_Sound_transcribeInterval (
 
 				autoMelderString fullText;
 				if (firstWordInSubsentence != firstWordInSentence)   // before
-					MelderString_append (& fullText, U"...");
+					MelderString_append (& fullText, U"... ");
 				MelderString_append (& fullText, subsentenceText.string);   // text
 				if (lastWordInSubsentence == lastWordInSentence)   // after
 					MelderString_append (& fullText, U".");
-				else
+				else   // also after
 					MelderString_append (& fullText, U"...");
 
 				const integer subsentenceIntervalNumber = IntervalTier_hasTime (speakerSubsentenceTier, subsentenceTmin);
-				TextInterval_setText (speakerSubsentenceTier -> intervals. at [subsentenceIntervalNumber], fullText.string);
+				TextInterval_setText (speakerSubsentenceTier -> intervals.at [subsentenceIntervalNumber], fullText.string);
 			};
 
 			/*
@@ -692,9 +693,9 @@ void TextGrid_Sound_transcribeInterval (
 					Iterate over all the words in the current sentence, inserting all the subsentence intervals except the last one.
 				*/
 				for (integer i = firstWordInSentence + 1; i <= lastWordInSentence; i ++) {
-					const integer currentSpeaker = wordsWithContext [i] .resolvedSpeaker;
+					const integer currentSpeaker = wordsWithContext [i]. resolvedSpeaker;
 					if (currentSpeaker != subsentenceSpeaker) {
-						insertSubsentenceToSpeakerTier(subsentenceSpeaker, subsentenceText,
+						insertSubsentenceToSpeakerTier (subsentenceSpeaker, subsentenceText,
 								firstWordInSubsentence, i - 1, firstWordInSentence, lastWordInSentence);
 						subsentenceSpeaker = currentSpeaker;
 						firstWordInSubsentence = i;
@@ -707,7 +708,7 @@ void TextGrid_Sound_transcribeInterval (
 				/*
 					Insert the last interval subsentence.
 				*/
-				insertSubsentenceToSpeakerTier(subsentenceSpeaker, subsentenceText,
+				insertSubsentenceToSpeakerTier (subsentenceSpeaker, subsentenceText,
 						firstWordInSubsentence, lastWordInSentence, firstWordInSentence, lastWordInSentence);
 			}
 
@@ -723,22 +724,22 @@ void TextGrid_Sound_transcribeInterval (
 					MelderString_copy (& speakerWordTierName, headTierName.get(), U"/sp", i, U"/w");
 					const integer speakerWordTierNumber = getIntervalTier(   // headTierNumber headTierNumber+(1+1) headTierNumber+(1+1)+(1+1)
 							speakerWordTierName, headTierNumber + 2 * (i - 1), false);
-					speakerWordTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerWordTierNumber]);
+					speakerWordTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerWordTierNumber]);
 				}
 
 				/*
 					Insert words into speaker word tiers.
 				*/
 				for (integer s = 1; s <= wordsWithContext.size; s ++) {
-					const integer resolvedSpeaker = wordsWithContext [s] .resolvedSpeaker;
-					const double tmin = originalTmin + wordsWithContext [s] .whisperSegment -> tmin;
-					const double tmax = originalTmin + wordsWithContext [s] .whisperSegment -> tmax;
-					const conststring32 text = wordsWithContext [s] .whisperSegment -> text.get();
+					const integer resolvedSpeaker = wordsWithContext [s]. resolvedSpeaker;
+					const double tmin = originalTmin + wordsWithContext [s]. whisperSegment -> tmin;
+					const double tmax = originalTmin + wordsWithContext [s]. whisperSegment -> tmax;
+					const conststring32 text = wordsWithContext [s]. whisperSegment -> text.get();
 
 					Melder_assert (tmin < tmax);
 					IntervalTier_insertIntervalDestructively (speakerWordTiers [resolvedSpeaker], tmin, tmax);
 					const integer wordIntervalNumber = IntervalTier_hasTime (speakerWordTiers [resolvedSpeaker], tmin);
-					TextInterval_setText (speakerWordTiers [resolvedSpeaker] -> intervals. at [wordIntervalNumber], text);
+					TextInterval_setText (speakerWordTiers [resolvedSpeaker] -> intervals.at [wordIntervalNumber], text);
 				}
 			}
 		}
@@ -750,8 +751,7 @@ void TextGrid_Sound_transcribeInterval (
 void TextGrid_Sound_diarizeInterval (
 	const TextGrid me, const Sound sound,
 	const integer tierNumber, const integer intervalNumber,
-	const integer numSpeakers, const integer minSpeakers,
-	const integer maxSpeakers, const bool allowSpeakersOverlap,
+	const integer maxNumSpeakers, const bool allowSpeakersOverlap,
 	const conststring32 nonSpeechLabel, const conststring32 speechLabel,
 	const double clusterThreshold, const double segmentationStep
 ) {
@@ -763,7 +763,7 @@ void TextGrid_Sound_diarizeInterval (
 		/* mutable search */ integer newTierNumber = 0;
 		if (overwrite) {
 			for (integer i = 1; i <= my tiers->size; i ++) {
-				Function tier = my tiers -> at [i];
+				Function tier = my tiers->at [i];
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
@@ -779,7 +779,7 @@ void TextGrid_Sound_diarizeInterval (
 			Thing_setName (newTier.get(), tierName.string);
 			newTierNumber = prevTierNumber + 1;
 			my tiers -> addItemAtPosition_move (newTier.move(), newTierNumber);
-			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers -> size);
+			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers->size);
 		}
 		return newTierNumber;
 	};
@@ -791,11 +791,7 @@ void TextGrid_Sound_diarizeInterval (
 		autostring32 headTierName = Melder_dup (headTier -> name.get());
 
 		Melder_require (intervalNumber <= headTier -> intervals.size, U"Interval ", intervalNumber, U" does not exist.");
-		Melder_require (numSpeakers >= 0, U"The number of speakers should be either a positive number, or zero for automatic detection.");
-		Melder_require (minSpeakers >= 0, U"The minimum number of speakers should be either a positive number, or zero for no lower bound.");
-		Melder_require (maxSpeakers >= 0, U"The maximum number of speakers should be either a positive number, or zero for no upper bound.");
-		Melder_require (minSpeakers <= maxSpeakers || minSpeakers == 0 || maxSpeakers == 0,
-				U"The minimum number of speakers should not exceed the maximum number of speakers.");
+		Melder_require (maxNumSpeakers >= 2, U"The maximum number of speakers should be at least 2");
 		Melder_require (clusterThreshold <= 2.0, U"The clustering threshold should not be greater than 2.0.");
 		Melder_require (segmentationStep <= 1.0, U"The segmentation step should not be greater than 1.0.");
 
@@ -803,15 +799,17 @@ void TextGrid_Sound_diarizeInterval (
 		const double originalTmin = originalInterval -> xmin;
 		const double originalTmax = originalInterval -> xmax;
 
-		if (str32str (headTier -> name.get(), U"/"))
+		if (Melder_stringMatchesCriterion (headTierName.get(), kMelder_string::CONTAINS, U"/", true))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a speaker tier from it.");
 
 		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", originalTmin, U" .. ", originalTmax, U")");
 		autoSound soundPart = Sound_extractPart (sound, originalTmin, originalTmax,
 				kSound_windowShape::RECTANGULAR, 1.0, false);
 
-		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (soundPart.get(), numSpeakers,
-				minSpeakers, maxSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep, nonSpeechLabel, speechLabel);
+		autovector <autovector <SpeechSegment>> speakerSegments = doDiarization (soundPart.get(),
+			maxNumSpeakers, allowSpeakersOverlap, clusterThreshold, segmentationStep,
+			nonSpeechLabel, speechLabel
+		);
 
 		integer numberOfSpeakers = speakerSegments.size;
 		if (numberOfSpeakers < 1)
@@ -825,18 +823,18 @@ void TextGrid_Sound_diarizeInterval (
 		autoMelderString speakerTierName;
 		MelderString_copy (& speakerTierName, headTierName.get(), U"/sp1");
 		Thing_setName (headTier, speakerTierName.string);   // rename the head tier to make it "diarized tier" to prevent running diarization on it in the future
-		speakerTiers [1] = static_cast <IntervalTier> (my tiers -> at [headTierNumber]);
+		speakerTiers [1] = static_cast <IntervalTier> (my tiers->at [headTierNumber]);
 		splitIntervalIntoWhisperSegments (speakerTiers [1], headTierNumber, originalTmin, originalTmax, speakerSegments [1]);
 
 		for (integer i = 2; i <= numberOfSpeakers; i ++) {
 			MelderString_copy (& speakerTierName, headTierName.get(), U"/sp", i);
 			const integer speakerTierNumber = getIntervalTier(
 					speakerTierName, headTierNumber + i - 2, false);
-			speakerTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerTierNumber]);
+			speakerTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerTierNumber]);
 			splitIntervalIntoWhisperSegments (speakerTiers [i], speakerTierNumber, originalTmin, originalTmax, speakerSegments [i]);
 		}
 	} catch (MelderError) {
-		Melder_throw (me, U" & ", sound, U": interval not transcribed.");
+		Melder_throw (me, U" & ", sound, U": interval not diarized.");
 	}
 }
 
