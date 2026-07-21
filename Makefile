@@ -195,6 +195,10 @@ ifeq ($(OS_IS_FREEBSD),1)
 
 else ifeq ($(OS_IS_WINDOWS),1)
   # by Paul Boersma
+  
+  # Ramyses: especificando o compilador para evitar problemas de compatibilidade entre GCC e Clang no Windows.
+  # Setting the compiler:  GCC.
+  PRAAT_COMPILER = gcc
 
   #
   # Determine the compiler: either GCC or Clang.
