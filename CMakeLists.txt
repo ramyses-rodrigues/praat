@@ -91,8 +91,11 @@ target_link_libraries(${EXECUTABLE_NAME}
     # Bibliotecas externas
     clapack gsl glpk lame mp3 num flac portaudio espeak vorbis opusfile whisper
     # Bibliotecas do Windows (LIBS)
-    winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool winpthread
-    -static-libgcc -static-libstdc++ -static -mwindows
+    # winmm wsock32 comctl32 ole32 gdi32 gdiplus comdlg32 winspool winpthread
+    # -static-libgcc -static-libstdc++ -static -mwindows
+
+    -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool
+      -static -lc++ -lc++abi -mwindows
 )
 
 # set(dir "../melder")
