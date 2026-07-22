@@ -804,13 +804,24 @@ The speaker numbers 1, 2 and 3 are local to each analysis window: speaker 1 in o
 necessarily the same person as speaker 1 in another. Mapping the window-local speakers to the
 global ones is the task of stages 2 and 3.
 
-##2. Speaker embeddings#. The previous stage determined which speaker is active in which frame
-(for every analysis window). Now, for each window and each speaker active somewhere in it, the
-frames where this speaker is active are glued together into a single sound, which is then sent
-to the %%embedding model%. For every such sound, the model produces an %embedding: a
-256-dimensional vector representing one particular speaker in one particular analysis window.
-The embeddings of the same speaker (from different analysis windows) tend to be closer to
-each other than the embeddings of different speakers. This makes the next stage possible.
+##2. Speaker embeddings#. %Embedding is a term used in the field of machine learning which inherited
+it from mathematics. In machine learning, an %embedding is a specific kind of representation of an
+object as a vector in a space of many dimensions (or, in other words, a point in that space),
+chosen in such a way that vectors representing similar objects end up close to each other. The object
+is thus %embedded into a multidimensional space, and the resulting vector is itself called an
+%embedding. What is an “object” and what counts as “similar” depends on the task; here an object is
+a sound, and two sounds are considered similar if the same person is speaking in them.
+
+The previous stage determined which speaker is active in which frame (for every analysis window).
+Now, for each window and each local speaker in this window (1, 2 or 3), the frames are found where
+this speaker is active. For example, speaker 1 is active in the frames where at least one of the
+combinations {1}, {1, 2} or {1, 3} from stage 1 had non-zero probability. Then, for each window and
+each speaker active somewhere in it, the frames where this speaker is active are glued together into
+a single sound, which is then sent to the %%embedding model%. For every such sound, this model
+produces an %embedding: a 256-dimensional vector representing one particular speaker in one
+particular analysis window. The embeddings of the same speaker (from different analysis windows)
+tend to be closer to each other than the embeddings of different speakers. This makes the next
+stage possible.
 
 ##3. Clustering#. The previous stage produces one embedding for each active speaker in each
 analysis window (so, up to three embeddings per window). The embeddings that are backed by
