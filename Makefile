@@ -86,8 +86,11 @@
 #   will override the environment variable.
 #
 ##########################
-# Especificando explicitamente o OS como Windows para usar a extensão MakeFile do VSCode.
+# Especificando explicitamente o OS como Windows, a arquitetura como x64v3 e o compilador como gcc para usar a extensão MakeFile do VSCode.
 PRAAT_OS = windows
+PRAAT_ARCH = x64v3
+PRAAT_COMPILER = gcc
+
 
 # First try: explicit setting of the OS via argument or environment variable PRAAT_OS.
 ifeq ($(PRAAT_OS),windows)
@@ -197,11 +200,6 @@ ifeq ($(OS_IS_FREEBSD),1)
 
 else ifeq ($(OS_IS_WINDOWS),1)
   # by Paul Boersma
-  
-  # Ramyses: especificando o compilador explicitamente para usar a extensão MakeFile do VSCode.
-  # Setting the compiler:  GCC.
-  PRAAT_COMPILER = gcc
-
   #
   # Determine the compiler: either GCC or Clang.
   #
