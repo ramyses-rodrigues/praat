@@ -339,7 +339,7 @@ again:
 				autoIntervalTier newPhonemeTier = IntervalTier_create (my xmin, my xmax);
 				Thing_setName (newPhonemeTier.get(), newPhonemeTierName.string);
 				my tiers -> addItemAtPosition_move (newPhonemeTier.move(),
-					phonemeTierNumber = wordTierNumber ? wordTierNumber + 1 : tierNumber + 1);
+						phonemeTierNumber = wordTierNumber ? wordTierNumber + 1 : tierNumber + 1);
 			}
 			Melder_assert (phonemeTierNumber >= 1 && phonemeTierNumber <= my tiers->size);
 			phonemeTier = my intervalTier_cast (phonemeTierNumber);
@@ -390,7 +390,7 @@ void splitIntervalIntoWhisperSegments (IntervalTier tier, const integer tierNumb
 		SpeechSegment& segment = segments [i];
 
 		const double currentTmin = originalTmin + segment. tmin;
-		const double currentTmax = (i == segments.size) ? originalTmax : originalTmin + segment. tmax;
+		const double currentTmax = ( i == segments.size ? originalTmax : originalTmin + segment. tmax );
 
 		if (i == 1) {
 			const integer originalIntervalNumber = IntervalTier_hasTime (tier, originalTmin);
@@ -428,8 +428,9 @@ void TextGrid_Sound_transcribeInterval (
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
-								U") already exists, but it is not an interval tier."
-								U"\nPlease change its name or remove it.");
+							U") already exists, but it is not an interval tier."
+							U"\nPlease change its name or remove it."
+						);
 					newTierNumber = i;
 					break;
 				}
@@ -570,7 +571,7 @@ void TextGrid_Sound_transcribeInterval (
 			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers->at [headTierNumber]);
 			for (integer i = 2; i <= numberOfSpeakers; i ++) {
 				MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp", i);
-				const integer speakerSentenceTierNumber = getIntervalTier(
+				const integer speakerSentenceTierNumber = getIntervalTier (
 						speakerSentenceTierName, headTierNumber + i - 2, false);
 				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerSentenceTierNumber]);
 			}
@@ -608,8 +609,8 @@ void TextGrid_Sound_transcribeInterval (
 				const constvector <double> overlaps = wordsWithContext [s]. overlaps.get();
 				const double tmin = wordsWithContext [s]. whisperSegment -> tmin;
 				const double tmax = wordsWithContext [s]. whisperSegment -> tmax;
-				const double prevTmax = s > 1 ? wordsWithContext [s - 1]. whisperSegment -> tmax : wordsWithContext [1]. whisperSegment -> tmin;
-				const integer prevResolvedSpeaker = s > 1 ? wordsWithContext [s - 1]. resolvedSpeaker : 0;
+				const double prevTmax = ( s > 1 ? wordsWithContext [s - 1]. whisperSegment -> tmax : wordsWithContext [1]. whisperSegment -> tmin );
+				const integer prevResolvedSpeaker = ( s > 1 ? wordsWithContext [s - 1]. resolvedSpeaker : 0 );
 
 				/* mutable search */ integer resolvedSpeaker = 1;
 				/* mutable search */ double longestOverlap = overlaps [1];
@@ -767,8 +768,9 @@ void TextGrid_Sound_diarizeInterval (
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
-								U") already exists, but it is not an interval tier."
-								U"\nPlease change its name or remove it.");
+							U") already exists, but it is not an interval tier."
+							U"\nPlease change its name or remove it."
+						);
 					newTierNumber = i;
 					break;
 				}
