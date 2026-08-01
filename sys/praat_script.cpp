@@ -524,7 +524,7 @@ void praat_executeCommandFromStandardInput (conststring32 programName) {
 	}
 }
 
-void praat_executeScript_noGUI (MelderFile file) {
+void praat_executeScript_noGUI (MelderFile file, bool fullTrust) {
 	/*
 		The problem here occurs when plug-in initialization (typically, `setup.praat`) posts a pause window,
 		as happens e.g. in the VocalToolkit plug-in if the Praat version is too old.
@@ -551,6 +551,7 @@ void praat_executeScript_noGUI (MelderFile file) {
 			file   // so that script-relative file names can be used inside the script
 		);
 		interpreterStack -> emptyAll ();
+		Interpreter_rememberScript_override (interpreter.get(), file, fullTrust && str32str (text.get(), U"\n# --FULL-TRUST"));
 		interpreterStack -> runDown (interpreter.move(), text.move(), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script ", file, U" not completed.");
@@ -830,6 +831,7 @@ void praat_executeScriptFromText (conststring32 text) {
 		);
 		Melder_getCurrentFolder (& interpreter -> workingDirectory);
 		interpreterStack -> emptyAll ();
+		//Interpreter_rememberScript (interpreter.get(), & file, true);   // will be OR-ed
 		interpreterStack -> runDown (interpreter.move(), Melder_dup (text), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script not completed.");
