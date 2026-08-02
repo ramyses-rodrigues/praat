@@ -2560,7 +2560,7 @@ void praat_run () {
 	if (Melder_batch) {
 		if (thePraatStandAloneScriptText) {
 			try {
-				praat_executeScriptFromText (thePraatStandAloneScriptText);
+				praat_executeScriptFromText (thePraatStandAloneScriptText);   // executed with full trust, because *we* made it
 				praat_exit (0);
 			} catch (MelderError) {
 				Melder_flushError (Melder_upperCaseAppName(), U": stand-alone script session interrupted.");
@@ -2686,7 +2686,7 @@ void praat_run () {
 															Melder_peek8to32_u (praatP.argv [praatP.argumentNumber])));
 				trace (U"Argument ", praatP.argumentNumber, U": <<", text.get(), U">>");
 				try {
-					praat_executeScriptFromText (text.get());
+					praat_executeScriptFromText (text.get());   // executed with full trust, because we just constructed the whole script
 				} catch (MelderError) {
 					Melder_flushError ();
 				}
