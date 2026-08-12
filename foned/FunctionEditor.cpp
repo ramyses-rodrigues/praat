@@ -921,7 +921,7 @@ static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS) {
 }
 
 
-// Ramyses: callback do botão SAVE: 
+/* Ramyses: callback do botão SAVE: */
 /* 
 salva o conteúdo do objeto textGrid em um arquio de texto com extensão .textGrid
 headers necessários:

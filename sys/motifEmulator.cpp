@@ -3384,7 +3384,7 @@ static LRESULT CALLBACK windowProc(
 		HANDLE_MSG (window, WM_VSCROLL, on_vscroll);
 		HANDLE_MSG (window, WM_MOUSEWHEEL, on_mouseWheel);
 		
-		/*Ramyses - arrastar e soltar*/
+		/* Ramyses - arrastar e soltar */
 		HANDLE_MSG(window, WM_DROPFILES, on_dropFiles);
 		HANDLE_MSG (window, WM_RBUTTONDOWN, on_rbuttonDown); // clique com botão direito do mouse
 

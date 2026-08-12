@@ -1366,7 +1366,6 @@ autoTable TextGrid_tabulateOccurrences (TextGrid me, constVEC searchTiers, kMeld
 	return thee;
 }
 
-// Ramyses: modificado a função Table_list(...) para Table_list2, ambas definidas em Table.cpp
 void TextGrid_list (
 	const TextGrid me,
 	const bool includeLineNumbers,
@@ -1376,6 +1375,7 @@ void TextGrid_list (
 ) {
 	try {
 		autoTable table = TextGrid_downto_Table (me, includeLineNumbers, timeDecimals, includeTierNames, includeEmptyIntervals);
+		/* Ramyses: modificado a função Table_list(...) para Table_list2, ambas definidas em Table.cpp */
 		// Table_list (table.get(), false); // modificado para Table_list2(...)
 		Table_list2(table.get(), me->name.get());
 	} catch (MelderError) {
