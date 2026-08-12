@@ -339,7 +339,7 @@ again:
 				autoIntervalTier newPhonemeTier = IntervalTier_create (my xmin, my xmax);
 				Thing_setName (newPhonemeTier.get(), newPhonemeTierName.string);
 				my tiers -> addItemAtPosition_move (newPhonemeTier.move(),
-					phonemeTierNumber = wordTierNumber ? wordTierNumber + 1 : tierNumber + 1);
+						phonemeTierNumber = wordTierNumber ? wordTierNumber + 1 : tierNumber + 1);
 			}
 			Melder_assert (phonemeTierNumber >= 1 && phonemeTierNumber <= my tiers->size);
 			phonemeTier = my intervalTier_cast (phonemeTierNumber);
@@ -390,7 +390,7 @@ void splitIntervalIntoWhisperSegments (IntervalTier tier, const integer tierNumb
 		SpeechSegment& segment = segments [i];
 
 		const double currentTmin = originalTmin + segment. tmin;
-		const double currentTmax = (i == segments.size) ? originalTmax : originalTmin + segment. tmax;
+		const double currentTmax = ( i == segments.size ? originalTmax : originalTmin + segment. tmax );
 
 		if (i == 1) {
 			const integer originalIntervalNumber = IntervalTier_hasTime (tier, originalTmin);
@@ -428,8 +428,9 @@ void TextGrid_Sound_transcribeInterval (
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
-								U") already exists, but it is not an interval tier."
-								U"\nPlease change its name or remove it.");
+							U") already exists, but it is not an interval tier."
+							U"\nPlease change its name or remove it."
+						);
 					newTierNumber = i;
 					break;
 				}
@@ -570,7 +571,7 @@ void TextGrid_Sound_transcribeInterval (
 			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers->at [headTierNumber]);
 			for (integer i = 2; i <= numberOfSpeakers; i ++) {
 				MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp", i);
-				const integer speakerSentenceTierNumber = getIntervalTier(
+				const integer speakerSentenceTierNumber = getIntervalTier (
 						speakerSentenceTierName, headTierNumber + i - 2, false);
 				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers->at [speakerSentenceTierNumber]);
 			}
@@ -608,8 +609,8 @@ void TextGrid_Sound_transcribeInterval (
 				const constvector <double> overlaps = wordsWithContext [s]. overlaps.get();
 				const double tmin = wordsWithContext [s]. whisperSegment -> tmin;
 				const double tmax = wordsWithContext [s]. whisperSegment -> tmax;
-				const double prevTmax = s > 1 ? wordsWithContext [s - 1]. whisperSegment -> tmax : wordsWithContext [1]. whisperSegment -> tmin;
-				const integer prevResolvedSpeaker = s > 1 ? wordsWithContext [s - 1]. resolvedSpeaker : 0;
+				const double prevTmax = ( s > 1 ? wordsWithContext [s - 1]. whisperSegment -> tmax : wordsWithContext [1]. whisperSegment -> tmin );
+				const integer prevResolvedSpeaker = ( s > 1 ? wordsWithContext [s - 1]. resolvedSpeaker : 0 );
 
 				/* mutable search */ integer resolvedSpeaker = 1;
 				/* mutable search */ double longestOverlap = overlaps [1];
@@ -767,8 +768,9 @@ void TextGrid_Sound_diarizeInterval (
 				if (Melder_equ (tierName.string, tier -> name.get())) {
 					if (tier -> classInfo != classIntervalTier)
 						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
-								U") already exists, but it is not an interval tier."
-								U"\nPlease change its name or remove it.");
+							U") already exists, but it is not an interval tier."
+							U"\nPlease change its name or remove it."
+						);
 					newTierNumber = i;
 					break;
 				}
@@ -1303,6 +1305,133 @@ autoSound Sound_readWithAdjacentAnnotationFiles_timit (conststring32 soundFileNa
 		return sound;
 	} catch (MelderError) {
 		Melder_throw (U"Sound “", soundFileName, U"” not read with adjacent TIMIT annotation files.");
+	}
+}
+
+autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands (conststring32 soundFileName, autoSound *out_sound) {
+	try {
+		structMelderFile file { };
+		Melder_pathToFile (soundFileName, & file);
+		if (out_sound)
+			*out_sound = Sound_readFromSoundFile (& file);
+		OrderedOf <structTextGrid> textgrids;
+
+		/*
+			The sound file resides in a folder like /Volumes/CGN/comp-a/nl/.
+			We extract the name of the sound file and of the enclosing folders.
+		*/
+
+		conststring32 soundName = MelderFile_name (& file);
+		const integer soundNamelength = Melder_length (soundName);
+		Melder_require (soundNamelength == 12,
+			U"Sound file name should be 12 characters long, but “", soundName, U"” is ", soundNamelength, U" characters long.");
+		Melder_require (Melder_stringMatchesCriterion (soundName, kMelder_string::ENDS_WITH, U".wav", true),
+			U"Sound file name should end in “.wav”, but it is “", soundName, U"”.");
+
+		autostring32 baseName = Melder_dup (soundName);
+		baseName [soundNamelength - 4] = U'\0';   // remove extension ".wav"
+
+		structMelderFolder regionFolder { };
+		MelderFile_getParentFolder (& file, & regionFolder);
+		conststring32 regionName = MelderFolder_name (& regionFolder);
+		Melder_require (Melder_equ (regionName, U"vl") || Melder_equ (regionName, U"nl"),
+			U"Folder name should be “vl” or “nl”, not “", regionName, U"”.");
+
+		structMelderFolder compFolder { };
+		MelderFolder_getParentFolder (& regionFolder, & compFolder);
+		conststring32 compName = MelderFolder_name (& compFolder);
+		Melder_require (Melder_length (compName) == 6 && Melder_stringMatchesCriterion (compName, kMelder_string::STARTS_WITH, U"comp-", true),
+			U"Folder name should be “comp-” plus another letter, not “", compName, U"”.");
+
+		/*
+			Travel up to the CGN folder.
+		*/
+		structMelderFolder cgnFolder { };
+		MelderFolder_getParentFolder (& compFolder, & cgnFolder);
+
+		/*
+			Travel down to the annotation text folder.
+		*/
+		structMelderFolder dataFolder { };
+		MelderFolder_getSubfolder (& cgnFolder, U"data", & dataFolder);
+		structMelderFolder annotFolder { };
+		MelderFolder_getSubfolder (& dataFolder, U"annot", & annotFolder);
+		structMelderFolder annotTextFolder { };
+		MelderFolder_getSubfolder (& annotFolder, U"text", & annotTextFolder);
+
+		/*
+			Read the .ort file.
+		*/
+		structMelderFolder ortFolder { };
+		MelderFolder_getSubfolder (& annotTextFolder, U"ort", & ortFolder);
+		structMelderFolder ortCompFolder { };
+		MelderFolder_getSubfolder (& ortFolder, compName, & ortCompFolder);
+		structMelderFolder ortRegionFolder { };
+		MelderFolder_getSubfolder (& ortCompFolder, regionName, & ortRegionFolder);
+		structMelderFile ortFile { };
+		MelderFolder_getFile (& ortRegionFolder, Melder_cat (baseName.get(), U".ort.gz"), & ortFile);
+		autoDaata ortData = Data_readFromFile (& ortFile);
+		Melder_require (Thing_isa (ortData.get(), classTextGrid),
+			U"The file ", MelderFile_messageName (& ortFile), U" contains a ", Thing_className (ortData.get()), U" instead of a TextGrid.");
+		autoTextGrid ort = ortData.static_cast_move <structTextGrid>();
+		for (integer itier = 1; itier <= ort -> tiers->size; itier ++)
+			TextGrid_setTierName (ort.get(), itier, Melder_dup (Melder_cat (U"ort/", ort -> tiers->at [itier] -> name.get())).get());
+		textgrids. addItem_ref (ort.get());
+
+		/*
+			Read the .awd file.
+		*/
+		structMelderFolder awdFolder { };
+		MelderFolder_getSubfolder (& annotTextFolder, U"awd", & awdFolder);
+		structMelderFolder awdCompFolder { };
+		MelderFolder_getSubfolder (& awdFolder, compName, & awdCompFolder);
+		structMelderFolder awdRegionFolder { };
+		MelderFolder_getSubfolder (& awdCompFolder, regionName, & awdRegionFolder);
+		structMelderFile awdFile { };
+		MelderFolder_getFile (& awdRegionFolder, Melder_cat (baseName.get(), U".awd.gz"), & awdFile);
+		autoDaata awdData = Data_readFromFile (& awdFile);
+		Melder_require (Thing_isa (awdData.get(), classTextGrid),
+			U"The file ", MelderFile_messageName (& awdFile), U" contains a ", Thing_className (awdData.get()), U" instead of a TextGrid.");
+		autoTextGrid awd = awdData.static_cast_move <structTextGrid>();
+		for (integer itier = 1; itier <= awd -> tiers->size; itier ++)
+			TextGrid_setTierName (awd.get(), itier, Melder_dup (Melder_cat (U"awd/", awd -> tiers->at [itier] -> name.get())).get());
+		textgrids. addItem_ref (awd.get());
+
+		/*
+			Read the .fon file.
+		*/
+		structMelderFolder fonFolder { };
+		MelderFolder_getSubfolder (& annotTextFolder, U"fon", & fonFolder);
+		structMelderFolder fonCompFolder { };
+		MelderFolder_getSubfolder (& fonFolder, compName, & fonCompFolder);
+		structMelderFolder fonRegionFolder { };
+		MelderFolder_getSubfolder (& fonCompFolder, regionName, & fonRegionFolder);
+		structMelderFile fonFile { };
+		MelderFolder_getFile (& fonRegionFolder, Melder_cat (baseName.get(), U".fon.gz"), & fonFile);
+		autoDaata fonData;
+		if (MelderFile_readable (& fonFile)) {
+			fonData = Data_readFromFile (& fonFile);
+			Melder_require (Thing_isa (fonData.get(), classTextGrid),
+				U"The file ", MelderFile_messageName (& fonFile), U" contains a ", Thing_className (fonData.get()), U" instead of a TextGrid.");
+		}
+		autoTextGrid fon;
+		if (fonData) {
+			fon = fonData.static_cast_move <structTextGrid>();
+			for (integer itier = 1; itier <= fon -> tiers->size; itier ++)
+				TextGrid_setTierName (fon.get(), itier, Melder_dup (Melder_cat (U"fon/", fon -> tiers->at [itier] -> name.get())).get());
+			textgrids. addItem_ref (fon.get());
+		}
+
+		autoTextGrid me = TextGrids_merge (& textgrids, true);
+		for (integer itier = 1; itier <= my tiers->size; itier ++)
+			TextGrid_setTierName (me.get(), itier, replace_STR (my tiers->at [itier] -> name.get(), U"_", U"/", 0).get());
+
+		if (out_sound)
+			Thing_setName (out_sound->get(), baseName.get());
+		Thing_setName (me.get(), baseName.get());
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Sound “", soundFileName, U"” not read with adjacent CGN annotation files.");
 	}
 }
 

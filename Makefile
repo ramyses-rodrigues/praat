@@ -1,7 +1,7 @@
 # File: Makefile
 
 # Makefile for Praat
-# Paul Boersma, 27 June 2026
+# Paul Boersma, 19 July 2026
 
 ##########################
 #
@@ -410,6 +410,7 @@ all: all-external all-self
 		external/opusfile/libopusfile.a \
 		external/whispercpp/libwhisper.a \
 		external/blake3/libblake3.a \
+		external/zlib/libzlib.a \
                $(NON_PRAAT_LIBRARIES) $(LDFLAGS)
 
 all-external:
@@ -426,6 +427,7 @@ all-external:
 	$(MAKE) -C external/opusfile
 	$(MAKE) -C external/whispercpp
 	$(MAKE) -C external/blake3
+	$(MAKE) -C external/zlib
 
 all-self:
 	$(MAKE) -C kar
@@ -461,6 +463,7 @@ clean-external:
 	$(MAKE) -C external/opusfile clean
 	$(MAKE) -C external/whispercpp clean
 	$(MAKE) -C external/blake3 clean
+	$(MAKE) -C external/zlib clean
 
 clean-self:
 	$(MAKE) -C kar clean

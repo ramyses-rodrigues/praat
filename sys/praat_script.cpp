@@ -524,7 +524,7 @@ void praat_executeCommandFromStandardInput (conststring32 programName) {
 	}
 }
 
-void praat_executeScript_noGUI (MelderFile file) {
+void praat_executeScript_noGUI (MelderFile file, bool fullTrust) {
 	/*
 		The problem here occurs when plug-in initialization (typically, `setup.praat`) posts a pause window,
 		as happens e.g. in the VocalToolkit plug-in if the Praat version is too old.
@@ -551,6 +551,7 @@ void praat_executeScript_noGUI (MelderFile file) {
 			file   // so that script-relative file names can be used inside the script
 		);
 		interpreterStack -> emptyAll ();
+		Interpreter_rememberScript_override (interpreter.get(), file, fullTrust && str32str (text.get(), U"\n# --FULL-TRUST\n"));
 		interpreterStack -> runDown (interpreter.move(), text.move(), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script ", file, U" not completed.");
@@ -737,6 +738,7 @@ void praat_executeScriptFromFileNameWithArguments (conststring32 nameAndArgument
 			Interpreter_readParameters (interpreter.get(), text.get());
 			Interpreter_getArgumentsFromString (interpreter.get(), arguments);   // interpret caller-relative paths for infile/outfile/folder arguments
 		}
+		Interpreter_rememberScript (interpreter.get(), & file, false);
 		interpreterStack -> runDown (interpreter.move(), text.move(), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script ", & file, U" not completed.");
@@ -797,6 +799,7 @@ void praat_runOldExecuteCommand (InterpreterStack interpreterStack, conststring3
 				Interpreter_getArgumentsFromString (me.get(), arguments);   // interpret caller-relative paths for infile/outfile/folder arguments
 			}
 			my text = text.move();
+			Interpreter_rememberScript (me.get(), & file, ! parentInterpreter -> scriptReference || parentInterpreter -> scriptReference -> trusted);
 			interpreterStack -> runDown (me.move(), autostring32(), false);   // callee-relative file names can be used inside the script
 			// back to the default directory of the caller
 		} catch (MelderError) {
@@ -830,6 +833,7 @@ void praat_executeScriptFromText (conststring32 text) {
 		);
 		Melder_getCurrentFolder (& interpreter -> workingDirectory);
 		interpreterStack -> emptyAll ();
+		//Interpreter_rememberScript (interpreter.get(), & file, true);   // will be OR-ed
 		interpreterStack -> runDown (interpreter.move(), Melder_dup (text), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script not completed.");
@@ -858,11 +862,11 @@ static void secondPassThroughScript (UiForm sendingForm, integer /* narg */, Sta
 	Interpreter_getArgumentsFromDialog (interpreter.get(), sendingForm);
 	autoPraatBackground background;
 	interpreterStack -> emptyAll ();
-	Interpreter_rememberScript (interpreter.get(), & file, false);
+	Interpreter_rememberScript (interpreter.get(), & file, false);   // will be OR-ed
 	interpreterStack -> runDown (interpreter.move(), text.move(), false);
 }
 
-static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterOwningEditor, EditorCommand optionalCommand) {
+static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterOwningEditor, EditorCommand optionalCommand, bool fullTrust) {
 	static autoInterpreterStack interpreterStack;
 	//UiPause_cleanUp ();   // TODO: needed?
 	try {
@@ -893,7 +897,7 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 			optionalInterpreterOwningEditor,
 			file   // so that callee-relative file names can be used inside the script
 		);
-		Interpreter_rememberScript (interpreter.get(), file, false);   // this is early, but possible here because the name of the script cannot change
+		Interpreter_rememberScript (interpreter.get(), file, fullTrust);   // this is early, but possible here because the name of the script cannot change (and NEEDED for "passing" to second pass)
 
 		const integer numberOfParameters = Interpreter_readParameters (interpreter.get(), text.get());
 		if (numberOfParameters > 0) {
@@ -911,7 +915,7 @@ static void firstPassThroughScript (MelderFile file, Editor optionalInterpreterO
 			{// scope
 				autoPraatBackground background;
 				interpreterStack -> emptyAll ();
-				Interpreter_rememberScript (interpreter.get(), file, false);
+				//Interpreter_rememberScript (interpreter.get(), file, false);   // superfluous
 				interpreterStack -> runDown (interpreter.move(), text.move(), false);
 			}
 		}
@@ -926,13 +930,13 @@ void DO_RunTheScriptFromAnyAddedMenuCommand (UiForm /* sendingForm_dummy */, int
 {
 	structMelderFile file { };
 	Melder_relativePathToFile (scriptPath, & file);
-	firstPassThroughScript (& file, optionalInterpreterOwningEditor, nullptr);
+	firstPassThroughScript (& file, optionalInterpreterOwningEditor, nullptr, false);
 }
 
-void praat_runScriptWithForm (conststring32 fileName) {
+void praat_runScriptWithForm (conststring32 fileName, bool fullTrust) {
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName, & file);
-	firstPassThroughScript (& file, nullptr, nullptr);
+	firstPassThroughScript (& file, nullptr, nullptr, fullTrust);
 }
 
 void praat_executeScriptFromEditorCommand (Editor interpreterOwningEditor, EditorCommand command, conststring32 scriptPath) {
@@ -941,7 +945,7 @@ void praat_executeScriptFromEditorCommand (Editor interpreterOwningEditor, Edito
 	Melder_assert (command -> d_editor == interpreterOwningEditor);
 	structMelderFile file { };
 	Melder_relativePathToFile (scriptPath, & file);
-	firstPassThroughScript (& file, interpreterOwningEditor, command);
+	firstPassThroughScript (& file, interpreterOwningEditor, command, false);
 }
 
 /* End of file praat_script.cpp */
