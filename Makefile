@@ -86,7 +86,7 @@
 #   will override the environment variable.
 #
 ##########################
-# Especificando explicitamente o OS como Windows, a arquitetura como x64v3 e o compilador como gcc para usar a extensão MakeFile do VSCode.
+# Ramyses: Especificando explicitamente o OS como Windows, a arquitetura como x64v3 e o compilador como gcc para usar a extensão MakeFile do VSCode.
 PRAAT_OS = windows
 PRAAT_ARCH = x64v3
 PRAAT_COMPILER = gcc
@@ -248,6 +248,7 @@ else ifeq ($(OS_IS_WINDOWS),1)
   # - CXXFLAGS is a standard variable for the settings that will be used by implicit `make` rules to compile C++ files
   # - SHARED_COMPILER_FLAGS is our variable for the settings that will be shared between C and C++ compilation
   #
+  # Ramyses: modificado para adicionar a opção de compilar em modo debug ou release, com base na variável RELEASE_DEBUG_MODE.
   ifeq ($(RELEASE_DEBUG_MODE),1)
     $(info Compiling in debug mode)
     CFLAGS := -g -std=gnu99 $(SHARED_COMPILER_FLAGS)
