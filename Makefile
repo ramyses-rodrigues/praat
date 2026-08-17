@@ -90,7 +90,7 @@
 PRAAT_OS = windows
 PRAAT_ARCH = x64v3
 PRAAT_COMPILER = gcc
-RELEASE_DEBUG_MODE = 1 # modo debug = 1, modo release = 0
+RELEASE_DEBUG_MODE = DEBUG# modo debug = DEBUG, modo release = RELEASE (lembrar de eliminar os espaços no fim da palavra RELEASE ou DEBUG)
 
 
 # First try: explicit setting of the OS via argument or environment variable PRAAT_OS.
@@ -249,23 +249,25 @@ else ifeq ($(OS_IS_WINDOWS),1)
   # - SHARED_COMPILER_FLAGS is our variable for the settings that will be shared between C and C++ compilation
   #
   # Ramyses: modificado para adicionar a opção de compilar em modo debug ou release, com base na variável RELEASE_DEBUG_MODE.
-  ifeq ($(RELEASE_DEBUG_MODE),1)
-    $(info Compiling in debug mode)
-    CFLAGS := -g -std=gnu99 $(SHARED_COMPILER_FLAGS)
-    CXXFLAGS := -g -std=gnu++17 $(SHARED_COMPILER_FLAGS) -Wshadow
-    EXECUTABLE_FILE = Praat_Debug.exe
-    # Note: gnu++17 instead of c++17 is necessary to define M_PI in external code.
-  else
-    $(info Compiling in release mode)
-    CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -O3
-    CXXFLAGS := -std=gnu++17 $(SHARED_COMPILER_FLAGS) -O3 -Wshadow
-    EXECUTABLE_FILE = Praat.exe
-  endif
-
   SHARED_COMPILER_FLAGS := -municode -D_FILE_OFFSET_BITS=64 \
     $(ARCH_COMPILER_FLAGS) -O3
     # Note: the leaves many settings implicit, such as -mwin32 and -mtune=generic;
     # also -m64 (for x64-v1, x64-v3 and arm64) and -march=xxx (if not set in ARCH_COMPILER_FLAGS).
+  
+  ifeq ($(RELEASE_DEBUG_MODE),DEBUG)
+    $(info Compilando no modeo debug)
+    CFLAGS := -g -std=gnu99 $(SHARED_COMPILER_FLAGS)
+    CXXFLAGS := -g -std=gnu++17 $(SHARED_COMPILER_FLAGS) -Wshadow
+    EXECUTABLE_FILE := Praat_Debug.exe
+    # Note: gnu++17 instead of c++17 is necessary to define M_PI in external code.
+  else ifeq ($(RELEASE_DEBUG_MODE),RELEASE)
+    $(info Compilando no modo release)
+    CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -O3
+    CXXFLAGS := -std=gnu++17 $(SHARED_COMPILER_FLAGS) -O3 -Wshadow
+    EXECUTABLE_FILE := Praat.exe
+  else
+    $(error Variável RELEASE_DEBUG_MODE não definida ($(RELEASE_DEBUG_MODE)). Defina como DEBUG para debug ou RELEASE para release.)
+  endif
  
   AR = ar
   RANLIB = ranlib
