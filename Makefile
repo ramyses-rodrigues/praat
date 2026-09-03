@@ -90,7 +90,7 @@
 PRAAT_OS = windows
 PRAAT_ARCH = x64v3
 PRAAT_COMPILER = gcc
-RELEASE_DEBUG_MODE = DEBUG# modo debug = DEBUG, modo release = RELEASE (lembrar de eliminar os espaços no fim da palavra RELEASE ou DEBUG)
+RELEASE_DEBUG_MODE = RELEASE# modo debug = DEBUG, modo release = RELEASE (lembrar de eliminar os espaços no fim da palavra RELEASE ou DEBUG)
 
 
 # First try: explicit setting of the OS via argument or environment variable PRAAT_OS.
@@ -189,7 +189,7 @@ ifeq ($(OS_IS_FREEBSD),1)
     -I$(LOCALBASE)/include -I$(LOCALBASE)/include/unicode
     # Note: can we add -Werror=return-type to other OSes as well?
 
-  EXECUTABLE_FILE := praat
+  EXECUTABLE_FILE := praat.exe
 
   NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -L$(LOCALBASE)/lib $(AUDIO_LINKER_FLAGS) -lm -lpthread -ltinfow
 
@@ -264,7 +264,7 @@ else ifeq ($(OS_IS_WINDOWS),1)
     $(info Compilando no modo release)
     CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -O3
     CXXFLAGS := -std=gnu++17 $(SHARED_COMPILER_FLAGS) -O3 -Wshadow
-    EXECUTABLE_FILE := Praat.exe
+    EXECUTABLE_FILE := Praat_Release.exe
   else
     $(error Variável RELEASE_DEBUG_MODE não definida ($(RELEASE_DEBUG_MODE)). Defina como DEBUG para debug ou RELEASE para release.)
   endif
