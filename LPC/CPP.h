@@ -22,10 +22,14 @@
 #include "Pitch.h"
 
 Thing_define (CPP, Vector) {
+	
+	autoBOOLVEC voiced;   // from Sound
+
 	void v1_info ()
 		override;
 	int v_domainQuantity () const
 		override { return MelderQuantity_TIME_SECONDS; }
+
 };
 
 /* 
@@ -71,6 +75,6 @@ autoMatrix CPP_to_Matrix (CPP me);
 
 autoCPP Matrix_to_CPP (Matrix me);
 
-autoCPP CPP_and_Pitch_to_CPP_markUnvoiced (CPP me, Pitch thee);
+autoCPP CPP_and_Pitch_to_CPP_markVoiced (CPP me, Pitch thee);
 
 #endif // _CPP_h_

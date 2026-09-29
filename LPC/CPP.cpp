@@ -30,7 +30,7 @@ static autoVEC CPP_getSoundingValues (CPP me, double tmin, double tmax) {
 	autoVEC soundingValues = raw_VEC (numberOfFrames);
 	integer numberOfSoundingFrames = 0;
 	for (integer iframe = imin; iframe <= imax; iframe ++)
-		if (my z [1] [iframe] > 0.0)
+		if (my voiced [iframe])
 			soundingValues [++ numberOfSoundingFrames] = my z [1] [iframe];
 	if (numberOfSoundingFrames < 1)
 		return autoVEC();
@@ -113,7 +113,7 @@ double CPP_getQuantile (CPP me, double quantile) {
 	return NUMquantile (soundingValues.get(), quantile);
 }
 
-autoCPP CPP_and_Pitch_to_CPP_markUnvoiced (CPP me, Pitch thee) {
+autoCPP CPP_and_Pitch_to_CPP_markVoiced (CPP me, Pitch thee) {
 	Melder_require (my xmin == thy xmin && my xmax == thy xmax,
 		U"The domains of the CPP and the Pitch should be equal.");
 	try {
@@ -121,7 +121,7 @@ autoCPP CPP_and_Pitch_to_CPP_markUnvoiced (CPP me, Pitch thee) {
 		for (integer i = 1; i <= my nx; i ++) {
 			const double time = my x1 + (i - 1) * my dx;
 			if (! Pitch_isVoiced_t (thee, time))
-				his z [1] [i] = 0.0;
+				my voiced [i] = true;
 		}
 		return him;
 	} catch (MelderError) {
