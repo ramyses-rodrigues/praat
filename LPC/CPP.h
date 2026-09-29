@@ -51,8 +51,9 @@ Thing_define (CPP, Vector) {
 		ny = 1
 		z [1] [1..nt]
 		TODO
-			The Cepstral Prominence Peak value, a real number between 0 dB and > 100 dB:
-			0 dB means no periodicity at all
+			The Cepstral Prominence Peak value, a real number between 0 dB and > 100 dB if background
+			estimation was done by a straight line. 
+			For exponential decay it might incidentally be negative.
 			Normal values for speech are between 10 dB for non-voiced parts and 60 dB for monotone perfectly voiced
 */
 
@@ -75,6 +76,6 @@ autoMatrix CPP_to_Matrix (CPP me);
 
 autoCPP Matrix_to_CPP (Matrix me);
 
-autoCPP CPP_and_Pitch_to_CPP_markVoiced (CPP me, Pitch thee);
+autoCPP CPP_and_Pitch_to_CPP_markVoicing (CPP me, Pitch thee);
 
 #endif // _CPP_h_
