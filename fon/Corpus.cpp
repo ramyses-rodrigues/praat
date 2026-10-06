@@ -49,6 +49,7 @@ autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soun
 		folderWithAnnotationFiles = folderWithSoundFiles;
 	my folderWithAnnotationFiles = Melder_dup (folderWithAnnotationFiles);
 	autoSTRVEC fileList = fileNames_STRVEC (Melder_cat (folderWithSoundFiles, U"/*.", soundFileExtension));
+	my recordings = Thing_new (Table);
 	Table_initWithColumnNames (my recordings.get(), fileList.size,
 			autoSTRVEC ({ U"Sound", U"Annotation" }).get());
 	autoMelderString annotationFileName;

@@ -1736,6 +1736,15 @@ DO
 	CREATE_ONE_END (U"CGN")
 }
 
+FORM (NEW_Corpus_importFromTIMIT, U"Import Corpus from TIMIT", U"Import Corpus from TIMIT...") {
+	FOLDER (folderName, U"TIMIT folder name", U"/Volumes/TIMIT")
+	OK
+DO
+	CREATE_ONE
+		autoCorpus result = Corpus_importFromTIMIT (folderName);
+	CREATE_ONE_END (U"TIMIT")
+}
+
 // MARK: View & Edit
 
 DIRECT (EDITOR_ONE_Corpus_edit) {
@@ -1971,6 +1980,8 @@ void praat_uvafon_TextGrid_init () {
 	praat_addMenuCommand (U"Objects", U"Open", U"Import Corpus...", nullptr, 0, nullptr);
 		praat_addMenuCommand (U"Objects", U"Open", U"Import Corpus from CGN...",
 				nullptr, 1, NEW_Corpus_importFromCGN);
+		praat_addMenuCommand (U"Objects", U"Open", U"Import Corpus from TIMIT...",
+				nullptr, 1, NEW_Corpus_importFromTIMIT);
 
 	praat_addAction1 (classCorpus, 1, U"View & Edit", nullptr, GuiMenu_ATTRACTIVE, EDITOR_ONE_Corpus_edit);
 	praat_addAction1 (classCorpus, 1, U"View & Edit speakers", nullptr, 0, EDITOR_ONE_Corpus_editSpeakers);

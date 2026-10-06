@@ -28,6 +28,7 @@ autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soun
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension);
 
 autoCorpus Corpus_importFromCGN (conststring32 rootFolderPath);
+autoCorpus Corpus_importFromTIMIT(conststring32 rootFolderPath);
 
 autoTextGrid Corpus_extractTextGrid_number (Corpus me, integer recordingNumber);
 autoSound Corpus_extractSound_number (Corpus me, integer recordingNumber);
