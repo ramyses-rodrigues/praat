@@ -249,4 +249,18 @@ integer getGridCellIndex (double x, double y, integer numberOfRows, integer numb
 	return (irow - 1) * numberOfColumns + icol; // left-to-right, top-to-bottom
 }
 
+autoLineSegmentClipper LineSegmentClipper_create (double xL, double xR, double yB, double yT) {
+	try {
+		autoLineSegmentClipper me = std::make_unique <structLineSegmentClipper> ();
+		my init (xL, xR, yB, yT);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create LineSegmentClipper.");
+	}
+}
+
+bool LineSegmentClipper_clip (LineSegmentClipper me, double& x1, double& y1, double& x2, double& y2) {
+	return my clip (x1, y1, x2, y2);
+}
+
 /* End of file Graphics_extensions.cpp */
