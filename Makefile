@@ -90,7 +90,7 @@
 PRAAT_OS = windows
 PRAAT_ARCH = x64v3
 PRAAT_COMPILER = gcc
-RELEASE_DEBUG_MODE = RELEASE# modo debug = DEBUG, modo release = RELEASE (lembrar de eliminar os espaços no fim da palavra RELEASE ou DEBUG)
+RELEASE_DEBUG_MODE = DEBUG# modo debug = DEBUG, modo release = RELEASE (lembrar de eliminar os espaços no fim da palavra RELEASE ou DEBUG)
 
 
 # First try: explicit setting of the OS via argument or environment variable PRAAT_OS.
