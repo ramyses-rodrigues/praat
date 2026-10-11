@@ -45,7 +45,7 @@ static autoTable Table_readSpeakerInfoFromTIMITTextFile (MelderFile speakersFile
 	try {
 		const conststring32 colNames [] = { U"ID", U"Sex", U"DR", U"Use", U"RecDate", U"BirthDate", U"Ht", U"Race", U"Edu", U"Comments" };
 		autoTable me = Table_createWithColumnNames (0, ARRAY_TO_STRVEC (colNames));
-		const integer numberOfColumns = my numberOfColumns;		autoSTRVEC lines = readLinesFromFile_STRVEC (speakersFile);
+		autoSTRVEC lines = readLinesFromFile_STRVEC (speakersFile);
 		const integer numberOfLines = lines.size;
 		Melder_require (numberOfLines > 1,
 			U"Not enough lines.");
