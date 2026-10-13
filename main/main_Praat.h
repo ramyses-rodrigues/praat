@@ -27,7 +27,7 @@
 #define PRAAT_VERSION_STR  7.0.03beta
 #define PRAAT_VERSION_NUM  7003
 #define PRAAT_YEAR  2026
-#define PRAAT_MONTH  9
-#define PRAAT_DAY  26
+#define PRAAT_MONTH  10
+#define PRAAT_DAY  13
 
 /* End of file main_Praat.h */
