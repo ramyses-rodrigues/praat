@@ -1566,6 +1566,11 @@ static void gui_drawingarea_cb_mouse (FunctionEditor me, GuiDrawingArea_MouseEve
 		my v_mouseInWideDataView (event, x_world, y_fraction);   // this can change the selection, but not (yet?) the window (last checked 2023-02-13)
 		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_selectionMarksChanged()
 		FunctionEditor_selectionMarksChanged (me);
+
+		// Ramyses - Reproduzir a partir do ponto de clique do mouse, quando em reprodução (duringPlay = true) x_word é o mouseTime
+		if ((event -> isClick()) && (my duringPlay)) {
+			my v_play (x_world, my endWindow);
+		}
 	} else {   // clicked outside signal region? Let us hear it
 		try {
 			if (event -> isClick()) {
