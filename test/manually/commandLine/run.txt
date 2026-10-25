@@ -1,0 +1,35 @@
+praat ../play.praat ../../fon/examples/example.wav
+praat --run ../play.praat ../../fon/examples/example.wav
+# twice:
+praat --open ../../fon/examples/example.wav ../../fon/examples/*.TextGrid &
+
+# twice:
+praat --send ../play.praat ../../fon/examples/example.wav &
+praat --new-send ../play.praat ../../fon/examples/example.wav &
+
+praat "p l a y.praat" "e x a m p l e.wav" 2 &
+praat --run "p l a y.praat" "e x a m p l e.wav" 2 &
+# twice:
+praat --open "e x a m p l e.wav" &
+praat --new-open "e x a m p l e.wav" &
+# twice:
+praat --send "p l a y.praat" "e x a m p l e.wav" 2 &
+praat --new-send "p l a y.praat" "e x a m p l e.wav" 2 &
+
+# sending without arguments, should present a form:
+praat --send-or-form "p l a y.praat" &
+
+
+# a whole other thing is whether full trust is passed
+
+# this should ask for permission:
+praat --new-send "s a v e.praat"
+
+# this should NOT ask for permission:
+praat --new-send --FULL-TRUST "s a v e.praat"
+
+# this should ask for permission, even is Praat is running:
+praat --send "s a v e.praat"
+
+# this should NOT ask for permission, even if Praat is running:
+praat --send --FULL-TRUST "s a v e.praat"

@@ -1,0 +1,41 @@
+# File: makefile.defs.msys-mingw64
+# Ramyses - modificações para compilar com flag -g (debug)
+
+# System: MinGW on Windows under MSYS2
+# Paul Boersma 2024-01-05
+
+PREFIX ?=
+
+# Para compilar no modo debug, descomentar a linha abaixo. 
+DEBUG_ON = 0
+
+ifdef DEBUG_ON
+	DEBUGFLAGS = -g
+	DEBUG_TAG = _Debug
+else
+	DEBUGFLAGS = 
+	DEBUG_TAG = _Release
+endif
+
+CC = $(PREFIX)gcc
+CXX = $(PREFIX)g++
+LINK = $(CXX)
+
+COMMONFLAGS = -m64 -municode -D_FILE_OFFSET_BITS=64 \
+	-O3
+# Probably implicit: -m64 -mwin32 -march=x86_64 -mtune=generic
+
+CFLAGS = $(DEBUGFLAGS) -std=gnu99 $(COMMONFLAGS)
+
+# gnu++17 instead of c++17 is necessary to define M_PI in external code
+CXXFLAGS = $(DEBUGFLAGS) -std=gnu++17 $(COMMONFLAGS) -Wshadow
+
+EXECUTABLE = Praat_Mod$(DEBUG_TAG).exe
+
+LIBS = -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool -static-libgcc -static-libstdc++ -mwindows -static
+
+AR = $(PREFIX)ar
+RANLIB = $(PREFIX)ranlib
+WINDRES = $(PREFIX)windres
+ICON = praat_win.o
+MAIN_ICON = main/praat_win.o
