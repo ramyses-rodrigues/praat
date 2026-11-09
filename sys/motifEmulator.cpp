@@ -3294,6 +3294,9 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 // #include <../foned/TextGridArea.h> // para ter acesso à função gui_drawingarea_cb_zoom() e gui_drawingarea_cb_unzoom()
 #define ID_ITEM_1 1001
 #define ID_ITEM_2 1002
+#define ID_PLAY 1003
+#define ID_PAUSE 1004
+#define ID_STOP 1005
 
 static LRESULT CALLBACK windowProc(
 	HWND window, UINT message, WPARAM wParam, LPARAM lParam)
@@ -3329,11 +3332,19 @@ static LRESULT CALLBACK windowProc(
 					int wmId = LOWORD(wParam);
 					switch (wmId) {
 					case ID_ITEM_1:
-						Melder_warning(U"Você clicou na Opção 1. WidgetClass: ", control->widgetClass);
-						
+						Melder_warning(U"Você clicou na Opção 1. WidgetClass: ", control->widgetClass);						
 						break;
 					case ID_ITEM_2:
 						Melder_warning(U"Você clicou na Opção 2");
+						break;
+					case ID_PLAY:
+						Melder_warning(U"Você clicou em Reproduzir");
+						break;
+					case ID_PAUSE:
+						Melder_warning(U"Você clicou em Pausar");
+						break;
+					case ID_STOP:
+						Melder_warning(U"Você clicou em Parar");
 						break;
 					}
 				}
@@ -3367,10 +3378,58 @@ static LRESULT CALLBACK windowProc(
 						// recupera referências de falantes cadastradas e adiciona ao menu
 
 						// separa o falante de referência da string
-						
+
 						
 						AppendMenu(hPopup, MF_STRING, ID_ITEM_1, L"Opção 1");
 						AppendMenu(hPopup, MF_STRING, ID_ITEM_2, L"Opção 2");
+
+						// Garantir que a janela seja o foco antes de rastrear
+						SetForegroundWindow(window);
+
+						// 3. Exibir o menu na posição do cursor
+						TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
+
+						// 4. Destruir o menu da memória após o uso
+						DestroyMenu(hPopup);
+					}
+				}
+			
+				// // 3. Pega o nome da classe do componente sob o mouse
+				// GetClassNameA(hwndTarget, className, sizeof(className));
+				
+				// // 4. Verifica se a classe é uma "ListBox"
+				// if (strcmp(className, "ListBox") == 0) {
+				// Melder_warning(U"Em teste: os arquivos foram soltos em um ListBox!");
+			
+				if (MEMBER (me, List)) {	// verifica se é lista, para exibir menu de contexto apropriado
+			
+					// Coordenadas da tela onde o clique ocorreu
+					int xPos = GET_X_LPARAM(lParam);
+					int yPos = GET_Y_LPARAM(lParam);
+					// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
+					if (xPos == -1 && yPos == -1) {
+						RECT rect;
+						GetClientRect(window, &rect);
+						ClientToScreen(window, (LPPOINT)&rect);
+						xPos = rect.left + 10;
+						yPos = rect.top + 10;
+					}
+
+					// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
+
+					// 1. Criar o menu pop-up
+					HMENU hPopup = CreatePopupMenu();
+					if (hPopup) {
+						// 2. Adicionar itens ao menu (referências e falante cadastradas)
+						// recupera referências de falantes cadastradas e adiciona ao menu
+
+						// verifica o tipo de objeto selecionado
+						// if () {
+						// 	// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos, U" - List widget");
+						// }
+						
+						AppendMenu(hPopup, MF_STRING, ID_ITEM_1, L"Play");
+						AppendMenu(hPopup, MF_STRING, ID_ITEM_2, L"Stop");
 
 						// Garantir que a janela seja o foco antes de rastrear
 						SetForegroundWindow(window);
