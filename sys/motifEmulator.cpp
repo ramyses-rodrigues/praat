@@ -2883,6 +2883,169 @@ static GuiObject findItem (GuiObject menu, int id) {
 	}
 	return NULL;
 }
+// Ramyses: calback para o menu de contexto
+#define ID_ITEM_1 1001
+#define ID_ITEM_2 1002
+#define ID_PLAY 1003
+#define ID_PAUSE 1004
+#define ID_STOP 1005
+
+/* 
+FORWARD_WM_CONTEXTMENU(hwnd,hwndContext,xPos,yPos,fn) 
+(void)(fn)((hwnd),WM_CONTEXTMENU,(WPARAM)(HWND)(hwndContext),MAKELPARAM((UINT)(xPos),(UINT)(yPos)))
+*/
+static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {       
+	GuiObject parent = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+	if (parent) {
+		if (hwndContext) {
+			GuiObject control = (GuiObject) GetWindowLongPtr (hwndContext, GWLP_USERDATA);
+			if (control) {
+				switch (control->widgetClass) {
+					case xmPushButtonWidgetClass: break;
+					case xmListWidgetClass: {
+						Melder_warning (U"WM_CONTEXTMENU: xmListWidgetClass");	
+						// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
+						if (xPos == -1 && yPos == -1) {
+							RECT rect;
+							GetClientRect(window, &rect);
+							ClientToScreen(window, (LPPOINT)&rect);
+							xPos = rect.left + 10;
+							yPos = rect.top + 10;
+						}
+						HMENU hPopup = CreatePopupMenu();
+						if (hPopup) {
+							// 2. Adicionar itens ao menu (referências e falante cadastradas)
+							// recupera referências de falantes cadastradas e adiciona ao menu
+
+							// separa o falante de referência da string
+
+							
+							// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
+
+							// 1. Criar o menu pop-up
+							AppendMenu(hPopup, MF_STRING, ID_PLAY, L"Play");
+							AppendMenu(hPopup, MF_STRING, ID_STOP, L"Stop");
+
+							// Garantir que a janela seja o foco antes de rastrear
+							SetForegroundWindow(window);
+
+							// 3. Exibir o menu na posição do cursor
+							TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
+
+							// 4. Destruir o menu da memória após o uso
+							DestroyMenu(hPopup);
+						}
+					}
+
+					// if (codeNotify == LBN_SELCHANGE) {
+						// 	//_GuiWinList_handleClick (control);
+						// } else
+						// // Ramyses: fazer a listbox responder ao duplo clique
+						// if (codeNotify == LBN_DBLCLK) {
+						// 	// Ramyses - callback do duplo clique no objeto da lista
+						// 	//_GuiWinList_handleDBClick(control);
+						// 	// cb_list_ondoubleclick(control);
+						// }
+						// else
+						// 	FORWARD_WM_CONTEXTMENU(window, hwndContext, xPos, yPos, DefWindowProc);	
+						break;
+					case xmTextWidgetClass:
+						Melder_warning (U"WM_CONTEXTMENU: xmTextWidgetClass");
+						// if (codeNotify == EN_CHANGE) {
+						// 	//_GuiText_handleValueChanged (control);
+						
+						// 	//_GuiText_handleFocusLoss (control);   // for button clicks (see above)
+						// }
+						break;
+					case xmDrawingAreaWidgetClass: {
+						Melder_warning (U"WM_CONTEXTMENU: xmDrawingAreaWidgetClass");
+						
+						// Ramyses: callback do menu de contexto
+						//_GuiWinDrawingArea_handleContextMenu(control);
+	
+						// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
+						if (xPos == -1 && yPos == -1) {
+							RECT rect;
+							GetClientRect(window, &rect);
+							ClientToScreen(window, (LPPOINT)&rect);
+							xPos = rect.left + 10;
+							yPos = rect.top + 10;
+						}
+						HMENU hPopup = CreatePopupMenu();
+						if (hPopup) {
+							// 2. Adicionar itens ao menu (referências e falante cadastradas)
+							// recupera referências de falantes cadastradas e adiciona ao menu
+
+							// separa o falante de referência da string
+
+							
+							// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
+
+							// 1. Criar o menu pop-up
+							AppendMenu(hPopup, MF_STRING, ID_ITEM_1, L"Opção 1");
+							AppendMenu(hPopup, MF_STRING, ID_ITEM_2, L"Opção 2");
+
+							// Garantir que a janela seja o foco antes de rastrear
+							SetForegroundWindow(window);
+
+							// 3. Exibir o menu na posição do cursor
+							TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
+
+							// 4. Destruir o menu da memória após o uso
+							DestroyMenu(hPopup);
+						}
+						break;
+					}
+					default:
+						break;
+				}
+			} else FORWARD_WM_CONTEXTMENU(window, hwndContext, xPos, yPos, DefWindowProc);	
+		} else FORWARD_WM_CONTEXTMENU(window, hwndContext, xPos, yPos, DefWindowProc);	
+	}
+}
+
+			// GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+			
+			// if (me) {
+				// POINT pt;
+				// // 1. Pega o ponto onde o mouse foi solto (coordenadas relativas à janela principal)
+				// HDROP hDrop = (HDROP)wParam;
+				// DragQueryPoint(hDrop, &pt);
+				// // 2. Encontra o handle (HWND) do controle que está sob essa coordenada
+				// HWND hwndTarget = ChildWindowFromPoint(window, pt);
+				// // 2. Converter para coordenadas relativas à janela pai (hwndPai)
+				// ScreenToClient(window, &pt);
+
+				// // 3. Descobrir qual controle/janela filha está sob o mouse
+				// HWND hwndFilha = ChildWindowFromPoint(window, pt);
+
+				// if (hwndFilha != NULL && hwndFilha != window) {
+				// 	// O ponto está em cima de uma janela filha específica!
+				// 	char className[256];		
+				// 	// 3. Pega o nome da classe do componente sob o mouse
+				// 	GetClassNameA(hwndTarget, className, sizeof(className));
+				// 	Melder_warning(U"Em teste: objeto sob o mouse: ", Melder_peek8to32_u(className));
+				// }
+
+				// if (hwndTarget != NULL) {
+				// 	char className[256];		
+				// 	// 3. Pega o nome da classe do componente sob o mouse
+				// 	GetClassNameA(hwndTarget, className, sizeof(className));
+				// 	Melder_warning(U"Em teste: objeto sob o mouse: ", Melder_peek8to32_u(className));
+					
+				// 	// // 4. Verifica se a classe é uma "ListBox"
+				// 	// if (strcmp(className, "ListBox") == 0) {
+				// 	// 	Melder_warning(U"Em teste: os arquivos foram soltos em um ListBox!");
+						
+				// 	// 	// Aqui você pode continuar com o DragQueryFile para ler os arquivos
+				// 	// } else {
+				// 	// 	Melder_warning(U"Em teste: solto sobre em outro componente: ", Melder_peek8to32_u(className));
+				// 	// }
+				// }
+								
+		// 	}
+		// }
+
 static void on_command (
         HWND window, int id, HWND controlWindow, UINT codeNotify) {
 	GuiObject parent = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
@@ -3289,15 +3452,6 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	FORWARD_WM_DROPFILES (window, hDrop, DefWindowProc);
 }
 
-
-// #include <../foned/TextGridArea.h>
-// #include <../foned/TextGridArea.h> // para ter acesso à função gui_drawingarea_cb_zoom() e gui_drawingarea_cb_unzoom()
-#define ID_ITEM_1 1001
-#define ID_ITEM_2 1002
-#define ID_PLAY 1003
-#define ID_PAUSE 1004
-#define ID_STOP 1005
-
 static LRESULT CALLBACK windowProc(
 	HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -3352,98 +3506,7 @@ static LRESULT CALLBACK windowProc(
 			return 0;
 		}
 		/* Ramyses - cria menu de contexto */
-		case WM_CONTEXTMENU: {
-			GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
-			if (me) {
-				if (MEMBER (me, DrawingArea)) {	// verifica se é área de desenho, para exibir menu de contexto
-			
-					// Coordenadas da tela onde o clique ocorreu
-					int xPos = GET_X_LPARAM(lParam);
-					int yPos = GET_Y_LPARAM(lParam);
-					// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
-					if (xPos == -1 && yPos == -1) {
-						RECT rect;
-						GetClientRect(window, &rect);
-						ClientToScreen(window, (LPPOINT)&rect);
-						xPos = rect.left + 10;
-						yPos = rect.top + 10;
-					}
-
-					// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
-
-					// 1. Criar o menu pop-up
-					HMENU hPopup = CreatePopupMenu();
-					if (hPopup) {
-						// 2. Adicionar itens ao menu (referências e falante cadastradas)
-						// recupera referências de falantes cadastradas e adiciona ao menu
-
-						// separa o falante de referência da string
-
-						
-						AppendMenu(hPopup, MF_STRING, ID_ITEM_1, L"Opção 1");
-						AppendMenu(hPopup, MF_STRING, ID_ITEM_2, L"Opção 2");
-
-						// Garantir que a janela seja o foco antes de rastrear
-						SetForegroundWindow(window);
-
-						// 3. Exibir o menu na posição do cursor
-						TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
-
-						// 4. Destruir o menu da memória após o uso
-						DestroyMenu(hPopup);
-					}
-				}
-			
-				// // 3. Pega o nome da classe do componente sob o mouse
-				// GetClassNameA(hwndTarget, className, sizeof(className));
-				
-				// // 4. Verifica se a classe é uma "ListBox"
-				// if (strcmp(className, "ListBox") == 0) {
-				// Melder_warning(U"Em teste: os arquivos foram soltos em um ListBox!");
-			
-				if (MEMBER (me, List)) {	// verifica se é lista, para exibir menu de contexto apropriado
-			
-					// Coordenadas da tela onde o clique ocorreu
-					int xPos = GET_X_LPARAM(lParam);
-					int yPos = GET_Y_LPARAM(lParam);
-					// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
-					if (xPos == -1 && yPos == -1) {
-						RECT rect;
-						GetClientRect(window, &rect);
-						ClientToScreen(window, (LPPOINT)&rect);
-						xPos = rect.left + 10;
-						yPos = rect.top + 10;
-					}
-
-					// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
-
-					// 1. Criar o menu pop-up
-					HMENU hPopup = CreatePopupMenu();
-					if (hPopup) {
-						// 2. Adicionar itens ao menu (referências e falante cadastradas)
-						// recupera referências de falantes cadastradas e adiciona ao menu
-
-						// verifica o tipo de objeto selecionado
-						// if () {
-						// 	// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos, U" - List widget");
-						// }
-						
-						AppendMenu(hPopup, MF_STRING, ID_ITEM_1, L"Play");
-						AppendMenu(hPopup, MF_STRING, ID_ITEM_2, L"Stop");
-
-						// Garantir que a janela seja o foco antes de rastrear
-						SetForegroundWindow(window);
-
-						// 3. Exibir o menu na posição do cursor
-						TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
-
-						// 4. Destruir o menu da memória após o uso
-						DestroyMenu(hPopup);
-					}
-				}
-			}
-			return 0;
-		}
+		HANDLE_MSG(window, WM_CONTEXTMENU, on_contextmenu);
 
 		HANDLE_MSG (window, WM_SIZE, on_size);
 		HANDLE_MSG (window, WM_KEYDOWN, on_key);
