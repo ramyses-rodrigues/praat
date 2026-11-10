@@ -2900,10 +2900,12 @@ static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {
 		if (hwndContext) {
 			GuiObject control = (GuiObject) GetWindowLongPtr (hwndContext, GWLP_USERDATA);
 			if (control) {
-				switch (control->widgetClass) {
+				// teste
+				Melder_warning (U"Objeto em contexto: ", control->name.get(), U" (", control->widgetClass, U")");
+				switch (control->widgetClass) {					
 					case xmPushButtonWidgetClass: break;
 					case xmListWidgetClass: {
-						Melder_warning (U"WM_CONTEXTMENU: xmListWidgetClass");	
+						//Melder_warning (U"WM_CONTEXTMENU: xmListWidgetClass");	
 						// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
 						if (xPos == -1 && yPos == -1) {
 							RECT rect;
@@ -2935,19 +2937,7 @@ static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {
 							// 4. Destruir o menu da memória após o uso
 							DestroyMenu(hPopup);
 						}
-					}
-
-					// if (codeNotify == LBN_SELCHANGE) {
-						// 	//_GuiWinList_handleClick (control);
-						// } else
-						// // Ramyses: fazer a listbox responder ao duplo clique
-						// if (codeNotify == LBN_DBLCLK) {
-						// 	// Ramyses - callback do duplo clique no objeto da lista
-						// 	//_GuiWinList_handleDBClick(control);
-						// 	// cb_list_ondoubleclick(control);
-						// }
-						// else
-						// 	FORWARD_WM_CONTEXTMENU(window, hwndContext, xPos, yPos, DefWindowProc);	
+					}					
 						break;
 					case xmTextWidgetClass:
 						Melder_warning (U"WM_CONTEXTMENU: xmTextWidgetClass");
@@ -2958,7 +2948,7 @@ static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {
 						// }
 						break;
 					case xmDrawingAreaWidgetClass: {
-						Melder_warning (U"WM_CONTEXTMENU: xmDrawingAreaWidgetClass");
+						// Melder_warning (U"WM_CONTEXTMENU: xmDrawingAreaWidgetClass");
 						
 						// Ramyses: callback do menu de contexto
 						//_GuiWinDrawingArea_handleContextMenu(control);
@@ -3003,51 +2993,7 @@ static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {
 		} else FORWARD_WM_CONTEXTMENU(window, hwndContext, xPos, yPos, DefWindowProc);	
 	}
 }
-
-			// GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
-			
-			// if (me) {
-				// POINT pt;
-				// // 1. Pega o ponto onde o mouse foi solto (coordenadas relativas à janela principal)
-				// HDROP hDrop = (HDROP)wParam;
-				// DragQueryPoint(hDrop, &pt);
-				// // 2. Encontra o handle (HWND) do controle que está sob essa coordenada
-				// HWND hwndTarget = ChildWindowFromPoint(window, pt);
-				// // 2. Converter para coordenadas relativas à janela pai (hwndPai)
-				// ScreenToClient(window, &pt);
-
-				// // 3. Descobrir qual controle/janela filha está sob o mouse
-				// HWND hwndFilha = ChildWindowFromPoint(window, pt);
-
-				// if (hwndFilha != NULL && hwndFilha != window) {
-				// 	// O ponto está em cima de uma janela filha específica!
-				// 	char className[256];		
-				// 	// 3. Pega o nome da classe do componente sob o mouse
-				// 	GetClassNameA(hwndTarget, className, sizeof(className));
-				// 	Melder_warning(U"Em teste: objeto sob o mouse: ", Melder_peek8to32_u(className));
-				// }
-
-				// if (hwndTarget != NULL) {
-				// 	char className[256];		
-				// 	// 3. Pega o nome da classe do componente sob o mouse
-				// 	GetClassNameA(hwndTarget, className, sizeof(className));
-				// 	Melder_warning(U"Em teste: objeto sob o mouse: ", Melder_peek8to32_u(className));
-					
-				// 	// // 4. Verifica se a classe é uma "ListBox"
-				// 	// if (strcmp(className, "ListBox") == 0) {
-				// 	// 	Melder_warning(U"Em teste: os arquivos foram soltos em um ListBox!");
-						
-				// 	// 	// Aqui você pode continuar com o DragQueryFile para ler os arquivos
-				// 	// } else {
-				// 	// 	Melder_warning(U"Em teste: solto sobre em outro componente: ", Melder_peek8to32_u(className));
-				// 	// }
-				// }
-								
-		// 	}
-		// }
-
-static void on_command (
-        HWND window, int id, HWND controlWindow, UINT codeNotify) {
+static void on_command (HWND window, int id, HWND controlWindow, UINT codeNotify) {
 	GuiObject parent = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (parent) {
 		if (controlWindow) {
@@ -3131,8 +3077,7 @@ static void on_command (
 			}
 		}
 	} else
-		FORWARD_WM_COMMAND (
-		        window, id, controlWindow, codeNotify, DefWindowProc);
+		FORWARD_WM_COMMAND (window, id, controlWindow, codeNotify, DefWindowProc);
 }
 static void on_destroy (HWND window) { (void) window; }
 static void on_lbuttonDown (HWND window, BOOL doubleClick, int x, int y, UINT flags) {
