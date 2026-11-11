@@ -3425,32 +3425,27 @@ static LRESULT CALLBACK windowProc(
 			on_command(window, (int)LOWORD(wParam), (HWND)lParam, (UINT)HIWORD(wParam));
 			GuiObject control = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 			if (control) {
-				// if (MEMBER (control, List)) {
-					// Melder_warning (U"WM_COMMAND: ", (UINT)(wParam));
-				// if (MEMBER (control, DrawingArea)) {
-					// me -> mouseBoss -> = NULL;  // para evitar que o mouse fique preso no modo de arrastar (drag) após clicar em um item do menu de contexto
-				
-					// Melder_warning (U"WM_COMMAND: ", (UINT)(wParam));
-					
-					int wmId = LOWORD(wParam);
-					switch (wmId) {
-					case ID_ITEM_1:
-						Melder_warning(U"Você clicou na Opção 1. WidgetClass: ", control->widgetClass);						
-						break;
-					case ID_ITEM_2:
-						Melder_warning(U"Você clicou na Opção 2");
-						break;
-					case ID_PLAY:
-						Melder_warning(U"Você clicou em Reproduzir");
-						break;
-					case ID_PAUSE:
-						Melder_warning(U"Você clicou em Pausar");
-						break;
-					case ID_STOP:
-						Melder_warning(U"Você clicou em Parar");
-						break;
-					}
-				// }
+				// Melder_warning (U"WM_COMMAND: ", (UINT)(wParam));
+				// TODO: enviar para a função on_command() para tratar o evento de menu de contexto, que é enviado como WM_COMMAND com o ID do item do menu.
+				// manter aqui até refinar
+				int wmId = LOWORD(wParam);
+				switch (wmId) {
+				case ID_ITEM_1:
+					Melder_warning(U"Você clicou na Opção 1. WidgetClass: ", control->widgetClass);						
+					break;
+				case ID_ITEM_2:
+					Melder_warning(U"Você clicou na Opção 2");
+					break;
+				case ID_PLAY:
+					Melder_warning(U"Você clicou em Reproduzir");
+					break;
+				case ID_PAUSE:
+					Melder_warning(U"Você clicou em Pausar");
+					break;
+				case ID_STOP:
+					Melder_warning(U"Você clicou em Parar");
+					break;
+				}
 			}
 			return 0;
 		}
