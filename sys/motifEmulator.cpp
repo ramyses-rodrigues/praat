@@ -2901,7 +2901,7 @@ static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {
 			GuiObject control = (GuiObject) GetWindowLongPtr (hwndContext, GWLP_USERDATA);
 			if (control) {
 				// teste
-				Melder_warning (U"Objeto em contexto: ", control->name.get(), U" (", control->widgetClass, U")");
+				//Melder_warning (U"Objeto em contexto: ", control->name.get(), U" (", control->widgetClass, U")");
 				switch (control->widgetClass) {					
 					case xmPushButtonWidgetClass: break;
 					case xmListWidgetClass: {
@@ -3415,15 +3415,19 @@ static LRESULT CALLBACK windowProc(
 		// HANDLE_MSG (window, WM_COMMAND, on_command);
 		
 		/* Ramyses - arrastar e soltar */
-		HANDLE_MSG(window, WM_DROPFILES, on_dropFiles);		
-
+		HANDLE_MSG(window, WM_DROPFILES, on_dropFiles);	
+		/* Ramyses - cria menu de contexto */
+		HANDLE_MSG(window, WM_CONTEXTMENU, on_contextmenu);	/* Ramyses - cria menu de contexto */
+		
 		/* Ramyses - responde a menu de contexto */
 		case WM_COMMAND:
 		{			
 			on_command(window, (int)LOWORD(wParam), (HWND)lParam, (UINT)HIWORD(wParam));
 			GuiObject control = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 			if (control) {
-				if (MEMBER (control, DrawingArea)) {
+				// if (MEMBER (control, List)) {
+					// Melder_warning (U"WM_COMMAND: ", (UINT)(wParam));
+				// if (MEMBER (control, DrawingArea)) {
 					// me -> mouseBoss -> = NULL;  // para evitar que o mouse fique preso no modo de arrastar (drag) após clicar em um item do menu de contexto
 				
 					// Melder_warning (U"WM_COMMAND: ", (UINT)(wParam));
@@ -3446,12 +3450,10 @@ static LRESULT CALLBACK windowProc(
 						Melder_warning(U"Você clicou em Parar");
 						break;
 					}
-				}
+				// }
 			}
 			return 0;
 		}
-		/* Ramyses - cria menu de contexto */
-		HANDLE_MSG(window, WM_CONTEXTMENU, on_contextmenu);
 
 		HANDLE_MSG (window, WM_SIZE, on_size);
 		HANDLE_MSG (window, WM_KEYDOWN, on_key);
