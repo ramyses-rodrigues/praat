@@ -2906,37 +2906,80 @@ static void on_contextmenu (HWND window, HWND hwndContext, int xPos, int yPos) {
 					case xmPushButtonWidgetClass: break;
 					case xmListWidgetClass: {
 						//Melder_warning (U"WM_CONTEXTMENU: xmListWidgetClass");	
-						// Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
+
+						/* Verificar antes se tem algum item da lista de objetos selecioando */
+						// converte as coordenadas de tela em coordenadas da janela do controle
+						POINT pt = { xPos, yPos };
+						ScreenToClient(control->window, &pt);
+
+						// 1. Descobre o item sob o cursor
+						LRESULT res = SendMessage(control->window, LB_ITEMFROMPOINT, 0, MAKELPARAM(pt.x, pt.y));
+						int indiceClicado = LOWORD(res);
+						BOOL foraDaLista = HIWORD(res);
+
+						// // Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
+						// abrirá o menu de contexto de onde o mouse está. se estiver sob o item da lista, abrirá o menu de contexto do item. 
+						// Se não estiver sob o item da lista, abrirá o menu de contexto na posição do mouse.
 						if (xPos == -1 && yPos == -1) {
-							RECT rect;
-							GetClientRect(window, &rect);
-							ClientToScreen(window, (LPPOINT)&rect);
-							xPos = rect.left + 10;
-							yPos = rect.top + 10;
-						}
-						HMENU hPopup = CreatePopupMenu();
-						if (hPopup) {
-							// 2. Adicionar itens ao menu (referências e falante cadastradas)
-							// recupera referências de falantes cadastradas e adiciona ao menu
-
-							// separa o falante de referência da string
-
+							POINT pt;
+							GetCursorPos(&pt);
+							ScreenToClient(control->window, &pt);
+							xPos = pt.x;
+							yPos = pt.y;
 							
-							// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
+							// RECT rect;
+							// GetClientRect(window, &rect);
+							// ClientToScreen(window, (LPPOINT)&rect);
+							// xPos = rect.left + 10;
+							// yPos = rect.top + 10;
+						}
 
-							// 1. Criar o menu pop-up
-							AppendMenu(hPopup, MF_STRING, ID_PLAY, L"Play");
-							AppendMenu(hPopup, MF_STRING, ID_STOP, L"Stop");
+						// agora, verifica se o item clicado é válido e se não está fora da lista
+						if (!foraDaLista && indiceClicado != LB_ERR) {
+							SendMessage(control->window, LB_SETCURSEL, indiceClicado, 0);
+
+							HMENU hMenu = CreatePopupMenu();
+							AppendMenu(hMenu, MF_STRING, ID_PLAY, TEXT("Abrir / Executar"));
+							AppendMenu(hMenu, MF_STRING, ID_STOP, TEXT("Parar reprodução"));
 
 							// Garantir que a janela seja o foco antes de rastrear
 							SetForegroundWindow(window);
 
-							// 3. Exibir o menu na posição do cursor
-							TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
+							TrackPopupMenu(hMenu, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
+							DestroyMenu(hMenu);
+        				}
+						
+						// // Se o menu foi aberto via teclado (Shift+F10 ou tecla App), lParam pode ser -1
+						// if (xPos == -1 && yPos == -1) {
+						// 	RECT rect;
+						// 	GetClientRect(window, &rect);
+						// 	ClientToScreen(window, (LPPOINT)&rect);
+						// 	xPos = rect.left + 10;
+						// 	yPos = rect.top + 10;
+						// }
+						// HMENU hPopup = CreatePopupMenu();
+						// if (hPopup) {
+						// 	// 2. Adicionar itens ao menu (referências e falante cadastradas)
+						// 	// recupera referências de falantes cadastradas e adiciona ao menu
 
-							// 4. Destruir o menu da memória após o uso
-							DestroyMenu(hPopup);
-						}
+						// 	// separa o falante de referência da string
+
+							
+						// 	// Melder_warning (U"WM_CONTEXTMENU: ", xPos, U", ", yPos);
+
+						// 	// 1. Criar o menu pop-up
+						// 	AppendMenu(hPopup, MF_STRING, ID_PLAY, L"Play");
+						// 	AppendMenu(hPopup, MF_STRING, ID_STOP, L"Stop");
+
+						// 	// Garantir que a janela seja o foco antes de rastrear
+						// 	SetForegroundWindow(window);
+
+						// 	// 3. Exibir o menu na posição do cursor
+						// 	TrackPopupMenu(hPopup, TPM_RIGHTBUTTON | TPM_TOPALIGN | TPM_LEFTALIGN, xPos, yPos, 0, window, NULL);
+
+						// 	// 4. Destruir o menu da memória após o uso
+						// 	DestroyMenu(hPopup);
+						// }
 					}					
 						break;
 					case xmTextWidgetClass:
@@ -2997,8 +3040,7 @@ static void on_command (HWND window, int id, HWND controlWindow, UINT codeNotify
 	GuiObject parent = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	if (parent) {
 		if (controlWindow) {
-			GuiObject control =
-			        (GuiObject) GetWindowLongPtr (controlWindow, GWLP_USERDATA);
+			GuiObject control = (GuiObject) GetWindowLongPtr (controlWindow, GWLP_USERDATA);
 			if (control) {
 				switch (control->widgetClass) {
 				/*
@@ -3423,28 +3465,59 @@ static LRESULT CALLBACK windowProc(
 		case WM_COMMAND:
 		{			
 			on_command(window, (int)LOWORD(wParam), (HWND)lParam, (UINT)HIWORD(wParam));
-			GuiObject control = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
-			if (control) {
+			GuiObject parent = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
+			if (parent) {
 				// Melder_warning (U"WM_COMMAND: ", (UINT)(wParam));
 				// TODO: enviar para a função on_command() para tratar o evento de menu de contexto, que é enviado como WM_COMMAND com o ID do item do menu.
 				// manter aqui até refinar
-				int wmId = LOWORD(wParam);
+				int wmId = LOWORD(wParam);     // Identificador do menu ou controle
+    			int wmEvent = HIWORD(wParam);  // Código da notificação (ex: BN_CLICKED)
+				Melder_warning (U"WM_COMMAND: wmId = ", (UINT)(wmId), U"; wmEvent = ", (UINT)(wmEvent));
+
+				// wmEvent - códigos de notificação para controles específicos, como botões, caixas de texto e listas. Alguns exemplos:
+				// Botões (BUTTON)
+				// • BN_CLICKED: O botão foi clicado.
+				// • BN_DBLCLK: O botão foi clicado duas vezes rapidamente.
+				// listbox
+				// • LBN_SELCHANGE: O item selecionado na lista mudou.
+				// • LBN_DBLCLK: O usuário deu um clique duplo em um item da lista.
+				// • LBN_SELCANCEL: O usuário cancelou a seleção atual na lista.
+				// Caixas de Texto (EDIT)
+				// • EN_CHANGE: O conteúdo do texto foi alterado e já foi desenhado na tela.
+				// • EN_UPDATE: O texto está prestes a ser redesenhado após uma alteração (útil para validar ou formatar antes de exibir).
+				// • EN_SETFOCUS: O usuário clicou na caixa de texto ou navegou até ela com o Tab.
+				// • EN_KILLFOCUS: O usuário saiu da caixa de texto.
+				// • EN_MAXTEXT: O texto inserido ultrapassou o limite máximo de caracteres permitido.
+				
+				// exemplo de como tratar eventos de controles específicos, como uma caixa de texto ou um botão:
+				// if (wmId == IDC_CAIXA_TEXTO && wmEvent == EN_CHANGE) {
+        		// 	// O texto dentro da caixa foi modificado pelo usuário
+				// }
+				
+				// if (wmId == IDC_BOTAO_INICIAR && wmEvent == BN_CLICKED) {
+				// 	// O botão iniciar foi clicado
+				// }
+
+				// if (wmId == IDC_BOTAO_INICIAR && wmEvent == BN_CLICKED) {
+				// 	// O botão iniciar foi clicado
+				// }
+
 				switch (wmId) {
-				case ID_ITEM_1:
-					Melder_warning(U"Você clicou na Opção 1. WidgetClass: ", control->widgetClass);						
-					break;
-				case ID_ITEM_2:
-					Melder_warning(U"Você clicou na Opção 2");
-					break;
-				case ID_PLAY:
-					Melder_warning(U"Você clicou em Reproduzir");
-					break;
-				case ID_PAUSE:
-					Melder_warning(U"Você clicou em Pausar");
-					break;
-				case ID_STOP:
-					Melder_warning(U"Você clicou em Parar");
-					break;
+					case ID_ITEM_1:
+						Melder_warning(U"Você clicou na Opção 1. WidgetClass: ", parent->widgetClass);						
+						break;
+					case ID_ITEM_2:
+						Melder_warning(U"Você clicou na Opção 2. WidgetClass: ", parent->widgetClass);
+						break;
+					case ID_PLAY:
+						Melder_warning(U"Você clicou em Reproduzir. WidgetClass: ", parent->widgetClass);
+						break;
+					case ID_PAUSE:
+						Melder_warning(U"Você clicou em Pausar. WidgetClass: ", parent->widgetClass);
+						break;
+					case ID_STOP:
+						Melder_warning(U"Você clicou em Parar. WidgetClass: ", parent->widgetClass);
+						break;
 				}
 			}
 			return 0;
