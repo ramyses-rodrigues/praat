@@ -3472,7 +3472,7 @@ static LRESULT CALLBACK windowProc(
 				// manter aqui até refinar
 				int wmId = LOWORD(wParam);     // Identificador do menu ou controle
     			int wmEvent = HIWORD(wParam);  // Código da notificação (ex: BN_CLICKED)
-				Melder_warning (U"WM_COMMAND: wmId = ", (UINT)(wmId), U"; wmEvent = ", (UINT)(wmEvent));
+				// Melder_warning (U"WM_COMMAND: wmId = ", (UINT)(wmId), U"; wmEvent = ", (UINT)(wmEvent));
 
 				// wmEvent - códigos de notificação para controles específicos, como botões, caixas de texto e listas. Alguns exemplos:
 				// Botões (BUTTON)
