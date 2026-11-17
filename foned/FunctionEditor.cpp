@@ -1569,13 +1569,16 @@ static void gui_drawingarea_cb_mouse (FunctionEditor me, GuiDrawingArea_MouseEve
 
 		// Ramyses - Reproduzir a partir do ponto de clique do mouse, quando em reprodução (duringPlay = true) x_word é o mouseTime
 		if (my duringPlay) {
-			if (event -> isDrop()) {
-				if (my endSelection > my startSelection)
-					my v_play(my startSelection, my endSelection);
-				}
-			else	
-				my v_play (x_world, my endWindow);
-		}
+			try {
+				if (event -> isDrop()) {
+					if (my endSelection == my startSelection) // se não houver seleção, reproduzir a partir do ponto de clique do mouse
+						my v_play(my startSelection, my endWindow);
+					}
+			}
+			catch (MelderError) {
+					Melder_flushError ();
+			}
+		}	
 	} else {   // clicked outside signal region? Let us hear it
 		try {
 			if (event -> isClick()) {
