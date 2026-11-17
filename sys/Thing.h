@@ -21,9 +21,15 @@
 /* The root class of all objects. */
 
 /* Anyone who uses Thing can also use: */
+<<<<<<< HEAD
 #include "melder.h"
 /* The macros for struct and class definitions: */
 #include "oo.h"
+=======
+	#include "melder.h"
+	/* The macros for struct and class definitions: */
+		#include "oo.h"
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 #define _Thing_auto_DEBUG  0
 

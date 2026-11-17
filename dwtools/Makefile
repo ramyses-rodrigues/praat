@@ -1,5 +1,9 @@
 # Makefile of the library "dwtools"
+<<<<<<< HEAD
 # David Weenink and Paul Boersma, 7 October 2026
+=======
+# David Weenink and Paul Boersma, 11 November 2026
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 CPPFLAGS += -I . -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../fon -I ../LPC -I ../foned -I ../EEG \
 	-I ../external/clapack -I ../external/vorbis -I ../external/opusfile -I ../external/portaudio -I ../external/espeak \
@@ -13,7 +17,11 @@ OBJECTS = ActivationList.o AffineTransform.o AnalyticSound.o \
 	ComplexSpectrogram.o Configuration.o ContingencyTable.o \
 	Configuration_AffineTransform.o \
 	Configuration_and_Procrustes.o ConstantQSpectrograms.o \
+<<<<<<< HEAD
 	Corpus_extensions.o \
+=======
+	TIMITCorpus.o \
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	DataModeler.o Distance.o \
 	DTW.o DTW_and_TextGrid.o \
 	Discriminant.o  Discriminant_PatternList_Categories.o \

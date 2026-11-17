@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ##Please note the 2 number signs, or pound signs in this file are for comments to help you to understand what the settings are and how to set them.  
 ## Language sets the language of your voice.  This setting is required for every voice that you make.
 ##The next line is a setting you can change.  However if you don't know the language codes it may be best to leave the setting as it is.
@@ -50,6 +51,8 @@ tone 600 255 1200 255 2000 255
 ##This file does not include all of the settings that can be used to modify an E Speak voice.  It is intended to get you familiar with what the settings do.
 ##However, you can go to http://espeak.sourceforge.net/voices.html and read further information about other settings that can be added and changed.  I hope this helps, and Have fun.
 =======
+=======
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 ##Please note the 2 number signs, or pound signs in this file are for comments to help you to understand what the settings are and how to set them.  
 ## Language sets the language of your voice.  This setting is required for every voice that you make.
 ##The next line is a setting you can change.  However if you don't know the language codes it may be best to leave the setting as it is.
@@ -100,4 +103,7 @@ pitch 82 118
 tone 600 255 1200 255 2000 255
 ##This file does not include all of the settings that can be used to modify an E Speak voice.  It is intended to get you familiar with what the settings do.
 ##However, you can go to http://espeak.sourceforge.net/voices.html and read further information about other settings that can be added and changed.  I hope this helps, and Have fun.
+<<<<<<< HEAD
 >>>>>>> 743c777ad4710f0f1f346551aa564aea0850322d
+=======
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3

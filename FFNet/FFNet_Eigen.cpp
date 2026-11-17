@@ -160,7 +160,11 @@ void FFNet_Eigen_drawDecisionPlaneInEigenspace (FFNet me, Eigen thee, Graphics g
 		    "for unit ", unit, U" in layer ", layer, U" with the plane spanned by the eigenvectors because \nboth planes are parallel.");
 		return;
 	}
+<<<<<<< HEAD
 	double xi [3], yi [3]; // Intersections
+=======
+	double xi [1+3], yi [1+3];   // TODO: explain in `NUMgetIntersectionsWithRectangle` why the maximum number of intersections can be 3
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	const double ni = NUMgetIntersectionsWithRectangle (x1, y1, x2, y2, xmin, ymin, xmax, ymax, xi, yi);
 	if (ni == 2)
 		Graphics_line (g, xi [1], yi [1], xi [2], yi [2]);

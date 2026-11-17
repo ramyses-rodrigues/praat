@@ -165,8 +165,17 @@ double NUM_interpolate_sinc (constVEC const& y, double x, integer maxDepth) {
 				/*
 					Accumulate the contribution of this sample to the result.
 				*/
+<<<<<<< HEAD
 				const double sincTimesWindow = halfSinLeftPhase / leftPhase * (1.0 + cosWindowPhase);
 				result += y [ix] * sincTimesWindow;
+=======
+				Melder_assert (ix >= 1);
+				Melder_assert (ix <= y.size);
+				Melder_assert (leftPhase != 0.0);
+				const double sincTimesWindow = halfSinLeftPhase / leftPhase * (1.0 + cosWindowPhase);
+				result += y [ix] * sincTimesWindow;
+				Melder_assert (isdefined (result));
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 				/*
 					Update the phase of the sinc.
 				*/
@@ -209,8 +218,20 @@ double NUM_interpolate_sinc (constVEC const& y, double x, integer maxDepth) {
 				/*
 					Accumulate the contribution of this sample to the result.
 				*/
+<<<<<<< HEAD
 				const double sincTimesWindow = halfSinRightPhase / rightPhase * (1.0 + cosWindowPhase);
 				result += y [ix] * sincTimesWindow;
+=======
+				Melder_assert (ix >= 1);
+				Melder_assert (ix <= y.size);
+				Melder_assert (rightPhase != 0.0);
+				const double sincTimesWindow = halfSinRightPhase / rightPhase * (1.0 + cosWindowPhase);
+				result += y [ix] * sincTimesWindow;
+				if (isundef (result)) {
+					//Melder_crash (y.size, U" ", ix, U" ", y [ix], U" ", sincTimesWindow);
+				}
+				//Melder_assert (isdefined (result));
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 				/*
 					Update the phase of the sinc.
 				*/
@@ -329,6 +350,10 @@ double NUM_interpolate_sinc (constVEC const& y, double x, integer maxDepth) {
 			}
 		}
 	}
+<<<<<<< HEAD
+=======
+	//Melder_assert (isdefined (result));
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	return result;
 }
 
@@ -365,7 +390,12 @@ double NUMimproveExtremum (constVEC const& y, integer ixmid, integer interpolati
 	}
 	if (interpolationDepth == NUM_PEAK_INTERPOLATE_PARABOLIC) {
 		const double dy = 0.5 * (y [ixmid + 1] - y [ixmid - 1]);
+<<<<<<< HEAD
 		const double d2y = 2 * y [ixmid] - y [ixmid - 1] - y [ixmid + 1];
+=======
+		const double d2y = (y [ixmid] - y [ixmid - 1]) + (y [ixmid] - y [ixmid + 1]);   // beware of rounding errors
+		Melder_assert (isMaximum && d2y > 0.0 || ! isMaximum && d2y < 0.0);
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		*ixmid_real = ixmid + dy / d2y;
 		return y [ixmid] + 0.5 * dy * dy / d2y;
 	}
@@ -380,6 +410,11 @@ double NUMimproveExtremum (constVEC const& y, integer ixmid, integer interpolati
 	params. y = y;
 	params. isMaximum = isMaximum;
 	*ixmid_real = NUMminimize_brent (improve_evaluate, ixmid - 1, ixmid + 1, & params, 1e-10, & result);
+<<<<<<< HEAD
+=======
+	Melder_assert (isdefined (*ixmid_real));
+	//Melder_assert (isdefined (result));
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	return isMaximum ? - result : result;
 }
 

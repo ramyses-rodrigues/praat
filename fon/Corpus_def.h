@@ -25,7 +25,17 @@ oo_DEFINE_CLASS (Corpus, Daata)
 	oo_OBJECT (Table, 0, recordings)
 	oo_COLLECTION_OF (OrderedOf, textGrids, TextGrid, 0)
 	oo_OBJECT (Table, 0, speakers)
+<<<<<<< HEAD
 
+=======
+	
+	#if oo_DECLARING
+	
+		virtual autoSound extractSound (integer number);
+		
+	#endif
+			
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 oo_END_CLASS (Corpus)
 #undef ooSTRUCT
 

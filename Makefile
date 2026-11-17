@@ -184,13 +184,13 @@ ifeq ($(OS_IS_FREEBSD),1)
     $(GRAPHICS_COMPILER_FLAGS) $(AUDIO_COMPILER_FLAGS) \
     -Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O1 -g1 -pthread $(CPPFLAGS)
 
-  CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=implicit 
+  CFLAGS := -std=gnu99 $(SHARED_COMPILER_FLAGS) -Werror=implicit
     # Note: why not also -Werror=missing-prototypes ?
   CXXFLAGS := -std=c++17 $(SHARED_COMPILER_FLAGS) -Wshadow -Werror=return-type \
     -I$(LOCALBASE)/include -I$(LOCALBASE)/include/unicode
     # Note: can we add -Werror=return-type to other OSes as well?
 
-  EXECUTABLE_FILE := praat.exe
+  EXECUTABLE_FILE := praat
 
   NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -L$(LOCALBASE)/lib $(AUDIO_LINKER_FLAGS) -lm -lpthread -ltinfow
 
@@ -231,7 +231,7 @@ else ifeq ($(OS_IS_WINDOWS),1)
     CXX := g++
     LINKER_COMMAND := g++
     NON_PRAAT_LIBRARIES = -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool \
-      -static-libgcc -static-libstdc++ -mwindows -static -lwinpthread $(shell pkg-config --cflags gtk+-3.0)
+      -static-libgcc -static-libstdc++ -mwindows -static -lwinpthread
       # Note: winpthread is linked statically, because it may not be available on all users' computers;
       # for the same reason, GCC's C and C++ libraries are also statically linked.
   else
@@ -239,7 +239,7 @@ else ifeq ($(OS_IS_WINDOWS),1)
     CXX := clang
     LINKER_COMMAND := clang
     NON_PRAAT_LIBRARIES = -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -lwinspool \
-      -static -lc++ -lc++abi -mwindows $(shell pkg-config --cflags gtk+-3.0)
+      -static -lc++ -lc++abi -mwindows
       # Note: Clang's C++ libraries are not available on all users' computers, so they are linked statically.
   endif
 

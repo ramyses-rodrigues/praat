@@ -1753,7 +1753,6 @@ void Melder_readAudioToFloat (MelderFile file, int encoding, MAT buffer) {
 					or 32-bit data into the last half of the buffer.
 				*/
 				const size_t numberOfBytesRead = fread (bytes, 1, numberOfBytes, f);
-
 				if (numberOfChannels == 1) {
 					switch (encoding) {
 						case Melder_LINEAR_16_BIG_ENDIAN: {

@@ -1713,10 +1713,8 @@ DO
 		for (integer iframe = 1; iframe <= result.size; iframe ++) {			
 				result [iframe] = Function_convertToNonlogarithmic (me, result [iframe], Pitch_LEVEL_FREQUENCY, (int) unit);
 		}
-
 		if (isCSV) {
 			Melder_information(U"Em construção a exportação para CSV");
-
 
 		}
 	QUERY_ONE_FOR_REAL_VECTOR_END

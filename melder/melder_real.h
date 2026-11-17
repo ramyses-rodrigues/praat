@@ -104,7 +104,7 @@ struct MelderGaussianStats {
 struct MelderFraction {
 	double numerator = 0.0, denominator = 0.0;
 	double get () const {
-		return our denominator == 0.0 ? std::numeric_limits<double>::quiet_NaN() : our numerator / our denominator;
+		return our denominator == 0.0 ? undefined : our numerator / our denominator;
 	}
 	bool isValid () const {
 		return our denominator != 0.0;
@@ -115,7 +115,7 @@ struct MelderCountAndFraction {
 	integer count = 0;
 	double numerator = 0.0, denominator = 0.0;
 	double getFraction () const {
-		return our denominator == 0.0 ? std::numeric_limits<double>::quiet_NaN() : our numerator / our denominator;
+		return our denominator == 0.0 ? undefined : our numerator / our denominator;
 	}
 	bool isValid () const {
 		return our denominator != 0.0;

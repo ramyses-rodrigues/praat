@@ -1,6 +1,6 @@
 /* PitchArea.cpp
  *
- * Copyright (C) 1992-2012,2014-2022 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2022,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,28 +112,6 @@ static void menu_cb_voiceless (PitchArea me, EDITOR_ARGS) {
 	MODIFY_DATA_END
 }
 
-// Ramyses: callback para o comando vozear trecho 
-static void menu_cb_voice (PitchArea me, EDITOR_ARGS) {
-	// Identifica intervalo de frames
-	const integer ileft = Melder_clippedLeft (1_integer, Sampled_xToHighIndex (my pitch(), my startSelection()));
-	const integer iright = Melder_clippedRight (Sampled_xToLowIndex (my pitch(), my endSelection()), my pitch() -> nx);
-	MODIFY_DATA (U"Voice")
-		for (integer iframe = ileft; iframe <= iright; iframe ++) { // varre todos os pitch_frames
-			const Pitch_Frame frame = & my pitch() -> frames [iframe]; // seleciona o pitch_frame atual
-			integer bestCandidate = -1;
-			for (integer cand = 1; cand <= frame -> nCandidates; cand ++) { // percorre todos os candidatos
-				if ((frame -> candidates [cand].strength > 0.5) &&
-					(frame -> candidates [cand]. frequency > 0.0) && 
-					( (bestCandidate == -1) || (frame -> candidates [cand].strength >  frame -> candidates [bestCandidate].strength) ) ) {
-					bestCandidate = cand;
-				}				
-			}
-			if (bestCandidate != -1) // busca pelo candidato de maior força
-					std::swap (frame -> candidates [1], frame -> candidates [bestCandidate]); // se encontrado, torna o candidato mais forte o primeiro candidato, ou seja, o candidato a ser mostrado
-		}
-	MODIFY_DATA_END
-}
-
 
 #pragma mark - PitchArea all menus
 
@@ -152,22 +130,16 @@ void structPitchArea :: v_createMenus () {
 	FunctionAreaMenu_addCommand (menu, U"Path finder...", 0,
 			menu_cb_pathFinder, this);
 	FunctionAreaMenu_addCommand (menu, U"- Modify selected part of pitch:", 0, nullptr, this);
-	// Ramyses: Tecla de atalho DEL para "Unvoice"
-	FunctionAreaMenu_addCommand (menu, U"Unvoice", GuiMenu_DELETE,
+	FunctionAreaMenu_addCommand (menu, U"Unvoice", 0,
 			menu_cb_voiceless, this);
-	// Ramyses: Tecla de atalho INSERT para comando "Voice"
-	FunctionAreaMenu_addCommand (menu, U"Voice", GuiMenu_INSERT,
-			menu_cb_voice, this);
 	FunctionAreaMenu_addCommand (menu, U"-- up and down --", 0, nullptr, this);
-	// Ramyses: Tecla de atalho ALT + SETA UP para "Octave Up"
-	FunctionAreaMenu_addCommand (menu, U"Octave up", GuiMenu_UP_ARROW | GuiMenu_OPTION,
+	FunctionAreaMenu_addCommand (menu, U"Octave up", 0,
 			menu_cb_octaveUp, this);
 	FunctionAreaMenu_addCommand (menu, U"Fifth up", 0,
 			menu_cb_fifthUp, this);
 	FunctionAreaMenu_addCommand (menu, U"Fifth down", 0,
 			menu_cb_fifthDown, this);
-	// Ramyses: Tecla de atalho ALT + SETA DOWN para "OCtave Down"
-	FunctionAreaMenu_addCommand (menu, U"Octave down", GuiMenu_DOWN_ARROW | GuiMenu_OPTION,
+	FunctionAreaMenu_addCommand (menu, U"Octave down", 0,
 			menu_cb_octaveDown, this);
 }
 
@@ -237,8 +209,8 @@ void structPitchArea :: v_drawInside () {
 			for (integer icand = 1; icand <= frame -> nCandidates; icand ++) {
 				frequency = frame -> candidates [icand]. frequency;
 				if (Pitch_util_frequencyIsVoiced (frequency, our pitch() -> ceiling)) {
-					const integer strength = Melder_clippedRight (Melder_iround (10.0 * frame -> candidates [icand]. strength),
-							9_integer);   // map 0.0-1.0 to 0-9
+					const double strength = Melder_clippedRight (Melder_round_tieUp (10.0 * frame -> candidates [icand]. strength),
+							9.0);   // map 0.0-1.0 to 0-9   ; NaN-safe: this is a double because the occasional `undefined` should be shown as "--undefined--"
 					Graphics_text (our graphics(), time, frequency,   strength);
 				}
 			}

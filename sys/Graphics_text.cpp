@@ -107,7 +107,11 @@ extern const char * ipaSerifRegularPS [];
 			wcscpy (logFont. lfFaceName, L"Doulos SIL");
 			EnumFontFamiliesExW (my d_gdiGraphicsContext, & logFont, fontFuncEx_doulos, 0, 0);
 			ipaInited = true;
+<<<<<<< HEAD
 			if (! hasCharis && ! hasDoulos) {
+=======
+			if (! hasCharis && ! hasDoulos &&0) {
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 				/* BUG: The next warning may cause reentry of drawing (on window exposure) and lead to crash. Some code must be non-reentrant !! */
 				Melder_warning (U"The phonetic font is not available.\n"
 					"Several characters may not look correct.\n"
@@ -311,6 +315,7 @@ static void charSize (Graphics anyGraphics, _Graphics_widechar *lc) {
 			Longchar_Info info = lc -> karInfo;
 			const int normalSize = win_size2isize (my fontSize);
 			const int smallSize = (3 * normalSize + 2) / 4;
+<<<<<<< HEAD
 			/* 
 				Ramyses: retirando BUG de fechamento (crash) do Praat após mensagem de não encontrar fonte
 			  removido da linha 310 "int font = ..." para "font = 0"
@@ -320,6 +325,11 @@ static void charSize (Graphics anyGraphics, _Graphics_widechar *lc) {
 				font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
 					info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
 					info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS : lc -> font.integer_;
+=======
+			int font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
+			       info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
+			       info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS : lc -> font.integer_;
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 			if ((unsigned int) lc -> kar >= 0x2E80 && (unsigned int) lc -> kar <= 0x9FFF)
 				font = ( theGraphicsCjkFontStyle == kGraphics_cjkFontStyle::CHINESE ? kGraphics_font_CHINESE : kGraphics_font_JAPANESE );
 			const int size = ( lc -> size < 100 ? smallSize : normalSize );

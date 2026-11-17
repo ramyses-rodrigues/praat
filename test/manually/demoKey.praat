@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 demo Select outer viewport: 0, 100, 0, 100
 demo Axes: 0, 100, 0, 100
 demo Erase all
@@ -25,6 +26,8 @@ while demoWaitForInput ( )
 	endif
 endwhile
 =======
+=======
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 demo Select outer viewport: 0, 100, 0, 100
 demo Axes: 0, 100, 0, 100
 demo Erase all
@@ -50,4 +53,7 @@ while demoWaitForInput ( )
 		demo Text: 50, "centre", 25, "half", "Option key pressed: " + if demoOptionKeyPressed() then "yes" else "no" fi
 	endif
 endwhile
+<<<<<<< HEAD
 >>>>>>> 08539889000c32efd649bcc51fa5da8d4a448db7
+=======
+>>>>>>> d148dd556671c167f9d11c237994d8105725cac3
