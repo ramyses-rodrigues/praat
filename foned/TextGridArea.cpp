@@ -532,12 +532,9 @@ void structTextGridArea :: v_drawInside () {
 	Graphics_setFont (our graphics(), oldFont);
 	Graphics_setFontSize (our graphics(), oldFontSize);
 
-<<<<<<< HEAD
 	/* Ramyses: carrega tamanho de fonte pré-configurada para área de texto do textGrid */
 	GuiText_setFontSize( our functionEditor() -> textArea, our instancePref_textAreafontSize());
 
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	if (isdefined (our draggingTime) && hasBeenDraggedBeyondVicinityRadiusAtLeastOnce) {
 		Graphics_xorOn (our graphics(), Melder_MAROON);
 		for (integer itier = 1; itier <= numberOfTiers; itier ++) {
@@ -1129,12 +1126,9 @@ void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 	FunctionAreaMenu_addCommand (menu, U"-- search --", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (menu, U"Find...", 'F', menu_cb_Find, this);
 	FunctionAreaMenu_addCommand (menu, U"Find again", 'G', menu_cb_FindAgain, this);
-<<<<<<< HEAD
 	// Ramyses: adiciona comando no menus replace e replace again
 	FunctionAreaMenu_addCommand (menu, U"Replace...", 'R', menu_cb_replace, this);
 	FunctionAreaMenu_addCommand (menu, U"Replace again", GuiMenu_F4 | GuiMenu_DEPTH_1, menu_cb_replaceAgain, this);
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 }
 
 
@@ -1221,13 +1215,10 @@ static void gui_text_cb_changed (TextGridArea me, GuiTextEvent /* event */) {
 static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"TextGrid settings", nullptr)
 		POSITIVE (fontSize, U"Font size (points)", my default_fontSize())
-<<<<<<< HEAD
 
 		/* Ramyses: Opção para alterar o tamanho da fonte da caixa de texto do textGrid (editor de texto do intervalo) */
 		POSITIVE(textAreafontSize, U"Text Area font size (points)", U"12")
 
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		OPTIONMENU_ENUM (kGraphics_horizontalAlignment, textAlignmentInIntervals,
 				U"Text alignment in intervals", kGraphics_horizontalAlignment::DEFAULT)
 		OPTIONMENU (useTextStyles, U"The symbols %#_^ in labels", my default_useTextStyles() + 1)
@@ -1246,16 +1237,12 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 		SENTENCE (theText, U"...the text", my default_greenString())
 	EDITOR_OK
 		SET_OPTION (useTextStyles, my instancePref_useTextStyles() + 1)
-<<<<<<< HEAD
 		SET_REAL (fontSize, my instancePref_fontSize())	
 
 		/* Ramyses: efetiva a alteração do tamanho da fonte da caixa de texto do textGrid (editor de texto do intervalo) 
 		conorme os padrões do Praat*/		
 		SET_REAL (textAreafontSize, my instancePref_textAreafontSize())	
 
-=======
-		SET_REAL (fontSize, my instancePref_fontSize())
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		SET_ENUM (textAlignmentInIntervals, kGraphics_horizontalAlignment, my instancePref_alignment())
 		if (my editable())
 			SET_OPTION (shiftDragMultiple, my instancePref_shiftDragMultiple() + 1)
@@ -1265,7 +1252,6 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_DO
 		my setInstancePref_useTextStyles (useTextStyles - 1);
 		my setInstancePref_fontSize (fontSize);
-<<<<<<< HEAD
 
 		/* Ramyses: Salvar a configuração de fonte do textArea (editor de texto do intervalo) no arquivo Preferences.ini 
 		   inserida função abaixo no arquivo TextGridArea_prefs.h, para manter o padrão do Praat no tocante ao salvamento 
@@ -1275,8 +1261,6 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_textAreafontSize (textAreafontSize);	
 		//GuiText_setFontSize (my functionEditor() -> textArea,  textAreafontSize); // update window	
 				
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		my setInstancePref_alignment (textAlignmentInIntervals);
 		if (my editable())
 			my setInstancePref_shiftDragMultiple (shiftDragMultiple - 1);
@@ -2031,7 +2015,6 @@ static void menu_cb_AddToUserDictionary (TextGridArea me, EDITOR_ARGS) {
 	}
 }
 
-<<<<<<< HEAD
 /* Ramyses: implementação das funções adicionais do menu TextGrid 
 Adicionar referência de falante e salvar em preferences.ini 
 campo stringVoiceReferences também declarado em TextGridArea_prefs.h
@@ -2116,8 +2099,6 @@ static void menu_cb_AddVoiceReferenceInAreaText7 (TextGridArea me, EDITOR_ARGS) 
 static void menu_cb_AddVoiceReferenceInAreaText8 (TextGridArea me, EDITOR_ARGS) { do_AddVoiceRerenceIntextArea (me, 8); }
 
 /* --------------------------------------------------------------------------------------------------------------- */
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 #pragma mark - TextGridArea all menus
 
@@ -2133,7 +2114,6 @@ void structTextGridArea :: v_createMenus () {
 				menu_cb_ConvertToUnicode, this);
 	}
 
-<<<<<<< HEAD
 	/* 
 	Ramyses: implementa funções para adicionar referências de falante M1, M2, M3... F1, F2, F3... no início de cada intervalo do textGrid
 	*/
@@ -2162,8 +2142,6 @@ void structTextGridArea :: v_createMenus () {
 	/* -----------------------------------------------------------------------------------------------------------------------*/
 
 
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	FunctionAreaMenu_addCommand (textGridMenu, U"- Select by TextGrid:", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (textGridMenu, U"Select previous tier", GuiMenu_OPTION | GuiMenu_UP_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_SelectPreviousTier, this);
@@ -2312,15 +2290,10 @@ void structTextGridArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (spellMenu, U"Add selected word to user dictionary", 0,
 				menu_cb_AddToUserDictionary, this);
 	}
-<<<<<<< HEAD
-
 	// /* Ramyses: carrega tamanho de fonte pré-configurada para área de texto do textGrid */
 	// GuiText_setFontSize( our functionEditor() -> textArea, our instancePref_textAreafontSize());
 }
 
-=======
-}
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 void structTextGridArea :: v_updateMenuItems () {
 	GuiThing_setSensitive (extractSelectedTextGridPreserveTimesButton, our endSelection() > our startSelection());
 	GuiThing_setSensitive (extractSelectedTextGridTimeFromZeroButton,  our endSelection() > our startSelection());
