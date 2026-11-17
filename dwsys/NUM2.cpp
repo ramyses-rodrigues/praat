@@ -1664,14 +1664,8 @@ integer NUMgetOrientationOfPoints (double x1, double y1, double x2, double y2, d
 	return orientation;
 }
 
-<<<<<<< HEAD
-integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2, double xmin, double ymin, double xmax, double ymax, double *xi, double *yi) {
-	double x [6], y [6];
-	integer ni = 0;
-=======
 integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2, double xmin, double ymin, double xmax, double ymax, double xi [1+3], double yi [1+3]) {
 	double x [6], y [6];
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 	x [1] = x [4] = x [5] = xmin;
 	x [2] = x [3] = xmax;
@@ -1705,10 +1699,7 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 			To count intersections in a corner only once we have t < 0 instead of t <= 0!
 	*/
 
-<<<<<<< HEAD
-=======
 	integer ni = 0;
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	for (integer i = 1; i <= 4; i ++) {
 		const double denom = (x [i + 1] - x [i]) * (y2 - y1) - (y [i + 1] - y [i]) * (x2 - x1);
 		if (! (denom != 0.0))   // NaN-safe
@@ -1735,13 +1726,8 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 			continue;
 
 		ni ++;
-<<<<<<< HEAD
-		Melder_require (ni <= 3,
-			U"Too many intersections.");   // TODO: explain why `ni` can ever be 3
-=======
 		Melder_require (ni < 3,
 			U"Too many intersections.");
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		xi [ni] = x3;
 		yi [ni] = y3;
 	}
@@ -1787,11 +1773,8 @@ double NUMminimize_brent (double (*f) (double x, void *closure), double a, doubl
 	*/
 	v = a + golden * (b - a);
 	fv = (*f) (v, closure);
-<<<<<<< HEAD
-=======
 	//Melder_assert (isdefined (v));
 	//Melder_assert (isdefined (fv));
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	x = v;
 	w = v;
 	*fx = fv;
@@ -1801,16 +1784,11 @@ double NUMminimize_brent (double (*f) (double x, void *closure), double a, doubl
 		const double middle_range = (a + b) / 2.0;
 		const double tol_act = sqrt_epsilon * fabs (x) + tol / 3.0;
 		double range = b - a;
-<<<<<<< HEAD
-		if (fabs (x - middle_range) + range / 2.0 <= 2.0 * tol_act)
-			return x;
-=======
 		if (fabs (x - middle_range) + range / 2.0 <= 2.0 * tol_act) {
 			//Melder_assert (isdefined (x));
 			//Melder_assert (isdefined (*fx));
 			return x;
 		}
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 		// Obtain the golden section step
 
@@ -1858,11 +1836,8 @@ double NUMminimize_brent (double (*f) (double x, void *closure), double a, doubl
 		{
 			const double t = x + new_step;	// Tentative point for the min
 			const double ft = (*f) (t, closure);
-<<<<<<< HEAD
-=======
 			//Melder_assert (isdefined (t));
 			//Melder_assert (isdefined (ft));
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 			/*
 				If t is a better approximation, reduce the range so that
@@ -1901,11 +1876,8 @@ double NUMminimize_brent (double (*f) (double x, void *closure), double a, doubl
 		}
 	}
 	Melder_warning (U"NUMminimize_brent: maximum number of iterations (", itermax, U") exceeded.");
-<<<<<<< HEAD
-=======
 	//Melder_assert (isdefined (x));
 	//Melder_assert (isdefined (*fx));
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	return x;
 }
 

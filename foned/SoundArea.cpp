@@ -292,11 +292,7 @@ bool structSoundArea :: v_mouse (GuiDrawingArea_MouseEvent event, double x_world
 				}
 			}
 		}
-<<<<<<< HEAD
-	}	
-=======
 	}
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	return FunctionEditor_defaultMouseInWideDataView (our functionEditor(), event, x_world);
 }
 

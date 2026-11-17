@@ -1,10 +1,6 @@
 /* Sound_to_Pitch.cpp
  *
-<<<<<<< HEAD
- * Copyright (C) 1992-2005,2007-2012,2014-2020,2023-2025 Paul Boersma
-=======
  * Copyright (C) 1992-2005,2007-2012,2014-2020,2023-2026 Paul Boersma
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,12 +136,8 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 					product += x * y;
 				}
 			}
-<<<<<<< HEAD
-			r [- i] = r [i] = (double) product / sqrt ((double) sumx2 * (double) sumy2);
-=======
 			const double x2y2 = (double) sumx2 * (double) sumy2;   // prevent division by zero
 			r [- i] = r [i] = ( x2y2 <= 0.0 ? 0.0 : (double) product / sqrt (x2y2) );
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		}
 	} else {
 
@@ -203,15 +195,6 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 		*/
 		const double dr = 0.5 * (r [i+1] - r [i-1]);
 		const double d2r = (r [i] - r [i-1]) + (r [i] - r [i+1]);
-<<<<<<< HEAD
-				// not 2.0 * r [i] - r [i-1] - r [i+1] because of rounhding errors! (bug removed 2025-04-18)
-		Melder_assert (d2r > 0);
-		const double frequencyOfMaximum = 1.0 / my dx / (i + dr / d2r);
-		const integer offset = - brent_ixmax - 1;
-		double strengthOfMaximum = /* method & 1 ? */
-			NUM_interpolate_sinc (constVEC (& r [offset + 1], brent_ixmax - offset), 1.0 / my dx / frequencyOfMaximum - offset, 30)
-			/* : r [i] + 0.5 * dr * dr / d2r */;
-=======
 				// not 2.0 * r [i] - r [i-1] - r [i+1] because of rounding errors! (bug removed 2025-04-18)
 		Melder_assert (d2r > 0.0);
 		const double frequencyOfMaximum = 1.0 / my dx / (i + dr / d2r);
@@ -221,7 +204,6 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 				NUM_interpolate_sinc (constVEC (& r [offset + 1], brent_ixmax - offset), 1.0 / my dx / frequencyOfMaximum - offset, 30)
 				/* : r [i] + 0.5 * dr * dr / d2r */;
 		Melder_assert (isdefined (strengthOfMaximum));
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 		/*
 			High values due to short windows are to be reflected around 1.
 		*/
@@ -245,11 +227,7 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 					if we want to analyze a perfectly periodic signal correctly.
 				*/
 				const double localStrength = pitchFrame -> candidates [iweak]. strength - octaveCost *
-<<<<<<< HEAD
-					NUMlog2 (pitchFloor / pitchFrame -> candidates [iweak]. frequency);
-=======
 						NUMlog2 (pitchFloor / pitchFrame -> candidates [iweak]. frequency);
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 				if (localStrength < weakest) {
 					weakest = localStrength;
 					place = iweak;
@@ -262,11 +240,8 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 				place = 0;
 		}
 		if (place) {   // have we found a place for this candidate?
-<<<<<<< HEAD
-=======
 			Melder_assert (isdefined (frequencyOfMaximum));
 			Melder_assert (isdefined (strengthOfMaximum));
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 			pitchFrame -> candidates [place]. frequency = frequencyOfMaximum;
 			pitchFrame -> candidates [place]. strength = strengthOfMaximum;
 			imax [place] = i;
@@ -282,12 +257,6 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 			const integer offset = - brent_ixmax - 1;
 			ymid = NUMimproveMaximum (constVEC (& r [offset + 1], brent_ixmax - offset), imax [i] - offset,
 					pitchFrame -> candidates [i]. frequency > 0.3 / my dx ? NUM_PEAK_INTERPOLATE_SINC700 : brent_depth, & xmid);
-<<<<<<< HEAD
-			xmid += offset;
-			pitchFrame -> candidates [i]. frequency = 1.0 / my dx / xmid;
-			if (ymid > 1.0)
-				ymid = 1.0 / ymid;
-=======
 			Melder_assert (isdefined (xmid));
 			Melder_assert (isdefined (ymid));
 			xmid += integer_to_double_a (offset);
@@ -297,7 +266,6 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 			if (ymid > 1.0)
 				ymid = 1.0 / ymid;
 			Melder_assert (isdefined (ymid));
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 			pitchFrame -> candidates [i]. strength = ymid;
 		}
 	}

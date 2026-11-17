@@ -1033,10 +1033,6 @@ static void do_find (TextGridArea me) {
 			findInTier (me);
 	}
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 static void menu_cb_Find (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Find text", nullptr)
 		TEXTFIELD (findString, U"Text", U"", 3)
@@ -1049,7 +1045,6 @@ static void menu_cb_Find (TextGridArea me, EDITOR_ARGS) {
 static void menu_cb_FindAgain (TextGridArea me, EDITOR_ARGS) {
 	do_find (me);
 }
-<<<<<<< HEAD
 
 /* Ramyses: função replace e replace again para o textGrid.
 primeiro busca e seleciona a string a ser substituída,
@@ -1107,8 +1102,6 @@ static void menu_cb_replaceAgain (TextGridArea me, EDITOR_ARGS) {
 }
 /* ---------------------------------------------------- */
 
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 	#ifndef macintosh
 		if (our editable()) {
@@ -1267,11 +1260,7 @@ static void menu_cb_TextGridSettings (TextGridArea me, EDITOR_ARGS) {
 		my setInstancePref_showNumberOf (showNumberOf);
 		my setInstancePref_greenMethod (paintIntervalsGreenWhoseLabel);
 		my setInstancePref_greenString (theText);
-<<<<<<< HEAD
-		FunctionEditor_redraw (my functionEditor()); // update window
-=======
 		FunctionEditor_redraw (my functionEditor());
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 	EDITOR_END
 }
 

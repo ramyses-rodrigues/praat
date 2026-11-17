@@ -20,7 +20,6 @@
 #include "Sound_and_Spectrogram.h"
 #include "Photo.h"
 #include "Sound_and_Spectrum.h"
-<<<<<<< HEAD
 #include "Sound_and_LPC.h"
 #include "Sound_to_Pitch.h"
 #include "Sound_to_Intensity.h"
@@ -32,11 +31,6 @@
 #include "LPC_to_Spectrum.h"
 #include "Formant_extensions.h"
 
-=======
-#include "Sound_to_Pitch.h"
-#include "Sound_to_Intensity.h"
-#include "Sound_to_Formant.h"
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 #include "Pitch_to_PointProcess.h"
 #include "VoiceAnalysis.h"
 #include "EditorM.h"
@@ -2164,7 +2158,6 @@ static void do_getBandwidth (SoundAnalysisArea me, integer iformant, Interpreter
 		: Melder_cat ( U" Hz (B", iformant, U" in centre of ", SoundAnalysisArea_partString (part), U")")
 	)
 }
-<<<<<<< HEAD
 /* Ramyses: desenhar formant spectrum na janela de desenho para commparar fones */
 static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpreter optionalInterpreter) {
 	
@@ -2344,8 +2337,6 @@ static void do_drawLPCSpectrum (SoundAnalysisArea me, integer iformant, Interpre
 static void QUERY_DATA_FOR_REAL__getLPCSpectrumAtTime (SoundAnalysisArea me, EDITOR_ARGS) {
 	do_drawLPCSpectrum (me, 1, optionalInterpreter);
 }
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 static void QUERY_DATA_FOR_REAL__getFirstFormant (SoundAnalysisArea me, EDITOR_ARGS) {
 	do_getFormant (me, 1, optionalInterpreter);
 }
@@ -2556,13 +2547,10 @@ void structSoundAnalysisArea :: v_createMenuItems_formant (EditorMenu menu) {
 			0, menu_cb_formantSettings, this);
 	FunctionAreaMenu_addCommand (menu, U"Advanced formant settings...",
 			0, menu_cb_advancedFormantSettings, this);
-<<<<<<< HEAD
 	
 	/* Ramyses: menu desenhar LPC spectrum*/
 	FunctionAreaMenu_addCommand (menu, U"Draw LPC Spectrum (slice) at Time", GuiMenu_SHIFT | 'S' | GuiMenu_COMMAND,
 			QUERY_DATA_FOR_REAL__getLPCSpectrumAtTime, this);
-=======
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 	FunctionAreaMenu_addCommand (menu, U"- Query formants:", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (menu, U"Formant listing", GuiMenu_F1 | GuiMenu_COMMAND | GuiMenu_DEPTH_1,

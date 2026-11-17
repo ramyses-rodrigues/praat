@@ -18,11 +18,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-<<<<<<< HEAD
-#include "../melder/melder.h"
-=======
 #include "melder.h"
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 
 /*
 	All strings added with Preferences_addString should have the following buffer size,

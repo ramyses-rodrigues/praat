@@ -2,11 +2,7 @@
 #define _Graphics_extensions_h_
 /* Graphics_extensions.h
  *
-<<<<<<< HEAD
- * Copyright (C) 2012-2022 David Weenink
-=======
  * Copyright (C) 2012-2022, 2026 David Weenink
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,11 +56,7 @@ integer getGridCellIndex (double x, double y, integer numberOfRows, integer numb
 
 /*
 	Clipline segments from (x1,y1) to (x2, y2) against a rectangular clipping window
-<<<<<<< HEAD
-	whose bottom-left point is (xL,yB) anf top-right point is (xR,yT).
-=======
 	whose bottom-left point is (xL,yB) and top-right point is (xR,yT).
->>>>>>> d148dd556671c167f9d11c237994d8105725cac3
 */
 typedef struct structLineSegmentClipper *LineSegmentClipper;
 using autoLineSegmentClipper = std::unique_ptr<structLineSegmentClipper>;
