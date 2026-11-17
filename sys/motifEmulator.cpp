@@ -3139,8 +3139,7 @@ static void on_dropFiles (HWND window, HDROP hDrop) {
 	FORWARD_WM_DROPFILES (window, hDrop, DefWindowProc);
 }
 
-static LRESULT CALLBACK windowProc(
-	HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
