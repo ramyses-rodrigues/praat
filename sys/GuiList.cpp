@@ -70,7 +70,7 @@ Thing_implement (GuiList, GuiControl, 0);
 
 	// Ramyses: manipular o arrastar e soltar (drag and drop)
 	#include <praatP.h> // pra ter acesso à função praat_newWithFile()
-	// #include <praat_script.h>
+	#include <praat_script.h> // para ter acesso à função praat_executeCommand()
 	void _GuiWinList_handleDragDrop(GuiObject widget, HDROP hDrop) {
 		// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF
 		// in the second parameter then it returns the count of how many filers were
@@ -91,33 +91,45 @@ Thing_implement (GuiList, GuiControl, 0);
 		Melder_warning (U"Arquivos recebidos: \n", MeldershowString32.string);
 		
 		// Agora, carrega todos os arquivos na lista de objetos do praat
+		structMelderFile fileS;     // aloca memória
+		MelderFile file = &fileS;   // cria ponteiro para a struct
+		MelderString command = {};  // para construir o comando de leitura do arquivo, usando a função praat_executeCommand() e o script de comandos do praat (praat_script.h)
+		bool status = FALSE;
 		for (int i = 0; i < count; i++) {
-			structMelderFile fileS;     // aloca memória
-			MelderFile file = &fileS;   // cria ponteiro para a struct
-			MelderString command = {};  // para construir o comando de leitura do arquivo, usando a função praat_executeCommand() e o script de comandos do praat (praat_script.h)
-			bool status = FALSE;
 
 			Melder_pathToFile (MelderstrFiles32[i].string, file);
 			MelderString_empty (&command);
 			
-			// // adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-			// MelderString_append (&command, U"Read from file... ", file->path);			
-			// try {
-			// 	if (!praat_executeCommand (nullptr, command.string)) {
-			// 		Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-			// 		continue; // pula para o próximo arquivo	
-			// 	};	
-			// } catch (MelderError) {
-			// 	Melder_warning (U"Erro ao construir o comando para ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-			// 	continue; // pula para o próximo arquivo
-			// }	
+			// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
+			// MelderString_append (&command, U"runSystem: ");
+			// MelderString_append (&command, U"ffmpeg -y -i """, file->path, U"""");		
+			// MelderString_append (&command, U" -vn -ac 1 -ar 44100 """ , file->path, U""".wav");			
+			// MelderString_append (&command, U"Read from file... ", file->path, U".wav");
+
+			// No C++ do Praat, literais de string usam o prefixo U"..." (char32_t)
+			// conststring32 entrada = file->path; 
+			// autostring32 saida = file->path + autostring32(U".wav");
+
+    		// Melder_system (U"ffmpeg -y -i \"", entrada, U"\" -vn -ac 1 -ar 44100 \"", saida, U"\"");
+
 			
-			/* outra forma de criar objeto e colocar na lista de objetos da janela principal */
-			autoDaata result = Data_readFromFile (file);
-			// //cria objeto e coloca na lista, com nome base do arquivo
-			praat_newWithFile (result.move (), file, file->path);   // result nulifies here
-			praat_updateSelection(); // executado dentro de praat_executeCommand(...)
-			UpdateWindow(widget ->window);			
+			MelderString_append (&command, U"Read from file... ", file->path);			
+			try {
+				if (!praat_executeCommand (nullptr, command.string)) {
+					Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+					continue; // pula para o próximo arquivo	
+				};	
+			} catch (MelderError) {
+				Melder_warning (U"Erro ao construir o comando para ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+				continue; // pula para o próximo arquivo
+			}	
+			
+			// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
+			// autoDaata result = Data_readFromFile (file);
+			// // //cria objeto e coloca na lista, com nome base do arquivo
+			// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
+			// praat_updateSelection(); // executado dentro de praat_executeCommand(...)
+			// UpdateWindow(widget ->window);			
 		}
 
 		// Finally, we destroy the HDROP handle so the extra memory
