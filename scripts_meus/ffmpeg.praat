@@ -12,9 +12,9 @@ arquivo_wav$ = temporaryDirectory$ + "/praat_ffmpeg_temp.wav"
 
 # Converte para WAV (mono, 44100 Hz, PCM 16-bit) usando o FFmpeg
 # As aspas triplas (""") protegem caminhos com espaços no Windows
-writeInfoLine: "Iníciando tarefa. Aguarde..."
+#writeInfoLine: "Iníciando tarefa. Aguarde..."
 asynchronous runSubprocess: "ffmpeg", "-y", "-i", arquivo$, "-vn", "-ac", "1", "-ar", "44100", "-c:a", "pcm_s16le", arquivo_wav$
-appendInfoLine: "Tarefa concluída"
+#appendInfoLine: "Tarefa concluída"
 # runSystem: "ffmpeg -y -i """, arquivo$, """ -vn -ac 1 -ar 44100 -c:a pcm_s16le """, arquivo_wav$, """"
 
 # Carrega o WAV convertido na janela de objetos do Praat
