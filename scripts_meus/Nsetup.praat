@@ -1,1 +1,0 @@
-Add menu command: "Objects", "Open", "Open audio/video with FFmpeg...", "Read from file...", 0, "ffmpeg.praat"
