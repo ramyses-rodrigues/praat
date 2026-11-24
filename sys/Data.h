@@ -305,6 +305,13 @@ Registering a file-type recognizer:
 	After this, Data_readFromFile is able to read Sun audio files.
 */
 
+// Ramyses - ler arquivos de áudio (wav, mp3, flac, etc) usando o ffmpeg e retornar um objeto Sound
+autoDaata Sound_readFromFFmpegWindows(MelderFile inputPath, double sampleRate = 44100.0, integer channels = 1);
+autoDaata Sound_readFromFFmpegWindows2(MelderFile inputPath, double sampleRate = 44100.0, integer channels = 1);
+/*
+
+*/
+
 autoDaata Data_readFromFile (MelderFile file);
 /*
 Purpose:

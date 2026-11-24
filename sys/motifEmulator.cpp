@@ -3109,32 +3109,32 @@ praat.h
 praat_script.h
 
 */
-// Ramyses - callback do duplo clique no objeto da lista
+// Ramyses - callback do arrastar e soltar. Chama a função _GuiWinList_handleDragDrop() que está em GuiList.cpp
 // Padrão do Praat, chamando outra função em outro CPP (em GuiList.cpp)
 static void on_dropFiles (HWND window, HDROP hDrop) {
 	
-	POINT pt;
-	// 1. Pega o ponto onde o mouse foi solto (coordenadas relativas à janela principal)
-	DragQueryPoint(hDrop, &pt);
-	// 2. Encontra o handle (HWND) do controle que está sob essa coordenada
-	HWND hwndTarget = ChildWindowFromPoint(window, pt);
-	if (hwndTarget != NULL) {
-		char className[256];		
-		// 3. Pega o nome da classe do componente sob o mouse
-		GetClassNameA(hwndTarget, className, sizeof(className));
+	// POINT pt;
+	// // 1. Pega o ponto onde o mouse foi solto (coordenadas relativas à janela principal)
+	// DragQueryPoint(hDrop, &pt);
+	// // 2. Encontra o handle (HWND) do controle que está sob essa coordenada
+	// HWND hwndTarget = ChildWindowFromPoint(window, pt);
+	// if (hwndTarget != NULL) {
+	// 	char className[256];		
+	// 	// 3. Pega o nome da classe do componente sob o mouse
+	// 	GetClassNameA(hwndTarget, className, sizeof(className));
 		
-		// 4. Verifica se a classe é uma "ListBox"
-		if (strcmp(className, "ListBox") == 0) {
-			Melder_warning(U"Em teste: os arquivos foram soltos em um ListBox!");
+	// 	// 4. Verifica se a classe é uma "ListBox"
+	// 	if (strcmp(className, "ListBox") == 0) {
+	// 		Melder_warning(U"Em teste: os arquivos foram soltos em um ListBox!");
 			
-			// runSystem: "ffmpeg -y -i ", entrada$, " -vn -ac 1 -ar 44100 ", saida$
-			// Read from file: saida$
+	// 		// runSystem: "ffmpeg -y -i ", entrada$, " -vn -ac 1 -ar 44100 ", saida$
+	// 		// Read from file: saida$
 
-			// Aqui você pode continuar com o DragQueryFile para ler os arquivos
-		} else {
-			Melder_warning(U"Em teste: solto sobre em outro componente: ", Melder_peek8to32_u(className));
-		}
-	}
+	// 		// Aqui você pode continuar com o DragQueryFile para ler os arquivos
+	// 	} else {
+	// 		Melder_warning(U"Em teste: solto sobre em outro componente: ", Melder_peek8to32_u(className));
+	// 	}
+	// }
 
 	GuiObject me = (GuiObject) GetWindowLongPtr (window, GWLP_USERDATA);
 	_GuiWinList_handleDragDrop(me, hDrop);

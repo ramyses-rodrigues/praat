@@ -68,7 +68,8 @@ Thing_implement (GuiList, GuiControl, 0);
 		}
 	}
 
-	// Ramyses: manipular o arrastar e soltar (drag and drop)
+	// Ramyses: manipular o arrastar e soltar (drag and drop). 
+	// Quem chamou foi a função on_dropFiles() em motifEmulator.cpp, que é o callback do evento WM_DROPFILES da janela principal do Praat
 	#include <praatP.h> // pra ter acesso à função praat_newWithFile()
 	#include <praat_script.h> // para ter acesso à função praat_executeCommand()
 	void _GuiWinList_handleDragDrop(GuiObject widget, HDROP hDrop) {
@@ -112,24 +113,34 @@ Thing_implement (GuiList, GuiControl, 0);
 
     		// Melder_system (U"ffmpeg -y -i \"", entrada, U"\" -vn -ac 1 -ar 44100 \"", saida, U"\"");
 
-			
-			MelderString_append (&command, U"Read from file... ", file->path);			
-			try {
-				if (!praat_executeCommand (nullptr, command.string)) {
-					Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-					continue; // pula para o próximo arquivo	
-				};	
-			} catch (MelderError) {
-				Melder_warning (U"Erro ao construir o comando para ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
-				continue; // pula para o próximo arquivo
-			}	
+			// // cria e insere os objetos na lista usando scripts
+			// MelderString_append (&command, U"Read from file... ", file->path);			
+			// try {
+			// 	if (!praat_executeCommand (nullptr, command.string)) {
+			// 		Melder_warning (U"Não foi possível ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+			// 		continue; // pula para o próximo arquivo	
+			// 	};	
+			// } catch (MelderError) {
+			// 	Melder_warning (U"Erro ao construir o comando para ler o arquivo ", file->path, U". Verifique se o formato do arquivo é suportado e se o caminho está correto.");
+			// 	continue; // pula para o próximo arquivo
+			// }	
 			
 			// /* outra forma de criar objeto e colocar na lista de objetos da janela principal */
+			autoDaata result = Sound_readFromFFmpegWindows2(file, 44100.0, 1);
 			// autoDaata result = Data_readFromFile (file);
-			// // //cria objeto e coloca na lista, com nome base do arquivo
-			// praat_newWithFile (result.move (), file, file->path);   // result nulifies here
-			// praat_updateSelection(); // executado dentro de praat_executeCommand(...)
-			// UpdateWindow(widget ->window);			
+			// // cria objeto e coloca na lista, com nome base do arquivo
+			// 1. Obtém "arquivo.mp4" e cria uma cópia mutável em UTF-32
+			autostring32 nomeBase = Melder_dup(MelderFile_name(file));
+
+			// 2. Localiza o último ponto e substitui por terminador nulo para remover a extensão
+			char32* ponto = str32rchr(nomeBase.get(), U'.');
+			if (ponto && ponto != nomeBase.get()) {
+				*ponto = U'\0';
+			}
+
+			praat_newWithFile (result.move (), file, nomeBase.get());   // result nulifies here
+			praat_updateSelection(); // já executado dentro de praat_executeCommand(...)
+			UpdateWindow(widget ->window);			
 		}
 
 		// Finally, we destroy the HDROP handle so the extra memory

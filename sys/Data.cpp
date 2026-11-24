@@ -278,6 +278,194 @@ void Data_recognizeFileType (Data_FileTypeRecognizer recognizer) {
 	fileTypeRecognizers [++ numFileTypeRecognizers] = recognizer;
 }
 
+
+// Ramyses: usando o ffmpeg para ler arquivos de áudio (wav, mp3, flac, etc) e retornar um objeto Sound
+#include "../fon/Sound.h"
+#include "melder.h"
+#include <cstdio>
+#include <vector>
+
+bool isFFmpegAvailable() {
+    // Redireciona stdout e stderr para NUL para não abrir janela nem sujar logs
+    FILE* pipe = _wpopen(L"ffmpeg -version > NUL 2>&1", L"r");
+    if (!pipe) {
+        return false;
+    }
+    int exitCode = _pclose(pipe);
+    return (exitCode == 0);
+}
+
+autoDaata Sound_readFromFFmpegWindows(MelderFile inputPath, double sampleRate, integer channels) {
+    try {
+		
+		// verifica se o FFMPEG está presente no sistema (incluído no PATH do Windows)
+		if (!isFFmpegAvailable()) {
+    		Melder_throw(U"O FFmpeg não foi encontrado no sistema. Instale-o ou adicione-o ao PATH do Windows.");
+		}
+		
+		// Monta o comando FFmpeg extraindo float 32-bit little-endian direto para stdout
+		wchar_t cmd[1024];
+		swprintf(cmd, sizeof(cmd),
+			L"ffmpeg -loglevel error -i \"%s\" -vn -f f32le -acodec pcm_f32le -ar %.0f -ac %lld pipe:1",
+			Melder_peek32toW(inputPath->path), sampleRate, (long long)channels);
+
+		// Abre o pipe em modo binário no Windows ("rb")
+		FILE* pipe = _wpopen(cmd, L"rb");
+		if (!pipe) {
+			Melder_throw(U"Falha ao iniciar o processo FFmpeg.");
+		}
+
+		// Lê todas as amostras para um buffer na RAM
+		std::vector<float> buffer;
+		float chunk[4096];
+		size_t readCount;
+		while ((readCount = fread(chunk, sizeof(float), 4096, pipe)) > 0) {
+			buffer.insert(buffer.end(), chunk, chunk + readCount);
+		}
+
+		int exitCode = _pclose(pipe);
+
+		integer totalFrames = buffer.size() / channels;
+		if (totalFrames == 0) {
+			// Melder_throw(U"Nenhum áudio foi decodificado pelo FFmpeg.");
+			Melder_throw(U"FFmpeg retornou 0 frames (exit code ", exitCode, U"). Comando: ", Melder_peekWto32(cmd));
+		}
+
+		// Cria o objeto Sound do Praat na memória
+		double duration = totalFrames / sampleRate;
+		autoSound me = Sound_createSimple(channels, duration, sampleRate);
+
+		// Copia os floats intercalados para a matriz my z[canal][amostra] (base 1 no Praat)
+		for (integer i = 0; i < totalFrames; i++) {
+			for (integer ch = 0; ch < channels; ch++) {
+				my z[ch + 1][i + 1] = static_cast<double>(buffer[i * channels + ch]);
+			}
+		}
+		return me;
+
+	} catch (MelderError) {
+        // Opção A: Se esta função for chamada dentro de fileTypeRecognizers (Data_readFromFile):
+        // Limpa o erro do buffer do Praat e retorna autoDaata() vazio para o Praat tentar o próximo reconhecedor
+        // ou exibir "File not recognized" normalmente sem crashar:
+		Melder_clearError();
+        return autoDaata();
+    }
+}
+
+#include <windows.h>
+#include <string>
+#include <vector>
+
+autoDaata Sound_readFromFFmpegWindows2(MelderFile inputPath, double sampleRate, integer channels) {
+    try {
+        // Verifica se o FFmpeg está presente no sistema (incluído no PATH do Windows)
+        if (!isFFmpegAvailable()) {
+            Melder_throw(U"O FFmpeg não foi encontrado no sistema. Instale-o ou adicione-o ao PATH do Windows.");
+        }
+
+        // 1. Cria um pipe anônimo na memória para ler apenas o STDOUT (dados PCM)
+        SECURITY_ATTRIBUTES sa{};
+        sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+        sa.bInheritHandle = TRUE;
+        sa.lpSecurityDescriptor = nullptr;
+
+        HANDLE hReadStdout = nullptr;
+        HANDLE hWriteStdout = nullptr;
+        if (!CreatePipe(&hReadStdout, &hWriteStdout, &sa, 0)) {
+            Melder_throw(U"Falha ao criar pipe de memória para o FFmpeg.");
+        }
+        // Impede que o handle de leitura seja herdado pelo processo filho
+        SetHandleInformation(hReadStdout, HANDLE_FLAG_INHERIT, 0);
+
+        // 2. Configura o processo para redirecionar apenas o stdout;
+        // o stderr usará a saída padrão da nova janela de console criada
+        STARTUPINFOW si{};
+        si.cb = sizeof(STARTUPINFOW);
+        si.dwFlags = STARTF_USESTDHANDLES;
+        si.hStdOutput = hWriteStdout;
+        si.hStdError  = nullptr;
+        si.hStdInput  = nullptr;
+
+        PROCESS_INFORMATION pi{};
+
+        // 3. Monta o comando via cmd.exe /c para inicializar o console e exibir o progresso (-stats)
+        const wchar_t* pathW = Melder_peek32toW(inputPath->path);
+        std::wstring cmd = L"cmd.exe /c \"ffmpeg -hide_banner -loglevel info -stats -i \"";
+        cmd += pathW;
+        cmd += L"\" -vn -f f32le -acodec pcm_f32le -ar " + std::to_wstring(static_cast<long long>(sampleRate));
+        cmd += L" -ac " + std::to_wstring(static_cast<long long>(channels));
+        cmd += L" pipe:1\"";
+
+        // CreateProcessW exige um buffer mutável terminado em nulo
+        std::vector<wchar_t> cmdMutable(cmd.begin(), cmd.end());
+        cmdMutable.push_back(L'\0');
+
+        // 4. Inicia o FFmpeg abrindo a janela de console com mensagens de progresso
+        BOOL success = CreateProcessW(
+            nullptr,
+            cmdMutable.data(),
+            nullptr,
+            nullptr,
+            TRUE,
+            CREATE_NEW_CONSOLE,
+            nullptr,
+            nullptr,
+            &si,
+            &pi
+        );
+
+        // Fecha o handle de escrita no processo do Praat imediatamente
+        // para que ReadFile reconheça o fim do arquivo (EOF) ao término do FFmpeg
+        CloseHandle(hWriteStdout);
+
+        if (!success) {
+            CloseHandle(hReadStdout);
+            Melder_throw(U"Falha ao iniciar o processo FFmpeg (erro Windows ", (integer)GetLastError(), U").");
+        }
+
+        // 5. Lê todas as amostras para um buffer na RAM enquanto a janela exibe o progresso
+        std::vector<float> buffer;
+        float chunk[4096];
+        DWORD bytesRead = 0;
+
+        while (ReadFile(hReadStdout, chunk, sizeof(chunk), &bytesRead, nullptr) && bytesRead > 0) {
+            size_t floatsRead = bytesRead / sizeof(float);
+            buffer.insert(buffer.end(), chunk, chunk + floatsRead);
+        }
+
+        // Aguarda o encerramento do processo e obtém o código de saída
+        WaitForSingleObject(pi.hProcess, INFINITE);
+        DWORD exitCode = 0;
+        GetExitCodeProcess(pi.hProcess, &exitCode);
+
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        CloseHandle(hReadStdout);
+
+        integer totalFrames = static_cast<integer>(buffer.size()) / channels;
+        if (exitCode != 0 || totalFrames == 0) {
+            Melder_throw(U"FFmpeg retornou 0 frames (exit code ", (integer)exitCode, U"). Comando: ", Melder_peekWto32(cmd.c_str()));
+        }
+
+        // 6. Cria o objeto Sound do Praat na memória
+        double duration = totalFrames / sampleRate;
+        autoSound me = Sound_createSimple(channels, duration, sampleRate);
+
+        // Copia os floats intercalados para a matriz my z[canal][amostra] (base 1 no Praat)
+        for (integer i = 0; i < totalFrames; i++) {
+            for (integer ch = 0; ch < channels; ch++) {
+                my z[ch + 1][i + 1] = static_cast<double>(buffer[i * channels + ch]);
+            }
+        }
+        return me;
+
+    } catch (MelderError) {
+        Melder_clearError();
+        return autoDaata();
+    }
+}
+
+
 autoDaata Data_readFromFile (MelderFile file) {
 	char header [513];
 	autofile f = Melder_fopen (file, "rb");
