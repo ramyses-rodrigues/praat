@@ -9,10 +9,16 @@ static bool s_loaded = false;
 
 // Obtém o caminho do arquivo de histórico na pasta de preferências do Praat
 // (No Windows: C:\Users\<usuario>\Praat\recent_files.txt)
+// C:\Users\<usuario>\AppData\Roaming\Praat
 static void getRecentStorageFile(MelderFile outFile) {
-    structMelderDir prefDir{};
-    Melder_getPrefDir(&prefDir);
-    MelderDir_getFile(&prefDir, U"recent_files.txt", outFile);
+    MelderFolder prefDir = Melder_preferencesFolder();
+    MelderFolder_getFile(prefDir, U"recent_files.txt", outFile);
+    
+    // structMelderFolder structprefDir{};
+    // MelderFolder prefDir = &structprefDir;
+    // prefDir = Melder_preferencesFolder();
+    // // Melder_preferencesFolder(&prefDir);
+    // MelderFolder_getFile(prefDir, U"recent_files.txt", outFile);
 }
 
 void RecentFiles_load() {
@@ -75,7 +81,7 @@ void RecentFiles_add(MelderFile file) {
         RecentFiles_load();
     }
 
-    conststring32 fullPath = Melder_fileToPath(file);
+    conststring32 fullPath = file ? file->path : U"";;
     if (!fullPath || fullPath[0] == U'\0') return;
 
     std::u32string newPath(fullPath);

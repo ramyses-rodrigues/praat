@@ -72,6 +72,7 @@ Thing_implement (GuiList, GuiControl, 0);
 	// Quem chamou foi a função on_dropFiles() em motifEmulator.cpp, que é o callback do evento WM_DROPFILES da janela principal do Praat
 	#include <praatP.h> // pra ter acesso à função praat_newWithFile()
 	#include <praat_script.h> // para ter acesso à função praat_executeCommand()
+	#include <recentFiles.h> // para ter acesso à função RecentFiles_add()
 	void _GuiWinList_handleDragDrop(GuiObject widget, HDROP hDrop) {
 		// This functions has a couple functionalities.  If you pass in 0xFFFFFFFF
 		// in the second parameter then it returns the count of how many filers were
@@ -86,7 +87,7 @@ Thing_implement (GuiList, GuiControl, 0);
 		for (int i = 0; i < count; i++) {
 			DragQueryFile (hDrop, i, szName, MAX_PATH);
 			MelderstrFiles32[i].string = (char32*) Melder_peekWto32(szName);
-			MelderString_append(& MeldershowString32, Melder_integer(i + 1), U" - ", MelderstrFiles32[i].string, U"\n");		
+			MelderString_append(&MeldershowString32, Melder_integer(i + 1), U" - ", MelderstrFiles32[i].string, U"\n");		
 		} 
 
 		Melder_warning (U"Arquivos recebidos: \n", MeldershowString32.string);
@@ -101,18 +102,10 @@ Thing_implement (GuiList, GuiControl, 0);
 			Melder_pathToFile (MelderstrFiles32[i].string, file);
 			MelderString_empty (&command);
 			
-			// adiciona arquivo na objectList através de comandos de script (arquivo praat_script.h)
-			// MelderString_append (&command, U"runSystem: ");
-			// MelderString_append (&command, U"ffmpeg -y -i """, file->path, U"""");		
-			// MelderString_append (&command, U" -vn -ac 1 -ar 44100 """ , file->path, U""".wav");			
-			// MelderString_append (&command, U"Read from file... ", file->path, U".wav");
-
 			// No C++ do Praat, literais de string usam o prefixo U"..." (char32_t)
 			// conststring32 entrada = file->path; 
 			// autostring32 saida = file->path + autostring32(U".wav");
-
-    		// Melder_system (U"ffmpeg -y -i \"", entrada, U"\" -vn -ac 1 -ar 44100 \"", saida, U"\"");
-
+			
 			// // cria e insere os objetos na lista usando scripts
 			// MelderString_append (&command, U"Read from file... ", file->path);			
 			// try {
@@ -140,7 +133,12 @@ Thing_implement (GuiList, GuiControl, 0);
 
 			praat_newWithFile (result.move (), file, nomeBase.get());   // result nulifies here
 			praat_updateSelection(); // já executado dentro de praat_executeCommand(...)
-			UpdateWindow(widget ->window);			
+			UpdateWindow(widget ->window);	
+			
+			// Exemplo no final do reconhecimento de arquivo em Data_readFromFile (sys/Data.cpp):
+            if (file && !MelderFile_isNull(file)) {
+				RecentFiles_add(file);
+            }
 		}
 
 		// Finally, we destroy the HDROP handle so the extra memory
