@@ -16,9 +16,8 @@ void RecentFiles_load();
 // Salva a lista atual no arquivo de preferências do Praat
 void RecentFiles_save();
 
-// Retorna a quantidade atual e o caminho de um índice (0 = mais recente)
-integer RecentFiles_count();
-conststring32 RecentFiles_getPath(integer index);
+void RecentFiles_installMenu();
+void RecentFiles_refreshMenu();
 
 /*
 // Exemplo no final do reconhecimento de arquivo em Data_readFromFile (sys/Data.cpp):
