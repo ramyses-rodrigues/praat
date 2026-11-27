@@ -46,6 +46,9 @@
 #include "../kar/UnicodeData.h"
 #include "InfoEditor.h"
 
+// Ramyses: incluir recentfiles
+#include <RecentFiles.h>
+
 Thing_implement (Praat_Command, Thing, 0);
 
 #define EDITOR  theCurrentPraatObjects -> list [IOBJECT]. editors
@@ -2071,6 +2074,9 @@ void praat_init (conststring32 title,
 		GuiWindow_addMenuBar (raam);
 		praatP.menuBar = raam;
 		praat_addMenus (praatP.menuBar);
+
+		// Ramyses: incluir o menu de arquivos recentes no menu "File"
+		RecentFiles_installMenu();
 
 		trace (U"creating the object list in the Objects window");
 		GuiLabel_createShown (raam, 3, -250, Machine_getMenuBarBottom () + 5, Machine_getMenuBarBottom () + 5 + Gui_LABEL_HEIGHT, U"Objects:", 0);
